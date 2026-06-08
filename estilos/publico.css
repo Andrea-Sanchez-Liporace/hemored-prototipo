@@ -8,8 +8,7 @@
    ============================================================ */
 
 /* === BASE PÚBLICA === */
-body { font-family: 'Inter', sans-serif; color: #1a0a0f; }
-body.flex-layout { background: #fdf0f3; min-height: 100vh; display: flex; flex-direction: column; }
+body { font-family: 'Inter', sans-serif; color: #1a0a0f; background: #fdf0f3; min-height: 100vh; display: flex; flex-direction: column; }
 
 /* === NAV === */
 nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 80px; background: #5a1e37; }
