@@ -110,10 +110,10 @@
     const email = document.getElementById('email').value.trim().toLowerCase();
     const pass  = document.getElementById('password').value;
     const error = document.getElementById('login-error');
-    const u = usuarios[email];
-    if (u && u.pass === pass) {
+    const result = HemoRed.sesion.login(email, pass);
+    if (result.ok) {
       error.style.display = 'none';
-      window.location.href = u.dest;
+      window.location.href = result.dest;
     } else {
       error.style.display = 'block';
     }
