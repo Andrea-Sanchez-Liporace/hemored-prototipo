@@ -6,128 +6,14 @@
   <title>HemoRed — Formularios pre-donación</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #fdf0f3; color: #1a0a0f; min-height: 100vh; display: flex; flex-direction: column; }
-
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: #5a1e37; position: sticky; top: 0; z-index: 50; }
-    .nav-logo { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
-    .nav-logo span { color: #f28b98; }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-    .nav-user { font-size: 13px; color: #f28b98; }
-    .nav-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #f28b98; text-decoration: none; }
-
-    main { flex: 1; padding: 32px 24px; max-width: 640px; width: 100%; margin: 0 auto; }
-
-    /* TURNO BANNER */
-    .turno-banner { background: #5a1e37; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
-    .turno-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .turno-hosp { font-size: 15px; font-weight: 500; color: white; margin-bottom: 3px; }
-    .turno-meta-text { font-size: 12px; color: #f28b98; }
-
-    /* PROGRESS */
-    .progress-wrap { display: flex; gap: 4px; margin-bottom: 8px; }
-    .progress-step { flex: 1; height: 5px; border-radius: 3px; background: #e8d0d8; }
-    .progress-step.done { background: #ef647c; }
-    .progress-step.current { background: #5a1e37; }
-    .progress-labels { display: flex; margin-bottom: 24px; }
-    .progress-label { flex: 1; font-size: 11px; font-weight: 500; color: #a9435d; text-align: center; }
-    .progress-label.current { color: #5a1e37; }
-    .progress-label.done { color: #ef647c; }
-
-    .step-view { display: none; }
-    .step-view.active { display: block; }
-
-    /* CARDS */
-    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; box-shadow: 0 2px 16px rgba(90,30,55,0.06); }
-    .card-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-    .card-desc { font-size: 13px; color: #5a3040; line-height: 1.6; margin-bottom: 20px; }
-
-    /* DOCUMENTO AUTOEXCLUSIÓN */
-    .doc-section { margin-bottom: 20px; }
-    .doc-section-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 0.5px solid #f0e0e6; }
-    .doc-text { font-size: 13px; color: #1a0a0f; line-height: 1.8; margin-bottom: 10px; }
-    .doc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; padding-left: 0; }
-    .doc-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #1a0a0f; line-height: 1.6; }
-    .doc-list li::before { content: '●'; color: #ef647c; font-size: 10px; flex-shrink: 0; margin-top: 4px; }
-    .doc-sub-list { list-style: none; display: flex; flex-direction: column; gap: 6px; padding-left: 20px; margin-top: 6px; }
-    .doc-sub-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #1a0a0f; line-height: 1.6; }
-    .doc-sub-list li::before { content: '–'; color: #a9435d; flex-shrink: 0; }
-    .doc-highlight { background: #fdf0f3; border-left: 3px solid #ef647c; padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; color: #5a3040; line-height: 1.6; }
-    .doc-nota { font-size: 12px; color: #a9435d; font-style: italic; margin-top: 14px; line-height: 1.5; }
-
-    /* AVISO */
-    .aviso { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
-    .av-rojo { background: #fde8e8; border: 1px solid #c0392b; color: #922b21; }
-    .av-azul { background: #eef4ff; border: 1px solid #3498db; color: #1a4a7a; }
-    .av-gris { background: #f7f0f3; border: 0.5px solid #e8d0d8; color: #5a3040; }
-    .av-verde { background: #e1f5ee; border: 1px solid #27ae60; color: #04342c; }
-    .av-naranja { background: #faeeda; border: 1px solid #e67e22; color: #633806; }
-
-    /* CONFIRMACIÓN LECTURA */
-    .confirm-check { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #fdf0f3; border-radius: 12px; border: 1.5px solid #e8d0d8; cursor: pointer; transition: border-color 0.15s; margin-bottom: 14px; }
-    .confirm-check.checked { border-color: #27ae60; background: #e1f5ee; }
-    .confirm-check input { width: 18px; height: 18px; accent-color: #27ae60; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
-    .confirm-check label { font-size: 14px; color: #1a0a0f; line-height: 1.5; cursor: pointer; }
-    .confirm-check.checked label { color: #04342c; }
-
-    /* EXCL ITEMS (F2) */
-    .excl-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
-    .excl-item:last-child { border-bottom: none; }
-    .excl-text { font-size: 13px; color: #1a0a0f; line-height: 1.5; flex: 1; }
-    .excl-sino { display: flex; gap: 6px; flex-shrink: 0; }
-    .excl-btn { width: 48px; padding: 8px 0; border: 1.5px solid #e8d0d8; border-radius: 8px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; color: #5a3040; transition: all 0.12s; }
-    .excl-btn.sel-si { border-color: #c0392b; background: #fde8e8; color: #c0392b; }
-    .excl-btn.sel-no { border-color: #27ae60; background: #e1f5ee; color: #27ae60; }
-
-    .sec-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; border-bottom: 0.5px solid #f0e0e6; margin-bottom: 4px; }
-    .sec-title { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; }
-
-    /* FORM */
-    .form-group { margin-bottom: 14px; }
-    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 13px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; }
-    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
-
-    /* FIRMA */
-    .sig-wrap { border: 1.5px solid #e8d0d8; border-radius: 10px; overflow: hidden; background: white; }
-    .sig-wrap canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
-    .sig-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #fdf0f3; border-top: 0.5px solid #e8d0d8; }
-    .sig-info { font-size: 11px; color: #a9435d; }
-    .btn-limpiar { background: none; border: none; font-size: 11px; color: #a9435d; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 4px; }
-    .sig-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
-    .sig-badge.firmado { background: #e1f5ee; color: #04342c; }
-    .sig-badge.vacio { background: #fdf0f3; color: #a9435d; }
-    .firma-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .firma-label { font-size: 13px; font-weight: 500; color: #5a1e37; }
-
-    /* BOTONES */
-    .btn-primary { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
-    .btn-primary:hover { background: #d4537e; }
-    .btn-primary:disabled { background: #e8d0d8; cursor: not-allowed; }
-    .btn-outline { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
-
-    /* SUCCESS */
-    .success-view { text-align: center; padding: 40px 20px; }
-    .success-icon { width: 80px; height: 80px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-    .success-title { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
-    .success-text { font-size: 14px; color: #5a3040; line-height: 1.7; margin-bottom: 24px; }
-    .checklist { text-align: left; background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid #e8d0d8; margin-bottom: 20px; }
-    .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #f0e0e6; font-size: 14px; color: #5a3040; }
-    .check-item:last-child { border-bottom: none; }
-
-    footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
-    .footer-logo { font-family: 'Lobster', cursive; font-size: 18px; color: white; }
-    .footer-logo span { color: #f28b98; }
-
-    @media (max-width: 600px) {
-      nav { padding: 14px 16px; }
-      main { padding: 20px 16px; }
-    }
-  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/donante.css">
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+
+
+
 </head>
 <body>
 

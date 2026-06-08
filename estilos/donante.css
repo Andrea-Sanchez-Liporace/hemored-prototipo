@@ -41,3 +41,168 @@
 .campana-titulo { font-size: 15px; font-weight: 500; color: var(--color-borravino); margin-bottom: 6px; }
 .campana-progreso { height: 6px; background: var(--color-rosa-mid); border-radius: 3px; overflow: hidden; margin: 10px 0; }
 .campana-progreso-fill { height: 100%; background: var(--color-rosa); border-radius: 3px; transition: width 0.5s ease; }
+
+/* ============================================================
+   DONANTE SIDEBAR + LAYOUT (compartido en todas las páginas)
+   ============================================================ */
+body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+.sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+.sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+.sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+.sidebar-logo a span { color: #f28b98; }
+.sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+.sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+.sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+.sidebar-user-role { font-size: 11px; color: #f28b98; }
+.sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+.nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+.nav-item.active { background: #ef647c; color: white; }
+.nav-item i { font-size: 18px; flex-shrink: 0; }
+.nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+.sidebar-footer { padding: 14px 20px; border-top: 0.5px solid rgba(255,255,255,0.1); }
+.sidebar-alert { background: rgba(239,100,124,0.2); border-radius: 10px; padding: 12px 14px; border: 0.5px solid rgba(239,100,124,0.3); }
+.main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+.topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+.mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+.mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+.content { padding: 32px; flex: 1; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+
+/* === DASHBOARD DONANTE === */
+.welcome { margin-bottom: 20px; }
+.welcome h1 { font-size: 22px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+.welcome p { font-size: 14px; color: #5a3040; }
+.quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.qstat { background: white; border-radius: 12px; padding: 16px 18px; border: 0.5px solid #e8d0d8; }
+.qstat-num { font-size: 28px; font-weight: 500; color: #5a1e37; }
+.qstat-label { font-size: 12px; color: #5a3040; margin-top: 3px; }
+.search-section { background: white; border-radius: 16px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 20px; }
+.search-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+.search-subtitle { font-size: 13px; color: #5a3040; margin-bottom: 16px; }
+.search-bar { display: flex; gap: 10px; }
+.search-input-wrap { flex: 1; position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a9435d; font-size: 15px; }
+.search-input { width: 100%; padding: 11px 12px 11px 38px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; outline: none; font-family: 'Inter', sans-serif; background: white; }
+.search-input:focus { border-color: #ef647c; }
+.search-btn { background: #ef647c; color: white; border: none; padding: 11px 20px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.filters { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.filter-select { padding: 8px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+.campaigns-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.campaigns-title { font-size: 15px; font-weight: 500; color: #5a1e37; }
+.campaigns-count { font-size: 12px; color: #a9435d; background: #fdf0f3; border: 0.5px solid #f28b98; padding: 2px 8px; border-radius: 20px; }
+
+/* === MIS TURNOS === */
+.tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 24px; }
+.tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+.tab.active { background: #5a1e37; color: white; }
+.tab:hover:not(.active) { background: #fdf0f3; }
+.proximo-banner { background: #5a1e37; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pb-left { display: flex; align-items: center; gap: 14px; }
+.pb-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pb-label { font-size: 12px; color: #f28b98; margin-bottom: 3px; }
+.pb-value { font-size: 15px; font-weight: 500; color: white; }
+.pb-btn { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+.section-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+.turnos-list { display: flex; flex-direction: column; gap: 12px; }
+.turno-card-d { background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid #e8d0d8; display: flex; align-items: center; gap: 16px; }
+.turno-card-d:hover { border-color: #f28b98; }
+.turno-date { width: 52px; text-align: center; background: #fdf0f3; border-radius: 10px; padding: 8px 4px; flex-shrink: 0; border: 0.5px solid #f28b98; }
+.turno-date-day { font-size: 22px; font-weight: 500; color: #5a1e37; line-height: 1; }
+.turno-date-month { font-size: 11px; color: #a9435d; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+.turno-info { flex: 1; }
+.turno-hospital { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+.turno-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.turno-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #5a3040; }
+.turno-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.turno-badge-d { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.turno-badge-d.confirmado { background: #e1f5ee; color: #04342c; }
+.turno-badge-d.pendiente { background: #faeeda; color: #412402; }
+.turno-badge-d.cancelado { background: #f7f0f3; color: #a9435d; }
+.turno-badge-d.completado { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+.turno-actions { display: flex; gap: 8px; }
+.forms-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid #f0e0e6; }
+.btn-sm { padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+.btn-sm-primary { background: #ef647c; color: white; }
+.btn-sm-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+.btn-sm-danger { background: white; color: #c0392b; border: 1px solid #e74c3c !important; }
+.empty-state { text-align: center; padding: 60px 24px; }
+.empty-icon { width: 64px; height: 64px; border-radius: 50%; background: #fdf0f3; border: 1px solid #f28b98; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.empty-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+.empty-text { font-size: 14px; color: #5a3040; margin-bottom: 20px; }
+.btn-buscar { background: #ef647c; color: white; border: none; padding: 11px 24px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; }
+.fecha-tab-m { padding: 7px 14px; border-radius: 8px; border: 1.5px solid #e8d0d8; font-size: 12px; color: #5a3040; cursor: pointer; background: white; font-family: 'Inter', sans-serif; }
+.fecha-tab-m.active { background: #5a1e37; border-color: #5a1e37; color: white; }
+.turno-m { border: 1.5px solid #e8d0d8; border-radius: 9px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.turno-m:hover:not(.ocp) { border-color: #ef647c; background: #fdf0f3; }
+.turno-m.selected { border-color: #ef647c; background: #fdf0f3; }
+.turno-m.ocp { opacity: 0.5; cursor: not-allowed; background: #f7f0f3; }
+
+/* === CAMPAÑA DETALLE (donante) === */
+.topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; }
+.topbar-sep { color: #e8d0d8; }
+.steps-indicator { background: white; border-bottom: 0.5px solid #e8d0d8; padding: 14px 32px; display: flex; align-items: center; gap: 0; }
+.step-ind { display: flex; align-items: center; gap: 8px; }
+.step-ind-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; border: 1.5px solid #e8d0d8; color: #a9435d; background: white; flex-shrink: 0; }
+.step-ind-num.active { background: #ef647c; border-color: #ef647c; color: white; }
+.step-ind-num.done { background: #5a1e37; border-color: #5a1e37; color: white; }
+.step-ind-label { font-size: 12px; color: #a9435d; white-space: nowrap; }
+.step-ind-label.active { color: #5a1e37; font-weight: 500; }
+.step-ind-label.done { color: #5a1e37; }
+.step-line { flex: 1; height: 1px; background: #e8d0d8; margin: 0 12px; }
+.step-line.done { background: #5a1e37; }
+.step-content { display: none; }
+.step-content.active { display: block; }
+.campaign-detail { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+.campaign-main { display: flex; flex-direction: column; gap: 20px; }
+.card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; }
+.campaign-hero { background: white; border-radius: 14px; padding: 28px; border: 0.5px solid #e8d0d8; }
+.campaign-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.campaign-hospital-name { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+.campaign-hospital-dir { font-size: 13px; color: #5a3040; display: flex; align-items: center; gap: 4px; }
+.badge-urgente { background: #fde8e8; color: #c0392b; border: 0.5px solid #e74c3c; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+.badge-activa { background: #e1f5ee; color: #04342c; border: 0.5px solid #27ae60; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+.campaign-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; padding: 16px; background: #fdf0f3; border-radius: 10px; }
+.meta-item { display: flex; flex-direction: column; gap: 3px; }
+.meta-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+.meta-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+.campaign-desc-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+.campaign-desc-text { font-size: 14px; color: #5a3040; line-height: 1.7; }
+.progress-section { margin-top: 20px; }
+.progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.progress-label { font-size: 13px; font-weight: 500; color: #5a1e37; }
+.progress-count { font-size: 13px; color: #a9435d; }
+.progress-bar { height: 8px; background: #fdf0f3; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: #ef647c; border-radius: 4px; }
+.campaign-sidebar { display: flex; flex-direction: column; gap: 16px; }
+.info-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+.info-card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+.info-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.info-row:last-child { margin-bottom: 0; }
+.info-icon { width: 32px; height: 32px; border-radius: 8px; background: #fdf0f3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.info-body-label { font-size: 11px; color: #a9435d; font-weight: 500; margin-bottom: 2px; }
+.info-body-value { font-size: 13px; color: #5a3040; }
+.sangre-tipo { display: inline-flex; align-items: center; gap: 4px; background: #fde8e8; border: 0.5px solid #e74c3c; color: #c0392b; padding: 3px 10px; border-radius: 20px; font-size: 13px; font-weight: 500; margin-right: 4px; margin-bottom: 4px; }
+.btn-reservar { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+.btn-reservar:hover { background: #d4537e; }
+.nota-info { font-size: 11px; color: #a9435d; text-align: center; margin-top: 10px; line-height: 1.5; }
+.turnos-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+.card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* === RESPONSIVE DONANTE === */
+@media (max-width: 1024px) { .campaign-detail { grid-template-columns: 1fr; } .turnos-layout { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .main { margin-left: 0; }
+  .mobile-topbar-btn { display: flex; }
+  .content { padding: 20px; }
+  .quick-stats { grid-template-columns: 1fr 1fr; }
+  .search-bar { flex-direction: column; }
+}

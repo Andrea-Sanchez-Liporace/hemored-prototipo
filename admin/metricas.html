@@ -6,104 +6,14 @@
   <title>HemoRed Admin — Métricas globales</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; min-height: 100vh; display: flex; }
-
-    .sidebar { width: 240px; min-height: 100vh; background: #1a1a2e; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
-    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
-    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
-    .sidebar-logo a span { color: #f28b98; }
-    .sidebar-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: #f28b98; margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
-    .sidebar-user { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
-    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
-    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
-    .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; }
-    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
-    .nav-item.active { background: #ef647c; color: white; }
-    .nav-item i { font-size: 18px; flex-shrink: 0; }
-    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
-    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,0.25); padding: 12px 12px 4px; }
-
-    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
-    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-    .topbar-left { display: flex; align-items: center; gap: 12px; }
-    .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
-    .topbar-actions { display: flex; gap: 10px; align-items: center; }
-    .filter-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; color: #1a1a1a; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
-    .btn-export { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
-    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
-    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }
-
-    .content { padding: 32px; flex: 1; }
-
-    /* SECTION TABS */
-    .section-tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e0e0e0; width: fit-content; margin-bottom: 28px; }
-    .stab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #999; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
-    .stab.active { background: #1a1a2e; color: white; }
-    .stab:hover:not(.active) { background: #f5f5f5; }
-
-    /* SECTION */
-    .section { display: none; }
-    .section.active { display: block; }
-    .section-title { font-size: 15px; font-weight: 500; color: #1a1a2e; margin-bottom: 16px; margin-top: 28px; }
-    .section-title:first-child { margin-top: 0; }
-
-    /* KPIs */
-    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-    .kpi { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e0e0e0; }
-    .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .kpi-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
-    .kpi-trend { font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 20px; }
-    .kpi-trend.up { background: #e1f5ee; color: #27ae60; }
-    .kpi-trend.down { background: #fde8e8; color: #c0392b; }
-    .kpi-num { font-size: 28px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
-    .kpi-label { font-size: 12px; color: #888; }
-    .kpi-sub { font-size: 11px; color: #bbb; margin-top: 2px; }
-
-    /* CHARTS */
-    .charts-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .charts-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
-    .chart-card { background: white; border-radius: 14px; padding: 22px; border: 0.5px solid #e0e0e0; }
-    .chart-title { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
-    .chart-sub { font-size: 12px; color: #999; margin-bottom: 16px; }
-    .chart-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #555; }
-    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-    /* TABLA APERTURA */
-    .apertura-table { width: 100%; }
-    .apt-row { display: grid; gap: 0; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; align-items: center; }
-    .apt-row:last-child { border-bottom: none; }
-    .apt-header { font-size: 11px; font-weight: 500; color: #999; text-transform: uppercase; letter-spacing: .06em; padding-bottom: 8px; border-bottom: 0.5px solid #e0e0e0; margin-bottom: 4px; }
-    .apt-name { font-size: 13px; font-weight: 500; color: #1a1a2e; }
-    .apt-sub { font-size: 11px; color: #999; }
-    .apt-bar { height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; margin-top: 4px; }
-    .apt-bar-fill { height: 100%; background: #ef647c; border-radius: 2px; }
-    .apt-num { font-size: 13px; font-weight: 500; color: #1a1a2e; text-align: right; }
-    .apt-pct { font-size: 11px; color: #999; text-align: right; }
-
-    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
-    @media (max-width: 1200px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 1024px) { .charts-2 { grid-template-columns: 1fr; } .charts-3 { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
-      .sidebar.open { transform: translateX(0); }
-      .sidebar-overlay.open { display: block; }
-      .main { margin-left: 0; }
-      .mobile-topbar-btn { display: flex; }
-      .content { padding: 20px; }
-      .kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .charts-3 { grid-template-columns: 1fr; }
-      .topbar-actions .btn-export span { display: none; }
-    }
-  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
+
 </head>
 <body>
 

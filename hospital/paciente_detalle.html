@@ -6,115 +6,13 @@
   <title>HemoRed — Detalle paciente</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
-
-    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
-    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
-    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
-    .sidebar-logo a span { color: #f28b98; }
-    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
-    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
-    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
-    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
-    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
-    .nav-item.active { background: #5a1e37; color: white; }
-    .nav-item i { font-size: 18px; flex-shrink: 0; }
-    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
-
-    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
-    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-    .topbar-left { display: flex; align-items: center; gap: 10px; }
-    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
-    .topbar-back:hover { color: #5a1e37; }
-    .topbar-sep { color: #e8d0d8; }
-    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
-    .topbar-actions { display: flex; gap: 10px; }
-    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
-    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
-
-    .content { padding: 32px; flex: 1; }
-    .page-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
-
-    /* VISTA VER / EDITAR */
-    .view { display: none; }
-    .view.active { display: contents; }
-
-    /* CARDS */
-    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
-    .card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-
-    /* HEADER PACIENTE */
-    .pac-header { display: flex; align-items: center; gap: 16px; padding: 24px; background: #3d0f20; border-radius: 14px; margin-bottom: 16px; }
-    .pac-avatar { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; color: white; flex-shrink: 0; }
-    .pac-header-name { font-size: 20px; font-weight: 500; color: white; margin-bottom: 4px; }
-    .pac-header-sub { font-size: 13px; color: #f28b98; margin-bottom: 10px; }
-    .pac-badges { display: flex; gap: 8px; flex-wrap: wrap; }
-    .pac-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-    .badge-urgente { background: #fde8e8; color: #c0392b; }
-    .badge-sangre { background: rgba(255,255,255,0.15); color: white; }
-
-    /* DATOS */
-    .dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .dato-item { }
-    .dato-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-    .dato-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
-
-    /* CAMPAÑAS */
-    .campana-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
-    .campana-row:last-child { border-bottom: none; }
-    .camp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .camp-name { font-size: 13px; font-weight: 500; color: #5a1e37; flex: 1; }
-    .camp-meta { font-size: 11px; color: #a9435d; margin-top: 2px; }
-    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
-
-    /* FORMULARIO EDICIÓN */
-    .form-group { margin-bottom: 16px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
-    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; background: white; }
-    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
-    .form-input:disabled { background: #f7f0f3; color: #a9435d; cursor: not-allowed; }
-    .form-hint { font-size: 11px; color: #a9435d; margin-top: 4px; }
-
-    /* SIDEBAR */
-    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
-    .side-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
-    .side-btn { width: 100%; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; border: none; }
-    .side-btn:last-child { margin-bottom: 0; }
-    .side-btn-primary { background: #ef647c; color: white; }
-    .side-btn-outline { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8 !important; }
-    .side-btn-danger { background: white; color: #c0392b; border: 1.5px solid #e74c3c !important; }
-    .side-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #f0e0e6; font-size: 13px; }
-    .side-stat:last-child { border-bottom: none; }
-    .side-stat-label { color: #5a3040; }
-    .side-stat-value { font-weight: 500; color: #5a1e37; }
-
-    /* ACCIONES FORM */
-    .form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 8px; }
-    .btn-save { background: #ef647c; color: white; border: none; padding: 11px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
-    .btn-cancel { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 11px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
-
-    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
-    @media (max-width: 1024px) { .page-layout { grid-template-columns: 1fr; } }
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
-      .sidebar.open { transform: translateX(0); }
-      .sidebar-overlay.open { display: block; }
-      .main { margin-left: 0; }
-      .mobile-topbar-btn { display: flex; }
-      .content { padding: 20px; }
-      .dato-grid { grid-template-columns: 1fr; }
-      .form-row { grid-template-columns: 1fr; }
-      .form-actions { flex-direction: column; }
-      .btn-save, .btn-cancel { width: 100%; justify-content: center; }
-    }
-  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/hospital.css">
+
+
+
+
 </head>
 <body>
 

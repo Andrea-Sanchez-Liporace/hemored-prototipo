@@ -6,126 +6,13 @@
   <title>HemoRed — Dashboard Hospital</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
-
-    /* ── SIDEBAR ── */
-    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
-    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
-    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
-    .sidebar-logo a span { color: #f28b98; }
-    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
-    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
-    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
-    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
-    .nav-item.active { background: #5a1e37; color: white; }
-    .nav-item i { font-size: 18px; flex-shrink: 0; }
-    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
-    .sidebar-footer { padding: 16px 12px; border-top: 0.5px solid rgba(255,255,255,0.1); }
-    .plan-card-side { background: rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px; }
-    .plan-card-side-title { font-size: 12px; font-weight: 500; color: white; margin-bottom: 2px; }
-    .plan-card-side-sub { font-size: 11px; color: #f28b98; }
-
-    /* ── MAIN ── */
-    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-    .topbar-left { display: flex; align-items: center; gap: 12px; }
-    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
-    .topbar-actions { display: flex; align-items: center; gap: 12px; }
-    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
-    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
-    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
-    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
-
-    /* ── CONTENT ── */
-    .content { padding: 32px; flex: 1; }
-    .welcome { margin-bottom: 28px; }
-    .welcome h1 { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
-    .welcome p { font-size: 14px; color: #5a3040; }
-
-    /* STATS */
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
-    .stat-card { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e8d0d8; }
-    .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .stat-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
-    .stat-trend { font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 3px; }
-    .stat-trend.up { color: #27ae60; }
-    .stat-trend.down { color: #c0392b; }
-    .stat-num { font-size: 28px; font-weight: 500; color: #3d0f20; margin-bottom: 3px; }
-    .stat-label { font-size: 12px; color: #5a3040; }
-
-    /* ACCESOS RÁPIDOS */
-    .section-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; }
-    .accesos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
-    .acceso-card { background: white; border-radius: 16px; padding: 24px; border: 0.5px solid #e8d0d8; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; text-decoration: none; }
-    .acceso-card:hover { border-color: #5a1e37; box-shadow: 0 4px 16px rgba(90,30,55,0.08); transform: translateY(-1px); }
-    .acceso-icon { width: 48px; height: 48px; border-radius: 13px; display: flex; align-items: center; justify-content: center; }
-    .acceso-title { font-size: 15px; font-weight: 500; color: #3d0f20; margin-bottom: 4px; }
-    .acceso-desc { font-size: 12px; color: #5a3040; line-height: 1.5; }
-    .acceso-arrow { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #a9435d; margin-top: auto; }
-
-    /* CAMPAÑAS RECIENTES */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .panel { background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid #e8d0d8; }
-    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .panel-title { font-size: 14px; font-weight: 500; color: #5a1e37; }
-    .panel-link { font-size: 12px; color: #ef647c; cursor: pointer; text-decoration: none; }
-    .campana-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f0e0e6; }
-    .campana-row:last-child { border-bottom: none; }
-    .campana-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .campana-dot.activa { background: #27ae60; }
-    .campana-dot.urgente { background: #c0392b; }
-    .campana-dot.pausada { background: #e67e22; }
-    .campana-dot.cerrada { background: #a9435d; }
-    .campana-info { flex: 1; min-width: 0; }
-    .campana-nombre { font-size: 13px; font-weight: 500; color: #5a1e37; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .campana-meta { font-size: 11px; color: #5a3040; }
-    .campana-badge { padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; white-space: nowrap; }
-    .campana-badge.activa { background: #e1f5ee; color: #04342c; }
-    .campana-badge.urgente { background: #fde8e8; color: #c0392b; }
-    .campana-badge.pausada { background: #faeeda; color: #412402; }
-    .campana-badge.cerrada { background: #f7f0f3; color: #a9435d; }
-
-    /* TURNOS PENDIENTES */
-    .turno-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f0e0e6; }
-    .turno-row:last-child { border-bottom: none; }
-    .turno-avatar { width: 32px; height: 32px; border-radius: 50%; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
-    .turno-info { flex: 1; min-width: 0; }
-    .turno-nombre { font-size: 13px; font-weight: 500; color: #5a1e37; }
-    .turno-meta { font-size: 11px; color: #5a3040; }
-    .turno-actions { display: flex; gap: 6px; }
-    .btn-xs { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
-    .btn-xs-ok { background: #e1f5ee; color: #04342c; }
-    .btn-xs-no { background: #fde8e8; color: #c0392b; }
-
-    /* MOBILE */
-    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
-    @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 1024px) {
-      .accesos-grid { grid-template-columns: repeat(2, 1fr); }
-      .two-col { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
-      .sidebar.open { transform: translateX(0); }
-      .sidebar-overlay.open { display: block; }
-      .main { margin-left: 0; }
-      .mobile-topbar-btn { display: flex; }
-      .content { padding: 20px; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      .accesos-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-    }
-    @media (max-width: 480px) {
-      .accesos-grid { grid-template-columns: 1fr; }
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-    }
-  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/hospital.css">
+
+
+
+
 </head>
 <body>
 
@@ -225,7 +112,7 @@
     <div class="section-title">Accesos rápidos</div>
     <div class="accesos-grid">
 
-      <a class="acceso-card" href="#">
+      <a class="acceso-card" href="../hospital/nueva_campana.html">
         <div class="acceso-icon" style="background:#fdf0f3;border:1px solid #f28b98;">
           <i class="ti ti-speakerphone" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i>
         </div>
@@ -238,7 +125,7 @@
         </div>
       </a>
 
-      <a class="acceso-card" href="#">
+      <a class="acceso-card" href="../hospital/pacientes.html">
         <div class="acceso-icon" style="background:#f5eef1;border:1px solid #a9435d;">
           <i class="ti ti-user-plus" style="color:#5a1e37;font-size:22px;" aria-hidden="true"></i>
         </div>
@@ -251,7 +138,7 @@
         </div>
       </a>
 
-      <a class="acceso-card" href="#">
+      <a class="acceso-card" href="../hospital/profesionales.html">
         <div class="acceso-icon" style="background:#f0f8f4;border:1px solid #27ae60;">
           <i class="ti ti-stethoscope" style="color:#1a6b3a;font-size:22px;" aria-hidden="true"></i>
         </div>
@@ -277,7 +164,7 @@
         </div>
       </a>
 
-      <a class="acceso-card" href="#">
+      <a class="acceso-card" href="../hospital/turnos.html">
         <div class="acceso-icon" style="background:#fde8e8;border:1px solid #e74c3c;">
           <i class="ti ti-calendar" style="color:#c0392b;font-size:22px;" aria-hidden="true"></i>
         </div>
@@ -290,7 +177,7 @@
         </div>
       </a>
 
-      <a class="acceso-card" href="#">
+      <a class="acceso-card" href="../hospital/metricas.html">
         <div class="acceso-icon" style="background:#f0f0ff;border:1px solid #7f77dd;">
           <i class="ti ti-chart-bar" style="color:#7f77dd;font-size:22px;" aria-hidden="true"></i>
         </div>
