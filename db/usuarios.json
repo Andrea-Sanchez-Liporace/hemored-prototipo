@@ -28,7 +28,7 @@
     "apellido": "HemoRed",
     "email": "admin@hemored.com",
     "password_hash": "demo_hash",
-    "rol": "superadmin",
+    "rol": "equipo_hemored",
     "tipo_documento_id": 1,
     "numero_documento": "20111222",
     "fecha_nacimiento": "1985-06-20",
