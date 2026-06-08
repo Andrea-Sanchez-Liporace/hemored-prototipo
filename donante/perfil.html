@@ -6,13 +6,134 @@
   <title>HemoRed — Mi perfil</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+    .sidebar-footer { padding: 16px 12px; border-top: 0.5px solid rgba(255,255,255,0.1); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* TOPBAR */
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; max-width: 800px; }
+
+    /* PERFIL HEADER */
+    .perfil-header { background: white; border-radius: 16px; padding: 28px; border: 0.5px solid #e8d0d8; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+    .perfil-avatar { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 500; color: white; flex-shrink: 0; position: relative; cursor: pointer; }
+    .perfil-avatar-edit { position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; border-radius: 50%; background: #5a1e37; display: flex; align-items: center; justify-content: center; }
+    .perfil-info { flex: 1; }
+    .perfil-name { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .perfil-email { font-size: 13px; color: #5a3040; margin-bottom: 10px; }
+    .perfil-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .perfil-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .perfil-badge.donante { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .perfil-badge.sangre { background: #fde8e8; color: #c0392b; border: 0.5px solid #e74c3c; }
+    .perfil-badge.incompleto { background: #faeeda; color: #412402; border: 0.5px solid #e67e22; }
+    .perfil-completitud { margin-left: auto; text-align: right; }
+    .completitud-label { font-size: 11px; color: #a9435d; margin-bottom: 6px; }
+    .completitud-bar { width: 120px; height: 6px; background: #fdf0f3; border-radius: 3px; overflow: hidden; }
+    .completitud-fill { height: 100%; background: #ef647c; border-radius: 3px; width: 60%; }
+    .completitud-pct { font-size: 13px; font-weight: 500; color: #5a1e37; margin-top: 4px; }
+
+    /* SECCIONES COLAPSABLES */
+    .seccion { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; margin-bottom: 12px; overflow: hidden; }
+    .seccion-header { padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .seccion-header:hover { background: #fdf0f3; }
+    .seccion-title { display: flex; align-items: center; gap: 10px; }
+    .seccion-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .seccion-name { font-size: 15px; font-weight: 500; color: #5a1e37; }
+    .seccion-status { font-size: 11px; margin-left: 8px; padding: 2px 8px; border-radius: 20px; }
+    .seccion-status.completo { background: #e1f5ee; color: #04342c; }
+    .seccion-status.pendiente { background: #faeeda; color: #412402; }
+    .seccion-chevron { color: #a9435d; font-size: 18px; transition: transform 0.2s; }
+    .seccion.open .seccion-chevron { transform: rotate(180deg); }
+    .seccion-body { display: none; padding: 0 24px 24px; border-top: 0.5px solid #e8d0d8; }
+    .seccion.open .seccion-body { display: block; }
+    .seccion-body-inner { padding-top: 20px; }
+
+    /* FORM DENTRO DE SECCIONES */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; background: white; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-input::placeholder { color: #c994a4; }
+    .form-input:disabled { background: #f7f0f3; color: #a9435d; cursor: not-allowed; }
+    select.form-input { cursor: pointer; }
+    .form-hint { font-size: 11px; color: #a9435d; margin-top: 4px; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+    .btn-save { background: #ef647c; color: white; border: none; padding: 10px 24px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-save:hover { background: #d4537e; }
+    .btn-cancel { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 10px 24px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-cancel:hover { border-color: #a9435d; }
+
+    /* TIPO DE SANGRE */
+    .sangre-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .sangre-opt { border: 1.5px solid #e8d0d8; border-radius: 9px; padding: 12px 8px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 500; color: #5a3040; transition: all 0.15s; }
+    .sangre-opt:hover { border-color: #ef647c; color: #5a1e37; }
+    .sangre-opt.selected { border-color: #ef647c; background: #fdf0f3; color: #782b46; }
+
+    /* SEGURIDAD */
+    .security-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .security-item:last-child { border-bottom: none; }
+    .security-item-left { display: flex; align-items: center; gap: 12px; }
+    .security-item-icon { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; }
+    .security-item-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }
+    .security-item-sub { font-size: 12px; color: #5a3040; }
+    .btn-outline-sm { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-outline-sm:hover { border-color: #a9435d; }
+    .btn-danger-sm { background: white; color: #c0392b; border: 1.5px solid #e74c3c; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+    .empleador-item { display: flex; align-items: center; gap: 10px; background: white; border-radius: 10px; padding: 12px 14px; border: 0.5px solid #e8d0d8; }
+    .empleador-item:hover { border-color: #f28b98; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .sangre-grid { grid-template-columns: repeat(4, 1fr); }
+      .perfil-header { flex-wrap: wrap; }
+      .perfil-completitud { margin-left: 0; text-align: left; width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .sangre-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/donante.css">
-
-
-
-
 </head>
 <body>
 

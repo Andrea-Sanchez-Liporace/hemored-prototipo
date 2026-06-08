@@ -6,12 +6,82 @@
   <title>HemoRed — Formulario post-donación</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #1a0a0f; color: #1a0a0f; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+
+    .wrap { width: 100%; max-width: 480px; }
+
+    /* LOGO */
+    .logo-wrap { text-align: center; margin-bottom: 28px; }
+    .logo { font-family: 'Lobster', cursive; font-size: 32px; color: white; }
+    .logo span { color: #f28b98; }
+    .logo-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+    /* CARD */
+    .card { background: white; border-radius: 20px; overflow: hidden; }
+    .card-header { background: #5a1e37; padding: 24px; }
+    .card-title { font-size: 18px; font-weight: 500; color: white; margin-bottom: 6px; }
+    .card-sub { font-size: 13px; color: #f28b98; line-height: 1.5; }
+    .card-body { padding: 28px; }
+
+    /* AVISO CONFIDENCIALIDAD */
+    .conf-badge { display: flex; align-items: center; gap: 8px; background: #fdf0f3; border: 1px solid #f28b98; border-radius: 10px; padding: 12px 14px; margin-bottom: 24px; font-size: 13px; color: #5a3040; line-height: 1.5; }
+
+    /* TOKEN */
+    .token-section { margin-bottom: 24px; }
+    .token-label { font-size: 12px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; display: block; }
+    .token-display { background: #fdf0f3; border: 1px solid #e8d0d8; border-radius: 10px; padding: 12px 16px; font-size: 20px; font-weight: 500; color: #5a1e37; letter-spacing: .12em; text-align: center; }
+    .token-nota { font-size: 11px; color: #a9435d; margin-top: 6px; text-align: center; }
+
+    /* PREGUNTA PRINCIPAL */
+    .pregunta { font-size: 16px; font-weight: 500; color: #1a0a0f; margin-bottom: 8px; line-height: 1.5; }
+    .pregunta-desc { font-size: 13px; color: #5a3040; line-height: 1.6; margin-bottom: 20px; }
+
+    /* OPCIONES */
+    .opciones { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .opcion { border: 2px solid #e8d0d8; border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.15s; display: flex; align-items: flex-start; gap: 14px; }
+    .opcion:hover { border-color: #ef647c; }
+    .opcion.sel-si { border-color: #27ae60; background: #e1f5ee; }
+    .opcion.sel-no { border-color: #c0392b; background: #fde8e8; }
+    .opcion-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .opcion-title { font-size: 15px; font-weight: 500; color: #1a0a0f; margin-bottom: 4px; }
+    .opcion-desc { font-size: 12px; color: #5a3040; line-height: 1.5; }
+    .opcion.sel-si .opcion-title { color: #04342c; }
+    .opcion.sel-no .opcion-title { color: #c0392b; }
+
+    /* MOTIVO (si NO) */
+    .motivo-wrap { display: none; background: #fde8e8; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #c0392b; }
+    .motivo-label { font-size: 13px; font-weight: 500; color: #922b21; margin-bottom: 10px; }
+    .motivo-opts { display: flex; flex-direction: column; gap: 8px; }
+    .motivo-opt { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: background 0.12s; }
+    .motivo-opt:hover { background: rgba(192,57,43,0.08); }
+    .motivo-opt input { width: 16px; height: 16px; accent-color: #c0392b; cursor: pointer; }
+    .motivo-opt label { font-size: 13px; color: #5a3040; cursor: pointer; line-height: 1.4; }
+
+    /* AVISO PRIVACIDAD PROTEGIDA */
+    .priv-nota { background: #f0f4ff; border: 1px solid #3498db; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; font-size: 12px; color: #1a4a7a; line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+
+    /* BTN */
+    .btn-enviar { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-enviar:hover { background: #d4537e; }
+    .btn-enviar:disabled { background: #e8d0d8; cursor: not-allowed; }
+
+    /* SUCCESS */
+    .success-view { display: none; text-align: center; padding: 16px 0; }
+    .success-icon { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .success-title { font-size: 22px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+    .success-text { font-size: 14px; color: #5a3040; line-height: 1.7; }
+
+    /* FOOTER */
+    .page-footer { text-align: center; margin-top: 20px; font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.6; }
+
+    @media (max-width: 480px) {
+      body { padding: 16px; justify-content: flex-start; padding-top: 32px; }
+    }
+  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
-  <link rel="stylesheet" href="../estilos/donante.css">
-
-
-
 </head>
 <body>
 

@@ -6,13 +6,145 @@
   <title>HemoRed — Nueva campaña</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-back:hover { color: #5a1e37; }
+    .topbar-sep { color: #e8d0d8; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+    .form-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+
+    /* STEPS */
+    .steps-bar { display: flex; gap: 0; margin-bottom: 28px; }
+    .step-b { display: flex; align-items: center; gap: 8px; }
+    .step-b-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; border: 1.5px solid #e8d0d8; color: #a9435d; background: white; flex-shrink: 0; }
+    .step-b-num.active { background: #5a1e37; border-color: #5a1e37; color: white; }
+    .step-b-num.done { background: #ef647c; border-color: #ef647c; color: white; }
+    .step-b-label { font-size: 12px; color: #a9435d; white-space: nowrap; }
+    .step-b-label.active { color: #5a1e37; font-weight: 500; }
+    .step-b-line { flex: 1; height: 1px; background: #e8d0d8; margin: 0 10px; min-width: 20px; }
+    .step-b-line.done { background: #ef647c; }
+
+    /* CARDS */
+    .form-card { background: white; border-radius: 16px; padding: 28px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
+    .card-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .card-subtitle { font-size: 13px; color: #5a3040; margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .form-label .opcional { font-size: 11px; color: #a9435d; font-weight: 400; }
+    .form-input { width: 100%; padding: 11px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; background: white; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-input::placeholder { color: #c994a4; }
+    select.form-input { cursor: pointer; }
+    textarea.form-input { resize: vertical; min-height: 100px; }
+    .form-hint { font-size: 11px; color: #a9435d; margin-top: 5px; line-height: 1.4; }
+
+    /* TIPO SANGRE */
+    .sangre-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .sangre-opt { border: 1.5px solid #e8d0d8; border-radius: 9px; padding: 10px 6px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; color: #5a3040; transition: all 0.15s; }
+    .sangre-opt:hover { border-color: #ef647c; }
+    .sangre-opt.selected { border-color: #ef647c; background: #fdf0f3; color: #782b46; }
+    .sangre-opt.todos { grid-column: span 4; font-size: 12px; }
+
+    /* URGENCIA */
+    .urgencia-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .urgencia-opt { border: 1.5px solid #e8d0d8; border-radius: 10px; padding: 14px 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
+    .urgencia-opt:hover { border-color: #ef647c; }
+    .urgencia-opt.selected { border-color: #ef647c; background: #fdf0f3; }
+    .urgencia-icon { font-size: 22px; margin-bottom: 6px; }
+    .urgencia-name { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .urgencia-desc { font-size: 11px; color: #5a3040; }
+
+    /* PACIENTE TOGGLE */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: #fdf0f3; border-radius: 10px; border: 0.5px solid #f28b98; margin-bottom: 14px; cursor: pointer; }
+    .toggle-label { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .toggle-sub { font-size: 11px; color: #5a3040; margin-top: 2px; }
+    .toggle-switch { width: 40px; height: 22px; border-radius: 11px; background: #e8d0d8; position: relative; transition: background 0.15s; flex-shrink: 0; cursor: pointer; }
+    .toggle-switch.on { background: #ef647c; }
+    .toggle-knob { width: 18px; height: 18px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle-switch.on .toggle-knob { left: 20px; }
+    .paciente-form { display: none; padding: 14px; background: white; border-radius: 10px; border: 0.5px solid #e8d0d8; margin-bottom: 14px; }
+    .paciente-form.visible { display: block; }
+
+    /* SIDEBAR DERECHO */
+    .sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+    .preview-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .preview-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .preview-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+    .preview-item:last-child { margin-bottom: 0; }
+    .preview-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef647c; flex-shrink: 0; margin-top: 5px; }
+    .preview-text { font-size: 12px; color: #5a3040; line-height: 1.4; }
+    .preview-text strong { color: #5a1e37; }
+    .info-box { background: #faeeda; border: 1px solid #e67e22; border-radius: 12px; padding: 14px 16px; display: flex; gap: 10px; }
+    .info-box-text { font-size: 12px; color: #633806; line-height: 1.5; }
+
+    /* BOTONES */
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 8px; }
+    .btn-primary { background: #ef647c; color: white; border: none; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: #d4537e; }
+    .btn-secondary { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-secondary:hover { border-color: #a9435d; }
+    .btn-draft { background: white; color: #a9435d; border: 1.5px dashed #a9435d; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) {
+      .form-layout { grid-template-columns: 1fr; }
+      .sidebar-right { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .sangre-grid { grid-template-columns: repeat(4, 1fr); }
+      .urgencia-grid { grid-template-columns: 1fr; }
+      .sidebar-right { grid-template-columns: 1fr; }
+      .steps-bar { flex-wrap: wrap; gap: 8px; }
+      .step-b-line { display: none; }
+      .form-actions { flex-direction: column; }
+      .btn-primary, .btn-secondary, .btn-draft { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .sangre-grid { grid-template-columns: repeat(2, 1fr); }
+      .sangre-opt.todos { grid-column: span 2; }
+    }
+  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/hospital.css">
-
-
-
-
 </head>
 <body>
 
@@ -193,7 +325,7 @@
                 <option>María García — ID #0038</option>
                 <option>Carlos López — ID #0051</option>
               </select>
-              <p class="form-hint">Solo aparecen pacientes registrados en tu hospital. <a href="../hospital/pacientes.html" style="color:#ef647c;">Registrar nuevo paciente</a></p>
+              <p class="form-hint">Solo aparecen pacientes registrados en tu hospital. <a href="#" style="color:#ef647c;">Registrar nuevo paciente</a></p>
             </div>
           </div>
 

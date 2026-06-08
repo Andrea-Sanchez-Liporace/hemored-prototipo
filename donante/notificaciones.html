@@ -6,13 +6,79 @@
   <title>HemoRed — Notificaciones</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .btn-marcar { background: white; color: #a9435d; border: 1px solid #e8d0d8; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; max-width: 720px; }
+
+    /* FILTROS */
+    .filtros { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filtro-chip { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid #e8d0d8; background: white; color: #a9435d; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .filtro-chip.active { background: #5a1e37; color: white; border-color: #5a1e37; }
+    .filtro-chip:hover:not(.active) { border-color: #a9435d; }
+
+    /* NOTIFICACIONES */
+    .notif-group { margin-bottom: 28px; }
+    .notif-group-title { font-size: 12px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+    .notif-list { display: flex; flex-direction: column; gap: 8px; }
+    .notif-item { background: white; border-radius: 14px; padding: 16px 20px; border: 0.5px solid #e8d0d8; display: flex; align-items: flex-start; gap: 14px; cursor: pointer; transition: border-color 0.15s; }
+    .notif-item:hover { border-color: #f28b98; }
+    .notif-item.unread { border-left: 3px solid #ef647c; background: #fdf9fb; }
+    .notif-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .notif-item.unread .notif-title { color: #3d0f20; }
+    .notif-desc { font-size: 13px; color: #5a3040; line-height: 1.5; margin-bottom: 6px; }
+    .notif-time { font-size: 11px; color: #a9435d; }
+    .notif-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+    .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; }
+    .notif-action { padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+    .notif-action-primary { background: #ef647c; color: white; border: none; }
+    .notif-action-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8; }
+
+    /* DOC ADJUNTO */
+    .notif-doc { display: flex; align-items: center; gap: 8px; background: #fdf0f3; border-radius: 8px; padding: 8px 12px; margin-top: 6px; }
+    .notif-doc-name { font-size: 12px; font-weight: 500; color: #5a1e37; flex: 1; }
+    .notif-doc-btn { background: none; border: none; cursor: pointer; color: #ef647c; font-size: 18px; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .notif-right { display: none; }
+    }
+  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/donante.css">
-
-
-
-
 </head>
 <body>
 

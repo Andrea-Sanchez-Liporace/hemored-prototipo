@@ -6,13 +6,143 @@
   <title>HemoRed Admin — Detalle Hospital</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #1a1a2e; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: #f28b98; margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .sidebar-user { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+    .nav-item.active .nav-badge { background: rgba(255,255,255,0.3); }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,0.25); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #999; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-back:hover { color: #1a1a1a; }
+    .topbar-sep { color: #e0e0e0; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+    .topbar-actions { display: flex; gap: 8px; }
+    .btn-action { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; border: none; }
+    .btn-aprobar { background: #e1f5ee; color: #04342c; }
+    .btn-rechazar { background: #fde8e8; color: #c0392b; }
+    .btn-suspender { background: #1a1a2e; color: white; }
+    .btn-outline { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0 !important; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+    .detail-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* HEADER */
+    .hosp-header { background: #1a1a2e; border-radius: 16px; padding: 28px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .hosp-header-left { display: flex; align-items: center; gap: 16px; }
+    .hosp-avatar-lg { width: 60px; height: 60px; border-radius: 14px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; color: white; flex-shrink: 0; }
+    .hosp-name { font-size: 20px; font-weight: 500; color: white; margin-bottom: 4px; }
+    .hosp-email { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .estado-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .eb-pendiente { background: #faeeda; color: #412402; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e0e0e0; width: fit-content; margin-bottom: 20px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #999; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .tab.active { background: #1a1a2e; color: white; }
+    .tab:hover:not(.active) { background: #f5f5f5; }
+
+    /* CARDS */
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e0e0e0; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .dato-label { font-size: 11px; color: #999; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .dato-value { font-size: 14px; font-weight: 500; color: #1a1a2e; }
+
+    /* DOCUMENTO */
+    .doc-card { border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+    .doc-icon { width: 44px; height: 44px; border-radius: 10px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .doc-info { flex: 1; }
+    .doc-name { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
+    .doc-meta { font-size: 11px; color: #999; }
+    .btn-sm { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-sm-outline { background: white; color: #1a1a2e; border: 1px solid #e0e0e0 !important; }
+
+    /* FACTURAS */
+    .fact-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; }
+    .fact-row:last-child { border-bottom: none; }
+    .fact-id { font-size: 13px; font-weight: 500; color: #1a1a2e; flex: 1; }
+    .fact-meta { font-size: 11px; color: #999; margin-top: 2px; }
+    .fact-badge { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .fb-pagada { background: #e1f5ee; color: #04342c; }
+    .fb-pendiente { background: #faeeda; color: #412402; }
+    .fb-vencida { background: #fde8e8; color: #c0392b; }
+    .btn-xs { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-xs-outline { background: white; color: #1a1a2e; border: 1px solid #e0e0e0 !important; }
+    .btn-xs-primary { background: #ef647c; color: white; }
+
+    /* MENSAJES */
+    .msg-item { padding: 14px 0; border-bottom: 0.5px solid #f0f0f0; }
+    .msg-item:last-child { border-bottom: none; }
+    .msg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .msg-remitente { font-size: 12px; font-weight: 500; }
+    .msg-remitente.admin { color: #1a1a2e; }
+    .msg-remitente.hospital { color: #5a1e37; }
+    .msg-time { font-size: 11px; color: #999; }
+    .msg-asunto { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 4px; }
+    .msg-body { font-size: 13px; color: #555; line-height: 1.5; }
+    .msg-compose { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 0.5px solid #e0e0e0; }
+    .msg-input { width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 9px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; }
+    .msg-input:focus { border-color: #1a1a2e; }
+    .msg-textarea { resize: vertical; min-height: 80px; }
+    .btn-enviar { background: #1a1a2e; color: white; border: none; padding: 10px 20px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; align-self: flex-end; }
+
+    /* SIDEBAR DERECHO */
+    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e0e0e0; margin-bottom: 16px; }
+    .side-title { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 14px; }
+    .side-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #f0f0f0; font-size: 13px; }
+    .side-stat:last-child { border-bottom: none; }
+    .side-stat-label { color: #555; }
+    .side-stat-value { font-weight: 500; color: #1a1a2e; }
+    .side-btn { width: 100%; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; border: none; }
+    .side-btn:last-child { margin-bottom: 0; }
+    .side-btn-success { background: #e1f5ee; color: #04342c; }
+    .side-btn-danger { background: #fde8e8; color: #c0392b; }
+    .side-btn-dark { background: #1a1a2e; color: white; }
+    .side-btn-outline { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0 !important; }
+    .side-btn-warn { background: #faeeda; color: #412402; }
+
+    /* AVISO APROBACION */
+    .aviso-aprobacion { background: #faeeda; border: 1px solid #e67e22; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; }
+    .aviso-text { font-size: 13px; color: #633806; line-height: 1.6; }
+    .aviso-text strong { color: #412402; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) { .detail-layout { grid-template-columns: 1fr; } .dato-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .topbar-actions .btn-action span { display: none; }
+      .hosp-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/admin.css">
-
-
-
-
 </head>
 <body>
 

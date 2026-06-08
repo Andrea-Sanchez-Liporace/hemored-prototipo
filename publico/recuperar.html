@@ -5,9 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HemoRed — Recuperar contraseña</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../estilos/publico.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #fdf0f3; color: #1a0a0f; min-height: 100vh; display: flex; flex-direction: column; }
 
+    /* NAV */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 80px; background: #5a1e37; }
+    .nav-logo { font-family: 'Lobster', cursive; font-size: 26px; color: white; text-decoration: none; }
+    .nav-logo span { color: #f28b98; }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a { font-size: 14px; color: #f28b98; text-decoration: none; }
+    .nav-links a:hover { color: white; }
+    .burger-btn { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+    .burger-btn span { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; }
+    .mobile-menu { display: none; flex-direction: column; background: #4a1830; overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+    .mobile-menu.active { max-height: 400px; }
+    .mobile-menu a { display: block; padding: 14px 24px; color: #f28b98; font-size: 14px; text-decoration: none; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+
+    /* MAIN */
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+
+    /* STEPS */
+    .step { display: none; width: 100%; max-width: 400px; }
+    .step.active { display: block; }
+
+    /* FORM CARD */
+    .form-card { background: white; border-radius: 20px; padding: 44px 40px; border: 0.5px solid #e8d0d8; box-shadow: 0 4px 32px rgba(90,30,55,0.08); }
+    .form-logo { font-family: 'Lobster', cursive; font-size: 28px; color: #5a1e37; text-align: center; margin-bottom: 6px; }
+    .form-logo span { color: #ef647c; }
+    .form-icon { width: 56px; height: 56px; border-radius: 16px; background: #fdf0f3; border: 1px solid #f28b98; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .form-title { font-size: 20px; font-weight: 500; color: #5a1e37; text-align: center; margin-bottom: 8px; }
+    .form-subtitle { font-size: 14px; color: #5a3040; text-align: center; margin-bottom: 28px; line-height: 1.5; }
+    .form-group { margin-bottom: 18px; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
+    .form-input { width: 100%; padding: 11px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-input::placeholder { color: #c994a4; }
+    .form-hint { font-size: 11px; color: #a9435d; margin-top: 4px; }
+    .form-btn { width: 100%; background: #ef647c; color: white; border: none; padding: 13px; border-radius: 9px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 4px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .form-btn:hover { background: #d4537e; }
+    .form-back { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; margin-top: 16px; background: none; border: none; font-family: 'Inter', sans-serif; width: 100%; text-decoration: none; }
+    .form-back:hover { color: #5a1e37; }
+
+    /* CÓDIGO */
+    .code-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 6px; }
+    .code-input { width: 48px; height: 56px; border: 1.5px solid #e8d0d8; border-radius: 10px; font-size: 22px; font-weight: 500; text-align: center; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; }
+    .code-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .resend-link { font-size: 12px; color: #a9435d; text-align: center; display: block; margin-top: 10px; cursor: pointer; }
+    .resend-link:hover { color: #ef647c; }
+    .email-highlight { font-weight: 500; color: #5a1e37; }
+
+    /* SUCCESS */
+    .success-check { width: 64px; height: 64px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+
+    /* FOOTER */
+    footer { padding: 24px 80px; background: #3d0f20; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-family: 'Lobster', cursive; font-size: 18px; color: white; }
+    .footer-logo span { color: #f28b98; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 12px; color: #f28b98; text-decoration: none; }
+    .footer-copy { font-size: 11px; color: #c994a4; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .burger-btn { display: flex; }
+      .mobile-menu { display: flex; }
+      .form-card { padding: 32px 24px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 14px; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+  
+  .nav-public-links { display: flex; align-items: center; gap: 28px; }
+  .nav-public-links a { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.65); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; transition: color 0.15s; }
+  .nav-public-links a:hover { color: white; }
+  .nav-public-links a.nav-active { color: #f9c0cc; border-bottom: 2px solid #f9c0cc; }
+  </style>
 </head>
 <body>
 
@@ -23,8 +98,8 @@
   </button>
 </nav>
 <div class="mobile-menu" id="mobile-menu">
-  <a href="../index.html#como-funciona">Cómo funciona</a>
-  <a href="../index.html#para-hospitales">Para hospitales</a>
+  <a href="#">Cómo funciona</a>
+  <a href="#">Para hospitales</a>
   <a href="../publico/nosotros.html">Nosotros</a>
 </div>
 
@@ -145,9 +220,9 @@
   <div class="footer-logo">Hemo<span>red</span></div>
   <div class="footer-links">
     <a href="../publico/nosotros.html">Nosotros</a>
-    <a href="../publico/terminos.html">Términos</a>
-    <a href="../publico/privacidad.html">Privacidad</a>
-    <a href="../publico/contacto.html">Contacto</a>
+    <a href="#">Términos</a>
+    <a href="#">Privacidad</a>
+    <a href="#">Contacto</a>
   </div>
   <div class="footer-copy">© 2026 HemoRed</div>
 </footer>

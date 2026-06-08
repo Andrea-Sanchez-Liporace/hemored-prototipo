@@ -6,13 +6,143 @@
   <title>HemoRed — Detalle de campaña</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-sep { color: #e8d0d8; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-sm-action { padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; border: none; }
+    .btn-editar { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8 !important; }
+    .btn-pausar { background: white; color: #e67e22; border: 1.5px solid #e67e22 !important; }
+    .btn-cerrar { background: white; color: #c0392b; border: 1.5px solid #e74c3c !important; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+    .detail-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* HEADER CAMPAÑA */
+    .camp-header { background: #3d0f20; border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+    .camp-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+    .camp-title { font-size: 22px; font-weight: 500; color: white; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .camp-urgente-tag { display: inline-flex; align-items: center; gap: 3px; background: #fde8e8; color: #c0392b; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; }
+    .camp-hospital { font-size: 13px; color: #f28b98; }
+    .estado-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .estado-activa { background: #e1f5ee; color: #04342c; }
+    .camp-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .camp-meta-item { }
+    .camp-meta-label { font-size: 11px; color: rgba(242,139,152,0.7); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .camp-meta-value { font-size: 15px; font-weight: 500; color: white; }
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #ef647c; border-radius: 3px; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 20px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .tab.active { background: #5a1e37; color: white; }
+    .tab:hover:not(.active) { background: #fdf0f3; }
+
+    /* PANEL */
+    .panel { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid #e8d0d8; }
+    .panel-title { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .panel-count { font-size: 12px; color: #a9435d; }
+
+    /* TABLA TURNOS */
+    .turnos-table-header { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 100px; padding: 10px 20px; background: #fdf0f3; border-bottom: 0.5px solid #e8d0d8; }
+    .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
+    .turno-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 100px; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; }
+    .turno-row:last-child { border-bottom: none; }
+    .turno-row:hover { background: #fdf0f3; }
+    .turno-donante { display: flex; align-items: center; gap: 10px; }
+    .turno-avatar { width: 32px; height: 32px; border-radius: 50%; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
+    .turno-nombre { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .turno-dni { font-size: 11px; color: #a9435d; }
+    .td { font-size: 13px; color: #5a3040; }
+    .turno-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .tb-pendiente { background: #faeeda; color: #412402; }
+    .tb-confirmado { background: #e1f5ee; color: #04342c; }
+    .tb-cancelado { background: #f7f0f3; color: #a9435d; }
+    .tb-completado { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .turno-actions { display: flex; gap: 5px; }
+    .btn-xs { padding: 5px 9px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-xs-ok { background: #e1f5ee; color: #04342c; }
+    .btn-xs-no { background: #fde8e8; color: #c0392b; }
+    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+
+    /* DESCRIPCIÓN TAB */
+    .desc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .desc-item { background: white; border-radius: 12px; padding: 18px; border: 0.5px solid #e8d0d8; }
+    .desc-item-label { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .desc-item-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .desc-item-sub { font-size: 12px; color: #5a3040; margin-top: 3px; }
+    .desc-full { background: white; border-radius: 12px; padding: 18px; border: 0.5px solid #e8d0d8; }
+    .desc-full-text { font-size: 14px; color: #5a3040; line-height: 1.7; }
+
+    /* SIDEBAR DERECHO */
+    .sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .side-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .side-stat { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .side-stat:last-child { border-bottom: none; }
+    .side-stat-label { font-size: 12px; color: #5a3040; }
+    .side-stat-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .side-actions { display: flex; flex-direction: column; gap: 8px; }
+    .btn-action { width: 100%; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; border: none; }
+    .btn-action-primary { background: #ef647c; color: white; }
+    .btn-action-outline { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8 !important; }
+    .btn-action-warn { background: white; color: #e67e22; border: 1.5px solid #e67e22 !important; }
+    .btn-action-danger { background: white; color: #c0392b; border: 1.5px solid #e74c3c !important; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) {
+      .detail-layout { grid-template-columns: 1fr; }
+      .camp-meta { grid-template-columns: repeat(2, 1fr); }
+      .sidebar-right { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .camp-meta { grid-template-columns: repeat(2, 1fr); }
+      .topbar-actions .btn-sm-action span { display: none; }
+      .turnos-table-header { display: none; }
+      .turno-row { grid-template-columns: 1fr; gap: 6px; }
+      .td.hide-sm { display: none; }
+      .desc-grid { grid-template-columns: 1fr; }
+      .sidebar-right { grid-template-columns: 1fr; }
+    }
+  </style>
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/hospital.css">
-
-
-
-
 </head>
 <body>
 
