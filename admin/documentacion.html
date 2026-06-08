@@ -6,196 +6,10 @@
   <title>HemoRed — Documentación del sistema</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <style>
-    :root {
-      --borravino: #5a1e37; --borravino-dark: #3d0f20; --rosa: #ef647c;
-      --rosa-light: #f28b98; --rosa-pale: #fdf0f3; --rosa-border: #e8d0d8;
-      --admin-dark: #1a1a2e; --admin-mid: #16213e; --admin-accent: #3498db;
-      --text: #1a0a0f; --text-muted: #6b7280; --white: #ffffff;
-      --success: #27ae60; --warning: #e67e22; --danger: #c0392b; --info: #3498db;
-      --radius: 10px; --shadow: 0 2px 16px rgba(0,0,0,0.08);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/admin.css">
 
-    /* APP SIDEBAR */
-    .app-sidebar { width: 220px; background: var(--admin-dark); display: flex; flex-direction: column; flex-shrink: 0; }
-    .app-sidebar-logo { padding: 20px 20px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
-    .app-sidebar-logo a { font-family: 'Lobster', cursive; font-size: 22px; color: white; text-decoration: none; }
-    .app-sidebar-logo a span { color: var(--rosa-light); }
-    .app-sidebar-logo .sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
-    .app-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
-    .app-nav a { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 7px; color: rgba(255,255,255,0.5); font-size: 12px; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
-    .app-nav a:hover { background: rgba(255,255,255,0.06); color: white; }
-    .app-nav a.active { background: var(--admin-mid); color: white; }
-    .app-nav a i { font-size: 15px; flex-shrink: 0; }
-    .app-nav .nav-section { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: .08em; padding: 12px 10px 6px; }
-
-    /* MAIN AREA */
-    .main { flex: 1; display: flex; overflow: hidden; }
-
-    /* DOC SIDEBAR */
-    .doc-sidebar { width: 260px; background: white; border-right: 0.5px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
-    .doc-search { padding: 16px; border-bottom: 0.5px solid #e5e7eb; }
-    .doc-search input { width: 100%; padding: 8px 12px 8px 32px; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; background: #f9fafb; position: relative; }
-    .doc-search input:focus { border-color: var(--admin-accent); background: white; }
-    .search-wrap { position: relative; }
-    .search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; pointer-events: none; }
-    .doc-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .doc-nav-section { padding: 10px 16px 4px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
-    .doc-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 16px; cursor: pointer; font-size: 13px; color: #374151; transition: all 0.1s; border-left: 2px solid transparent; }
-    .doc-nav-item:hover { background: #f9fafb; color: var(--admin-dark); }
-    .doc-nav-item.active { background: #eff6ff; color: var(--admin-accent); border-left-color: var(--admin-accent); font-weight: 500; }
-    .doc-nav-item .role-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .doc-nav-item .count { margin-left: auto; font-size: 10px; background: #f3f4f6; color: var(--text-muted); padding: 1px 6px; border-radius: 20px; }
-
-    /* DOC CONTENT */
-    .doc-content { flex: 1; overflow-y: auto; padding: 32px; overflow-anchor: none; scroll-behavior: auto; }
-    .doc-panel { display: none; }
-    .doc-panel.active { display: block; }
-
-    /* PANEL HEADER */
-    .panel-header { margin-bottom: 28px; }
-    .panel-breadcrumb { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-    .panel-title { font-size: 22px; font-weight: 600; color: var(--admin-dark); margin-bottom: 6px; }
-    .panel-desc { font-size: 14px; color: #4b5563; line-height: 1.6; }
-    .panel-badges { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .pbadge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-    .pbadge-blue { background: #dbeafe; color: #1e40af; }
-    .pbadge-green { background: #dcfce7; color: #166534; }
-    .pbadge-red { background: #fee2e2; color: #991b1b; }
-    .pbadge-purple { background: #ede9fe; color: #5b21b6; }
-    .pbadge-orange { background: #ffedd5; color: #9a3412; }
-    .pbadge-gray { background: #f3f4f6; color: #374151; }
-
-    /* FLOW STEPS */
-    .flow-section { margin-bottom: 24px; }
-    .flow-section-title { font-size: 13px; font-weight: 600; color: var(--admin-dark); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1.5px solid #e5e7eb; }
-    .flow-steps { display: flex; flex-direction: column; gap: 0; }
-    .flow-step { display: flex; gap: 14px; padding-bottom: 16px; position: relative; }
-    .flow-step:last-child { padding-bottom: 0; }
-    .flow-step:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 30px; bottom: 0; width: 1px; background: #e5e7eb; }
-    .step-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: 600; z-index: 1; }
-    .step-dot-ok { background: #dbeafe; color: var(--admin-accent); }
-    .step-dot-warn { background: #ffedd5; color: var(--warning); }
-    .step-dot-err { background: #fee2e2; color: var(--danger); }
-    .step-body { flex: 1; padding-top: 4px; }
-    .step-title { font-size: 13px; font-weight: 500; color: var(--admin-dark); margin-bottom: 3px; }
-    .step-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
-    .step-views { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-    .step-view-badge { font-size: 10px; background: #f3f4f6; color: #374151; padding: 2px 7px; border-radius: 4px; font-family: monospace; }
-
-    /* ERROR CARDS */
-    .error-cards { display: flex; flex-direction: column; gap: 8px; }
-    .error-card { background: #fff; border: 0.5px solid #e5e7eb; border-radius: var(--radius); padding: 12px 14px; border-left: 3px solid var(--danger); }
-    .error-card-title { font-size: 12px; font-weight: 600; color: var(--danger); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-    .error-card-desc { font-size: 12px; color: #4b5563; line-height: 1.5; }
-
-    /* DB TABLE DOCS */
-    .db-table-card { background: white; border-radius: var(--radius); border: 0.5px solid #e5e7eb; margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow); }
-    .db-table-header { padding: 16px 20px; background: var(--admin-dark); display: flex; align-items: center; gap: 12px; }
-    .db-table-name { font-size: 15px; font-weight: 600; color: white; font-family: monospace; }
-    .db-table-desc { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
-    .db-table-body { padding: 16px 20px; }
-    .db-section { margin-bottom: 14px; }
-    .db-section-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-    .db-section-text { font-size: 13px; color: #374151; line-height: 1.6; }
-    .db-fields { display: flex; flex-direction: column; gap: 4px; }
-    .db-field { display: flex; align-items: flex-start; gap: 10px; padding: 6px 10px; background: #f9fafb; border-radius: 6px; font-size: 12px; }
-    .db-field-name { font-family: monospace; font-weight: 600; color: var(--admin-dark); flex-shrink: 0; min-width: 180px; }
-    .db-field-type { color: var(--admin-accent); font-family: monospace; flex-shrink: 0; min-width: 80px; }
-    .db-field-desc { color: #4b5563; }
-    .db-field.pk .db-field-name::before { content: '🔑 '; }
-    .db-field.fk .db-field-name::before { content: '🔗 '; }
-    .db-relations { display: flex; flex-wrap: wrap; gap: 6px; }
-    .db-relation { font-size: 11px; background: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 5px; font-family: monospace; }
-    .db-usado { display: flex; flex-wrap: wrap; gap: 6px; }
-    .db-usado-badge { font-size: 11px; padding: 3px 8px; border-radius: 5px; }
-
-    /* TECH TABLE */
-    .tech-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .tech-table th { text-align: left; padding: 8px 14px; background: #f9fafb; border-bottom: 1.5px solid #e5e7eb; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
-    .tech-table td { padding: 10px 14px; border-bottom: 0.5px solid #f3f4f6; vertical-align: top; }
-    .tech-table tr:last-child td { border-bottom: none; }
-    .tech-table tr:hover td { background: #f9fafb; }
-    .code { font-family: monospace; background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
-
-    /* MARK TABLE */
-    .mark-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .mark-table th { text-align: left; padding: 8px 12px; background: #f9fafb; border-bottom: 1.5px solid #e5e7eb; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-    .mark-table td { padding: 10px 12px; border-bottom: 0.5px solid #f3f4f6; vertical-align: top; line-height: 1.5; }
-    .mark-table tr:hover td { background: #fafafa; }
-
-    /* VERSION CARDS */
-    .version-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .version-card { background: white; border-radius: var(--radius); border: 0.5px solid #e5e7eb; padding: 20px; box-shadow: var(--shadow); }
-    .version-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 10px; }
-    .version-title { font-size: 16px; font-weight: 600; color: var(--admin-dark); margin-bottom: 8px; }
-    .version-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
-    .version-list li { font-size: 12px; color: #4b5563; display: flex; align-items: flex-start; gap: 7px; line-height: 1.4; }
-    .version-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; margin-top: 5px; }
-    .version-list.in { color: var(--success); }
-    .version-list.out { color: var(--text-muted); }
-
-
-
-    /* FLUJO CARDS GRID */
-    .flujos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0; }
-    .flujo-card { background: #1e2a3a; border-radius: 10px; padding: 16px 20px; cursor: pointer; transition: background 0.15s; border: 1.5px solid transparent; }
-    .flujo-card:hover { background: #16213e; border-color: #3498db; }
-    .flujo-card.active { background: #16213e; border-color: #3498db; }
-    .flujo-card-code { font-size: 12px; font-weight: 600; color: #93c5fd; font-family: monospace; margin-bottom: 4px; }
-    .flujo-card-name { font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 500; }
-
-    /* FLUJO DETAIL */
-    .flujo-detail-wrap { margin-top: 0; }
-    .flujo-detail-topbar { display: flex; align-items: center; gap: 12px; padding: 16px 0 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
-    .flujo-back-btn { display: flex; align-items: center; gap: 6px; background: #f3f4f6; border: none; padding: 8px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
-    .flujo-back-btn:hover { background: #e5e7eb; }
-    .flujo-detail-title { font-size: 20px; font-weight: 600; color: var(--admin-dark); margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1.5px solid #e5e7eb; }
-
-    /* FLUJO NAV BAR */
-    .flujo-nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 0 0; margin-top: 24px; border-top: 1px solid #e5e7eb; }
-    .flujo-nav-btn { display: flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; border: none; }
-    .flujo-nav-prev { background: white; color: #374151; border: 1.5px solid #e5e7eb !important; }
-    .flujo-nav-prev:hover { border-color: #3498db !important; color: #1e40af; }
-    .flujo-nav-next { background: #1a1a2e; color: white; }
-    .flujo-nav-next:hover { background: #16213e; }
-    .flujo-nav-label { font-size: 11px; color: #9ca3af; }
-
-    /* DIAGRAMAS */
-    .diagrama-wrap { margin-top: 20px; border-radius: 10px; overflow: hidden; border: 1px solid #e5e7eb; }
-    .diagrama-toggle { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: #1a1a2e; border: none; cursor: pointer; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); width: 100%; font-family: 'Inter', sans-serif; transition: background 0.15s; }
-    .diagrama-toggle:hover { background: #16213e; }
-    .diagrama-toggle .toggle-icon { font-size: 16px; color: #60a5fa; }
-    .diagrama-toggle .toggle-arrow { margin-left: auto; font-size: 14px; color: rgba(255,255,255,0.4); transition: transform 0.25s; }
-    .diagrama-toggle.open .toggle-arrow { transform: rotate(180deg); }
-    .diagrama-toggle .toggle-badge { font-size: 10px; background: rgba(96,165,250,0.2); color: #93c5fd; padding: 2px 8px; border-radius: 20px; }
-    .diagrama-content { display: none; background: #fafafa; padding: 24px; overflow-x: auto; }
-    .diagrama-content.open { display: block; }
-    .diagrama-content .mermaid { display: flex; justify-content: center; }
-    .diagrama-content .mermaid svg { max-width: 100%; height: auto; cursor: zoom-in; }
-    .diagrama-footer { display: flex; justify-content: flex-end; padding: 8px 0 0; }
-    .btn-zoom { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--admin-accent); background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; padding: 4px 8px; border-radius: 5px; transition: background 0.1s; }
-    .btn-zoom:hover { background: #eff6ff; }
-    /* MODAL DIAGRAMA */
-    .diag-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; padding: 24px; }
-    .diag-modal.open { display: flex; }
-    .diag-modal-inner { background: white; border-radius: 16px; max-width: 95vw; max-height: 90vh; overflow: auto; padding: 24px; position: relative; }
-    .diag-modal-close { position: absolute; top: 14px; right: 14px; background: #f3f4f6; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #374151; }
-    .diag-modal-title { font-size: 15px; font-weight: 600; color: var(--admin-dark); margin-bottom: 16px; padding-right: 40px; }
-    .diag-modal-svg svg { max-width: 100%; height: auto; }
-
-    /* SCROLLBAR */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
-
-    @media (max-width: 900px) {
-      .app-sidebar { display: none; }
-      .doc-sidebar { width: 200px; }
-    }
-  </style>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
 <body>
@@ -402,7 +216,7 @@
 <div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El usuario ingresa email y contraseña</div></div></div>
 <div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Hace click en "Iniciar sesión" (o presiona Enter)</div></div></div>
 <div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title"><code>sesion.js</code> valida las credenciales</div></div></div>
-<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Redirección automática según rol:</div><div class="step-desc"><code>donante</code> → <code>donante/dashboard.html</code> · <code>hospital</code> → <code>hospital/dashboard.html</code> · <code>profesional</code> → <code>profesional/dashboard.html</code> · <code>superadmin</code> → <code>admin/dashboard.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Redirección automática según rol:</div><div class="step-desc"><code>donante</code> → <code>donante/dashboard.html</code> · <code>hospital</code> → <code>hospital/dashboard.html</code> · <code>profesional</code> → <code>profesional/dashboard.html</code> · <code>equipo_hemored</code> → <code>admin/dashboard.html</code></div></div></div>
 </div></div>
 <div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
 <div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Email o contraseña incorrectos</div><div class="error-card-desc">mensaje de error en rojo "Email o contraseña incorrectos" (no especifica cuál para evitar enumeración de usuarios)</div></div>
@@ -1337,7 +1151,7 @@ generado])
       <div class="panel-breadcrumb">Flujos del Administrador</div>
       <div class="panel-title">Flujos del Administrador</div>
       <div class="panel-desc">Gestión global del sistema: hospitales, planes, facturación, donantes y métricas.</div>
-      <div class="panel-badges"><span class="pbadge pbadge-blue"><i class="ti ti-shield" style="font-size:10px;"></i> Rol: superadmin</span><span class="pbadge pbadge-blue">5 flujos</span></div>
+      <div class="panel-badges"><span class="pbadge pbadge-blue"><i class="ti ti-shield" style="font-size:10px;"></i> Rol: equipo_hemored</span><span class="pbadge pbadge-blue">5 flujos</span></div>
     </div>
     <div class="flujos-grid" id="grid-f-adm">
       <div class="flujo-card" id="card-adm-hospitales" onclick="abrirFlujo('adm-hospitales', 'f-adm')">
