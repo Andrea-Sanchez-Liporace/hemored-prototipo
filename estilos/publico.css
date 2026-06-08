@@ -383,7 +383,8 @@ main.contacto .form-card { max-width: none; }
   .steps { padding: 48px 40px; }
   .cta-final { padding: 56px 40px; }
   .page-hero, .historia, .mision-vision, .valores, .equipo { padding-left: 40px; padding-right: 40px; }
-  main.contacto { padding: 48px 40px; gap: 40px; }
+  main.contacto { padding: 48px 40px; grid-template-columns: 1fr; gap: 40px; }
+  .contact-info { position: static; }
 }
 
 @media (max-width: 768px) {
