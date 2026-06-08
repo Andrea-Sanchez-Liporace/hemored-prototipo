@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed Admin — Detalle Hospital</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #1a1a2e; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: #f28b98; margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .sidebar-user { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+    .nav-item.active .nav-badge { background: rgba(255,255,255,0.3); }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,0.25); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #999; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-back:hover { color: #1a1a1a; }
+    .topbar-sep { color: #e0e0e0; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+    .topbar-actions { display: flex; gap: 8px; }
+    .btn-action { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; border: none; }
+    .btn-aprobar { background: #e1f5ee; color: #04342c; }
+    .btn-rechazar { background: #fde8e8; color: #c0392b; }
+    .btn-suspender { background: #1a1a2e; color: white; }
+    .btn-outline { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0 !important; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+    .detail-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* HEADER */
+    .hosp-header { background: #1a1a2e; border-radius: 16px; padding: 28px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .hosp-header-left { display: flex; align-items: center; gap: 16px; }
+    .hosp-avatar-lg { width: 60px; height: 60px; border-radius: 14px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; color: white; flex-shrink: 0; }
+    .hosp-name { font-size: 20px; font-weight: 500; color: white; margin-bottom: 4px; }
+    .hosp-email { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .estado-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .eb-pendiente { background: #faeeda; color: #412402; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e0e0e0; width: fit-content; margin-bottom: 20px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #999; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .tab.active { background: #1a1a2e; color: white; }
+    .tab:hover:not(.active) { background: #f5f5f5; }
+
+    /* CARDS */
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e0e0e0; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .dato-label { font-size: 11px; color: #999; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .dato-value { font-size: 14px; font-weight: 500; color: #1a1a2e; }
+
+    /* DOCUMENTO */
+    .doc-card { border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+    .doc-icon { width: 44px; height: 44px; border-radius: 10px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .doc-info { flex: 1; }
+    .doc-name { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
+    .doc-meta { font-size: 11px; color: #999; }
+    .btn-sm { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-sm-outline { background: white; color: #1a1a2e; border: 1px solid #e0e0e0 !important; }
+
+    /* FACTURAS */
+    .fact-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; }
+    .fact-row:last-child { border-bottom: none; }
+    .fact-id { font-size: 13px; font-weight: 500; color: #1a1a2e; flex: 1; }
+    .fact-meta { font-size: 11px; color: #999; margin-top: 2px; }
+    .fact-badge { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .fb-pagada { background: #e1f5ee; color: #04342c; }
+    .fb-pendiente { background: #faeeda; color: #412402; }
+    .fb-vencida { background: #fde8e8; color: #c0392b; }
+    .btn-xs { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-xs-outline { background: white; color: #1a1a2e; border: 1px solid #e0e0e0 !important; }
+    .btn-xs-primary { background: #ef647c; color: white; }
+
+    /* MENSAJES */
+    .msg-item { padding: 14px 0; border-bottom: 0.5px solid #f0f0f0; }
+    .msg-item:last-child { border-bottom: none; }
+    .msg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .msg-remitente { font-size: 12px; font-weight: 500; }
+    .msg-remitente.admin { color: #1a1a2e; }
+    .msg-remitente.hospital { color: #5a1e37; }
+    .msg-time { font-size: 11px; color: #999; }
+    .msg-asunto { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 4px; }
+    .msg-body { font-size: 13px; color: #555; line-height: 1.5; }
+    .msg-compose { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 0.5px solid #e0e0e0; }
+    .msg-input { width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 9px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; }
+    .msg-input:focus { border-color: #1a1a2e; }
+    .msg-textarea { resize: vertical; min-height: 80px; }
+    .btn-enviar { background: #1a1a2e; color: white; border: none; padding: 10px 20px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; align-self: flex-end; }
+
+    /* SIDEBAR DERECHO */
+    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e0e0e0; margin-bottom: 16px; }
+    .side-title { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 14px; }
+    .side-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #f0f0f0; font-size: 13px; }
+    .side-stat:last-child { border-bottom: none; }
+    .side-stat-label { color: #555; }
+    .side-stat-value { font-weight: 500; color: #1a1a2e; }
+    .side-btn { width: 100%; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; border: none; }
+    .side-btn:last-child { margin-bottom: 0; }
+    .side-btn-success { background: #e1f5ee; color: #04342c; }
+    .side-btn-danger { background: #fde8e8; color: #c0392b; }
+    .side-btn-dark { background: #1a1a2e; color: white; }
+    .side-btn-outline { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0 !important; }
+    .side-btn-warn { background: #faeeda; color: #412402; }
+
+    /* AVISO APROBACION */
+    .aviso-aprobacion { background: #faeeda; border: 1px solid #e67e22; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; }
+    .aviso-text { font-size: 13px; color: #633806; line-height: 1.6; }
+    .aviso-text strong { color: #412402; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) { .detail-layout { grid-template-columns: 1fr; } .dato-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .topbar-actions .btn-action span { display: none; }
+      .hosp-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/admin.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../admin/dashboard.html">Hemo<span>red</span></a>
+    <div class="sidebar-badge"><i class="ti ti-shield" style="font-size:10px;"></i>Super Admin</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SA</div>
+    <div>
+      <div class="sidebar-user-name">Admin HemoRed</div>
+      <div class="sidebar-user-role">Superadministrador</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+    <a class="nav-item active" href="../admin/hospitales.html">
+      <i class="ti ti-building-hospital"></i>Hospitales
+      <span class="nav-badge">4</span>
+    </a>
+    <a class="nav-item" href="../admin/donantes.html"><i class="ti ti-users"></i>Donantes</a>
+    <a class="nav-item" href="../admin/metricas.html"><i class="ti ti-chart-bar"></i>Métricas globales</a>
+    <div class="nav-section-label">Negocio</div>
+    <a class="nav-item" href="../admin/planes.html"><i class="ti ti-star"></i>Planes</a>
+    <a class="nav-item" href="../admin/facturacion.html"><i class="ti ti-receipt"></i>Facturación global</a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-settings"></i>Configuración</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <a class="topbar-back" href="../admin/hospitales.html">
+        <i class="ti ti-arrow-left"></i>Hospitales
+      </a>
+      <span class="topbar-sep">/</span>
+      <span class="topbar-title">Hospital Ramos Mejía</span>
+    </div>
+
+  </div>
+
+  <div class="content">
+
+    <!-- HEADER HOSPITAL -->
+    <div class="hosp-header">
+      <div class="hosp-header-left">
+        <div class="hosp-avatar-lg">HR</div>
+        <div>
+          <div class="hosp-name">Hospital Ramos Mejía</div>
+          <div class="hosp-email">admin@ramosmejia.gob.ar · CUIT 30-12345678-9</div>
+          <span class="estado-badge eb-pendiente">⏳ Pendiente de aprobación</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:4px;">Solicitado</div>
+        <div style="font-size:14px;font-weight:500;color:white;">15 may 2026 · 10:32hs</div>
+      </div>
+    </div>
+
+    <!-- AVISO -->
+    <div class="aviso-aprobacion">
+      <i class="ti ti-alert-circle" style="color:#e67e22;font-size:20px;flex-shrink:0;"></i>
+      <div class="aviso-text">
+        <strong>Esta cuenta está pendiente de aprobación.</strong> Revisá la documentación adjunta antes de activar el acceso al sistema. Una vez aprobado el hospital recibirá un email de confirmación y podrá iniciar sesión.
+      </div>
+    </div>
+
+    <div class="detail-layout">
+      <div>
+
+        <!-- TABS -->
+        <div class="tabs">
+          <button class="tab active" onclick="cambiarTab('datos', this)">Datos institucionales</button>
+          <button class="tab" onclick="cambiarTab('facturacion', this)">Facturación</button>
+          <button class="tab" onclick="cambiarTab('mensajes', this)">Mensajes</button>
+          <button class="tab" onclick="cambiarTab('actividad', this)">Actividad</button>
+          <button class="tab" onclick="cambiarTab('acciones', this)">Acciones</button>
+        </div>
+
+        <!-- TAB DATOS -->
+        <div id="tab-datos">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-building-hospital" style="color:#ef647c;"></i>Datos de la institución</div>
+            <div class="dato-grid">
+              <div><div class="dato-label">Nombre</div><div class="dato-value">Hospital Ramos Mejía</div></div>
+              <div><div class="dato-label">CUIT</div><div class="dato-value">30-12345678-9</div></div>
+              <div><div class="dato-label">Email institucional</div><div class="dato-value">admin@ramosmejia.gob.ar</div></div>
+              <div><div class="dato-label">Teléfono</div><div class="dato-value">011 4127-0200</div></div>
+              <div><div class="dato-label">Dirección</div><div class="dato-value">Av. General Urquiza 609</div></div>
+              <div><div class="dato-label">Provincia</div><div class="dato-value">CABA</div></div>
+              <div><div class="dato-label">Plan solicitado</div><div class="dato-value">Plan Provincial · $15.000/mes</div></div>
+              <div><div class="dato-label">Condición IVA</div><div class="dato-value">Responsable inscripto</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-chart-pie" style="color:#ef647c;"></i>Resumen</div>
+            <div class="dato-grid">
+              <div><div class="dato-label">Plan activo</div><div class="dato-value">Provincial</div></div>
+              <div><div class="dato-label">Campañas activas</div><div class="dato-value">—</div></div>
+              <div><div class="dato-label">Total donaciones</div><div class="dato-value">—</div></div>
+              <div><div class="dato-label">Donantes registrados</div><div class="dato-value">—</div></div>
+              <div><div class="dato-label">Facturas pagas</div><div class="dato-value">—</div></div>
+              <div><div class="dato-label">Mensajes sin leer</div><div class="dato-value">1</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-file-certificate" style="color:#ef647c;"></i>Documentación enviada</div>
+            <div class="doc-card">
+              <div class="doc-icon">
+                <i class="ti ti-file-type-pdf" style="color:#ef647c;font-size:20px;"></i>
+              </div>
+              <div class="doc-info">
+                <div class="doc-name">habilitacion_sanitaria_ramosmejia.pdf</div>
+                <div class="doc-meta">Subido el 15 may 2026 · 2.4 MB</div>
+              </div>
+              <button class="btn-sm btn-sm-outline" style="display:flex;align-items:center;gap:5px;">
+                <i class="ti ti-eye" style="font-size:12px;"></i>Ver
+              </button>
+              <button class="btn-sm btn-sm-outline" style="display:flex;align-items:center;gap:5px;">
+                <i class="ti ti-download" style="font-size:12px;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB FACTURACIÓN -->
+        <div id="tab-facturacion" style="display:none;">
+          <div class="card">
+            <div class="card-title" style="justify-content:space-between;">
+              <span style="display:flex;align-items:center;gap:8px;"><i class="ti ti-receipt" style="color:#ef647c;"></i>Facturas emitidas</span>
+              <button style="background:#1a1a2e;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;">
+                <i class="ti ti-plus" style="font-size:12px;"></i>Nueva factura
+              </button>
+            </div>
+
+            <div class="fact-row">
+              <div style="flex:1;">
+                <div class="fact-id">FAC-2026-0003</div>
+                <div class="fact-meta">Junio 2026 · Plan Provincial</div>
+              </div>
+              <div style="font-size:14px;font-weight:500;color:#1a1a2e;">$18.150</div>
+              <span class="fact-badge fb-pendiente">Pendiente</span>
+              <button class="btn-xs btn-xs-primary">Marcar pagada</button>
+              <button class="btn-xs btn-xs-outline">Ver</button>
+            </div>
+            <div class="fact-row">
+              <div style="flex:1;">
+                <div class="fact-id">FAC-2026-0002</div>
+                <div class="fact-meta">Mayo 2026 · Plan Provincial</div>
+              </div>
+              <div style="font-size:14px;font-weight:500;color:#1a1a2e;">$18.150</div>
+              <span class="fact-badge fb-pagada">Pagada</span>
+              <button class="btn-xs btn-xs-outline"><i class="ti ti-download" style="font-size:11px;"></i></button>
+            </div>
+            <div class="fact-row">
+              <div style="flex:1;">
+                <div class="fact-id">FAC-2026-0001</div>
+                <div class="fact-meta">Abril 2026 · Plan Provincial</div>
+              </div>
+              <div style="font-size:14px;font-weight:500;color:#1a1a2e;">$18.150</div>
+              <span class="fact-badge fb-pagada">Pagada</span>
+              <button class="btn-xs btn-xs-outline"><i class="ti ti-download" style="font-size:11px;"></i></button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-credit-card" style="color:#ef647c;"></i>Medio de pago registrado</div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 0;">
+              <div style="width:44px;height:28px;border-radius:6px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;">
+                <i class="ti ti-credit-card" style="color:#f28b98;font-size:16px;"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;color:#1a1a2e;">Visa terminada en 4532</div>
+                <div style="font-size:11px;color:#999;">Vence 08/28 · Hospital Ramos Mejía</div>
+              </div>
+              <span style="background:#e1f5ee;color:#04342c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Principal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB MENSAJES -->
+        <div id="tab-mensajes" style="display:none;">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-messages" style="color:#ef647c;"></i>Canal de comunicación</div>
+
+            <div class="msg-item">
+              <div class="msg-header">
+                <span class="msg-remitente admin">HemoRed Admin</span>
+                <span class="msg-time">15 may 2026 · 11:00hs</span>
+              </div>
+              <div class="msg-asunto">Revisión de documentación</div>
+              <div class="msg-body">Recibimos su solicitud de registro. Estamos revisando la habilitación sanitaria adjunta. Le confirmaremos en las próximas 48 horas hábiles.</div>
+            </div>
+
+            <div class="msg-item">
+              <div class="msg-header">
+                <span class="msg-remitente hospital">Hospital Ramos Mejía</span>
+                <span class="msg-time">15 may 2026 · 13:30hs</span>
+              </div>
+              <div class="msg-asunto">Re: Revisión de documentación</div>
+              <div class="msg-body">Muchas gracias. Quedo a disposición ante cualquier consulta adicional. Adjunté la habilitación vigente 2026.</div>
+            </div>
+
+            <!-- Compose -->
+            <div class="msg-compose">
+              <div style="font-size:13px;font-weight:500;color:#1a1a2e;margin-bottom:4px;">Nuevo mensaje</div>
+              <input class="msg-input" type="text" placeholder="Asunto">
+              <textarea class="msg-input msg-textarea" placeholder="Escribí tu mensaje al hospital..."></textarea>
+              <button class="btn-enviar">
+                <i class="ti ti-send"></i>Enviar mensaje
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB ACCIONES -->
+        <div id="tab-acciones" style="display:none;">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-settings" style="color:#ef647c;"></i>Acciones sobre esta cuenta</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+
+              <div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px 20px;">
+                <div style="font-size:14px;font-weight:500;color:#1a1a2e;margin-bottom:4px;">Aprobar cuenta</div>
+                <div style="font-size:13px;color:#555;margin-bottom:12px;line-height:1.5;">Activa el acceso al sistema para este hospital. Se envía email de confirmación automáticamente.</div>
+                <button onclick="aprobar()" style="background:#e1f5ee;color:#04342c;border:none;padding:10px 20px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;">
+                  <i class="ti ti-check"></i>Aprobar cuenta
+                </button>
+              </div>
+
+              <div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px 20px;">
+                <div style="font-size:14px;font-weight:500;color:#1a1a2e;margin-bottom:4px;">Rechazar solicitud</div>
+                <div style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5;">Rechaza el registro. Podés indicar el motivo que se enviará al hospital por email.</div>
+                <textarea style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:9px;font-size:13px;outline:none;font-family:'Inter',sans-serif;resize:vertical;min-height:70px;margin-bottom:10px;" placeholder="Motivo del rechazo (se incluye en el email)..."></textarea>
+                <button style="background:#fde8e8;color:#c0392b;border:none;padding:10px 20px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;">
+                  <i class="ti ti-x"></i>Rechazar solicitud
+                </button>
+              </div>
+
+              <div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px 20px;">
+                <div style="font-size:14px;font-weight:500;color:#1a1a2e;margin-bottom:4px;">Solicitar información adicional</div>
+                <div style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5;">Envía un mensaje al hospital solicitando documentación o información faltante. El hospital puede responder desde su panel.</div>
+                <button onclick="document.querySelector('[onclick=\'cambiarTab(\'mensajes\', this)\']').click()" style="background:#faeeda;color:#412402;border:none;padding:10px 20px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;">
+                  <i class="ti ti-mail"></i>Ir a Mensajes
+                </button>
+              </div>
+
+              <div style="border:1px solid #fde8e8;border-radius:12px;padding:16px 20px;">
+                <div style="font-size:14px;font-weight:500;color:#c0392b;margin-bottom:4px;">Suspender cuenta</div>
+                <div style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5;">Desactiva el acceso del hospital al sistema. Las campañas activas se pausan automáticamente. Esta acción puede revertirse.</div>
+                <textarea style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:9px;font-size:13px;outline:none;font-family:'Inter',sans-serif;resize:vertical;min-height:70px;margin-bottom:10px;" placeholder="Motivo de la suspensión (uso interno)..."></textarea>
+                <button style="background:#1a1a2e;color:white;border:none;padding:10px 20px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;">
+                  <i class="ti ti-lock"></i>Suspender cuenta
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB ACTIVIDAD -->
+        <div id="tab-actividad" style="display:none;">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-history" style="color:#ef647c;"></i>Historial de actividad</div>
+            <div style="display:flex;flex-direction:column;gap:0;">
+              <div style="display:flex;gap:14px;padding:12px 0;border-bottom:0.5px solid #f0f0f0;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#e67e22;flex-shrink:0;margin-top:5px;"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:#1a1a2e;">Solicitud de registro recibida</div>
+                  <div style="font-size:12px;color:#999;margin-top:2px;">15 may 2026 · 10:32hs</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;padding:12px 0;border-bottom:0.5px solid #f0f0f0;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#e67e22;flex-shrink:0;margin-top:5px;"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:#1a1a2e;">Documentación cargada</div>
+                  <div style="font-size:12px;color:#999;margin-top:2px;">15 may 2026 · 10:32hs · habilitacion_sanitaria_ramosmejia.pdf</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;padding:12px 0;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;margin-top:5px;"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:#999;">Cuenta activada</div>
+                  <div style="font-size:12px;color:#ccc;margin-top:2px;">Pendiente</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <div>
+
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cambiarTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    ['datos','facturacion','mensajes','actividad','acciones'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+    });
+  }
+  function aprobar() {
+    if (confirm('¿Confirmar la aprobación de Hospital Ramos Mejía?')) {
+      alert('Cuenta aprobada. Se envió email de confirmación al hospital.');
+      window.location.href = '../admin/hospitales.html';
+    }
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

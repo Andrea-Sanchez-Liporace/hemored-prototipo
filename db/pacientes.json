@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "hospital_id": 1,
+    "nombre": "Lucas",
+    "apellido": "Gómez",
+    "fecha_nacimiento": "2019-04-12",
+    "tipo_documento_id": 1,
+    "numero_documento": "99123456",
+    "tipo_sangre": "0-",
+    "diagnostico": "Leucemia linfoblástica aguda",
+    "activo": true,
+    "creado_en": "2026-03-01"
+  },
+  {
+    "id": 2,
+    "hospital_id": 1,
+    "nombre": "Valentina",
+    "apellido": "Suárez",
+    "fecha_nacimiento": "2018-08-20",
+    "tipo_documento_id": 1,
+    "numero_documento": "99234567",
+    "tipo_sangre": "A-",
+    "diagnostico": "Anemia aplásica severa",
+    "activo": true,
+    "creado_en": "2026-03-15"
+  },
+  {
+    "id": 3,
+    "hospital_id": 2,
+    "nombre": "Mateo",
+    "apellido": "Díaz",
+    "fecha_nacimiento": "2020-11-03",
+    "tipo_documento_id": 1,
+    "numero_documento": "99345678",
+    "tipo_sangre": "B+",
+    "diagnostico": "Talasemia mayor",
+    "activo": true,
+    "creado_en": "2026-04-01"
+  }
+]

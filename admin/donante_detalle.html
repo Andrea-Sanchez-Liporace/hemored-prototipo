@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed Admin — Detalle donante</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; min-height: 100vh; display: flex; }
+    .sidebar { width: 240px; min-height: 100vh; background: #1a1a2e; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: #f28b98; margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .sidebar-user { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,0.25); padding: 12px 12px 4px; }
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #999; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-back:hover { color: #1a1a1a; }
+    .topbar-sep { color: #e0e0e0; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }
+    .content { padding: 32px; flex: 1; }
+    .detail-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
+    .don-header { background: #1a1a2e; border-radius: 16px; padding: 28px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+    .don-avatar-lg { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 500; color: white; flex-shrink: 0; }
+    .don-name { font-size: 20px; font-weight: 500; color: white; margin-bottom: 4px; }
+    .don-email { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 10px; }
+    .don-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-activo { background: #e1f5ee; color: #04342c; }
+    .badge-suspendido { background: #fde8e8; color: #c0392b; }
+    .side-btn-success { background: #e1f5ee; color: #04342c; }
+    .badge-sangre { background: rgba(255,255,255,0.12); color: white; }
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e0e0e0; width: fit-content; margin-bottom: 20px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #999; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .tab.active { background: #1a1a2e; color: white; }
+    .tab:hover:not(.active) { background: #f5f5f5; }
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e0e0e0; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .dato-label { font-size: 11px; color: #999; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .dato-value { font-size: 14px; font-weight: 500; color: #1a1a2e; }
+    .don-row { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 0.5px solid #f0f0f0; }
+    .don-row:last-child { border-bottom: none; }
+    .don-date { width: 52px; text-align: center; background: #f5f5f5; border-radius: 9px; padding: 7px 4px; flex-shrink: 0; }
+    .don-date-day { font-size: 20px; font-weight: 500; color: #1a1a2e; line-height: 1; }
+    .don-date-month { font-size: 10px; color: #999; text-transform: uppercase; margin-top: 2px; }
+    .don-info-row { flex: 1; }
+    .don-hospital { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
+    .don-meta-row { font-size: 11px; color: #999; }
+    .don-badge { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .db-completado { background: #e1f5ee; color: #04342c; }
+    .db-cancelado { background: #f5f5f5; color: #888; }
+    .actividad-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; }
+    .actividad-item:last-child { border-bottom: none; }
+    .act-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .act-title { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 2px; }
+    .act-meta { font-size: 11px; color: #999; }
+    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e0e0e0; margin-bottom: 16px; }
+    .side-title { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 14px; }
+    .side-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #f0f0f0; font-size: 13px; }
+    .side-stat:last-child { border-bottom: none; }
+    .side-stat-label { color: #555; }
+    .side-stat-value { font-weight: 500; color: #1a1a2e; }
+    .side-btn { width: 100%; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; }
+    .side-btn-danger { background: #fde8e8; color: #c0392b; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) { .detail-layout { grid-template-columns: 1fr; } .dato-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/admin.css">
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../admin/dashboard.html">Hemo<span>red</span></a><div class="sidebar-badge"><i class="ti ti-shield" style="font-size:10px;"></i>Super Admin</div></div>
+  <div class="sidebar-user"><div class="sidebar-avatar">SA</div><div><div class="sidebar-user-name">Admin HemoRed</div><div class="sidebar-user-role">Superadministrador</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+    <a class="nav-item" href="../admin/hospitales.html"><i class="ti ti-building-hospital"></i>Hospitales<span class="nav-badge">4</span></a>
+    <a class="nav-item active" href="../admin/donantes.html"><i class="ti ti-users"></i>Donantes</a>
+    <a class="nav-item" href="../admin/metricas.html"><i class="ti ti-chart-bar"></i>Métricas globales</a>
+    <div class="nav-section-label">Negocio</div>
+    <a class="nav-item" href="../admin/planes.html"><i class="ti ti-star"></i>Planes</a>
+    <a class="nav-item" href="../admin/facturacion.html"><i class="ti ti-receipt"></i>Facturación global<span class="nav-badge">2</span></a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-settings"></i>Configuración</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <a class="topbar-back" href="../admin/donantes.html"><i class="ti ti-arrow-left"></i>Donantes</a>
+      <span class="topbar-sep">/</span>
+      <span class="topbar-title">Sofía Páez</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="don-header">
+      <div class="don-avatar-lg">SP</div>
+      <div>
+        <div class="don-name">Sofía Páez</div>
+        <div class="don-email">sofia@email.com · DNI 12.345.678</div>
+        <div class="don-badges">
+          <span class="badge badge-activo">● Activo</span>
+          <span class="badge badge-sangre"><i class="ti ti-droplet" style="font-size:10px;"></i>0-</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-layout">
+      <div>
+        <div class="tabs">
+          <button class="tab active" onclick="cambiarTab('datos', this)">Datos personales</button>
+          <button class="tab" onclick="cambiarTab('donaciones', this)">Historial de donaciones</button>
+          <button class="tab" onclick="cambiarTab('actividad', this)">Actividad</button>
+        </div>
+
+        <div id="tab-datos">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-user" style="color:#ef647c;"></i>Datos personales</div>
+            <div class="dato-grid">
+              <div><div class="dato-label">Nombre completo</div><div class="dato-value">Sofía Páez</div></div>
+              <div><div class="dato-label">DNI</div><div class="dato-value">12.345.678</div></div>
+              <div><div class="dato-label">Email</div><div class="dato-value">sofia@email.com</div></div>
+              <div><div class="dato-label">Teléfono</div><div class="dato-value">+54 11 1234 5678</div></div>
+              <div><div class="dato-label">Fecha de nacimiento</div><div class="dato-value">15/03/1995 · 31 años</div></div>
+              <div><div class="dato-label">Provincia</div><div class="dato-value">Buenos Aires</div></div>
+              <div><div class="dato-label">Tipo de sangre</div><div class="dato-value">0-</div></div>
+              <div><div class="dato-label">Registrado</div><div class="dato-value">10 de enero 2026</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-donaciones" style="display:none;">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-heart" style="color:#ef647c;"></i>Historial de donaciones</div>
+            <div class="don-row">
+              <div class="don-date"><div class="don-date-day">20</div><div class="don-date-month">may</div></div>
+              <div class="don-info-row">
+                <div class="don-hospital">Hospital Ramos Mejía</div>
+                <div class="don-meta-row">Campaña pediátrica · 450ml · Dr. Carlos Méndez</div>
+              </div>
+              <span class="don-badge db-completado">Realizada</span>
+            </div>
+            <div class="don-row">
+              <div class="don-date"><div class="don-date-day">12</div><div class="don-date-month">mar</div></div>
+              <div class="don-info-row">
+                <div class="don-hospital">Hospital San Martín</div>
+                <div class="don-meta-row">Banco de sangre · 450ml · Dra. Ana Rodríguez</div>
+              </div>
+              <span class="don-badge db-completado">Realizada</span>
+            </div>
+            <div class="don-row">
+              <div class="don-date"><div class="don-date-day">18</div><div class="don-date-month">nov</div></div>
+              <div class="don-info-row">
+                <div class="don-hospital">Hospital Italiano</div>
+                <div class="don-meta-row">Campaña general · 450ml · Dr. Luis Fernández</div>
+              </div>
+              <span class="don-badge db-completado">Realizada</span>
+            </div>
+            <div class="don-row">
+              <div class="don-date" style="opacity:0.5;"><div class="don-date-day">05</div><div class="don-date-month">sep</div></div>
+              <div class="don-info-row">
+                <div class="don-hospital" style="color:#999;">Hospital Garrahan</div>
+                <div class="don-meta-row">Turno cancelado por el donante</div>
+              </div>
+              <span class="don-badge db-cancelado">Cancelado</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-actividad" style="display:none;">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-history" style="color:#ef647c;"></i>Actividad de la cuenta</div>
+            <div class="actividad-item"><div class="act-dot" style="background:#ef647c;"></div><div><div class="act-title">Donación realizada</div><div class="act-meta">Hospital Ramos Mejía · 20 may 2026 · 10:00hs</div></div></div>
+            <div class="actividad-item"><div class="act-dot" style="background:#27ae60;"></div><div><div class="act-title">Turno confirmado</div><div class="act-meta">Hospital Ramos Mejía · 18 may 2026</div></div></div>
+            <div class="actividad-item"><div class="act-dot" style="background:#e67e22;"></div><div><div class="act-title">Turno reservado</div><div class="act-meta">Hospital Ramos Mejía · Campaña pediátrica · 15 may 2026</div></div></div>
+            <div class="actividad-item"><div class="act-dot" style="background:#ef647c;"></div><div><div class="act-title">Certificado solicitado</div><div class="act-meta">Para Ministerio de Salud CABA · 14 may 2026</div></div></div>
+            <div class="actividad-item"><div class="act-dot" style="background:#ccc;"></div><div><div class="act-title">Cuenta registrada</div><div class="act-meta">10 de enero 2026</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="side-card">
+          <div class="side-title">Resumen</div>
+          <div class="side-stat"><span class="side-stat-label">Donaciones realizadas</span><span class="side-stat-value">3</span></div>
+          <div class="side-stat"><span class="side-stat-label">Turnos cancelados</span><span class="side-stat-value">1</span></div>
+          <div class="side-stat"><span class="side-stat-label">Litros donados</span><span class="side-stat-value">1.35 L</span></div>
+          <div class="side-stat"><span class="side-stat-label">Última donación</span><span class="side-stat-value">20 may 2026</span></div>
+          <div class="side-stat"><span class="side-stat-label">Próxima disponible</span><span class="side-stat-value">18 ago 2026</span></div>
+          <div class="side-stat"><span class="side-stat-label">Certificados emitidos</span><span class="side-stat-value">2</span></div>
+        </div>
+        <div class="side-card">
+          <div class="side-title">Acciones</div>
+          <button class="side-btn side-btn-danger" id="btn-suspender" onclick="suspenderCuenta()">
+            <i class="ti ti-lock"></i>Suspender cuenta
+          </button>
+          <button class="side-btn side-btn-success" id="btn-reactivar" onclick="reactivarCuenta()" style="display:none;">
+            <i class="ti ti-lock-open"></i>Reactivar cuenta
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function suspenderCuenta() {
+    document.getElementById('btn-suspender').style.display = 'none';
+    document.getElementById('btn-reactivar').style.display = 'flex';
+    // Actualizar badge estado en header
+    const badges = document.querySelector('.don-badges');
+    badges.querySelector('.badge-activo') && (badges.querySelector('.badge-activo').className = 'badge badge-suspendido');
+    badges.querySelector('.badge-suspendido') && (badges.querySelector('.badge-suspendido').textContent = '○ Suspendido');
+  }
+  function reactivarCuenta() {
+    document.getElementById('btn-reactivar').style.display = 'none';
+    document.getElementById('btn-suspender').style.display = 'flex';
+    const badges = document.querySelector('.don-badges');
+    badges.querySelector('.badge-suspendido') && (badges.querySelector('.badge-suspendido').className = 'badge badge-activo');
+    badges.querySelector('.badge-activo') && (badges.querySelector('.badge-activo').textContent = '● Activo');
+  }
+  function cambiarTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    ['datos','donaciones','actividad'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+    });
+  }
+  function abrirSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
+  function cerrarSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+</script>
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

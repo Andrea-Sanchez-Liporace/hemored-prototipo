@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Facturación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+
+    /* RESUMEN */
+    .resumen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .resumen-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .resumen-label { font-size: 12px; color: #a9435d; margin-bottom: 6px; }
+    .resumen-value { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }
+    .resumen-sub { font-size: 11px; color: #5a3040; }
+
+    /* PRÓXIMA FACTURA */
+    .proxima-banner { background: #5a1e37; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .pb-info { }
+    .pb-label { font-size: 12px; color: #f28b98; margin-bottom: 4px; }
+    .pb-value { font-size: 18px; font-weight: 500; color: white; }
+    .pb-sub { font-size: 12px; color: #f28b98; margin-top: 3px; }
+    .btn-medio { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+    /* TABLA FACTURAS */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 15px; font-weight: 500; color: #5a1e37; }
+    .btn-export { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .table-header { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 120px; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
+    .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
+    .fact-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 120px; padding: 16px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; transition: background 0.1s; }
+    .fact-row:last-child { border-bottom: none; }
+    .fact-row:hover { background: #fdf0f3; }
+    .td { font-size: 13px; color: #5a3040; }
+    .fact-id { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .fact-periodo { font-size: 11px; color: #a9435d; margin-top: 2px; }
+    .fact-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-pagada { background: #e1f5ee; color: #04342c; }
+    .badge-pendiente { background: #faeeda; color: #412402; }
+    .badge-vencida { background: #fde8e8; color: #c0392b; }
+    .fact-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-xs { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+    .btn-xs-primary { background: #ef647c; color: white; }
+    .btn-xs-danger { background: white; color: #c0392b; border: 1px solid #e74c3c !important; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) { .resumen-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .resumen-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .table-header { display: none; }
+      .fact-row { grid-template-columns: 1fr; gap: 6px; }
+      .td.hide-sm { display: none; }
+      .fact-actions { justify-content: flex-start; }
+      .proxima-banner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item active" href="../hospital/facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
+    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Facturación</div>
+    </div>
+    <button class="btn-export" style="border:1.5px solid #e8d0d8;">
+      <i class="ti ti-download"></i>Exportar todas
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- RESUMEN -->
+    <div class="resumen-grid">
+      <div class="resumen-card">
+        <div class="resumen-label">Plan activo</div>
+        <div class="resumen-value">Provincial</div>
+        <div class="resumen-sub">Desde el 15 de abril 2026</div>
+      </div>
+      <div class="resumen-card">
+        <div class="resumen-label">Monto mensual</div>
+        <div class="resumen-value">$18.150</div>
+        <div class="resumen-sub">$15.000 + IVA (21%)</div>
+      </div>
+      <div class="resumen-card">
+        <div class="resumen-label">Total facturado</div>
+        <div class="resumen-value">$36.300</div>
+        <div class="resumen-sub">2 facturas emitidas</div>
+      </div>
+    </div>
+
+    <!-- PRÓXIMA FACTURA -->
+    <div class="proxima-banner">
+      <div class="pb-info">
+        <div class="pb-label">Próxima factura</div>
+        <div class="pb-value">$18.150 · 15 de junio 2026</div>
+        <div class="pb-sub">Se debitará automáticamente de Visa terminada en 4532</div>
+      </div>
+      <button class="btn-medio" onclick="window.location='../hospital/perfil.html'">
+        <i class="ti ti-credit-card"></i>Cambiar medio de pago
+      </button>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="section-header">
+      <div class="section-title">Historial de facturas</div>
+      <select style="padding:8px 12px;border:1px solid #e8d0d8;border-radius:8px;font-size:13px;color:#5a1e37;outline:none;font-family:'Inter',sans-serif;background:white;">
+        <option>Todos los períodos</option>
+        <option>2026</option>
+        <option>2025</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="th">Nro. de factura</div>
+        <div class="th">Período</div>
+        <div class="th">Monto</div>
+        <div class="th">Estado</div>
+        <div class="th"></div>
+      </div>
+
+      <!-- PENDIENTE -->
+      <div class="fact-row">
+        <div>
+          <div class="fact-id">FAC-2026-0003</div>
+          <div class="fact-periodo">Plan Provincial</div>
+        </div>
+        <div class="td">Junio 2026</div>
+        <div class="td">$18.150</div>
+        <div class="td"><span class="fact-badge badge-pendiente">⏳ Pendiente</span></div>
+        <div class="fact-actions">
+          <button class="btn-xs btn-xs-primary">Pagar ahora</button>
+          <button class="btn-xs btn-xs-outline">Ver</button>
+        </div>
+      </div>
+
+      <!-- PAGADA -->
+      <div class="fact-row">
+        <div>
+          <div class="fact-id">FAC-2026-0002</div>
+          <div class="fact-periodo">Plan Provincial</div>
+        </div>
+        <div class="td">Mayo 2026</div>
+        <div class="td">$18.150</div>
+        <div class="td"><span class="fact-badge badge-pagada">✓ Pagada</span></div>
+        <div class="fact-actions">
+          <button class="btn-xs btn-xs-outline">
+            <i class="ti ti-download" style="font-size:11px;"></i> Descargar
+          </button>
+          <button class="btn-xs btn-xs-outline">Ver</button>
+        </div>
+      </div>
+
+      <!-- PAGADA -->
+      <div class="fact-row">
+        <div>
+          <div class="fact-id">FAC-2026-0001</div>
+          <div class="fact-periodo">Plan Provincial</div>
+        </div>
+        <div class="td">Abril 2026</div>
+        <div class="td">$18.150</div>
+        <div class="td"><span class="fact-badge badge-pagada">✓ Pagada</span></div>
+        <div class="fact-actions">
+          <button class="btn-xs btn-xs-outline">
+            <i class="ti ti-download" style="font-size:11px;"></i> Descargar
+          </button>
+          <button class="btn-xs btn-xs-outline">Ver</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

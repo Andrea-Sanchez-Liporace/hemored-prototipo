@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Cuenta pendiente</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #fdf0f3; color: #1a0a0f; min-height: 100vh; display: flex; flex-direction: column; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 80px; background: #5a1e37; }
+    .nav-logo { font-family: 'Lobster', cursive; font-size: 26px; color: white; text-decoration: none; }
+    .nav-logo span { color: #f28b98; }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .nav-email { font-size: 13px; color: #f28b98; }
+    .btn-logout { background: none; border: 1px solid rgba(255,255,255,0.2); color: #f28b98; padding: 7px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 5px; }
+
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+
+    .card { background: white; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 540px; border: 0.5px solid #e8d0d8; box-shadow: 0 4px 32px rgba(90,30,55,0.08); text-align: center; }
+
+    /* ÍCONO ESTADO */
+    .estado-icon { width: 80px; height: 80px; border-radius: 50%; background: #faeeda; border: 2px solid #e67e22; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+
+    /* TÍTULO */
+    .card-title { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
+    .card-sub { font-size: 15px; color: #5a3040; line-height: 1.7; margin-bottom: 32px; max-width: 420px; margin-left: auto; margin-right: auto; }
+
+    /* PASOS */
+    .pasos { display: flex; flex-direction: column; gap: 0; margin-bottom: 32px; text-align: left; }
+    .paso { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .paso:last-child { border-bottom: none; }
+    .paso-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+    .paso-num.done { background: #e1f5ee; color: #04342c; }
+    .paso-num.current { background: #faeeda; color: #412402; }
+    .paso-num.pending { background: #f7f0f3; color: #a9435d; }
+    .paso-body { flex: 1; }
+    .paso-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }
+    .paso-desc { font-size: 12px; color: #5a3040; line-height: 1.5; }
+    .paso-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-done { background: #e1f5ee; color: #04342c; }
+    .badge-current { background: #faeeda; color: #412402; }
+    .badge-pending { background: #f7f0f3; color: #a9435d; }
+
+    /* INFO */
+    .info-box { background: #fdf0f3; border: 1px solid #f28b98; border-radius: 12px; padding: 16px 20px; margin-bottom: 28px; text-align: left; }
+    .info-box-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 0.5px solid #e8d0d8; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #a9435d; }
+    .info-value { font-weight: 500; color: #5a1e37; }
+
+    /* ACCIONES */
+    .acciones { display: flex; flex-direction: column; gap: 10px; }
+    .btn-primary { background: #ef647c; color: white; border: none; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-outline { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .note { font-size: 12px; color: #a9435d; margin-top: 8px; line-height: 1.5; }
+
+    footer { padding: 24px 80px; background: #3d0f20; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-family: 'Lobster', cursive; font-size: 18px; color: white; }
+    .footer-logo span { color: #f28b98; }
+    .footer-copy { font-size: 11px; color: #c994a4; }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-email { display: none; }
+      main { padding: 32px 16px; align-items: flex-start; }
+      .card { padding: 32px 24px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 10px; text-align: center; }
+    }
+  
+  .nav-public-links { display: flex; align-items: center; gap: 28px; }
+  .nav-public-links a { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.65); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; transition: color 0.15s; }
+  .nav-public-links a:hover { color: white; }
+  .nav-public-links a.nav-active { color: #f9c0cc; border-bottom: 2px solid #f9c0cc; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="../index.html">Hemo<span>red</span></a>
+  <div class="nav-public-links">
+    <a href="../index.html">Home</a>
+    <a href="nosotros.html">Nosotros</a>
+  </div>
+  <button class="burger-btn" onclick="document.getElementById('mobile-menu').classList.toggle('active')" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<main>
+  <div class="card">
+
+    <div class="estado-icon">
+      <i class="ti ti-clock" style="color:#e67e22;font-size:36px;" aria-hidden="true"></i>
+    </div>
+
+    <div class="card-title">Tu solicitud está en revisión</div>
+    <div class="card-sub">Recibimos el registro de <strong>Hospital Ramos Mejía</strong>. Nuestro equipo está verificando la documentación enviada. Te notificaremos por email cuando tu cuenta sea activada.</div>
+
+    <!-- PASOS -->
+    <div class="pasos">
+      <div class="paso">
+        <div class="paso-num done"><i class="ti ti-check" style="font-size:13px;"></i></div>
+        <div class="paso-body">
+          <div class="paso-title">Registro completado</div>
+          <div class="paso-desc">Datos institucionales y documentación enviados correctamente.</div>
+          <span class="paso-badge badge-done"><i class="ti ti-check" style="font-size:10px;"></i>Completado</span>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num current"><i class="ti ti-search" style="font-size:13px;"></i></div>
+        <div class="paso-body">
+          <div class="paso-title">Revisión de documentación</div>
+          <div class="paso-desc">El equipo de HemoRed está verificando la habilitación sanitaria y los datos de tu institución.</div>
+          <span class="paso-badge badge-current"><i class="ti ti-clock" style="font-size:10px;"></i>En proceso · hasta 48hs hábiles</span>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num pending">3</div>
+        <div class="paso-body">
+          <div class="paso-title">Activación de cuenta</div>
+          <div class="paso-desc">Una vez aprobada la documentación, tu cuenta se activa y podés empezar a publicar campañas.</div>
+          <span class="paso-badge badge-pending">Pendiente</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO SOLICITUD -->
+    <div class="info-box">
+      <div class="info-box-title">
+        <i class="ti ti-file-text" style="color:#ef647c;font-size:15px;" aria-hidden="true"></i>
+        Datos de tu solicitud
+      </div>
+      <div class="info-row"><span class="info-label">Institución</span><span class="info-value">Hospital Ramos Mejía</span></div>
+      <div class="info-row"><span class="info-label">Plan seleccionado</span><span class="info-value">Plan Provincial · $15.000/mes</span></div>
+      <div class="info-row"><span class="info-label">Email de contacto</span><span class="info-value">admin@ramosmejia.gob.ar</span></div>
+      <div class="info-row"><span class="info-label">Fecha de solicitud</span><span class="info-value">15 de mayo 2026 · 10:32hs</span></div>
+      <div class="info-row"><span class="info-label">Documentación</span><span class="info-value" style="color:#27ae60;">✓ Habilitación sanitaria enviada</span></div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="acciones">
+      <button class="btn-primary" onclick="window.location='../publico/contacto.html'">
+        <i class="ti ti-message" aria-hidden="true"></i>
+        Contactar al equipo de HemoRed
+      </button>
+      <button class="btn-outline" onclick="window.location='../hospital/perfil.html'">
+        <i class="ti ti-file-upload" aria-hidden="true"></i>
+        Actualizar documentación
+      </button>
+    </div>
+    <p class="note">Si tenés alguna duda o necesitás actualizar tu documentación podés escribirnos a <a href="mailto:hola@hemored.com.ar" style="color:#ef647c;text-decoration:none;">hola@hemored.com.ar</a></p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">Hemo<span>red</span></div>
+  <div class="footer-copy">© 2026 HemoRed</div>
+</footer>
+
+</body>
+</html>

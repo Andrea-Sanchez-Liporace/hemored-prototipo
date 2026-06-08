@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Mis documentos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 24px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .tab.active { background: #5a1e37; color: white; }
+    .tab:hover:not(.active) { background: #fdf0f3; }
+
+    /* DOC LIST */
+    .doc-list { display: flex; flex-direction: column; gap: 12px; }
+    .doc-card { background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid #e8d0d8; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: border-color 0.15s; }
+    .doc-card:hover { border-color: #ef647c; }
+    .doc-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .doc-icon.resultado { background: #fde8e8; }
+    .doc-icon.certificado { background: #fdf0f3; }
+    .doc-info { flex: 1; }
+    .doc-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .doc-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .doc-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #5a3040; }
+    .doc-right { display: flex; align-items: center; gap: 10px; }
+    .doc-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .doc-badge.nuevo { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .doc-badge.visto { background: #f7f0f3; color: #a9435d; }
+    .btn-sm { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-sm-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8; }
+    .btn-sm-primary { background: #ef647c; color: white; border: none; }
+
+    /* VISTA RESULTADO */
+    .resultado-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
+    .back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; background: none; border: none; font-family: 'Inter', sans-serif; margin-bottom: 20px; }
+    .back-btn:hover { color: #5a1e37; }
+    .resultado-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .resultado-title { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .resultado-sub { font-size: 13px; color: #5a3040; }
+    .resultado-meta { display: flex; gap: 20px; flex-wrap: wrap; padding: 16px; background: #fdf0f3; border-radius: 10px; margin-bottom: 20px; }
+    .meta-item { }
+    .meta-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .meta-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .resultado-datos { display: flex; flex-direction: column; gap: 0; }
+    .dato-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .dato-row:last-child { border-bottom: none; }
+    .dato-nombre { font-size: 13px; color: #5a3040; }
+    .dato-valor { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .dato-estado { display: flex; align-items: center; gap: 6px; }
+    .estado-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .estado-dot.normal { background: #27ae60; }
+    .estado-dot.observacion { background: #e67e22; }
+    .aviso-medico { background: #faeeda; border: 1px solid #e67e22; border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; }
+    .aviso-text { font-size: 13px; color: #633806; line-height: 1.6; }
+    .aviso-text strong { color: #412402; }
+    .resultado-sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .sidebar-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .sidebar-card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+    .btn-download { width: 100%; background: #ef647c; color: white; border: none; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+    .btn-download:hover { background: #d4537e; }
+
+    /* VISTA CERTIFICADO */
+    .certificado-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    .cert-preview { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .cert-preview-header { background: #5a1e37; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; }
+    .cert-logo { font-family: 'Lobster', cursive; font-size: 22px; color: white; }
+    .cert-logo span { color: #f28b98; }
+    .cert-preview-title { font-size: 11px; color: #f28b98; text-transform: uppercase; letter-spacing: .1em; }
+    .cert-body { padding: 28px; }
+    .cert-body p { font-size: 14px; color: #5a3040; line-height: 1.8; margin-bottom: 16px; }
+    .cert-body strong { color: #5a1e37; }
+    .cert-datos { background: #fdf0f3; border-radius: 10px; padding: 16px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .cert-dato { }
+    .cert-dato-label { font-size: 11px; color: #a9435d; font-weight: 500; margin-bottom: 3px; }
+    .cert-dato-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .cert-firma { margin-top: 24px; display: flex; justify-content: space-between; }
+    .firma-item { text-align: center; }
+    .firma-linea { width: 140px; height: 1px; background: #5a1e37; margin: 0 auto 6px; }
+    .firma-label { font-size: 11px; color: #5a3040; }
+    .emitido-para-form { background: #fdf0f3; border: 1px solid #f28b98; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    .emitido-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+    .emitido-input { width: 100%; padding: 10px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; background: white; }
+    .emitido-input:focus { border-color: #ef647c; }
+    .emitido-sugerencias { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .sugerencia-chip { background: white; border: 0.5px solid #f28b98; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #782b46; cursor: pointer; }
+    .sugerencia-chip:hover { background: #fdf0f3; }
+    .observaciones-form { background: white; border-radius: 12px; border: 0.5px solid #e8d0d8; padding: 16px; margin-bottom: 14px; }
+    .obs-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .obs-hint { font-size: 11px; color: #a9435d; margin-bottom: 8px; }
+    .obs-textarea { width: 100%; padding: 10px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; resize: vertical; min-height: 80px; }
+    .obs-textarea:focus { border-color: #ef647c; }
+    .btn-obs { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #5a1e37; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) {
+      .resultado-layout, .certificado-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .cert-datos { grid-template-columns: 1fr; }
+      .cert-firma { flex-direction: column; gap: 20px; align-items: center; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/donante.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SP</div>
+    <div>
+      <div class="sidebar-user-name">Sofía Páez</div>
+      <div class="sidebar-user-role">Donante</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../donante/dashboard.html"><i class="ti ti-search" aria-hidden="true"></i>Buscar campañas</a>
+    <a class="nav-item" href="../donante/mis_turnos.html"><i class="ti ti-calendar" aria-hidden="true"></i>Mis turnos</a>
+    <a class="nav-item" href="../donante/mis_turnos.html"><i class="ti ti-heart" aria-hidden="true"></i>Mis donaciones</a>
+    <a class="nav-item active" href="../donante/mis_documentos.html"><i class="ti ti-file-text" aria-hidden="true"></i>Mis documentos</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../donante/perfil.html"><i class="ti ti-user" aria-hidden="true"></i>Mi perfil</a>
+    <a class="nav-item" href="../donante/notificaciones.html"><i class="ti ti-bell" aria-hidden="true"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title" id="topbar-title">Mis documentos</div>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div class="topbar-btn">
+        <i class="ti ti-bell" style="font-size:18px;" aria-hidden="true"></i>
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- VISTA LISTA -->
+    <div class="view active" id="view-lista">
+      <div class="tabs">
+        <button class="tab active" onclick="cambiarTab('resultados', this)">Resultados</button>
+        <button class="tab" onclick="cambiarTab('evaluaciones', this)">Evaluaciones clínicas</button>
+        <button class="tab" onclick="cambiarTab('certificados', this)">Certificados</button>
+        <button class="tab" onclick="cambiarTab('consentimientos', this)">Consentimientos</button>
+      </div>
+
+      <!-- RESULTADOS -->
+      <div id="tab-resultados">
+        <div class="doc-list">
+          <div class="doc-card" onclick="verResultado()">
+            <div class="doc-icon resultado">
+              <i class="ti ti-test-pipe" style="color:#c0392b;font-size:22px;" aria-hidden="true"></i>
+            </div>
+            <div class="doc-info">
+              <div class="doc-title">Resultado de análisis — Hospital San Martín</div>
+              <div class="doc-meta">
+                <div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>12 de marzo 2026</div>
+                <div class="doc-meta-item"><i class="ti ti-user" style="color:#a9435d;" aria-hidden="true"></i>Dr. Carlos Méndez</div>
+              </div>
+            </div>
+            <div class="doc-right">
+              <span class="doc-badge nuevo">Nuevo</span>
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verResultado()">Ver</button>
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()">
+                <i class="ti ti-download" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="doc-card" onclick="verResultado()">
+            <div class="doc-icon resultado">
+              <i class="ti ti-test-pipe" style="color:#c0392b;font-size:22px;" aria-hidden="true"></i>
+            </div>
+            <div class="doc-info">
+              <div class="doc-title">Resultado de análisis — Hospital Italiano</div>
+              <div class="doc-meta">
+                <div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>18 de noviembre 2025</div>
+                <div class="doc-meta-item"><i class="ti ti-user" style="color:#a9435d;" aria-hidden="true"></i>Dra. Ana Rodríguez</div>
+              </div>
+            </div>
+            <div class="doc-right">
+              <span class="doc-badge visto">Visto</span>
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verResultado()">Ver</button>
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()">
+                <i class="ti ti-download" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CERTIFICADOS -->
+      <div id="tab-certificados" style="display:none;">
+        <div class="doc-list">
+          <!-- Certificado emitido -->
+          <div class="doc-card" onclick="verCertificado()">
+            <div class="doc-icon certificado">
+              <i class="ti ti-certificate" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i>
+            </div>
+            <div class="doc-info">
+              <div class="doc-title">Certificado de donación — Hospital San Martín</div>
+              <div class="doc-meta">
+                <div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>12 de marzo 2026</div>
+                <div class="doc-meta-item"><i class="ti ti-building" style="color:#a9435d;" aria-hidden="true"></i>Emitido para: Aysa SA</div>
+              </div>
+            </div>
+            <div class="doc-right">
+              <span class="doc-badge visto">Emitido</span>
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verCertificado()">Ver</button>
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()">
+                <i class="ti ti-download" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Certificado solicitado, pendiente de emisión -->
+          <div class="doc-card" style="opacity:0.85;">
+            <div class="doc-icon" style="background:#faeeda;">
+              <i class="ti ti-certificate" style="color:#e67e22;font-size:22px;" aria-hidden="true"></i>
+            </div>
+            <div class="doc-info">
+              <div class="doc-title">Certificado de donación — Hospital Ramos Mejía</div>
+              <div class="doc-meta">
+                <div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>20 de mayo 2026</div>
+                <div class="doc-meta-item"><i class="ti ti-building" style="color:#a9435d;" aria-hidden="true"></i>Para: Ministerio de Salud CABA</div>
+              </div>
+            </div>
+            <div class="doc-right">
+              <span style="background:#faeeda;color:#412402;border:0.5px solid #e67e22;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Pendiente</span>
+            </div>
+          </div>
+
+          <!-- Sin certificado aún — botón solicitar -->
+          <div class="doc-card">
+            <div class="doc-icon" style="background:#f7f0f3;">
+              <i class="ti ti-certificate-off" style="color:#a9435d;font-size:22px;" aria-hidden="true"></i>
+            </div>
+            <div class="doc-info">
+              <div class="doc-title">Donación — Hospital Garrahan · 28 abr 2026</div>
+              <div class="doc-meta">
+                <div class="doc-meta-item"><i class="ti ti-info-circle" style="color:#a9435d;" aria-hidden="true"></i>Certificado no solicitado aún</div>
+              </div>
+            </div>
+            <div class="doc-right">
+              <button class="btn-sm btn-sm-primary" onclick="solicitarCertificado()" style="background:#ef647c;color:white;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
+                Solicitar certificado
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONSENTIMIENTOS -->
+      <div id="tab-consentimientos" style="display:none;">
+        <div class="doc-list">
+          <div class="doc-card">
+            <div class="doc-icon" style="background:#f0f8f4;">
+              <i class="ti ti-writing" style="color:#27ae60;font-size:22px;" aria-hidden="true"></i>
+            </div>
+            <div class="doc-info">
+              <div class="doc-title">Formulario de consentimiento — Hospital San Martín</div>
+              <div class="doc-meta">
+                <div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>12 de marzo 2026</div>
+                <div class="doc-meta-item"><i class="ti ti-check" style="color:#27ae60;" aria-hidden="true"></i>Firmado</div>
+              </div>
+            </div>
+            <div class="doc-right">
+              <button class="btn-sm btn-sm-outline">Ver</button>
+              <button class="btn-sm btn-sm-outline">
+                <i class="ti ti-download" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA RESULTADO -->
+    <div class="view" id="view-resultado">
+      <button class="back-btn" onclick="volverLista()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Mis documentos
+      </button>
+      <div class="resultado-layout">
+        <div>
+          <div class="card">
+            <div class="resultado-header">
+              <div>
+                <div class="resultado-title">Resultado de análisis</div>
+                <div class="resultado-sub">Hospital San Martín · 12 de marzo 2026</div>
+              </div>
+              <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;">Apto para donar</span>
+            </div>
+            <div class="resultado-meta">
+              <div class="meta-item">
+                <div class="meta-label">Donante</div>
+                <div class="meta-value">Sofía Páez</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Profesional</div>
+                <div class="meta-value">Dr. Carlos Méndez</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Fecha de donación</div>
+                <div class="meta-value">12/03/2026</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Volumen donado</div>
+                <div class="meta-value">450 ml</div>
+              </div>
+            </div>
+            <div class="resultado-datos">
+              <div class="dato-row">
+                <span class="dato-nombre">Hemoglobina</span>
+                <div class="dato-estado">
+                  <div class="estado-dot normal"></div>
+                  <span class="dato-valor">13.8 g/dL · Normal</span>
+                </div>
+              </div>
+              <div class="dato-row">
+                <span class="dato-nombre">Hematocrito</span>
+                <div class="dato-estado">
+                  <div class="estado-dot normal"></div>
+                  <span class="dato-valor">41% · Normal</span>
+                </div>
+              </div>
+              <div class="dato-row">
+                <span class="dato-nombre">Presión arterial</span>
+                <div class="dato-estado">
+                  <div class="estado-dot normal"></div>
+                  <span class="dato-valor">120/80 mmHg · Normal</span>
+                </div>
+              </div>
+              <div class="dato-row">
+                <span class="dato-nombre">Pulso</span>
+                <div class="dato-estado">
+                  <div class="estado-dot normal"></div>
+                  <span class="dato-valor">72 bpm · Normal</span>
+                </div>
+              </div>
+              <div class="dato-row">
+                <span class="dato-nombre">Peso</span>
+                <div class="dato-estado">
+                  <div class="estado-dot normal"></div>
+                  <span class="dato-valor">65 kg · Apto</span>
+                </div>
+              </div>
+              <div class="dato-row">
+                <span class="dato-nombre">Serología</span>
+                <div class="dato-estado">
+                  <div class="estado-dot normal"></div>
+                  <span class="dato-valor">Negativa · Sin observaciones</span>
+                </div>
+              </div>
+            </div>
+            <div class="aviso-medico">
+              <i class="ti ti-stethoscope" style="color:#e67e22;font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
+              <div class="aviso-text">
+                <strong>Ante cualquier duda sobre estos resultados, consultá a tu médico de cabecera.</strong> Este informe es una síntesis del análisis realizado al momento de la donación y no reemplaza una consulta médica profesional.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="resultado-sidebar">
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">Descargar resultado</div>
+            <button class="btn-download">
+              <i class="ti ti-download" aria-hidden="true"></i>
+              Descargar PDF
+            </button>
+            <p style="font-size:11px;color:#a9435d;text-align:center;line-height:1.5;">El PDF incluye firma digital del profesional y sello del hospital.</p>
+          </div>
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">También disponible</div>
+            <button class="btn-sm btn-sm-outline" style="width:100%;padding:10px;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="verCertificado()">
+              <i class="ti ti-certificate" aria-hidden="true"></i>
+              Ver certificado de esta donación
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA CERTIFICADO -->
+    <!-- VISTA EVALUACIÓN CLÍNICA F3 -->
+    <div class="view" id="view-evaluacion">
+      <button class="back-btn" onclick="volver()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>Mis documentos
+      </button>
+      <div class="doc-header">
+        <div class="doc-header-icon resultado">
+          <i class="ti ti-stethoscope" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i>
+        </div>
+        <div class="doc-header-info">
+          <div class="doc-header-title">Evaluación clínica</div>
+          <div class="doc-header-meta">Hospital Ramos Mejía · Dr. Carlos Méndez · 20 may 2026</div>
+        </div>
+      </div>
+
+      <div class="aviso-medico">
+        <i class="ti ti-alert-circle" style="color:#e67e22;font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#412402;margin-bottom:4px;">Información de carácter médico</div>
+          <div style="font-size:13px;color:#633806;line-height:1.5;">Estos valores son orientativos y corresponden al momento de la evaluación previa a tu donación. Ante cualquier duda sobre tus valores clínicos, consultá con un profesional de la salud.</div>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:14px;padding:24px;border:0.5px solid #e8d0d8;margin-top:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">Resultado de la evaluación</div>
+          <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;"><i class="ti ti-heart-check" style="font-size:11px;"></i> Apto para donar</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Presión arterial</div>
+            <div style="font-size:15px;font-weight:500;color:#5a1e37;">120/80 mmHg</div>
+            <div style="font-size:10px;color:#a9435d;">Rango normal: 90/60 – 180/100</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Frecuencia cardíaca</div>
+            <div style="font-size:15px;font-weight:500;color:#5a1e37;">72 lpm</div>
+            <div style="font-size:10px;color:#a9435d;">Rango normal: 50 – 100 lpm</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Temperatura</div>
+            <div style="font-size:15px;font-weight:500;color:#5a1e37;">36.5 °C</div>
+            <div style="font-size:10px;color:#a9435d;">Rango normal: 36 – 37.5 °C</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Glucosa en sangre</div>
+            <div style="font-size:15px;font-weight:500;color:#5a1e37;">90 mg/dL</div>
+            <div style="font-size:10px;color:#a9435d;">Rango normal: 70 – 200 mg/dL</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Peso</div>
+            <div style="font-size:15px;font-weight:500;color:#5a1e37;">65 kg</div>
+            <div style="font-size:10px;color:#a9435d;">Mínimo: 50 kg</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Hemoglobina</div>
+            <div style="font-size:15px;font-weight:500;color:#5a1e37;">13.8 g/dL</div>
+            <div style="font-size:10px;color:#a9435d;">Mínimo: 12.5(F) / 13.5(M)</div>
+          </div>
+        </div>
+
+        <div style="padding-top:14px;border-top:0.5px solid #f0e0e6;">
+          <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Evaluado por</div>
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">Dr. Carlos Méndez · Hematología · Mat. 45.231</div>
+          <div style="font-size:12px;color:#a9435d;margin-top:2px;">Hospital Ramos Mejía · 20 may 2026 · 10:12hs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-certificado">
+      <button class="back-btn" onclick="volverLista()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Mis documentos
+      </button>
+      <div class="certificado-layout">
+        <div>
+          <div class="cert-preview">
+            <div class="cert-preview-header">
+              <div class="cert-logo">Hemo<span>red</span></div>
+              <div class="cert-preview-title">Certificado de donación de sangre</div>
+            </div>
+            <div class="cert-body">
+              <p>Por medio del presente se certifica que <strong>Sofía Páez</strong>, DNI <strong>12.345.678</strong>, realizó una donación voluntaria de sangre en las instalaciones del <strong>Hospital San Martín</strong>, ubicado en La Plata, Provincia de Buenos Aires.</p>
+              <div class="cert-datos">
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Fecha de donación</div>
+                  <div class="cert-dato-value">12 de marzo de 2026</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Hora</div>
+                  <div class="cert-dato-value">08:00hs</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Volumen donado</div>
+                  <div class="cert-dato-value">450 ml</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Profesional a cargo</div>
+                  <div class="cert-dato-value">Dr. Carlos Méndez</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Emitido para</div>
+                  <div class="cert-dato-value" id="cert-emitido-para">Aysa SA</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Nro. de certificado</div>
+                  <div class="cert-dato-value">#CERT-20260312-0018</div>
+                </div>
+              </div>
+              <p style="font-size:12px;color:#a9435d;">La donación de sangre es un acto voluntario, altruista y solidario que puede salvar hasta cuatro vidas.</p>
+              <div class="cert-firma">
+                <div class="firma-item">
+                  <div class="firma-linea"></div>
+                  <div class="firma-label">Dr. Carlos Méndez<br>Profesional a cargo</div>
+                </div>
+                <div class="firma-item">
+                  <div class="firma-linea"></div>
+                  <div class="firma-label">Hospital San Martín<br>Sello institucional</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="emitido-para-form">
+            <div class="emitido-label">¿Para quién es este certificado?</div>
+            <input class="emitido-input" type="text" id="emitido-input" placeholder="Ej: Ministerio de Salud CABA" value="Aysa SA" oninput="actualizarEmitidoPara(this.value)">
+            <div class="emitido-sugerencias">
+              <span class="sugerencia-chip" onclick="usarSugerencia('Aysa SA')">Aysa SA</span>
+              <span class="sugerencia-chip" onclick="usarSugerencia('Ministerio de Salud CABA')">Ministerio de Salud CABA</span>
+            </div>
+          </div>
+
+          <div class="sidebar-card" style="margin-bottom:14px;">
+            <div class="sidebar-card-title">Descargar certificado</div>
+            <button class="btn-download">
+              <i class="ti ti-download" aria-hidden="true"></i>
+              Descargar PDF
+            </button>
+            <p style="font-size:11px;color:#a9435d;text-align:center;line-height:1.5;margin-top:8px;">Podés generar un certificado distinto para cada empleador.</p>
+          </div>
+
+          <div class="observaciones-form">
+            <div class="obs-label">¿Hay algún dato incorrecto?</div>
+            <div class="obs-hint">Envianos una observación y lo revisamos a la brevedad.</div>
+            <textarea class="obs-textarea" placeholder="Describí el dato que necesitás corregir..."></textarea>
+            <button class="btn-obs" style="margin-top:10px;">
+              <i class="ti ti-send" aria-hidden="true"></i>
+              Enviar observación
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function cambiarTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    ['resultados','certificados','consentimientos','evaluaciones'].forEach(t => {
+      const el2 = document.getElementById('tab-' + t);
+      if (el2) el2.style.display = 'none';
+    });
+    document.getElementById('tab-' + tab).style.display = 'block';
+  }
+  function verEvaluacion() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-evaluacion').classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function verResultado() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-resultado').classList.add('active');
+    document.getElementById('topbar-title').textContent = 'Resultado de análisis';
+    window.scrollTo(0, 0);
+  }
+  function verCertificado() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-certificado').classList.add('active');
+    document.getElementById('topbar-title').textContent = 'Certificado de donación';
+    window.scrollTo(0, 0);
+  }
+  function volverLista() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-lista').classList.add('active');
+    document.getElementById('topbar-title').textContent = 'Mis documentos';
+    window.scrollTo(0, 0);
+  }
+  function solicitarCertificado() {
+    // Abre la vista del certificado para que el donante complete el campo "emitido para"
+    verCertificado();
+  }
+  function actualizarEmitidoPara(val) {
+    document.getElementById('cert-emitido-para').textContent = val || '—';
+  }
+  function usarSugerencia(val) {
+    document.getElementById('emitido-input').value = val;
+    actualizarEmitidoPara(val);
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

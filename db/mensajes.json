@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "hospital_id": 1,
+    "remitente": "admin",
+    "asunto": "Bienvenido a HemoRed",
+    "contenido": "Bienvenido al sistema HemoRed. Su cuenta ha sido activada exitosamente. Puede comenzar a publicar campañas y gestionar turnos de donación.",
+    "leido": true,
+    "fecha": "2026-01-10T10:00:00"
+  },
+  {
+    "id": 2,
+    "hospital_id": 3,
+    "remitente": "admin",
+    "asunto": "Recordatorio de pago — Mayo 2026",
+    "contenido": "Le informamos que su factura FAC-2026-0039 vence el 15 de mayo. Por favor regularice su situación para mantener el acceso al servicio.",
+    "leido": false,
+    "fecha": "2026-05-08T09:00:00"
+  },
+  {
+    "id": 3,
+    "hospital_id": 1,
+    "remitente": "hospital",
+    "asunto": "Consulta sobre plan Provincial",
+    "contenido": "Quisiera saber si es posible aumentar el límite de campañas simultáneas del plan Provincial.",
+    "leido": true,
+    "fecha": "2026-04-15T14:30:00"
+  },
+  {
+    "id": 4,
+    "hospital_id": 1,
+    "remitente": "admin",
+    "asunto": "Respuesta — Límite de campañas",
+    "contenido": "Estimado hospital, el límite de campañas del plan Provincial es de 10 simultáneas. Si necesita más, puede considerar el plan Nacional.",
+    "leido": true,
+    "fecha": "2026-04-16T09:00:00"
+  }
+]

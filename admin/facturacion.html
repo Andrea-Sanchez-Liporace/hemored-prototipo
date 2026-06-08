@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed Admin — Facturación global</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; min-height: 100vh; display: flex; }
+    .sidebar { width: 240px; min-height: 100vh; background: #1a1a2e; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: #f28b98; margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .sidebar-user { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+    .nav-item.active .nav-badge { background: rgba(255,255,255,0.3); }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,0.25); padding: 12px 12px 4px; }
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+    .topbar-actions { display: flex; gap: 10px; }
+    .btn-export { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }
+    .content { padding: 32px; flex: 1; }
+
+    /* KPIs */
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .kpi { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e0e0e0; }
+    .kpi-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .kpi-num { font-size: 26px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
+    .kpi-label { font-size: 12px; color: #888; }
+    .kpi-sub { font-size: 11px; color: #bbb; margin-top: 2px; }
+
+    /* ALERTAS */
+    .alertas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .alerta { border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border: 1px solid transparent; }
+    .alerta-retrasado { background: #fde8e8; border-color: #e74c3c; }
+    .alerta-pendiente { background: #faeeda; border-color: #e67e22; }
+    .alerta-vencer { background: #fdf0f3; border-color: #f28b98; }
+    .alerta-num { font-size: 24px; font-weight: 500; }
+    .alerta-label { font-size: 12px; margin-top: 2px; }
+
+    /* FILTROS */
+    .filtros { background: white; border-radius: 12px; padding: 16px 20px; border: 0.5px solid #e0e0e0; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .filtros-label { font-size: 12px; font-weight: 500; color: #999; text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
+    .search-wrap { position: relative; flex: 1; min-width: 180px; }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #999; font-size: 14px; }
+    .search-input { width: 100%; padding: 8px 10px 8px 32px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; }
+    .filter-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; color: #1a1a1a; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e0e0e0; width: fit-content; margin-bottom: 20px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #999; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+    .tab.active { background: #1a1a2e; color: white; }
+    .tab:hover:not(.active) { background: #f5f5f5; }
+    .tab-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; }
+    .tab.active .tab-badge { background: rgba(255,255,255,0.3); }
+
+    /* TABLA */
+    .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e0e0e0; overflow: hidden; }
+    .table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 140px; padding: 12px 20px; border-bottom: 0.5px solid #e0e0e0; background: #f9f9f9; }
+    .th { font-size: 11px; font-weight: 500; color: #999; text-transform: uppercase; letter-spacing: .06em; }
+    .fact-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 140px; padding: 14px 20px; border-bottom: 0.5px solid #f0f0f0; align-items: center; transition: background 0.1s; }
+    .fact-row:last-child { border-bottom: none; }
+    .fact-row:hover { background: #f9f9f9; }
+    .hosp-info { display: flex; align-items: center; gap: 10px; }
+    .hosp-avatar { width: 32px; height: 32px; border-radius: 8px; background: #1a1a2e; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: white; flex-shrink: 0; }
+    .hosp-nombre { font-size: 13px; font-weight: 500; color: #1a1a2e; }
+    .hosp-sub { font-size: 11px; color: #999; }
+    .td { font-size: 13px; color: #555; }
+    .estado-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .eb-pagada { background: #e1f5ee; color: #04342c; }
+    .eb-pendiente { background: #faeeda; color: #412402; }
+    .eb-vencida { background: #fde8e8; color: #c0392b; }
+    .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-xs { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; display: flex; align-items: center; gap: 4px; }
+    .btn-xs-outline { background: white; color: #1a1a2e; border: 1px solid #e0e0e0 !important; }
+    .btn-xs-success { background: #e1f5ee; color: #04342c; }
+    .btn-xs-warn { background: #faeeda; color: #412402; }
+
+    /* PAGINATION */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 0.5px solid #e0e0e0; }
+    .pag-info { font-size: 12px; color: #999; }
+    .pag-btns { display: flex; gap: 4px; }
+    .pag-btn { width: 32px; height: 32px; border-radius: 7px; border: 1px solid #e0e0e0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: #555; }
+    .pag-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1200px) { .kpis { grid-template-columns: repeat(2, 1fr); } .alertas { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 1024px) {
+      .table-header { grid-template-columns: 2fr 1fr 1fr 1fr 120px; }
+      .fact-row { grid-template-columns: 2fr 1fr 1fr 1fr 120px; }
+      .td.hide-md { display: none; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .alertas { grid-template-columns: 1fr; }
+      .table-header { display: none; }
+      .fact-row { grid-template-columns: 1fr; gap: 6px; }
+      .filtros { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/admin.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../admin/dashboard.html">Hemo<span>red</span></a><div class="sidebar-badge"><i class="ti ti-shield" style="font-size:10px;"></i>Super Admin</div></div>
+  <div class="sidebar-user"><div class="sidebar-avatar">SA</div><div><div class="sidebar-user-name">Admin HemoRed</div><div class="sidebar-user-role">Superadministrador</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+    <a class="nav-item" href="../admin/hospitales.html"><i class="ti ti-building-hospital"></i>Hospitales<span class="nav-badge">4</span></a>
+    <a class="nav-item" href="../admin/donantes.html"><i class="ti ti-users"></i>Donantes</a>
+    <a class="nav-item" href="../admin/metricas.html"><i class="ti ti-chart-bar"></i>Métricas globales</a>
+    <div class="nav-section-label">Negocio</div>
+    <a class="nav-item" href="../admin/planes.html"><i class="ti ti-star"></i>Planes</a>
+    <a class="nav-item active" href="../admin/facturacion.html"><i class="ti ti-receipt"></i>Facturación global<span class="nav-badge active">2</span></a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-settings"></i>Configuración</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Facturación global</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-export"><i class="ti ti-download"></i>Exportar</button>
+      <button style="background:#1a1a2e;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;" onclick="window.location='../admin/nueva_factura.html'">
+        <i class="ti ti-plus"></i>Nueva factura
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-cash" style="color:#27ae60;font-size:16px;"></i></div>
+        <div class="kpi-num">$4.8M</div>
+        <div class="kpi-label">Facturado este año</div>
+        <div class="kpi-sub">24 hospitales activos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-check" style="color:#27ae60;font-size:16px;"></i></div>
+        <div class="kpi-num" style="color:#27ae60;">$4.37M</div>
+        <div class="kpi-label">Total cobrado</div>
+        <div class="kpi-sub">91% tasa de cobro</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon" style="background:#fde8e8;"><i class="ti ti-alert-circle" style="color:#c0392b;font-size:16px;"></i></div>
+        <div class="kpi-num" style="color:#c0392b;">$432k</div>
+        <div class="kpi-label">Total pendiente</div>
+        <div class="kpi-sub">9% del total facturado</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon" style="background:#faeeda;"><i class="ti ti-clock" style="color:#e67e22;font-size:16px;"></i></div>
+        <div class="kpi-num">22 días</div>
+        <div class="kpi-label">Promedio de cobro</div>
+        <div class="kpi-sub">desde emisión hasta pago</div>
+      </div>
+    </div>
+
+    <!-- ALERTAS ACCIONABLES -->
+    <div class="alertas">
+      <div class="alerta alerta-retrasado">
+        <div style="width:40px;height:40px;border-radius:10px;background:rgba(192,57,43,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ti-receipt-off" style="color:#c0392b;font-size:20px;"></i>
+        </div>
+        <div>
+          <div class="alerta-num" style="color:#c0392b;">2</div>
+          <div class="alerta-label" style="color:#922b21;">Facturas vencidas sin cobrar</div>
+        </div>
+      </div>
+      <div class="alerta alerta-pendiente">
+        <div style="width:40px;height:40px;border-radius:10px;background:rgba(230,126,34,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ti-clock" style="color:#e67e22;font-size:20px;"></i>
+        </div>
+        <div>
+          <div class="alerta-num" style="color:#e67e22;">8</div>
+          <div class="alerta-label" style="color:#633806;">Facturas pendientes de pago</div>
+        </div>
+      </div>
+      <div class="alerta alerta-vencer">
+        <div style="width:40px;height:40px;border-radius:10px;background:rgba(242,139,152,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ti-calendar-due" style="color:#782b46;font-size:20px;"></i>
+        </div>
+        <div>
+          <div class="alerta-num" style="color:#782b46;">5</div>
+          <div class="alerta-label" style="color:#5a1e37;">Facturas vencen esta semana</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filtros">
+      <div class="filtros-label">Filtrar</div>
+      <div class="search-wrap">
+        <i class="ti ti-search search-icon"></i>
+        <input class="search-input" type="text" placeholder="Hospital o nro. de factura...">
+      </div>
+      <select class="filter-select">
+        <option>Todos los estados</option>
+        <option>Pagadas</option>
+        <option>Pendientes</option>
+        <option>Vencidas</option>
+      </select>
+      <select class="filter-select">
+        <option>Todos los períodos</option>
+        <option>Mayo 2026</option>
+        <option>Abril 2026</option>
+        <option>Marzo 2026</option>
+        <option>Febrero 2026</option>
+        <option>Enero 2026</option>
+      </select>
+      <select class="filter-select">
+        <option>Todos los planes</option>
+        <option>Plan Provincial</option>
+        <option>Plan Nacional</option>
+      </select>
+      <select class="filter-select">
+        <option>Todas las provincias</option>
+        <option>CABA</option>
+        <option>Buenos Aires</option>
+        <option>Córdoba</option>
+        <option>Santa Fe</option>
+      </select>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="cambiarTab('todas', this)">Todas</button>
+      <button class="tab" onclick="cambiarTab('vencidas', this)">
+        Vencidas <span class="tab-badge">2</span>
+      </button>
+      <button class="tab" onclick="cambiarTab('pendientes', this)">
+        Pendientes <span class="tab-badge">8</span>
+      </button>
+      <button class="tab" onclick="cambiarTab('pagadas', this)">Pagadas</button>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="th">Hospital</div>
+        <div class="th">Nro. factura</div>
+        <div class="th hide-md">Período</div>
+        <div class="th">Monto</div>
+        <div class="th">Estado</div>
+        <div class="th"></div>
+      </div>
+
+      <!-- VENCIDA -->
+      <div class="fact-row" style="background:#fef9f9;">
+        <div class="hosp-info">
+          <div class="hosp-avatar">HG</div>
+          <div><div class="hosp-nombre">Hospital Garrahan</div><div class="hosp-sub">Nacional · CABA</div></div>
+        </div>
+        <div class="td">FAC-2026-0041</div>
+        <div class="td hide-md">Abril 2026</div>
+        <div class="td" style="font-weight:500;color:#1a1a2e;">$29.645</div>
+        <div class="td"><span class="estado-badge eb-vencida">⚠ Vencida · 15 días</span></div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-warn"><i class="ti ti-send" style="font-size:11px;"></i>Notificar</button>
+          <button class="btn-xs btn-xs-success"><i class="ti ti-check" style="font-size:11px;"></i>Marcar pagada</button>
+        </div>
+      </div>
+
+      <!-- PENDIENTE -->
+      <div class="fact-row">
+        <div class="hosp-info">
+          <div class="hosp-avatar">HR</div>
+          <div><div class="hosp-nombre">Hospital Ramos Mejía</div><div class="hosp-sub">Provincial · CABA</div></div>
+        </div>
+        <div class="td">FAC-2026-0044</div>
+        <div class="td hide-md">Junio 2026</div>
+        <div class="td" style="font-weight:500;color:#1a1a2e;">$18.150</div>
+        <div class="td"><span class="estado-badge eb-pendiente">⏳ Pendiente</span></div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-warn"><i class="ti ti-send" style="font-size:11px;"></i>Notificar</button>
+          <button class="btn-xs btn-xs-success"><i class="ti ti-check" style="font-size:11px;"></i>Marcar pagada</button>
+        </div>
+      </div>
+
+      <div class="fact-row">
+        <div class="hosp-info">
+          <div class="hosp-avatar">HS</div>
+          <div><div class="hosp-nombre">Hospital San Martín</div><div class="hosp-sub">Provincial · La Plata</div></div>
+        </div>
+        <div class="td">FAC-2026-0043</div>
+        <div class="td hide-md">Junio 2026</div>
+        <div class="td" style="font-weight:500;color:#1a1a2e;">$18.150</div>
+        <div class="td"><span class="estado-badge eb-pendiente">⏳ Pendiente</span></div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-warn"><i class="ti ti-send" style="font-size:11px;"></i>Notificar</button>
+          <button class="btn-xs btn-xs-success"><i class="ti ti-check" style="font-size:11px;"></i>Marcar pagada</button>
+        </div>
+      </div>
+
+      <!-- PAGADAS -->
+      <div class="fact-row">
+        <div class="hosp-info">
+          <div class="hosp-avatar">HI</div>
+          <div><div class="hosp-nombre">Hospital Italiano</div><div class="hosp-sub">Nacional · CABA</div></div>
+        </div>
+        <div class="td">FAC-2026-0040</div>
+        <div class="td hide-md">Mayo 2026</div>
+        <div class="td" style="font-weight:500;color:#1a1a2e;">$24.200</div>
+        <div class="td"><span class="estado-badge eb-pagada">✓ Pagada</span></div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline"><i class="ti ti-download" style="font-size:11px;"></i></button>
+          <button class="btn-xs btn-xs-outline">Ver</button>
+        </div>
+      </div>
+
+      <div class="fact-row">
+        <div class="hosp-info">
+          <div class="hosp-avatar">FM</div>
+          <div><div class="hosp-nombre">Fundación Médica del Sur</div><div class="hosp-sub">Provincial · Mendoza</div></div>
+        </div>
+        <div class="td">FAC-2026-0039</div>
+        <div class="td hide-md">Mayo 2026</div>
+        <div class="td" style="font-weight:500;color:#1a1a2e;">$18.150</div>
+        <div class="td"><span class="estado-badge eb-pagada">✓ Pagada</span></div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline"><i class="ti ti-download" style="font-size:11px;"></i></button>
+          <button class="btn-xs btn-xs-outline">Ver</button>
+        </div>
+      </div>
+
+      <div class="fact-row">
+        <div class="hosp-info">
+          <div class="hosp-avatar">HR</div>
+          <div><div class="hosp-nombre">Hospital Ramos Mejía</div><div class="hosp-sub">Provincial · CABA</div></div>
+        </div>
+        <div class="td">FAC-2026-0038</div>
+        <div class="td hide-md">Mayo 2026</div>
+        <div class="td" style="font-weight:500;color:#1a1a2e;">$18.150</div>
+        <div class="td"><span class="estado-badge eb-pagada">✓ Pagada</span></div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline"><i class="ti ti-download" style="font-size:11px;"></i></button>
+          <button class="btn-xs btn-xs-outline">Ver</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="pagination">
+      <div class="pag-info">Mostrando 6 de 142 facturas</div>
+      <div class="pag-btns">
+        <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
+        <div class="pag-btn active">1</div>
+        <div class="pag-btn">2</div>
+        <div class="pag-btn">3</div>
+        <div class="pag-btn"><i class="ti ti-chevron-right" style="font-size:14px;"></i></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function cambiarTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

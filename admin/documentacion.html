@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Documentación del sistema</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --borravino: #5a1e37; --borravino-dark: #3d0f20; --rosa: #ef647c;
+      --rosa-light: #f28b98; --rosa-pale: #fdf0f3; --rosa-border: #e8d0d8;
+      --admin-dark: #1a1a2e; --admin-mid: #16213e; --admin-accent: #3498db;
+      --text: #1a0a0f; --text-muted: #6b7280; --white: #ffffff;
+      --success: #27ae60; --warning: #e67e22; --danger: #c0392b; --info: #3498db;
+      --radius: 10px; --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* APP SIDEBAR */
+    .app-sidebar { width: 220px; background: var(--admin-dark); display: flex; flex-direction: column; flex-shrink: 0; }
+    .app-sidebar-logo { padding: 20px 20px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .app-sidebar-logo a { font-family: 'Lobster', cursive; font-size: 22px; color: white; text-decoration: none; }
+    .app-sidebar-logo a span { color: var(--rosa-light); }
+    .app-sidebar-logo .sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+    .app-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .app-nav a { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 7px; color: rgba(255,255,255,0.5); font-size: 12px; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
+    .app-nav a:hover { background: rgba(255,255,255,0.06); color: white; }
+    .app-nav a.active { background: var(--admin-mid); color: white; }
+    .app-nav a i { font-size: 15px; flex-shrink: 0; }
+    .app-nav .nav-section { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: .08em; padding: 12px 10px 6px; }
+
+    /* MAIN AREA */
+    .main { flex: 1; display: flex; overflow: hidden; }
+
+    /* DOC SIDEBAR */
+    .doc-sidebar { width: 260px; background: white; border-right: 0.5px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+    .doc-search { padding: 16px; border-bottom: 0.5px solid #e5e7eb; }
+    .doc-search input { width: 100%; padding: 8px 12px 8px 32px; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; background: #f9fafb; position: relative; }
+    .doc-search input:focus { border-color: var(--admin-accent); background: white; }
+    .search-wrap { position: relative; }
+    .search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; pointer-events: none; }
+    .doc-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .doc-nav-section { padding: 10px 16px 4px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
+    .doc-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 16px; cursor: pointer; font-size: 13px; color: #374151; transition: all 0.1s; border-left: 2px solid transparent; }
+    .doc-nav-item:hover { background: #f9fafb; color: var(--admin-dark); }
+    .doc-nav-item.active { background: #eff6ff; color: var(--admin-accent); border-left-color: var(--admin-accent); font-weight: 500; }
+    .doc-nav-item .role-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .doc-nav-item .count { margin-left: auto; font-size: 10px; background: #f3f4f6; color: var(--text-muted); padding: 1px 6px; border-radius: 20px; }
+
+    /* DOC CONTENT */
+    .doc-content { flex: 1; overflow-y: auto; padding: 32px; overflow-anchor: none; scroll-behavior: auto; }
+    .doc-panel { display: none; }
+    .doc-panel.active { display: block; }
+
+    /* PANEL HEADER */
+    .panel-header { margin-bottom: 28px; }
+    .panel-breadcrumb { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .panel-title { font-size: 22px; font-weight: 600; color: var(--admin-dark); margin-bottom: 6px; }
+    .panel-desc { font-size: 14px; color: #4b5563; line-height: 1.6; }
+    .panel-badges { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .pbadge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .pbadge-blue { background: #dbeafe; color: #1e40af; }
+    .pbadge-green { background: #dcfce7; color: #166534; }
+    .pbadge-red { background: #fee2e2; color: #991b1b; }
+    .pbadge-purple { background: #ede9fe; color: #5b21b6; }
+    .pbadge-orange { background: #ffedd5; color: #9a3412; }
+    .pbadge-gray { background: #f3f4f6; color: #374151; }
+
+    /* FLOW STEPS */
+    .flow-section { margin-bottom: 24px; }
+    .flow-section-title { font-size: 13px; font-weight: 600; color: var(--admin-dark); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1.5px solid #e5e7eb; }
+    .flow-steps { display: flex; flex-direction: column; gap: 0; }
+    .flow-step { display: flex; gap: 14px; padding-bottom: 16px; position: relative; }
+    .flow-step:last-child { padding-bottom: 0; }
+    .flow-step:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 30px; bottom: 0; width: 1px; background: #e5e7eb; }
+    .step-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: 600; z-index: 1; }
+    .step-dot-ok { background: #dbeafe; color: var(--admin-accent); }
+    .step-dot-warn { background: #ffedd5; color: var(--warning); }
+    .step-dot-err { background: #fee2e2; color: var(--danger); }
+    .step-body { flex: 1; padding-top: 4px; }
+    .step-title { font-size: 13px; font-weight: 500; color: var(--admin-dark); margin-bottom: 3px; }
+    .step-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
+    .step-views { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .step-view-badge { font-size: 10px; background: #f3f4f6; color: #374151; padding: 2px 7px; border-radius: 4px; font-family: monospace; }
+
+    /* ERROR CARDS */
+    .error-cards { display: flex; flex-direction: column; gap: 8px; }
+    .error-card { background: #fff; border: 0.5px solid #e5e7eb; border-radius: var(--radius); padding: 12px 14px; border-left: 3px solid var(--danger); }
+    .error-card-title { font-size: 12px; font-weight: 600; color: var(--danger); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .error-card-desc { font-size: 12px; color: #4b5563; line-height: 1.5; }
+
+    /* DB TABLE DOCS */
+    .db-table-card { background: white; border-radius: var(--radius); border: 0.5px solid #e5e7eb; margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow); }
+    .db-table-header { padding: 16px 20px; background: var(--admin-dark); display: flex; align-items: center; gap: 12px; }
+    .db-table-name { font-size: 15px; font-weight: 600; color: white; font-family: monospace; }
+    .db-table-desc { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .db-table-body { padding: 16px 20px; }
+    .db-section { margin-bottom: 14px; }
+    .db-section-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    .db-section-text { font-size: 13px; color: #374151; line-height: 1.6; }
+    .db-fields { display: flex; flex-direction: column; gap: 4px; }
+    .db-field { display: flex; align-items: flex-start; gap: 10px; padding: 6px 10px; background: #f9fafb; border-radius: 6px; font-size: 12px; }
+    .db-field-name { font-family: monospace; font-weight: 600; color: var(--admin-dark); flex-shrink: 0; min-width: 180px; }
+    .db-field-type { color: var(--admin-accent); font-family: monospace; flex-shrink: 0; min-width: 80px; }
+    .db-field-desc { color: #4b5563; }
+    .db-field.pk .db-field-name::before { content: '🔑 '; }
+    .db-field.fk .db-field-name::before { content: '🔗 '; }
+    .db-relations { display: flex; flex-wrap: wrap; gap: 6px; }
+    .db-relation { font-size: 11px; background: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 5px; font-family: monospace; }
+    .db-usado { display: flex; flex-wrap: wrap; gap: 6px; }
+    .db-usado-badge { font-size: 11px; padding: 3px 8px; border-radius: 5px; }
+
+    /* TECH TABLE */
+    .tech-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tech-table th { text-align: left; padding: 8px 14px; background: #f9fafb; border-bottom: 1.5px solid #e5e7eb; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .tech-table td { padding: 10px 14px; border-bottom: 0.5px solid #f3f4f6; vertical-align: top; }
+    .tech-table tr:last-child td { border-bottom: none; }
+    .tech-table tr:hover td { background: #f9fafb; }
+    .code { font-family: monospace; background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+    /* MARK TABLE */
+    .mark-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .mark-table th { text-align: left; padding: 8px 12px; background: #f9fafb; border-bottom: 1.5px solid #e5e7eb; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .mark-table td { padding: 10px 12px; border-bottom: 0.5px solid #f3f4f6; vertical-align: top; line-height: 1.5; }
+    .mark-table tr:hover td { background: #fafafa; }
+
+    /* VERSION CARDS */
+    .version-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .version-card { background: white; border-radius: var(--radius); border: 0.5px solid #e5e7eb; padding: 20px; box-shadow: var(--shadow); }
+    .version-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 10px; }
+    .version-title { font-size: 16px; font-weight: 600; color: var(--admin-dark); margin-bottom: 8px; }
+    .version-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .version-list li { font-size: 12px; color: #4b5563; display: flex; align-items: flex-start; gap: 7px; line-height: 1.4; }
+    .version-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; margin-top: 5px; }
+    .version-list.in { color: var(--success); }
+    .version-list.out { color: var(--text-muted); }
+
+
+
+    /* FLUJO CARDS GRID */
+    .flujos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0; }
+    .flujo-card { background: #1e2a3a; border-radius: 10px; padding: 16px 20px; cursor: pointer; transition: background 0.15s; border: 1.5px solid transparent; }
+    .flujo-card:hover { background: #16213e; border-color: #3498db; }
+    .flujo-card.active { background: #16213e; border-color: #3498db; }
+    .flujo-card-code { font-size: 12px; font-weight: 600; color: #93c5fd; font-family: monospace; margin-bottom: 4px; }
+    .flujo-card-name { font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 500; }
+
+    /* FLUJO DETAIL */
+    .flujo-detail-wrap { margin-top: 0; }
+    .flujo-detail-topbar { display: flex; align-items: center; gap: 12px; padding: 16px 0 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 24px; }
+    .flujo-back-btn { display: flex; align-items: center; gap: 6px; background: #f3f4f6; border: none; padding: 8px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
+    .flujo-back-btn:hover { background: #e5e7eb; }
+    .flujo-detail-title { font-size: 20px; font-weight: 600; color: var(--admin-dark); margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1.5px solid #e5e7eb; }
+
+    /* FLUJO NAV BAR */
+    .flujo-nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 0 0; margin-top: 24px; border-top: 1px solid #e5e7eb; }
+    .flujo-nav-btn { display: flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; border: none; }
+    .flujo-nav-prev { background: white; color: #374151; border: 1.5px solid #e5e7eb !important; }
+    .flujo-nav-prev:hover { border-color: #3498db !important; color: #1e40af; }
+    .flujo-nav-next { background: #1a1a2e; color: white; }
+    .flujo-nav-next:hover { background: #16213e; }
+    .flujo-nav-label { font-size: 11px; color: #9ca3af; }
+
+    /* DIAGRAMAS */
+    .diagrama-wrap { margin-top: 20px; border-radius: 10px; overflow: hidden; border: 1px solid #e5e7eb; }
+    .diagrama-toggle { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: #1a1a2e; border: none; cursor: pointer; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); width: 100%; font-family: 'Inter', sans-serif; transition: background 0.15s; }
+    .diagrama-toggle:hover { background: #16213e; }
+    .diagrama-toggle .toggle-icon { font-size: 16px; color: #60a5fa; }
+    .diagrama-toggle .toggle-arrow { margin-left: auto; font-size: 14px; color: rgba(255,255,255,0.4); transition: transform 0.25s; }
+    .diagrama-toggle.open .toggle-arrow { transform: rotate(180deg); }
+    .diagrama-toggle .toggle-badge { font-size: 10px; background: rgba(96,165,250,0.2); color: #93c5fd; padding: 2px 8px; border-radius: 20px; }
+    .diagrama-content { display: none; background: #fafafa; padding: 24px; overflow-x: auto; }
+    .diagrama-content.open { display: block; }
+    .diagrama-content .mermaid { display: flex; justify-content: center; }
+    .diagrama-content .mermaid svg { max-width: 100%; height: auto; cursor: zoom-in; }
+    .diagrama-footer { display: flex; justify-content: flex-end; padding: 8px 0 0; }
+    .btn-zoom { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--admin-accent); background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; padding: 4px 8px; border-radius: 5px; transition: background 0.1s; }
+    .btn-zoom:hover { background: #eff6ff; }
+    /* MODAL DIAGRAMA */
+    .diag-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; padding: 24px; }
+    .diag-modal.open { display: flex; }
+    .diag-modal-inner { background: white; border-radius: 16px; max-width: 95vw; max-height: 90vh; overflow: auto; padding: 24px; position: relative; }
+    .diag-modal-close { position: absolute; top: 14px; right: 14px; background: #f3f4f6; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #374151; }
+    .diag-modal-title { font-size: 15px; font-weight: 600; color: var(--admin-dark); margin-bottom: 16px; padding-right: 40px; }
+    .diag-modal-svg svg { max-width: 100%; height: auto; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+
+    @media (max-width: 900px) {
+      .app-sidebar { display: none; }
+      .doc-sidebar { width: 200px; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<!-- APP SIDEBAR -->
+<aside class="app-sidebar">
+  <div class="app-sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+    <div class="sub">Super Administrador</div>
+  </div>
+  <nav class="app-nav">
+    <div class="nav-section">Principal</div>
+    <a href="dashboard.html"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+    <a href="hospitales.html"><i class="ti ti-building-hospital"></i>Hospitales</a>
+    <a href="donantes.html"><i class="ti ti-users"></i>Donantes</a>
+    <a href="metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <a href="planes.html"><i class="ti ti-package"></i>Planes</a>
+    <a href="facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
+    <div class="nav-section">Sistema</div>
+    <a href="documentacion.html" class="active"><i class="ti ti-book-2"></i>Documentación</a>
+    <div class="nav-section">Cuenta</div>
+    <a href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="main">
+
+  <!-- DOC SIDEBAR -->
+  <nav class="doc-sidebar">
+    <div class="doc-search">
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Buscar en la documentación..." id="search-input" oninput="buscar(this.value)">
+      </div>
+    </div>
+    <div class="doc-nav" id="doc-nav">
+
+      <div class="doc-nav-section">Flujos — Público</div>
+      <div class="doc-nav-item" onclick="mostrar('f-pub')" id="nav-f-pub">
+        <div class="role-dot" style="background:#6b7280;"></div>
+        Flujos públicos
+        <span class="count">6</span>
+      </div>
+
+      <div class="doc-nav-section">Flujos — Donante</div>
+      <div class="doc-nav-item" onclick="mostrar('f-don')" id="nav-f-don">
+        <div class="role-dot" style="background:var(--rosa);"></div>
+        Flujos del donante
+        <span class="count">6</span>
+      </div>
+
+      <div class="doc-nav-section">Flujos — Hospital</div>
+      <div class="doc-nav-item" onclick="mostrar('f-hos')" id="nav-f-hos">
+        <div class="role-dot" style="background:var(--borravino);"></div>
+        Flujos del hospital
+        <span class="count">9</span>
+      </div>
+
+      <div class="doc-nav-section">Flujos — Profesional</div>
+      <div class="doc-nav-item" onclick="mostrar('f-pro')" id="nav-f-pro">
+        <div class="role-dot" style="background:var(--warning);"></div>
+        Flujos del profesional
+        <span class="count">3</span>
+      </div>
+
+      <div class="doc-nav-section">Flujos — Admin</div>
+      <div class="doc-nav-item" onclick="mostrar('f-adm')" id="nav-f-adm">
+        <div class="role-dot" style="background:var(--admin-accent);"></div>
+        Flujos del administrador
+        <span class="count">5</span>
+      </div>
+
+      <div class="doc-nav-section">Base de datos</div>
+      <div class="doc-nav-item" onclick="mostrar('db-usuarios')" id="nav-db-usuarios">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>usuarios
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-hospitales')" id="nav-db-hospitales">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>hospitales
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-profesionales')" id="nav-db-profesionales">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>profesionales
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-pacientes')" id="nav-db-pacientes">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>pacientes
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-campanas')" id="nav-db-campanas">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>campanas
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-turnos')" id="nav-db-turnos">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>turnos
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-donaciones')" id="nav-db-donaciones">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>donaciones
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-formularios')" id="nav-db-formularios">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>formularios (F1–F4)
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-documentos')" id="nav-db-documentos">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>documentos y resultados
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-facturacion')" id="nav-db-facturacion">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>facturación y planes
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('db-mensajes')" id="nav-db-mensajes">
+        <i class="ti ti-table" style="font-size:12px;color:var(--text-muted);"></i>mensajes
+      </div>
+
+      <div class="doc-nav-section">Sistema</div>
+      <div class="doc-nav-item" onclick="mostrar('tech')" id="nav-tech">
+        <i class="ti ti-code" style="font-size:12px;color:var(--text-muted);"></i>Tecnologías y librerías
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('marcas')" id="nav-marcas">
+        <i class="ti ti-flag" style="font-size:12px;color:var(--text-muted);"></i>Marcas de seguimiento
+      </div>
+      <div class="doc-nav-item" onclick="mostrar('versiones')" id="nav-versiones">
+        <i class="ti ti-git-branch" style="font-size:12px;color:var(--text-muted);"></i>MVP vs versión completa
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- DOC CONTENT -->
+  <div class="doc-content" id="doc-content-main">
+
+    <!-- BIENVENIDA -->
+    <div class="doc-panel active" id="panel-bienvenida">
+      <div class="panel-header">
+        <div class="panel-title">Documentación del sistema HemoRed</div>
+        <div class="panel-desc">Centro de documentación técnica del sistema. Seleccioná una sección en el panel izquierdo para navegar los flujos por rol, la estructura de la base de datos, las tecnologías utilizadas y el roadmap de versiones.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+        <div style="background:white;border-radius:10px;padding:18px;border:0.5px solid #e5e7eb;cursor:pointer;" onclick="mostrar('f-don')">
+          <div style="font-size:22px;margin-bottom:8px;">🩸</div>
+          <div style="font-size:14px;font-weight:600;color:var(--admin-dark);margin-bottom:4px;">Flujos del donante</div>
+          <div style="font-size:12px;color:var(--text-muted);">6 flujos documentados</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:18px;border:0.5px solid #e5e7eb;cursor:pointer;" onclick="mostrar('f-hos')">
+          <div style="font-size:22px;margin-bottom:8px;">🏥</div>
+          <div style="font-size:14px;font-weight:600;color:var(--admin-dark);margin-bottom:4px;">Flujos del hospital</div>
+          <div style="font-size:12px;color:var(--text-muted);">9 flujos documentados</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:18px;border:0.5px solid #e5e7eb;cursor:pointer;" onclick="mostrar('f-pro')">
+          <div style="font-size:22px;margin-bottom:8px;">👨‍⚕️</div>
+          <div style="font-size:14px;font-weight:600;color:var(--admin-dark);margin-bottom:4px;">Flujos del profesional</div>
+          <div style="font-size:12px;color:var(--text-muted);">3 flujos documentados</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:18px;border:0.5px solid #e5e7eb;cursor:pointer;" onclick="mostrar('db-usuarios')">
+          <div style="font-size:22px;margin-bottom:8px;">🗄️</div>
+          <div style="font-size:14px;font-weight:600;color:var(--admin-dark);margin-bottom:4px;">Base de datos</div>
+          <div style="font-size:12px;color:var(--text-muted);">20 tablas documentadas</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:18px;border:0.5px solid #e5e7eb;cursor:pointer;" onclick="mostrar('tech')">
+          <div style="font-size:22px;margin-bottom:8px;">⚙️</div>
+          <div style="font-size:14px;font-weight:600;color:var(--admin-dark);margin-bottom:4px;">Tecnologías</div>
+          <div style="font-size:12px;color:var(--text-muted);">Librerías y stack</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:18px;border:0.5px solid #e5e7eb;cursor:pointer;" onclick="mostrar('versiones')">
+          <div style="font-size:22px;margin-bottom:8px;">🗺️</div>
+          <div style="font-size:14px;font-weight:600;color:var(--admin-dark);margin-bottom:4px;">MVP vs Completo</div>
+          <div style="font-size:12px;color:var(--text-muted);">Roadmap del proyecto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== FLUJOS PÚBLICOS ==================== -->
+    <div class="doc-panel" id="panel-f-pub">
+    <div class="panel-header">
+      <div class="panel-breadcrumb">Flujos Públicos</div>
+      <div class="panel-title">Flujos Públicos</div>
+      <div class="panel-desc">Flujos disponibles sin autenticación. Punto de entrada al sistema para todos los roles.</div>
+      <div class="panel-badges"><span class="pbadge pbadge-gray"><i class="ti ti-world" style="font-size:10px;"></i> Sin login</span><span class="pbadge pbadge-blue">4 flujos</span></div>
+    </div>
+
+    <!-- GRID DE CARDS -->
+    <div class="flujos-grid" id="grid-f-pub">
+      <div class="flujo-card" id="card-pub-login" onclick="abrirFlujo('pub-login', 'f-pub')">
+        <div class="flujo-card-code">F-PUB-04</div>
+        <div class="flujo-card-name">Inicio de sesión</div>
+      </div>
+      <div class="flujo-card" id="card-pub-reg-don" onclick="abrirFlujo('pub-reg-don', 'f-pub')">
+        <div class="flujo-card-code">F-PUB-02</div>
+        <div class="flujo-card-name">Registro de donante</div>
+      </div>
+      <div class="flujo-card" id="card-pub-reg-hos" onclick="abrirFlujo('pub-reg-hos', 'f-pub')">
+        <div class="flujo-card-code">F-PUB-03</div>
+        <div class="flujo-card-name">Registro de hospital</div>
+      </div>
+      <div class="flujo-card" id="card-pub-postdon" onclick="abrirFlujo('pub-postdon', 'f-pub')">
+        <div class="flujo-card-code">F-PUB-06</div>
+        <div class="flujo-card-name">Post-donación anónimo</div>
+      </div>
+    </div>
+
+    <!-- DETALLE DEL FLUJO -->
+    <div class="flujo-detail-wrap" id="detail-wrap-f-pub" style="display:none;">
+      <div class="flujo-detail-topbar">
+        <button class="flujo-back-btn" onclick="cerrarFlujo('f-pub')">
+          <i class="ti ti-arrow-left"></i>Volver a Flujos Públicos
+        </button>
+      </div>
+      <div class="flujo-detail" id="detail-pub-login" style="display:none;">
+        <div class="flujo-detail-title">F-PUB-04 · Inicio de sesión</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El usuario ingresa email y contraseña</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Hace click en "Iniciar sesión" (o presiona Enter)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title"><code>sesion.js</code> valida las credenciales</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Redirección automática según rol:</div><div class="step-desc"><code>donante</code> → <code>donante/dashboard.html</code> · <code>hospital</code> → <code>hospital/dashboard.html</code> · <code>profesional</code> → <code>profesional/dashboard.html</code> · <code>superadmin</code> → <code>admin/dashboard.html</code></div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Email o contraseña incorrectos</div><div class="error-card-desc">mensaje de error en rojo "Email o contraseña incorrectos" (no especifica cuál para evitar enumeración de usuarios)</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Campo vacío</div><div class="error-card-desc">validación HTML5 nativa</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Usuario inactivo / suspendido</div><div class="error-card-desc">mensaje "Tu cuenta se encuentra suspendida. Contactá a soporte." (v2)</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Hospital con cuenta pendiente</div><div class="error-card-desc">redirección a <code>publico/cuenta_pendiente.html</code></div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Contraseña olvidada</div><div class="error-card-desc">link a <code>publico/recuperar.html</code></div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-pub-reg-don" style="display:none;">
+        <div class="flujo-detail-title">F-PUB-02 · Registro de donante</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El usuario selecciona "Donante" en el selector de rol</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Completa: nombre, apellido, email, contraseña, fecha de nacimiento, DNI, tipo de sangre, peso</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Acepta términos y condiciones</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Hace click en "Crear cuenta"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Es redirigido a <code>donante/dashboard.html</code></div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Email ya registrado</div><div class="error-card-desc">mensaje de error inline "Este email ya tiene una cuenta"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Contraseña débil</div><div class="error-card-desc">indicador de fortaleza con requisitos mínimos</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Campos obligatorios vacíos</div><div class="error-card-desc">validación con mensaje debajo de cada campo</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Menor de 16 años</div><div class="error-card-desc">mensaje "Debés tener al menos 16 años para registrarte"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Peso menor a 50kg</div><div class="error-card-desc">aviso informativo (no bloquea, pero advierte sobre requisito de donación)</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-pub-reg-hos" style="display:none;">
+        <div class="flujo-detail-title">F-PUB-03 · Registro de hospital</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El usuario selecciona "Hospital / Institución" en el selector de rol</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Completa: razón social, CUIT, dirección, contacto, habilitación sanitaria</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Selecciona un plan (Local / Provincial / Nacional)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Hace click en "Solicitar registro"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Es redirigido a <code>publico/pago.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Completa los datos de pago</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Es redirigido a <code>publico/cuenta_pendiente.html</code> — estado: pendiente de aprobación por admin</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>CUIT inválido</div><div class="error-card-desc">validación de formato y dígito verificador</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Habilitación sanitaria no encontrada</div><div class="error-card-desc">aviso de que será verificada manualmente</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Pago rechazado</div><div class="error-card-desc">mensaje de error con opción de reintentar o cambiar medio de pago</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Email ya registrado</div><div class="error-card-desc">mensaje inline con link a recuperar contraseña</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Cuenta creada pero no aprobada</div><div class="error-card-desc">el hospital ve <code>cuenta_pendiente.html</code> hasta que el admin la aprueba</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-pub-postdon" style="display:none;">
+        <div class="flujo-detail-title">F-PUB-06 · Post-donación anónimo</div>
+        <div class="doc-panel" id="panel-f-don">
+    <div class="panel-header">
+      <div class="panel-breadcrumb">Flujos del Donante</div>
+      <div class="panel-title">Flujos del Donante</div>
+      <div class="panel-desc">Flujos completos del rol donante desde el dashboard hasta el formulario post-donación.</div>
+      <div class="panel-badges"><span class="pbadge pbadge-red"><i class="ti ti-droplet" style="font-size:10px;"></i> Rol: donante</span><span class="pbadge pbadge-blue">6 flujos</span></div>
+    </div>
+
+    <!-- GRID DE CARDS -->
+    <div class="flujos-grid" id="grid-f-don">
+      <div class="flujo-card" id="card-don-reserva" onclick="abrirFlujo('don-reserva', 'f-don')">
+        <div class="flujo-card-code">F-DON-01</div>
+        <div class="flujo-card-name">Reservar turno</div>
+      </div>
+      <div class="flujo-card" id="card-don-formularios" onclick="abrirFlujo('don-formularios', 'f-don')">
+        <div class="flujo-card-code">F-DON-02</div>
+        <div class="flujo-card-name">Formularios pre-donación</div>
+      </div>
+      <div class="flujo-card" id="card-don-turnos" onclick="abrirFlujo('don-turnos', 'f-don')">
+        <div class="flujo-card-code">F-DON-03</div>
+        <div class="flujo-card-name">Mis turnos</div>
+      </div>
+      <div class="flujo-card" id="card-don-documentos" onclick="abrirFlujo('don-documentos', 'f-don')">
+        <div class="flujo-card-code">F-DON-04</div>
+        <div class="flujo-card-name">Mis documentos</div>
+      </div>
+      <div class="flujo-card" id="card-don-perfil" onclick="abrirFlujo('don-perfil', 'f-don')">
+        <div class="flujo-card-code">F-DON-05</div>
+        <div class="flujo-card-name">Perfil</div>
+      </div>
+      <div class="flujo-card" id="card-don-notif" onclick="abrirFlujo('don-notif', 'f-don')">
+        <div class="flujo-card-code">F-DON-06</div>
+        <div class="flujo-card-name">Notificaciones</div>
+      </div>
+    </div>
+
+    <!-- DETALLE DEL FLUJO -->
+    <div class="flujo-detail-wrap" id="detail-wrap-f-don" style="display:none;">
+      <div class="flujo-detail-topbar">
+        <button class="flujo-back-btn" onclick="cerrarFlujo('f-don')">
+          <i class="ti ti-arrow-left"></i>Volver a Flujos del Donante
+        </button>
+      </div>
+      <div class="flujo-detail" id="detail-don-reserva" style="display:none;">
+        <div class="flujo-detail-title">F-DON-01 · Explorar y reservar turno en campaña</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El donante entra a su dashboard y ve campañas activas filtradas por su tipo de sangre y ubicación</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede filtrar por urgente, tipo de sangre, hospital, distancia</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Hace click en una campaña → <code>donante/campana_detalle.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Ve información completa: paciente, hospital, tipo de sangre requerida, urgencia, unidades faltantes</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Selecciona una fecha y horario disponible del calendario</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Confirma la reserva</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Recibe notificación de confirmación con recordatorio 24hs antes</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">8</div><div class="step-body"><div class="step-title">El turno aparece en <code>donante/mis_turnos.html</code> con estado "Confirmado"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">9</div><div class="step-body"><div class="step-title">2 horas antes del turno se habilitan los formularios pre-donación</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Sin tipo de sangre compatible</div><div class="error-card-desc">mensaje "No hay campañas activas compatibles con tu tipo de sangre en este momento. Te avisaremos cuando haya una."</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Turno sin disponibilidad</div><div class="error-card-desc">mensaje "No hay turnos disponibles para esta fecha. Seleccioná otro día."</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Donante con período de espera activo</div><div class="error-card-desc">mensaje "Tu última donación fue hace menos de 90 días. Podrás donar a partir del [fecha]."</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Donante sin peso/datos completos en perfil</div><div class="error-card-desc">aviso de completar perfil antes de reservar</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Campaña cerrada mientras navegaba</div><div class="error-card-desc">mensaje "Esta campaña ya no está disponible." con sugerencia de otras campañas</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-don-formularios" style="display:none;">
+        <div class="flujo-detail-title">F-DON-02 · Completar formularios pre-donación</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Paso 1 — Documento de autoexclusión</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El donante recibe notificación "Tus formularios pre-donación ya están disponibles"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Abre el link desde la notificación o desde <code>donante/mis_turnos.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Lee el documento completo de información y autoexclusión (texto oficial del Hemocentro Buenos Aires)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Tilda los 3 checkboxes de confirmación:</div><div class="step-desc">"Leí y comprendí las situaciones de exclusión" · "Ninguna de las situaciones me aplica" · "Entiendo que puedo comunicárselo al profesional o completar el formulario post-donación"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Firma digitalmente con Signature Pad (canvas táctil)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">El botón "Continuar al cuestionario médico" se habilita solo cuando los 3 checkboxes están marcados Y hay firma</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error:</div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Paso 2 — Cuestionario médico</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">Responde las 42 preguntas organizadas por sección temporal (medicación, últimas 2 semanas, último mes, últimos 3 meses, últimos 6 meses, últimos 12 meses, antecedentes, estancias en el extranjero)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Lee el aviso de confidencialidad en la sección de conductas sexuales</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Agrega observaciones adicionales opcionales</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Lee la declaración de consentimiento informado</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Firma digitalmente</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Hace click en "Confirmar y enviar formularios"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Ve pantalla de confirmación con checklist del estado de los 4 formularios</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">8</div><div class="step-body"><div class="step-title">El hospital recibe notificación "El donante completó los formularios previos al turno"</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error:</div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Paso 3 — Confirmación</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-don-turnos" style="display:none;">
+        <div class="flujo-detail-title">F-DON-03 · Consultar mis turnos</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El donante ve la lista de todos sus turnos ordenados por fecha</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede filtrar: próximos / pasados / cancelados</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Por cada turno ve:</div><div class="step-desc">Hospital y fecha/hora · Estado del turno (Confirmado / En curso / Completado / No apto / Cancelado) · Estado de los formularios pre-donación (completado / pendiente / no disponible aún / lo carga el profesional) · Botón "Completar formularios" si están habilitados y pendientes</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Para turnos con formularios habilitados → botón lleva a <code>donante/formularios_predonacion.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Para turnos futuros sin formularios habilitados → aviso de cuándo se habilitarán</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Puede cancelar un turno (hasta 2 horas antes)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Puede modificar el horario (hasta 24 horas antes, sujeto a disponibilidad)</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Cancelación fuera de tiempo</div><div class="error-card-desc">mensaje "Ya no podés cancelar este turno. Si no podés asistir, avisá al hospital." con datos de contacto</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Sin turnos</div><div class="error-card-desc">estado vacío con CTA "Buscar campañas"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Turno ya cancelado por el hospital</div><div class="error-card-desc">badge "Cancelado por el hospital" con motivo si fue informado</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-don-documentos" style="display:none;">
+        <div class="flujo-detail-title">F-DON-04 · Consultar documentos y evaluación clínica</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El donante entra a "Mis documentos"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Ve tabs: Resultados / Evaluaciones clínicas / Certificados / Consentimientos</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">**Tab Resultados:** resultados de análisis de laboratorio emitidos por el hospital (VIH, Hepatitis B y C, Chagas, Brucelosis, HTLV, Sífilis, hemoglobina, hematocrito, grupo sanguíneo)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">**Tab Evaluaciones clínicas (F3):**</div><div class="step-desc">Para donaciones completadas → ve los valores clínicos (presión, glucosa, temperatura, frecuencia cardíaca, peso, hemoglobina) con rangos de referencia y aviso médico orientativo · Para turnos próximos → el formulario aparece bloqueado con leyenda "Este formulario es completado por el profesional del centro de salud durante tu atención"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">**Tab Certificados:** certificados de donación descargables</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">**Tab Consentimientos:** formularios F1 y F2 firmados</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Sin documentos</div><div class="error-card-desc">estado vacío por tab con mensaje explicativo</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Resultado anormal</div><div class="error-card-desc">el resultado se muestra igual con aviso "Uno de tus resultados requiere atención. El hospital se comunicará con vos." (el hospital ya habrá sido notificado)</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Certificado no emitido aún</div><div class="error-card-desc">badge "Pendiente de emisión"</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-don-perfil" style="display:none;">
+        <div class="flujo-detail-title">F-DON-05 · Gestionar perfil personal</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El donante ve y edita sus datos personales: nombre, DNI, fecha de nacimiento, tipo de sangre, peso, dirección, teléfono, email</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede actualizar su foto de perfil</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Puede agregar/editar empleadores frecuentes (para notificaciones de campañas laborales)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Guarda cambios → toast de confirmación</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Email ya en uso</div><div class="error-card-desc">mensaje inline</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Tipo de sangre no puede cambiarse solo</div><div class="error-card-desc">aviso "El tipo de sangre debe ser actualizado por un profesional médico"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Cambio de contraseña</div><div class="error-card-desc">requiere contraseña actual; si es incorrecta → mensaje de error</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-don-notif" style="display:none;">
+        <div class="flujo-detail-title">F-DON-06 · Notificaciones</div>
+        <div class="doc-panel" id="panel-f-hos">
+    <div class="panel-header">
+      <div class="panel-breadcrumb">Flujos del Hospital</div>
+      <div class="panel-title">Flujos del Hospital</div>
+      <div class="panel-desc">Gestión completa de campañas, turnos, pacientes, profesionales y facturación.</div>
+      <div class="panel-badges"><span class="pbadge pbadge-purple"><i class="ti ti-building-hospital" style="font-size:10px;"></i> Rol: hospital</span><span class="pbadge pbadge-blue">9 flujos</span></div>
+    </div>
+
+    <!-- GRID DE CARDS -->
+    <div class="flujos-grid" id="grid-f-hos">
+      <div class="flujo-card" id="card-hos-campana" onclick="abrirFlujo('hos-campana', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-01</div>
+        <div class="flujo-card-name">Nueva campaña</div>
+      </div>
+      <div class="flujo-card" id="card-hos-turno" onclick="abrirFlujo('hos-turno', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-02</div>
+        <div class="flujo-card-name">Turnos del día</div>
+      </div>
+      <div class="flujo-card" id="card-hos-donacion" onclick="abrirFlujo('hos-donacion', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-03</div>
+        <div class="flujo-card-name">Registrar donación</div>
+      </div>
+      <div class="flujo-card" id="card-hos-pacientes" onclick="abrirFlujo('hos-pacientes', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-04</div>
+        <div class="flujo-card-name">Gestionar pacientes</div>
+      </div>
+      <div class="flujo-card" id="card-hos-profs" onclick="abrirFlujo('hos-profs', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-05</div>
+        <div class="flujo-card-name">Gestionar profesionales</div>
+      </div>
+      <div class="flujo-card" id="card-hos-docs" onclick="abrirFlujo('hos-docs', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-06</div>
+        <div class="flujo-card-name">Emitir documentación</div>
+      </div>
+      <div class="flujo-card" id="card-hos-metricas" onclick="abrirFlujo('hos-metricas', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-07</div>
+        <div class="flujo-card-name">Métricas</div>
+      </div>
+      <div class="flujo-card" id="card-hos-perfil" onclick="abrirFlujo('hos-perfil', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-08</div>
+        <div class="flujo-card-name">Perfil y plan</div>
+      </div>
+      <div class="flujo-card" id="card-hos-factura" onclick="abrirFlujo('hos-factura', 'f-hos')">
+        <div class="flujo-card-code">F-HOS-09</div>
+        <div class="flujo-card-name">Facturación</div>
+      </div>
+    </div>
+
+    <!-- DETALLE DEL FLUJO -->
+    <div class="flujo-detail-wrap" id="detail-wrap-f-hos" style="display:none;">
+      <div class="flujo-detail-topbar">
+        <button class="flujo-back-btn" onclick="cerrarFlujo('f-hos')">
+          <i class="ti ti-arrow-left"></i>Volver a Flujos del Hospital
+        </button>
+      </div>
+      <div class="flujo-detail" id="detail-hos-campana" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-01 · Crear nueva campaña de donación</div>
+        <div class="diagrama-wrap">
+        <button class="diagrama-toggle" onclick="toggleDiagrama('hos-campana')">
+          <i class="toggle-icon ti ti-hierarchy-2"></i>Ver diagrama de flujo
+          <span class="toggle-badge">Mermaid</span>
+          <i class="toggle-arrow ti ti-chevron-down"></i>
+        </button>
+        <div class="diagrama-content" id="diag-hos-campana">
+          <div class="mermaid" id="mermaid-hos-campana">
+flowchart TD
+    A([Nueva campaña]) --> B
+
+    subgraph P1 ["Paso 1 — Datos"]
+        B[Título, descripción
+tipo de sangre, urgencia]
+        B --> C{¿Límite de campañas
+del plan alcanzado?}
+        C -->|Sí| ERR1([✗ Upgrade de plan
+requerido])
+        C -->|No| D[Selecciona paciente
+opcional y alcance]
+    end
+
+    D --> E
+
+    subgraph P2 ["Paso 2 — Disponibilidad"]
+        E[Define rango de fechas
+y horarios]
+        E --> F{¿Fechas
+válidas?}
+        F -->|No| ERR2([✗ Fecha de cierre
+inválida])
+        F -->|Sí| G[Sistema genera
+slots automáticamente]
+    end
+
+    G --> H
+
+    subgraph P3 ["Paso 3 — Publicación"]
+        H[Revisión y previsualización]
+        H --> I{¿Publicar o
+guardar como borrador?}
+        I -->|Borrador| J([💾 Guardada
+como borrador])
+        I -->|Publicar| K[Estado → activa]
+        K --> L([✓ Donantes compatibles
+notificados])
+    end
+
+    style ERR1 fill:#fee2e2,stroke:#c0392b,color:#991b1b
+    style ERR2 fill:#fee2e2,stroke:#c0392b,color:#991b1b
+    style J fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    style L fill:#dcfce7,stroke:#27ae60,color:#166534
+    style A fill:#dbeafe,stroke:#3498db,color:#1e40af
+    style P1 fill:#fafafa,stroke:#e5e7eb
+    style P2 fill:#fafafa,stroke:#e5e7eb
+    style P3 fill:#fafafa,stroke:#e5e7eb
+</div>
+          <div class="diagrama-footer">
+            <button class="btn-zoom" onclick="abrirModalDiag('hos-campana')">
+              <i class="ti ti-maximize"></i>Ver ampliado
+            </button>
+          </div>
+        </div>
+      </div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Paso 1 — Datos de la campaña</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital hace click en "Nueva campaña" desde el dashboard o desde <code>hospital/campanas.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Completa: título, descripción, tipo de sangre requerida (o "cualquier tipo"), unidades requeridas, urgente (checkbox), paciente (opcional — si es para un paciente específico)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Selecciona alcance: local / provincial / nacional (según su plan)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Selecciona estado inicial: borrador o publicar directamente</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Avanza al paso 2</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error:</div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Paso 2 — Turnos y disponibilidad</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">Define el rango de fechas disponibles para la campaña</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Define horarios disponibles por día (bloques de tiempo)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Define capacidad máxima de turnos por franja horaria</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">El sistema genera automáticamente los slots disponibles</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Avanza al paso 3</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error:</div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Paso 3 — Revisión y publicación</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital revisa el resumen completo de la campaña</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Ve una previsualización de cómo se verá para los donantes</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Hace click en "Publicar campaña" o "Guardar como borrador"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Si publica → estado cambia a "activa" y los donantes compatibles reciben notificación</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Es redirigido a <code>hospital/campana_detalle.html</code></div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error:</div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-turno" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-02 · Gestionar turnos del día</div>
+        <div class="diagrama-wrap">
+        <button class="diagrama-toggle" onclick="toggleDiagrama('hos-turno')">
+          <i class="toggle-icon ti ti-hierarchy-2"></i>Ver diagrama de flujo
+          <span class="toggle-badge">Mermaid</span>
+          <i class="toggle-arrow ti ti-chevron-down"></i>
+        </button>
+        <div class="diagrama-content" id="diag-hos-turno">
+          <div class="mermaid" id="mermaid-hos-turno">
+flowchart TD
+    A([Lista de turnos
+del día]) --> B{Estado del
+turno}
+    B -->|Confirmado| C{¿Formularios
+pre-donación OK?}
+    B -->|En curso| D[Atención en progreso]
+    B -->|Completado| E([✓ Ver registro])
+    B -->|No apto| F([✗ Ver motivo])
+
+    C -->|Completos| G[Asignar profesional]
+    C -->|Faltantes| WARN([⚠ Badge naranja
+Profesional completará en el momento])
+    WARN --> G
+    G --> H[Marcar En curso]
+    H --> I{¿Donante
+se presentó?}
+    I -->|No| ERR([✗ Marcar Ausente
+Liberar slot])
+    I -->|Sí| J[Profesional inicia
+flujo de atención]
+    J --> K([→ Flujo F-PRO-02])
+
+    style ERR fill:#fee2e2,stroke:#c0392b,color:#991b1b
+    style WARN fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    style E fill:#dcfce7,stroke:#27ae60,color:#166534
+    style K fill:#dbeafe,stroke:#3498db,color:#1e40af
+    style A fill:#dbeafe,stroke:#3498db,color:#1e40af
+</div>
+          <div class="diagrama-footer">
+            <button class="btn-zoom" onclick="abrirModalDiag('hos-turno')">
+              <i class="ti ti-maximize"></i>Ver ampliado
+            </button>
+          </div>
+        </div>
+      </div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital ve todos los turnos del día ordenados por hora</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede filtrar por estado: todos / pendientes / en curso / completados / no aptos / sin formularios</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Por cada turno ve: hora, nombre del donante, tipo de sangre, campaña, estado de formularios pre-donación</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede ver el detalle de un turno expandiéndolo</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Puede asignar un profesional a un turno (selector de profesionales disponibles)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Puede marcar un turno como "en curso" al llamar al donante</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Una vez atendido por el profesional, el estado se actualiza automáticamente</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Turno sin formularios pre-donación completados</div><div class="error-card-desc">badge de advertencia naranja; el profesional podrá completarlos en el momento (queda marcado como "completado por el profesional")</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Donante no se presentó</div><div class="error-card-desc">opción "Donante ausente" → estado cambia a "ausente", slot liberado</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Sin profesionales disponibles asignados</div><div class="error-card-desc">aviso de que el turno no tiene profesional asignado</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-donacion" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-03 · Registrar donación desde un turno</div>
+        <div class="diagrama-wrap">
+        <button class="diagrama-toggle" onclick="toggleDiagrama('hos-donacion')">
+          <i class="toggle-icon ti ti-hierarchy-2"></i>Ver diagrama de flujo
+          <span class="toggle-badge">Mermaid</span>
+          <i class="toggle-arrow ti ti-chevron-down"></i>
+        </button>
+        <div class="diagrama-content" id="diag-hos-donacion">
+          <div class="mermaid" id="mermaid-hos-donacion">
+flowchart TD
+    A([Modal Registrar
+donación]) --> B{¿Profesional
+seleccionado?}
+    B -->|No| ERR1([✗ Campo obligatorio])
+    B -->|Sí| C[Ingresa número de bolsa
+volumen y horarios]
+    C --> D{¿Número de
+bolsa duplicado?}
+    D -->|Sí| ERR2([✗ Bolsa ya existe])
+    D -->|No| E[Confirma]
+    E --> F[Turno → Completado]
+    F --> G[Genera token QR
+para F4]
+    F --> H[Notifica al donante
+con link de respaldo]
+    F --> I([✓ Pre-certificado
+generado])
+    style ERR1 fill:#fee2e2,stroke:#c0392b,color:#991b1b
+    style ERR2 fill:#fee2e2,stroke:#c0392b,color:#991b1b
+    style I fill:#dcfce7,stroke:#27ae60,color:#166534
+    style A fill:#dbeafe,stroke:#3498db,color:#1e40af
+</div>
+          <div class="diagrama-footer">
+            <button class="btn-zoom" onclick="abrirModalDiag('hos-donacion')">
+              <i class="ti ti-maximize"></i>Ver ampliado
+            </button>
+          </div>
+        </div>
+      </div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">Desde la lista de turnos, el hospital hace click en "Registrar donación" en un turno confirmado</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Selecciona el profesional que atendió al donante</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Ingresa: número de bolsa, volumen donado (ml), tipo de bolsa/marca, hora de inicio y fin, reacciones durante la extracción</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Confirma → el turno pasa a estado "completado"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">El sistema genera automáticamente:</div><div class="step-desc">El token QR para el formulario post-donación · Una notificación al donante con el link de respaldo del formulario post-donación · El pre-certificado de donación (pendiente de firma del profesional)</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Número de bolsa duplicado</div><div class="error-card-desc">mensaje de error "Este número de bolsa ya existe"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Sin profesional seleccionado</div><div class="error-card-desc">campo obligatorio, no puede confirmar</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Volumen fuera de rango</div><div class="error-card-desc">aviso si es menor a 200ml o mayor a 500ml</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-pacientes" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-04 · Gestionar pacientes</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital ve la lista de pacientes registrados</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede buscar por nombre, DNI, diagnóstico, tipo de sangre</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Puede agregar un nuevo paciente: nombre, DNI, fecha de nacimiento, tipo de sangre, diagnóstico</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede ver el detalle de un paciente: datos personales, historial de campañas asociadas, médico tratante, fecha de internación</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Puede editar datos del paciente</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Puede asociar el paciente a una nueva campaña</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>DNI ya registrado en este hospital</div><div class="error-card-desc">mensaje "Este paciente ya está registrado"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Paciente sin campañas activas</div><div class="error-card-desc">badge informativo en el detalle</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Alta médica / desvinculación</div><div class="error-card-desc">el paciente se marca como inactivo pero sus datos se conservan por historial</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-profs" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-05 · Gestionar profesionales</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital ve la lista de profesionales vinculados</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede agregar un profesional: nombre, matrícula, especialidad, email institucional</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">El profesional recibe un email con sus credenciales de acceso</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede ver el detalle: datos profesionales, turnos atendidos, firma digital registrada (sí/no)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Puede desactivar un profesional (queda en historial, no puede tomar turnos nuevos)</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Matrícula ya registrada</div><div class="error-card-desc">mensaje de error</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Profesional sin firma digital registrada</div><div class="error-card-desc">advertencia en el detalle y en los turnos donde está asignado</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Email institucional inválido</div><div class="error-card-desc">validación de formato</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-docs" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-06 · Emitir documentación</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso — Resultado de análisis</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital recibe los resultados del laboratorio para una donación</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Ingresa los valores en el sistema: VIH, Hepatitis B y C, Chagas, Brucelosis, HTLV, Sífilis, hemoglobina, hematocrito, grupo sanguíneo</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Marca el resultado general (Apto / No apto para transfusión)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Guarda → el resultado queda visible para el donante en <code>donante/mis_documentos.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Si algún resultado es positivo → se genera una notificación de alerta para el donante y para el admin de HemoRed</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso — Certificado de donación</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital selecciona una donación completada</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Genera el certificado con datos: fecha, volumen, hospital, profesional, matrícula</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">El donante recibe notificación "Tu certificado de donación está disponible"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">El certificado queda disponible en <code>donante/mis_documentos.html</code></div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Donación sin número de bolsa</div><div class="error-card-desc">no puede cargar resultado (el número de bolsa es la FK)</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Resultado ya cargado</div><div class="error-card-desc">puede editarlo con marca de modificación y timestamp</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Resultado positivo en análisis</div><div class="error-card-desc">el sistema no descarta automáticamente; genera alerta y el personal autorizado actúa</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-metricas" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-07 · Consultar métricas</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital ve métricas filtradas por período (hoy / semana / mes / año)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Métricas disponibles: donaciones totales, turnos completados vs ausentes, tasa de no-aptos, unidades por campaña, completado de formularios pre-donación (% donante vs % profesional), tasa de completado de formulario post-donación</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Puede exportar en PDF o Excel (v2)</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Sin datos en el período seleccionado</div><div class="error-card-desc">estado vacío con mensaje</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Campaña sin donaciones</div><div class="error-card-desc">aparece con 0 en los contadores</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-perfil" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-08 · Gestionar perfil y plan del hospital</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El hospital ve sus datos institucionales (solo lectura — cargados por el admin)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede editar: teléfono, email de contacto, nombre del contacto</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Ve su plan actual con fecha de renovación y precio</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede solicitar cambio de plan (upgrade o downgrade)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">El cambio de plan queda registrado en <code>hospital_plan_historial</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Si el nuevo plan tiene precio diferente → se genera una nueva factura prorateada</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Downgrade con campañas activas superiores al nuevo límite</div><div class="error-card-desc">mensaje "Tenés [N] campañas activas. El plan [nombre] permite hasta [M]. Cerrá [N-M] campañas antes de hacer el cambio."</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>CUIT o razón social incorrectos</div><div class="error-card-desc">debe contactar al admin de HemoRed para corregir</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-hos-factura" style="display:none;">
+        <div class="flujo-detail-title">F-HOS-09 · Facturación</div>
+        <div class="db-table-card"><div class="db-table-header" style="padding:14px 18px;background:var(--borravino-dark);"><div><div class="db-table-name" style="font-size:13px;">F-HOS-09 · Facturación</div><div class="db-table-desc">Historial de facturas, estados, declaración de pago</div></div></div><div class="db-table-body"><div class="doc-panel" id="panel-f-pro">
+    <div class="panel-header">
+      <div class="panel-breadcrumb">Flujos del Profesional</div>
+      <div class="panel-title">Flujos del Profesional</div>
+      <div class="panel-desc">El flujo más crítico del sistema: atención del donante con los 4 formularios médicos oficiales.</div>
+      <div class="panel-badges"><span class="pbadge pbadge-orange"><i class="ti ti-stethoscope" style="font-size:10px;"></i> Rol: profesional</span><span class="pbadge pbadge-blue">2 flujos</span></div>
+    </div>
+
+    <!-- GRID DE CARDS -->
+    <div class="flujos-grid" id="grid-f-pro">
+      <div class="flujo-card" id="card-pro-firma" onclick="abrirFlujo('pro-firma', 'f-pro')">
+        <div class="flujo-card-code">F-PRO-01</div>
+        <div class="flujo-card-name">Firma digital</div>
+      </div>
+      <div class="flujo-card" id="card-pro-atencion" onclick="abrirFlujo('pro-atencion', 'f-pro')">
+        <div class="flujo-card-code">F-PRO-02</div>
+        <div class="flujo-card-name">Atender donante</div>
+      </div>
+    </div>
+
+    <!-- DETALLE DEL FLUJO -->
+    <div class="flujo-detail-wrap" id="detail-wrap-f-pro" style="display:none;">
+      <div class="flujo-detail-topbar">
+        <button class="flujo-back-btn" onclick="cerrarFlujo('f-pro')">
+          <i class="ti ti-arrow-left"></i>Volver a Flujos del Profesional
+        </button>
+      </div>
+      <div class="flujo-detail" id="detail-pro-firma" style="display:none;">
+        <div class="flujo-detail-title">F-PRO-01 · Registrar firma digital en perfil</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El profesional entra a "Mi perfil"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Ve sus datos profesionales (solo lectura — cargados por el hospital): nombre, matrícula, especialidad, hospital</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Ve la sección "Firma digital" con el estado actual (registrada / sin registrar)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Si no tiene firma → ve Signature Pad directamente</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Si ya tiene firma → ve la firma guardada con opción "Actualizar firma"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Dibuja su firma con el dedo o el mouse en el canvas táctil</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Hace click en "Guardar firma"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">8</div><div class="step-body"><div class="step-title">La firma queda guardada en el sistema con timestamp</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">9</div><div class="step-body"><div class="step-title">Toast de confirmación "Firma guardada correctamente"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">10</div><div class="step-body"><div class="step-title">El historial de firmas registra la firma anterior como "archivada"</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Canvas vacío al intentar guardar</div><div class="error-card-desc">toast de error "Firmá antes de guardar"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Firma muy simple (trazo único)</div><div class="error-card-desc">en v2 validación de complejidad mínima; en v1 se acepta cualquier trazo</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Firma actualizada con donaciones en curso</div><div class="error-card-desc">aviso "Tenés [N] donaciones en curso hoy. La firma anterior se usará para los formularios ya iniciados."</div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Importancia de seguridad</div><div class="flow-steps">
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-pro-atencion" style="display:none;">
+        <div class="flujo-detail-title">F-PRO-02 · Atender donante — Flujo completo de 4 formularios</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Pre-condición</div><div class="flow-steps">
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>F1 — Verificación del documento de autoexclusión</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso — donante completó previamente:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El profesional selecciona "El donante completó" como responsable</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Confirma que se le proporcionó el documento de autoexclusión → Sí</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Confirma que el donante leyó y comprende → Sí</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Confirma si el donante tiene dudas → No</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Confirma que ninguna situación le aplica y desea continuar → Sí</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Tilda "El profesional asistió en el llenado" si corresponde → la firma guardada del perfil se aplica automáticamente (borde verde, badge "✓ Guardada en perfil")</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Avanza al F2</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino alternativo — donante NO completó previamente:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El profesional selecciona "El profesional" como responsable → badge naranja "Se registrará como caso de seguimiento"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Facilita el documento al donante (tablet o papel)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Aguarda la lectura y completa las 4 preguntas de verificación</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">La atención queda marcada como "completado por el profesional" para métricas</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Avanza al F2</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino — donante tiene dudas:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">Confirma que el donante tiene dudas → Sí</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Aparece campo de texto para registrar la duda planteada y la respuesta brindada</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Queda en el registro del formulario</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino — profesional modifica formulario ya completado por el donante:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">Selecciona "El donante completó"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Aparece botón "Modificar" con fecha/hora de completado original</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Hace click en "Modificar" → banner rojo "Modificado por el profesional · Se registran fecha y hora"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede editar las respuestas</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Queda marcado con timestamp de modificación</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error en F1:</div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>F2 — Cuestionario médico completo</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">Mismo selector de responsable que F1</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">42 preguntas oficiales del Hemocentro Buenos Aires organizadas por sección temporal</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Sección de conductas sexuales con aviso de confidencialidad</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Campo de observaciones adicionales</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Declaración de consentimiento informado — el donante la lee</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Firma del donante en Signature Pad (canvas táctil)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Si el profesional asistió → la firma guardada del perfil se aplica automáticamente</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">8</div><div class="step-body"><div class="step-title">Avanza al F3</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error en F2:</div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>F3 — Evaluación clínica (solo el profesional)</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso — donante apto:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El profesional registra signos vitales: presión arterial, frecuencia cardíaca, temperatura, glucosa, peso, hemoglobina</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Cada campo muestra el rango apto de referencia</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Registra la última donación y si tuvo reacciones anteriores</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Selecciona "Apto para donar" (icono <code>ti-heart-check</code> verde)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Firma manualmente en el Signature Pad (verifica su presencia física)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Botón cambia a "Registrar extracción" → avanza al F4</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">La firma manual queda guardada junto a la firma del perfil (auditable)</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso — donante NO apto:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El profesional registra los signos vitales</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Selecciona "No apto" (icono <code>ti-heart-off</code> rojo)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Selecciona el motivo del rechazo (lista: presión fuera de rango, glucosa, temperatura, hemoglobina baja, peso insuficiente, medicación incompatible, período de espera no cumplido, declaración de exclusión positiva, otro)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Agrega observaciones</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Firma manualmente</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Botón cambia a "Finalizar sin extracción"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">El turno se cierra como "no apto"</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error en F3:</div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>F4 — Registro de extracción + QR post-donación</div><div class="flow-steps">
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Camino exitoso:</div>
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">Ve banner de la decisión (Apto / No apto)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Completa datos de la extracción: volumen donado, número de bolsa, hora inicio/fin, tipo de bolsa/marca, reacciones durante la extracción, observaciones</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">El sistema genera el QR post-donación con token único de un solo uso (expira en 24 horas)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">El token está vinculado al número de bolsa (no al nombre del donante — privacidad protegida)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">El profesional muestra el QR al donante en la tablet antes de que se retire</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Hace click en "Enviar link de respaldo a casilla interna" para enviar el link por si el donante no escanea en ese momento</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">Hace click en "Confirmar y finalizar"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">8</div><div class="step-body"><div class="step-title">Ve pantalla de éxito con resumen de la donación y estado del formulario post-donación ("⏳ QR entregado · Pendiente")</div></div></div>
+<div class="flow-section-title" style="font-size:11px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f4f6;">Caminos de error en F4:</div>
+</div></div>
+      </div><!-- end main -->
+
+<script>
+  // Navegación principal
+  function mostrar(id) {
+    document.querySelectorAll('.doc-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.doc-nav-item').forEach(n => n.classList.remove('active'));
+    const panel = document.getElementById('panel-' + id);
+    const nav = document.getElementById('nav-' + id);
+    if (panel) panel.classList.add('active');
+    if (nav) nav.classList.add('active');
+    scrollTop();
+  }
+
+  // Flujos públicos — lista/detalle
+  function mostrarFlujo(id) {
+    document.getElementById('flujos-pub-lista').style.display = 'none';
+    document.querySelectorAll('[id^="flujo-pub-"]').forEach(el => el.style.display = 'none');
+    const el = document.getElementById('flujo-pub-' + id);
+    if (el) el.style.display = 'block';
+    scrollTop();
+  }
+  function volverLista(rol) {
+    document.querySelectorAll('[id^="flujo-' + rol + '-"]').forEach(el => el.style.display = 'none');
+    const lista = document.getElementById('flujos-' + rol + '-lista');
+    if (lista) lista.style.display = '';
+    scrollTop();
+  }
+
+  // Flujos donante — lista/detalle
+  function mostrarFlujoDetalle(rol, id) {
+    document.querySelectorAll('#panel-f-' + rol + ' > .db-table-card').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('[id^="flujo-' + rol + '-"]').forEach(el => el.style.display = 'none');
+    const el = document.getElementById('flujo-' + rol + '-' + id);
+    if (el) el.style.display = 'block';
+    scrollTop();
+  }
+  function ocultarFlujoDetalle(rol) {
+    document.querySelectorAll('[id^="flujo-' + rol + '-"]').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('#panel-f-' + rol + ' > .db-table-card').forEach(el => el.style.display = '');
+    scrollTop();
+  }
+
+  // Búsqueda
+  function buscar(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('.doc-nav-item').forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = !q || text.includes(q) ? '' : 'none';
+    });
+  }
+
+
+
+
+  // ===== FLUJO NAVIGATION =====
+  const FLUJOS = [["pub-login", "f-pub", "F-PUB-04 \u00b7 Inicio de sesi\u00f3n"], ["pub-reg-don", "f-pub", "F-PUB-02 \u00b7 Registro de donante"], ["pub-reg-hos", "f-pub", "F-PUB-03 \u00b7 Registro de hospital"], ["pub-postdon", "f-pub", "F-PUB-06 \u00b7 Post-donaci\u00f3n an\u00f3nimo"], ["don-reserva", "f-don", "F-DON-01 \u00b7 Reservar turno"], ["don-formularios", "f-don", "F-DON-02 \u00b7 Formularios pre-donaci\u00f3n"], ["don-turnos", "f-don", "F-DON-03 \u00b7 Mis turnos"], ["don-documentos", "f-don", "F-DON-04 \u00b7 Mis documentos"], ["don-perfil", "f-don", "F-DON-05 \u00b7 Perfil"], ["don-notif", "f-don", "F-DON-06 \u00b7 Notificaciones"], ["hos-campana", "f-hos", "F-HOS-01 \u00b7 Nueva campa\u00f1a"], ["hos-turno", "f-hos", "F-HOS-02 \u00b7 Turnos del d\u00eda"], ["hos-donacion", "f-hos", "F-HOS-03 \u00b7 Registrar donaci\u00f3n"], ["hos-pacientes", "f-hos", "F-HOS-04 \u00b7 Gestionar pacientes"], ["hos-profs", "f-hos", "F-HOS-05 \u00b7 Gestionar profesionales"], ["hos-docs", "f-hos", "F-HOS-06 \u00b7 Emitir documentaci\u00f3n"], ["hos-metricas", "f-hos", "F-HOS-07 \u00b7 M\u00e9tricas"], ["hos-perfil", "f-hos", "F-HOS-08 \u00b7 Perfil y plan"], ["hos-factura", "f-hos", "F-HOS-09 \u00b7 Facturaci\u00f3n"], ["pro-firma", "f-pro", "F-PRO-01 \u00b7 Firma digital"], ["pro-atencion", "f-pro", "F-PRO-02 \u00b7 Atender donante"], ["adm-hospitales", "f-adm", "F-ADM-01 \u00b7 Gestionar hospitales"], ["adm-planes", "f-adm", "F-ADM-02 \u00b7 Gestionar planes"], ["adm-facturas", "f-adm", "F-ADM-03 \u00b7 Facturaci\u00f3n"], ["adm-donantes", "f-adm", "F-ADM-04 \u00b7 Gestionar donantes"], ["adm-metricas", "f-adm", "F-ADM-05 \u00b7 M\u00e9tricas globales"]];
+
+  function abrirFlujo(id, panelId) {
+    // 1. Activate correct section panel
+    document.querySelectorAll('.doc-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.doc-nav-item').forEach(n => n.classList.remove('active'));
+    const panel = document.getElementById('panel-' + panelId);
+    if (panel) panel.classList.add('active');
+    const nav = document.getElementById('nav-' + panelId);
+    if (nav) nav.classList.add('active');
+
+    // 2. Hide grid, show detail wrap
+    const grid = document.getElementById('grid-' + panelId);
+    const wrap = document.getElementById('detail-wrap-' + panelId);
+    if (grid) grid.style.display = 'none';
+    if (wrap) wrap.style.display = 'block';
+
+    // 3. Show correct flujo detail
+    if (wrap) wrap.querySelectorAll('.flujo-detail').forEach(d => d.style.display = 'none');
+    const target = document.getElementById('detail-' + id);
+    if (target) target.style.display = 'block';
+
+    // 4. Mark active card
+    document.querySelectorAll('.flujo-card').forEach(c => c.classList.remove('active'));
+    const card = document.getElementById('card-' + id);
+    if (card) card.classList.add('active');
+
+    // 5. Inject nav bar
+    injectNavBar(id, target);
+
+    // 6. Scroll to top — synchronous, no setTimeout needed
+    const dc = document.getElementById('doc-content-main');
+    if (dc) dc.scrollTop = 0;
+  }
+
+  function cerrarFlujo(panelId) {
+    const grid = document.getElementById('grid-' + panelId);
+    const wrap = document.getElementById('detail-wrap-' + panelId);
+    if (grid) grid.style.display = '';
+    if (wrap) wrap.style.display = 'none';
+    document.querySelectorAll('.flujo-card').forEach(c => c.classList.remove('active'));
+    const dc = document.getElementById('doc-content-main');
+    if (dc) dc.scrollTop = 0;
+  }
+
+  function navFlujo(id) {
+    const flujo = FLUJOS.find(f => f[0] === id);
+    if (!flujo) return;
+    abrirFlujo(id, flujo[1]);
+  }
+
+  function injectNavBar(id, container) {
+    if (!container) return;
+    const existing = container.querySelector('.flujo-nav');
+    if (existing) existing.remove();
+    const idx = FLUJOS.findIndex(f => f[0] === id);
+    const prev = idx > 0 ? FLUJOS[idx - 1] : null;
+    const next = idx < FLUJOS.length - 1 ? FLUJOS[idx + 1] : null;
+    const label = FLUJOS[idx] ? FLUJOS[idx][2] : id;
+    const prevBtn = prev
+      ? `<button class="flujo-nav-btn flujo-nav-prev" onclick="navFlujo('${prev[0]}')"><i class="ti ti-arrow-left"></i>${prev[2].split('·')[0].trim()}</button>`
+      : '<div></div>';
+    const nextBtn = next
+      ? `<button class="flujo-nav-btn flujo-nav-next" onclick="navFlujo('${next[0]}')"><i class="ti ti-arrow-right"></i>${next[2].split('·')[1]?.trim() || next[2]}</button>`
+      : '<div></div>';
+    const nav = document.createElement('div');
+    nav.className = 'flujo-nav';
+    nav.innerHTML = prevBtn + `<span class="flujo-nav-label">${label}</span>` + nextBtn;
+    container.appendChild(nav);
+  }
+
+  // Keep mostrar() for DB/tech/marcas sections
+  function mostrar(id) {
+    document.querySelectorAll('.doc-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.doc-nav-item').forEach(n => n.classList.remove('active'));
+    const panel = document.getElementById('panel-' + id);
+    const nav = document.getElementById('nav-' + id);
+    if (panel) panel.classList.add('active');
+    if (nav) nav.classList.add('active');
+    const dc = document.getElementById('doc-content-main');
+    if (dc) dc.scrollTop = 0;
+  }
+
+  // Mermaid init
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '13px',
+      primaryColor: '#dbeafe',
+      primaryTextColor: '#1e40af',
+      primaryBorderColor: '#93c5fd',
+      lineColor: '#94a3b8',
+      secondaryColor: '#f8fafc',
+      tertiaryColor: '#f1f5f9'
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 20,
+      nodeSpacing: 50,
+      rankSpacing: 55,
+      htmlLabels: false
+    }
+  });
+
+  const renderedDiags = new Set();
+
+  // Store raw diagram code before Mermaid touches them
+  const diagCode = {};
+  document.querySelectorAll('.mermaid[id^="mermaid-"]').forEach(el => {
+    const id = el.id.replace('mermaid-', '');
+    diagCode[id] = el.textContent.trim();
+    el.textContent = ''; // Clear so Mermaid doesn't auto-render
+  });
+
+  function toggleDiagrama(id) {
+    const wrap = document.getElementById('diag-' + id);
+    const btn = wrap.previousElementSibling;
+    const isOpen = wrap.classList.contains('open');
+
+    if (!isOpen) {
+      wrap.classList.add('open');
+      btn.classList.add('open');
+      if (!renderedDiags.has(id)) {
+        renderedDiags.add(id);
+        const el = document.getElementById('mermaid-' + id);
+        const code = diagCode[id] || '';
+        if (el && code) {
+          const uid = 'svg-diag-' + id + '-' + Date.now();
+          mermaid.render(uid, code).then(({svg}) => {
+            el.innerHTML = svg;
+            el.querySelector('svg').style.cursor = 'zoom-in';
+            el.querySelector('svg').onclick = () => abrirModalDiag(id);
+          }).catch(err => {
+            el.innerHTML = '<div style="color:#c0392b;font-size:12px;padding:10px;background:#fee2e2;border-radius:6px;">Error al renderizar. Verificá la sintaxis del diagrama.</div>';
+            console.warn('Mermaid error:', id, err);
+          });
+        }
+      }
+    } else {
+      wrap.classList.remove('open');
+      btn.classList.remove('open');
+    }
+  }
+
+  function abrirModalDiag(id) {
+    const el = document.getElementById('mermaid-' + id);
+    const svg = el ? el.innerHTML : '';
+    const title = diagCode[id] ? id.replace(/-/g,' ').toUpperCase() : id;
+    document.getElementById('diag-modal-title').textContent = 'Diagrama — ' + id.replace(/-/g,' ').replace(/\b\w/g, l => l.toUpperCase());
+    document.getElementById('diag-modal-svg').innerHTML = svg;
+    const modalSvg = document.querySelector('#diag-modal-svg svg');
+    if (modalSvg) {
+      modalSvg.style.maxWidth = '100%';
+      modalSvg.style.height = 'auto';
+      modalSvg.style.cursor = 'default';
+      modalSvg.removeAttribute('onclick');
+    }
+    document.getElementById('diag-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function cerrarModalDiag(e) {
+    if (e.target === document.getElementById('diag-modal')) {
+      cerrarModalDiagBtn();
+    }
+  }
+  function cerrarModalDiagBtn() {
+    document.getElementById('diag-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') cerrarModalDiagBtn(); });
+
+
+  function navFlujo(id) {
+    const secMap = {
+      'pub-login':'f-pub','pub-reg-don':'f-pub','pub-reg-hos':'f-pub','pub-postdon':'f-pub',
+      'don-reserva':'f-don','don-formularios':'f-don','don-turnos':'f-don',
+      'don-documentos':'f-don','don-perfil':'f-don','don-notif':'f-don',
+      'hos-campana':'f-hos','hos-turno':'f-hos','hos-donacion':'f-hos',
+      'pro-firma':'f-pro','pro-atencion':'f-pro',
+      'adm-hospitales':'f-adm','adm-facturas':'f-adm',
+    };
+    const sec = secMap[id];
+    if (!sec) return;
+
+    // Switch section panel if needed
+    mostrar(sec);
+
+    scrollTop();
+    setTimeout(() => {
+      // For flujo-detail panels (pub + don)
+      const detailEl = document.getElementById('flujo-' + id);
+      if (detailEl) {
+        if (sec === 'f-pub') {
+          mostrarFlujo(id);
+        } else {
+          document.querySelectorAll('[id^="flujo-' + sec.replace('f-','') + '"]').forEach(e => e.style.display = 'none');
+          document.querySelectorAll('#panel-' + sec + ' > .db-table-card').forEach(e => e.style.display = 'none');
+          detailEl.style.display = 'block';
+        }
+        scrollTop();
+        return;
+      }
+      scrollTop();
+    }, 30);
+  }
+
+  // Init — mostrar bienvenida
+  document.querySelector('.doc-nav-item').classList.add('active');
+</script>
+
+<!-- MODAL DIAGRAMA AMPLIADO -->
+<div class="diag-modal" id="diag-modal" onclick="cerrarModalDiag(event)">
+  <div class="diag-modal-inner" id="diag-modal-inner">
+    <button class="diag-modal-close" onclick="cerrarModalDiagBtn()"><i class="ti ti-x"></i></button>
+    <div class="diag-modal-title" id="diag-modal-title">Diagrama</div>
+        <div class="doc-panel" id="panel-f-adm">
+    <div class="panel-header">
+      <div class="panel-breadcrumb">Flujos del Administrador</div>
+      <div class="panel-title">Flujos del Administrador</div>
+      <div class="panel-desc">Gestión global del sistema: hospitales, planes, facturación, donantes y métricas.</div>
+      <div class="panel-badges"><span class="pbadge pbadge-blue"><i class="ti ti-shield" style="font-size:10px;"></i> Rol: superadmin</span><span class="pbadge pbadge-blue">5 flujos</span></div>
+    </div>
+    <div class="flujos-grid" id="grid-f-adm">
+      <div class="flujo-card" id="card-adm-hospitales" onclick="abrirFlujo('adm-hospitales', 'f-adm')">
+        <div class="flujo-card-code">F-ADM-01</div>
+        <div class="flujo-card-name">Gestionar hospitales</div>
+      </div>
+      <div class="flujo-card" id="card-adm-planes" onclick="abrirFlujo('adm-planes', 'f-adm')">
+        <div class="flujo-card-code">F-ADM-02</div>
+        <div class="flujo-card-name">Gestionar planes</div>
+      </div>
+      <div class="flujo-card" id="card-adm-facturas" onclick="abrirFlujo('adm-facturas', 'f-adm')">
+        <div class="flujo-card-code">F-ADM-03</div>
+        <div class="flujo-card-name">Facturación</div>
+      </div>
+      <div class="flujo-card" id="card-adm-donantes" onclick="abrirFlujo('adm-donantes', 'f-adm')">
+        <div class="flujo-card-code">F-ADM-04</div>
+        <div class="flujo-card-name">Gestionar donantes</div>
+      </div>
+      <div class="flujo-card" id="card-adm-metricas" onclick="abrirFlujo('adm-metricas', 'f-adm')">
+        <div class="flujo-card-code">F-ADM-05</div>
+        <div class="flujo-card-name">Métricas globales</div>
+      </div>
+    </div>
+    <div class="flujo-detail-wrap" id="detail-wrap-f-adm" style="display:none;">
+      <div class="flujo-detail-topbar">
+        <button class="flujo-back-btn" onclick="cerrarFlujo('f-adm')">
+          <i class="ti ti-arrow-left"></i>Volver a Flujos del Administrador
+        </button>
+      </div>
+      <div class="flujo-detail" id="detail-adm-hospitales" style="display:none;">
+        <div class="flujo-detail-title">F-ADM-01 · Gestionar hospitales</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso — aprobar hospital nuevo</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin ve el hospital con estado "Pendiente" en la lista</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Entra al detalle del hospital: <code>admin/hospital_detalle.html</code></div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Revisa los datos: razón social, CUIT, habilitación sanitaria, contacto</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Tab "Acciones" → hace click en "Aprobar y activar"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">El hospital recibe email de bienvenida con credenciales definitivas</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Estado cambia a "Activo"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">7</div><div class="step-body"><div class="step-title">El cambio queda registrado en el historial de actividad</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso — suspender hospital</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin entra al detalle del hospital</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Tab "Acciones" → "Suspender cuenta"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Ingresa el motivo (requerido)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">El hospital pierde acceso al sistema</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Sus campañas activas se pausan automáticamente</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">Los donantes con turnos activos reciben notificación de cancelación</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso — cambiar plan desde admin</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin entra al detalle del hospital</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Tab "Datos" → sección "Plan actual"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Selecciona el nuevo plan</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Confirma → se genera la diferencia de facturación y se registra en <code>hospital_plan_historial</code></div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Estados posibles del hospital</div><div class="flow-steps">
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Aprobar hospital con habilitación sanitaria vencida</div><div class="error-card-desc">aviso de alerta (no bloquea, pero queda registrado)</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Suspender hospital con donaciones en curso</div><div class="error-card-desc">mensaje de confirmación con detalle de impacto</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Cambio de plan con facturas pendientes</div><div class="error-card-desc">aviso de que hay facturas sin regularizar</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-adm-planes" style="display:none;">
+        <div class="flujo-detail-title">F-ADM-02 · Gestionar planes</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin ve los 3 planes (Local / Provincial / Nacional) con precios, límites y hospitales activos en cada uno</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede editar el precio base de un plan → afecta a la próxima facturación (no a las vigentes)</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Puede activar/desactivar una promoción con precio especial y fechas de vigencia</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede crear un nuevo plan (v2)</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Cambio de precio con hospitales activos</div><div class="error-card-desc">confirmación con cantidad de hospitales afectados en la próxima facturación</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Promoción con fecha de fin anterior a hoy</div><div class="error-card-desc">validación de fecha</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-adm-facturas" style="display:none;">
+        <div class="flujo-detail-title">F-ADM-03 · Facturación</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso — emitir factura</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin hace click en "Nueva factura"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Selecciona el hospital, el período (mes/año) y el plan aplicado</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">El monto se calcula automáticamente según el plan activo del hospital</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede agregar observaciones</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">5</div><div class="step-body"><div class="step-title">Confirma → la factura se genera con número correlativo</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">6</div><div class="step-body"><div class="step-title">El hospital recibe notificación con la factura</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso — registrar pago</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin entra a la factura</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Hace click en "Registrar pago"</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Selecciona medio de pago y fecha</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Estado cambia a "Pagada"</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Factura duplicada para el mismo período</div><div class="error-card-desc">validación con mensaje "Ya existe una factura para [hospital] del período [mes/año]"</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Hospital sin plan activo</div><div class="error-card-desc">no puede generar factura</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Monto en 0</div><div class="error-card-desc">validación que requiere monto mayor a 0</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-adm-donantes" style="display:none;">
+        <div class="flujo-detail-title">F-ADM-04 · Gestionar donantes</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin ve la lista de todos los donantes registrados</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede buscar por nombre, DNI, tipo de sangre, cantidad de donaciones</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Entra al detalle de un donante: datos personales, historial de donaciones, documentos, estado de cuenta</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">4</div><div class="step-body"><div class="step-title">Puede desactivar una cuenta (por solicitud del donante o por violación de términos)</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Desactivar donante con turnos futuros</div><div class="error-card-desc">confirmación con detalle; los turnos se cancelan automáticamente y los hospitales son notificados</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Ver datos sensibles</div><div class="error-card-desc">los formularios de conductas sexuales y post-donación no son visibles para el admin (privacidad protegida)</div></div>
+</div></div>
+      </div>
+      <div class="flujo-detail" id="detail-adm-metricas" style="display:none;">
+        <div class="flujo-detail-title">F-ADM-05 · Métricas globales</div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-check" style="color:#27ae60;"></i>Camino exitoso</div><div class="flow-steps">
+<div class="flow-step"><div class="step-dot step-dot-ok">1</div><div class="step-body"><div class="step-title">El admin ve métricas en 4 secciones:</div><div class="step-desc">**Donaciones:** total, por tipo de sangre, por hospital, evolución mensual · **Negocio:** hospitales activos por plan, tasa de conversión de registro a activación · **Facturación:** facturado vs cobrado, facturas vencidas, proyección del mes · **Operacional:** tasa de completado de formularios pre-donación (donante vs profesional), tasa de formularios post-donación completados, tasa de no-aptos por hospital</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">2</div><div class="step-body"><div class="step-title">Puede filtrar por período y por hospital</div></div></div>
+<div class="flow-step"><div class="step-dot step-dot-ok">3</div><div class="step-body"><div class="step-title">Los gráficos son interactivos (Chart.js)</div></div></div>
+</div></div>
+<div class="flow-section"><div class="flow-section-title"><i class="ti ti-alert-circle" style="color:#c0392b;"></i>Caminos de error</div><div class="error-cards">
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Sin datos en el período</div><div class="error-card-desc">estado vacío por sección</div></div>
+<div class="error-card"><div class="error-card-title"><i class="ti ti-x"></i>Exportar en período muy amplio</div><div class="error-card-desc">aviso de tiempo de procesamiento (v2)</div></div>
+</div></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="diag-modal-svg" id="diag-modal-svg"></div>
+  </div>
+</div>
+
+</body>
+</html>

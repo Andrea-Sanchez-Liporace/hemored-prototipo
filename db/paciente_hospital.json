@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "paciente_id": 1,
+    "hospital_id": 1,
+    "medico_tratante": "Dr. Jorge Méndez",
+    "internado_desde": "2026-03-01",
+    "activo": true
+  },
+  {
+    "id": 2,
+    "paciente_id": 2,
+    "hospital_id": 1,
+    "medico_tratante": "Dra. Laura Vidal",
+    "internado_desde": "2026-03-15",
+    "activo": true
+  },
+  {
+    "id": 3,
+    "paciente_id": 3,
+    "hospital_id": 2,
+    "medico_tratante": "Dr. Pablo Soria",
+    "internado_desde": "2026-04-01",
+    "activo": true
+  }
+]

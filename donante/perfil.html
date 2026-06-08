@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Mi perfil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+    .sidebar-footer { padding: 16px 12px; border-top: 0.5px solid rgba(255,255,255,0.1); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* TOPBAR */
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; max-width: 800px; }
+
+    /* PERFIL HEADER */
+    .perfil-header { background: white; border-radius: 16px; padding: 28px; border: 0.5px solid #e8d0d8; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+    .perfil-avatar { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 500; color: white; flex-shrink: 0; position: relative; cursor: pointer; }
+    .perfil-avatar-edit { position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; border-radius: 50%; background: #5a1e37; display: flex; align-items: center; justify-content: center; }
+    .perfil-info { flex: 1; }
+    .perfil-name { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .perfil-email { font-size: 13px; color: #5a3040; margin-bottom: 10px; }
+    .perfil-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .perfil-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .perfil-badge.donante { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .perfil-badge.sangre { background: #fde8e8; color: #c0392b; border: 0.5px solid #e74c3c; }
+    .perfil-badge.incompleto { background: #faeeda; color: #412402; border: 0.5px solid #e67e22; }
+    .perfil-completitud { margin-left: auto; text-align: right; }
+    .completitud-label { font-size: 11px; color: #a9435d; margin-bottom: 6px; }
+    .completitud-bar { width: 120px; height: 6px; background: #fdf0f3; border-radius: 3px; overflow: hidden; }
+    .completitud-fill { height: 100%; background: #ef647c; border-radius: 3px; width: 60%; }
+    .completitud-pct { font-size: 13px; font-weight: 500; color: #5a1e37; margin-top: 4px; }
+
+    /* SECCIONES COLAPSABLES */
+    .seccion { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; margin-bottom: 12px; overflow: hidden; }
+    .seccion-header { padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .seccion-header:hover { background: #fdf0f3; }
+    .seccion-title { display: flex; align-items: center; gap: 10px; }
+    .seccion-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .seccion-name { font-size: 15px; font-weight: 500; color: #5a1e37; }
+    .seccion-status { font-size: 11px; margin-left: 8px; padding: 2px 8px; border-radius: 20px; }
+    .seccion-status.completo { background: #e1f5ee; color: #04342c; }
+    .seccion-status.pendiente { background: #faeeda; color: #412402; }
+    .seccion-chevron { color: #a9435d; font-size: 18px; transition: transform 0.2s; }
+    .seccion.open .seccion-chevron { transform: rotate(180deg); }
+    .seccion-body { display: none; padding: 0 24px 24px; border-top: 0.5px solid #e8d0d8; }
+    .seccion.open .seccion-body { display: block; }
+    .seccion-body-inner { padding-top: 20px; }
+
+    /* FORM DENTRO DE SECCIONES */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; background: white; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-input::placeholder { color: #c994a4; }
+    .form-input:disabled { background: #f7f0f3; color: #a9435d; cursor: not-allowed; }
+    select.form-input { cursor: pointer; }
+    .form-hint { font-size: 11px; color: #a9435d; margin-top: 4px; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+    .btn-save { background: #ef647c; color: white; border: none; padding: 10px 24px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-save:hover { background: #d4537e; }
+    .btn-cancel { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 10px 24px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-cancel:hover { border-color: #a9435d; }
+
+    /* TIPO DE SANGRE */
+    .sangre-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .sangre-opt { border: 1.5px solid #e8d0d8; border-radius: 9px; padding: 12px 8px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 500; color: #5a3040; transition: all 0.15s; }
+    .sangre-opt:hover { border-color: #ef647c; color: #5a1e37; }
+    .sangre-opt.selected { border-color: #ef647c; background: #fdf0f3; color: #782b46; }
+
+    /* SEGURIDAD */
+    .security-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .security-item:last-child { border-bottom: none; }
+    .security-item-left { display: flex; align-items: center; gap: 12px; }
+    .security-item-icon { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; }
+    .security-item-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }
+    .security-item-sub { font-size: 12px; color: #5a3040; }
+    .btn-outline-sm { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-outline-sm:hover { border-color: #a9435d; }
+    .btn-danger-sm { background: white; color: #c0392b; border: 1.5px solid #e74c3c; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+    .empleador-item { display: flex; align-items: center; gap: 10px; background: white; border-radius: 10px; padding: 12px 14px; border: 0.5px solid #e8d0d8; }
+    .empleador-item:hover { border-color: #f28b98; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .sangre-grid { grid-template-columns: repeat(4, 1fr); }
+      .perfil-header { flex-wrap: wrap; }
+      .perfil-completitud { margin-left: 0; text-align: left; width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .sangre-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/donante.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SP</div>
+    <div>
+      <div class="sidebar-user-name">Sofía Páez</div>
+      <div class="sidebar-user-role">Donante</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../donante/dashboard.html">
+      <i class="ti ti-search" aria-hidden="true"></i>Buscar campañas
+    </a>
+    <a class="nav-item" href="../donante/mis_turnos.html">
+      <i class="ti ti-calendar" aria-hidden="true"></i>Mis turnos
+    </a>
+    <a class="nav-item" href="../donante/mis_turnos.html">
+      <i class="ti ti-heart" aria-hidden="true"></i>Mis donaciones
+    </a>
+    <a class="nav-item" href="../donante/mis_documentos.html">
+      <i class="ti ti-file-text" aria-hidden="true"></i>Mis documentos
+    </a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item active" href="../donante/perfil.html">
+      <i class="ti ti-user" aria-hidden="true"></i>Mi perfil
+    </a>
+    <a class="nav-item" href="../donante/notificaciones.html">
+      <i class="ti ti-bell" aria-hidden="true"></i>Notificaciones
+    </a>
+    <a class="nav-item" href="../publico/login.html">
+      <i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión
+    </a>
+  </nav>
+  <div class="sidebar-footer"></div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title">Mi perfil</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-btn">
+        <i class="ti ti-bell" style="font-size:18px;" aria-hidden="true"></i>
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HEADER PERFIL -->
+    <div class="perfil-header">
+      <div class="perfil-avatar">
+        SP
+        <div class="perfil-avatar-edit">
+          <i class="ti ti-camera" style="color:white;font-size:11px;" aria-hidden="true"></i>
+        </div>
+      </div>
+      <div class="perfil-info">
+        <div class="perfil-name">Sofía Páez</div>
+        <div class="perfil-email">sofia@email.com</div>
+        <div class="perfil-badges">
+          <span class="perfil-badge donante">
+            <i class="ti ti-heart" style="font-size:11px;" aria-hidden="true"></i>Donante
+          </span>
+          <span class="perfil-badge incompleto">
+            <i class="ti ti-alert-circle" style="font-size:11px;" aria-hidden="true"></i>Tipo de sangre pendiente
+          </span>
+        </div>
+      </div>
+      <div class="perfil-completitud">
+        <div class="completitud-label">Perfil completado</div>
+        <div class="completitud-bar">
+          <div class="completitud-fill"></div>
+        </div>
+        <div class="completitud-pct">60%</div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 1 — Datos personales -->
+    <div class="seccion open" id="sec-personal">
+      <div class="seccion-header" onclick="toggleSeccion('sec-personal')">
+        <div class="seccion-title">
+          <div class="seccion-icon" style="background:#fdf0f3;border:0.5px solid #f28b98;">
+            <i class="ti ti-user" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="seccion-name">Datos personales</div>
+          </div>
+          <span class="seccion-status completo">Completo</span>
+        </div>
+        <i class="ti ti-chevron-down seccion-chevron" aria-hidden="true"></i>
+      </div>
+      <div class="seccion-body">
+        <div class="seccion-body-inner">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input class="form-input" type="text" value="Sofía">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Apellido</label>
+              <input class="form-input" type="text" value="Páez">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" value="sofia@email.com" disabled>
+              <p class="form-hint">El email no se puede modificar.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input class="form-input" type="tel" value="+54 11 1234 5678">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Fecha de nacimiento</label>
+              <input class="form-input" type="date" value="1995-03-15">
+            </div>
+            <div class="form-group">
+              <label class="form-label">DNI</label>
+              <input class="form-input" type="text" placeholder="12.345.678">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Provincia</label>
+              <select class="form-input">
+                <option selected>Buenos Aires</option>
+                <option>CABA</option>
+                <option>Córdoba</option>
+                <option>Santa Fe</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ciudad</label>
+              <input class="form-input" type="text" value="La Plata">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-cancel">Cancelar</button>
+            <button class="btn-save">Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 2 — Datos médicos -->
+    <div class="seccion" id="sec-medicos">
+      <div class="seccion-header" onclick="toggleSeccion('sec-medicos')">
+        <div class="seccion-title">
+          <div class="seccion-icon" style="background:#fde8e8;border:0.5px solid #e74c3c;">
+            <i class="ti ti-droplet" style="color:#c0392b;font-size:18px;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="seccion-name">Datos médicos</div>
+          </div>
+          <span class="seccion-status pendiente">Pendiente</span>
+        </div>
+        <i class="ti ti-chevron-down seccion-chevron" aria-hidden="true"></i>
+      </div>
+      <div class="seccion-body">
+        <div class="seccion-body-inner">
+          <div class="form-group">
+            <label class="form-label">Tipo de sangre</label>
+            <div class="sangre-grid">
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">A+</div>
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">A-</div>
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">B+</div>
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">B-</div>
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">AB+</div>
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">AB-</div>
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">0+</div>
+              <div class="sangre-opt" onclick="seleccionarSangre(this)">0-</div>
+            </div>
+            <p class="form-hint">Seleccioná tu tipo de sangre para ver campañas compatibles.</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Peso (kg)</label>
+              <input class="form-input" type="number" placeholder="Ej: 70">
+              <p class="form-hint">Requerido mínimo 50kg para donar.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">¿Donaste antes?</label>
+              <select class="form-input">
+                <option value="" disabled selected>Seleccioná</option>
+                <option>Sí, soy donante habitual</option>
+                <option>Sí, alguna vez</option>
+                <option>No, es mi primera vez</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Condiciones médicas relevantes <span style="color:#a9435d;font-weight:400;">(opcional)</span></label>
+            <input class="form-input" type="text" placeholder="Ej: hipertensión controlada, diabetes tipo 2...">
+            <p class="form-hint">Esta información es confidencial y solo la ve el personal médico al momento de la donación.</p>
+          </div>
+          <div class="form-actions">
+            <button class="btn-cancel">Cancelar</button>
+            <button class="btn-save">Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 3 — Notificaciones -->
+    <div class="seccion" id="sec-notif">
+      <div class="seccion-header" onclick="toggleSeccion('sec-notif')">
+        <div class="seccion-title">
+          <div class="seccion-icon" style="background:#fdf0f3;border:0.5px solid #f28b98;">
+            <i class="ti ti-bell" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="seccion-name">Preferencias de notificaciones</div>
+          </div>
+          <span class="seccion-status completo">Completo</span>
+        </div>
+        <i class="ti ti-chevron-down seccion-chevron" aria-hidden="true"></i>
+      </div>
+      <div class="seccion-body">
+        <div class="seccion-body-inner">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+              <div>
+                <div style="font-size:14px;font-weight:500;color:#5a1e37;">Nuevas campañas compatibles</div>
+                <div style="font-size:12px;color:#5a3040;">Notificame cuando haya campañas con mi tipo de sangre</div>
+              </div>
+              <input type="checkbox" checked style="accent-color:#ef647c;width:16px;height:16px;">
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+              <div>
+                <div style="font-size:14px;font-weight:500;color:#5a1e37;">Recordatorio de turno</div>
+                <div style="font-size:12px;color:#5a3040;">Recordatorio 24hs antes de mi turno confirmado</div>
+              </div>
+              <input type="checkbox" checked style="accent-color:#ef647c;width:16px;height:16px;">
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+              <div>
+                <div style="font-size:14px;font-weight:500;color:#5a1e37;">Resultado de análisis disponible</div>
+                <div style="font-size:12px;color:#5a3040;">Notificame cuando el hospital suba el resultado de mi donación</div>
+              </div>
+              <input type="checkbox" checked style="accent-color:#ef647c;width:16px;height:16px;">
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+              <div>
+                <div style="font-size:14px;font-weight:500;color:#5a1e37;">Campañas urgentes</div>
+                <div style="font-size:12px;color:#5a3040;">Alertas de campañas marcadas como urgentes en mi zona</div>
+              </div>
+              <input type="checkbox" style="accent-color:#ef647c;width:16px;height:16px;">
+            </label>
+          </div>
+          <div class="form-actions" style="margin-top:20px;">
+            <button class="btn-save">Guardar preferencias</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 4 — Datos laborales -->
+    <div class="seccion" id="sec-laboral">
+      <div class="seccion-header" onclick="toggleSeccion('sec-laboral')">
+        <div class="seccion-title">
+          <div class="seccion-icon" style="background:#fdf0f3;border:0.5px solid #f28b98;">
+            <i class="ti ti-briefcase" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="seccion-name">Datos laborales</div>
+          </div>
+          <span class="seccion-status pendiente">Opcional</span>
+        </div>
+        <i class="ti ti-chevron-down seccion-chevron" aria-hidden="true"></i>
+      </div>
+      <div class="seccion-body">
+        <div class="seccion-body-inner">
+          <p style="font-size:13px;color:#5a3040;margin-bottom:20px;line-height:1.6;">
+            Guardá los nombres de tus empleadores para agilizar la emisión de certificados de donación. Podés agregar más de uno si trabajás en varios lugares.
+          </p>
+
+          <!-- Lista de empleadores guardados -->
+          <div id="empleadores-lista" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+            <div class="empleador-item" id="emp-0">
+              <div style="display:flex;align-items:center;gap:10px;flex:1;">
+                <div style="width:36px;height:36px;border-radius:9px;background:#fdf0f3;border:0.5px solid #f28b98;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="ti ti-building" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div style="font-size:14px;font-weight:500;color:#5a1e37;">Aysa SA</div>
+                  <div style="font-size:11px;color:#a9435d;">Empleador guardado</div>
+                </div>
+              </div>
+              <button onclick="eliminarEmpleador(0)" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;" title="Eliminar">
+                <i class="ti ti-trash" style="font-size:16px;" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="empleador-item" id="emp-1">
+              <div style="display:flex;align-items:center;gap:10px;flex:1;">
+                <div style="width:36px;height:36px;border-radius:9px;background:#fdf0f3;border:0.5px solid #f28b98;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="ti ti-building" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div style="font-size:14px;font-weight:500;color:#5a1e37;">Ministerio de Salud CABA</div>
+                  <div style="font-size:11px;color:#a9435d;">Empleador guardado</div>
+                </div>
+              </div>
+              <button onclick="eliminarEmpleador(1)" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;" title="Eliminar">
+                <i class="ti ti-trash" style="font-size:16px;" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Agregar nuevo empleador -->
+          <div id="form-nuevo-emp" style="display:none;background:#fdf0f3;border-radius:12px;border:1px solid #f28b98;padding:16px;margin-bottom:16px;">
+            <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:10px;">Agregar empleador</div>
+            <input id="input-nuevo-emp" class="form-input" type="text" placeholder="Nombre de la empresa u organismo" style="margin-bottom:10px;">
+            <div style="display:flex;gap:8px;">
+              <button onclick="confirmarNuevoEmp()" class="btn-save" style="flex:1;">Guardar</button>
+              <button onclick="cancelarNuevoEmp()" class="btn-cancel" style="flex:1;">Cancelar</button>
+            </div>
+          </div>
+
+          <button id="btn-agregar-emp" onclick="mostrarFormEmp()" style="display:flex;align-items:center;gap:8px;background:white;color:#5a1e37;border:1.5px dashed #a9435d;padding:11px 20px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;width:100%;justify-content:center;">
+            <i class="ti ti-plus" aria-hidden="true"></i>
+            Agregar empleador
+          </button>
+
+          <p style="font-size:11px;color:#a9435d;margin-top:12px;line-height:1.5;">
+            Esta información se usa para autocompletar el campo "emitido para" al solicitar un certificado de donación. No se comparte con terceros.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 5 — Seguridad -->
+    <div class="seccion" id="sec-seguridad">
+      <div class="seccion-header" onclick="toggleSeccion('sec-seguridad')">
+        <div class="seccion-title">
+          <div class="seccion-icon" style="background:#fdf0f3;border:0.5px solid #f28b98;">
+            <i class="ti ti-lock" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="seccion-name">Seguridad de la cuenta</div>
+          </div>
+          <span class="seccion-status completo">Completo</span>
+        </div>
+        <i class="ti ti-chevron-down seccion-chevron" aria-hidden="true"></i>
+      </div>
+      <div class="seccion-body">
+        <div class="seccion-body-inner">
+          <div class="security-item">
+            <div class="security-item-left">
+              <div class="security-item-icon">
+                <i class="ti ti-key" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+              </div>
+              <div>
+                <div class="security-item-title">Contraseña</div>
+                <div class="security-item-sub">Última modificación: hace 3 meses</div>
+              </div>
+            </div>
+            <button class="btn-outline-sm">Cambiar contraseña</button>
+          </div>
+          <div class="security-item">
+            <div class="security-item-left">
+              <div class="security-item-icon">
+                <i class="ti ti-mail" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+              </div>
+              <div>
+                <div class="security-item-title">Email</div>
+                <div class="security-item-sub">sofia@email.com · Verificado</div>
+              </div>
+            </div>
+            <button class="btn-outline-sm">Cambiar email</button>
+          </div>
+          <div class="security-item">
+            <div class="security-item-left">
+              <div class="security-item-icon">
+                <i class="ti ti-trash" style="color:#c0392b;font-size:18px;" aria-hidden="true"></i>
+              </div>
+              <div>
+                <div class="security-item-title" style="color:#c0392b;">Eliminar cuenta</div>
+                <div class="security-item-sub">Esta acción es irreversible</div>
+              </div>
+            </div>
+            <button class="btn-danger-sm">Eliminar cuenta</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function mostrarFormEmp() {
+    document.getElementById('form-nuevo-emp').style.display = 'block';
+    document.getElementById('btn-agregar-emp').style.display = 'none';
+    document.getElementById('input-nuevo-emp').focus();
+  }
+  function cancelarNuevoEmp() {
+    document.getElementById('form-nuevo-emp').style.display = 'none';
+    document.getElementById('btn-agregar-emp').style.display = 'flex';
+    document.getElementById('input-nuevo-emp').value = '';
+  }
+  function confirmarNuevoEmp() {
+    const val = document.getElementById('input-nuevo-emp').value.trim();
+    if (!val) return;
+    const lista = document.getElementById('empleadores-lista');
+    const id = Date.now();
+    const div = document.createElement('div');
+    div.className = 'empleador-item';
+    div.id = 'emp-' + id;
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex:1;">
+        <div style="width:36px;height:36px;border-radius:9px;background:#fdf0f3;border:0.5px solid #f28b98;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ti-building" style="color:#ef647c;font-size:16px;"></i>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">${val}</div>
+          <div style="font-size:11px;color:#a9435d;">Empleador guardado</div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('emp-${id}').remove()" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;">
+        <i class="ti ti-trash" style="font-size:16px;"></i>
+      </button>`;
+    lista.appendChild(div);
+    cancelarNuevoEmp();
+  }
+  function eliminarEmpleador(id) {
+    document.getElementById('emp-' + id).remove();
+  }
+
+  function toggleSeccion(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+  function seleccionarSangre(el) {
+    document.querySelectorAll('.sangre-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

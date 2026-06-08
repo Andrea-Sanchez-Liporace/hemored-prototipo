@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Perfil Profesional</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-prof { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-prof-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-prof-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; max-width: 760px; }
+
+    /* HEADER */
+    .prof-header { background: #3d0f20; border-radius: 16px; padding: 28px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+    .prof-avatar-lg { width: 64px; height: 64px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 500; color: white; flex-shrink: 0; }
+    .prof-name { font-size: 20px; font-weight: 500; color: white; margin-bottom: 4px; }
+    .prof-sub { font-size: 13px; color: #f28b98; margin-bottom: 10px; }
+    .prof-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .prof-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-mat { background: rgba(255,255,255,0.12); color: white; }
+    .badge-hosp { background: rgba(239,100,124,0.25); color: #f28b98; }
+
+    /* CARDS */
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .dato-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .dato-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .readonly-note { font-size: 11px; color: #a9435d; display: flex; align-items: center; gap: 4px; margin-top: 12px; }
+
+    /* FIRMA */
+    .firma-estado { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    .firma-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .fb-registrada { background: #e1f5ee; color: #04342c; }
+    .fb-sin-firma { background: #faeeda; color: #412402; }
+    .firma-meta { font-size: 11px; color: #a9435d; margin-top: 4px; }
+
+    /* FIRMA GUARDADA PREVIEW */
+    .firma-preview { border: 1.5px solid #e8d0d8; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+    .firma-preview-inner { min-height: 100px; display: flex; align-items: center; justify-content: center; background: white; padding: 16px; }
+    .firma-preview canvas { display: block; max-width: 100%; }
+    .firma-preview-toolbar { background: #fdf0f3; padding: 8px 14px; border-top: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; }
+    .firma-preview-label { font-size: 11px; color: #a9435d; }
+
+    /* NUEVO SIGNATURE PAD */
+    .sig-wrap { border: 1.5px solid #e8d0d8; border-radius: 10px; overflow: hidden; background: white; }
+    .sig-wrap canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
+    .sig-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #fdf0f3; border-top: 0.5px solid #e8d0d8; }
+    .sig-info { font-size: 11px; color: #a9435d; }
+    .btn-limpiar { background: none; border: none; font-size: 11px; color: #a9435d; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 4px; }
+    .sig-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+    .sig-badge.firmado { background: #e1f5ee; color: #04342c; }
+    .sig-badge.vacio { background: #fdf0f3; color: #a9435d; }
+
+    /* AVISO SEGURIDAD */
+    .aviso-seguridad { background: #fdf0f3; border: 1px solid #f28b98; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start; }
+    .aviso-text { font-size: 13px; color: #5a3040; line-height: 1.6; }
+    .aviso-text strong { color: #5a1e37; }
+
+    /* BOTONES */
+    .btn-save { background: #ef647c; color: white; border: none; padding: 11px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
+    .btn-save:hover { background: #d4537e; }
+    .btn-outline { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 10px 20px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .btn-danger { background: white; color: #c0392b; border: 1.5px solid #e74c3c; padding: 10px 20px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .form-actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+
+    /* HISTORIAL FIRMAS */
+    .hist-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .hist-row:last-child { border-bottom: none; }
+    .hist-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; flex-shrink: 0; }
+    .hist-info { flex: 1; }
+    .hist-title { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .hist-meta { font-size: 11px; color: #a9435d; margin-top: 2px; }
+
+    /* SUCCESS TOAST */
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #5a1e37; color: white; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .dato-grid { grid-template-columns: 1fr; }
+      .form-actions { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/profesional.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="sidebar-prof">
+    <div class="sidebar-avatar">CM</div>
+    <div>
+      <div class="sidebar-prof-name">Dr. Carlos Méndez</div>
+      <div class="sidebar-prof-role">Hematología · Ramos Mejía</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos del día</a>
+    <a class="nav-item active" href="../profesional/perfil.html"><i class="ti ti-user"></i>Mi perfil</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Mi perfil</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HEADER -->
+    <div class="prof-header">
+      <div class="prof-avatar-lg">CM</div>
+      <div>
+        <div class="prof-name">Dr. Carlos Méndez</div>
+        <div class="prof-sub">Hematología · Hospital Ramos Mejía</div>
+        <div class="prof-badges">
+          <span class="prof-badge badge-mat"><i class="ti ti-id-badge" style="font-size:10px;"></i>Mat. 45.231</span>
+          <span class="prof-badge badge-hosp"><i class="ti ti-building-hospital" style="font-size:10px;"></i>Hospital Ramos Mejía</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATOS PROFESIONALES -->
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-user" style="color:#ef647c;"></i>Datos profesionales
+      </div>
+      <div class="dato-grid">
+        <div><div class="dato-label">Nombre completo</div><div class="dato-value">Dr. Carlos Méndez</div></div>
+        <div><div class="dato-label">Matrícula</div><div class="dato-value">45.231</div></div>
+        <div><div class="dato-label">Especialidad</div><div class="dato-value">Hematología</div></div>
+        <div><div class="dato-label">Hospital</div><div class="dato-value">Hospital Ramos Mejía</div></div>
+        <div><div class="dato-label">Email institucional</div><div class="dato-value">c.mendez@ramosmejia.gob.ar</div></div>
+        <div><div class="dato-label">Teléfono / interno</div><div class="dato-value">011 4127-0200 int. 205</div></div>
+      </div>
+      <div class="readonly-note">
+        <i class="ti ti-lock" style="font-size:12px;"></i>
+        Estos datos fueron cargados por el hospital. Para modificarlos contactá al administrador del hospital.
+      </div>
+    </div>
+
+    <!-- FIRMA DIGITAL -->
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-signature" style="color:#ef647c;"></i>Firma digital
+      </div>
+
+      <div class="aviso-seguridad">
+        <i class="ti ti-shield-check" style="color:#ef647c;font-size:20px;flex-shrink:0;margin-top:2px;"></i>
+        <div class="aviso-text">
+          Tu firma registrada acá se aplicará automáticamente en los formularios F1 y F2 cuando tildes <strong>"asistí en el llenado"</strong>. En el formulario F3 (evaluación clínica) deberás firmar manualmente en cada atención como verificación de tu presencia física. Esto garantiza la seguridad e integridad de los registros médicos.
+        </div>
+      </div>
+
+      <!-- FIRMA GUARDADA -->
+      <div id="vista-firma-guardada">
+        <div class="firma-estado">
+          <div>
+            <span class="firma-badge fb-registrada"><i class="ti ti-check" style="font-size:11px;"></i>Firma registrada</span>
+            <div class="firma-meta">Última actualización: 15 de enero 2026 · 09:42hs</div>
+          </div>
+          <button class="btn-outline" onclick="mostrarActualizar()">
+            <i class="ti ti-refresh"></i>Actualizar firma
+          </button>
+        </div>
+
+        <div class="firma-preview">
+          <div class="firma-preview-inner" id="firma-preview-img">
+            <!-- Simulación de firma guardada -->
+            <svg width="280" height="80" viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20,55 C30,25 45,20 55,35 C65,50 70,30 85,28 C100,26 105,45 115,42 C125,39 130,25 145,30 C160,35 162,50 175,45 C188,40 192,28 205,32 C218,36 220,52 235,48 C248,44 255,35 265,38" stroke="#1a0a0f" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M25,60 C35,58 45,62 55,60 C65,58 75,62 85,60" stroke="#1a0a0f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="firma-preview-toolbar">
+            <span class="firma-preview-label">Dr. Carlos Méndez · Mat. 45.231 · Hematología</span>
+            <span class="sig-badge firmado">✓ Guardada</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMULARIO ACTUALIZAR -->
+      <div id="vista-actualizar" style="display:none;">
+        <div style="background:#faeeda;border:1px solid #e67e22;border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;">
+          <i class="ti ti-alert-circle" style="color:#e67e22;font-size:14px;flex-shrink:0;margin-top:1px;"></i>
+          <p style="font-size:12px;color:#633806;line-height:1.5;">Estás actualizando tu firma registrada. La firma anterior quedará en el historial por razones de auditoría médica.</p>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:13px;font-weight:500;color:#5a1e37;">Nueva firma</div>
+          <div class="sig-badge vacio" id="new-sig-st">Sin firmar</div>
+        </div>
+        <div class="sig-wrap">
+          <canvas id="sig-perfil" height="140"></canvas>
+          <div class="sig-toolbar">
+            <span class="sig-info">Firmá con el dedo o el mouse · Usá tu firma habitual</span>
+            <button class="btn-limpiar" onclick="clearSig()"><i class="ti ti-eraser" style="font-size:11px;"></i>Limpiar</button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-outline" onclick="cancelarActualizar()">Cancelar</button>
+          <button class="btn-save" onclick="guardarFirma()">
+            <i class="ti ti-check"></i>Guardar firma
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- HISTORIAL DE FIRMAS -->
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-history" style="color:#ef647c;"></i>Historial de firmas registradas
+      </div>
+      <div class="hist-row">
+        <div class="hist-dot" style="background:#27ae60;"></div>
+        <div class="hist-info">
+          <div class="hist-title">Firma vigente</div>
+          <div class="hist-meta">Registrada el 15 ene 2026 · 09:42hs · Aplicada en 47 formularios</div>
+        </div>
+        <span style="font-size:11px;background:#e1f5ee;color:#04342c;padding:3px 8px;border-radius:20px;">Activa</span>
+      </div>
+      <div class="hist-row">
+        <div class="hist-dot" style="background:#ccc;"></div>
+        <div class="hist-info">
+          <div class="hist-title" style="color:#999;">Firma anterior</div>
+          <div class="hist-meta">Registrada el 10 ene 2026 · 14:20hs · Aplicada en 3 formularios</div>
+        </div>
+        <span style="font-size:11px;background:#f5f5f5;color:#888;padding:3px 8px;border-radius:20px;">Archivada</span>
+      </div>
+    </div>
+
+    <!-- SEGURIDAD -->
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-lock" style="color:#ef647c;"></i>Seguridad de la cuenta
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:0.5px solid #f0e0e6;">
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#5a1e37;">Contraseña</div>
+            <div style="font-size:12px;color:#a9435d;margin-top:2px;">Última modificación: hace 3 meses</div>
+          </div>
+          <button class="btn-outline">Cambiar contraseña</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;">
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#5a1e37;">Email de acceso</div>
+            <div style="font-size:12px;color:#a9435d;margin-top:2px;">c.mendez@ramosmejia.gob.ar · Verificado</div>
+          </div>
+          <button class="btn-outline">Cambiar email</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <i class="ti ti-check" style="font-size:16px;"></i>
+  <span id="toast-msg">Firma guardada correctamente</span>
+</div>
+
+<script>
+  let sigPad = null;
+
+  function initSigPad() {
+    const cv = document.getElementById('sig-perfil');
+    if (!cv || sigPad) return;
+    const r = Math.max(window.devicePixelRatio || 1, 1);
+    cv.width = cv.offsetWidth * r;
+    cv.getContext('2d').scale(r, r);
+    sigPad = new SignaturePad(cv, { penColor: '#1a0a0f', minWidth: 1.2, maxWidth: 3 });
+    sigPad.addEventListener('endStroke', () => {
+      const el = document.getElementById('new-sig-st');
+      el.textContent = sigPad.isEmpty() ? 'Sin firmar' : '✓ Firmado';
+      el.className = 'sig-badge ' + (sigPad.isEmpty() ? 'vacio' : 'firmado');
+    });
+  }
+
+  function clearSig() {
+    if (sigPad) {
+      sigPad.clear();
+      const el = document.getElementById('new-sig-st');
+      el.textContent = 'Sin firmar';
+      el.className = 'sig-badge vacio';
+    }
+  }
+
+  function mostrarActualizar() {
+    document.getElementById('vista-actualizar').style.display = 'block';
+    document.getElementById('vista-firma-guardada').style.display = 'none';
+    setTimeout(initSigPad, 150);
+  }
+
+  function cancelarActualizar() {
+    document.getElementById('vista-actualizar').style.display = 'none';
+    document.getElementById('vista-firma-guardada').style.display = 'block';
+    sigPad = null;
+  }
+
+  function guardarFirma() {
+    if (!sigPad || sigPad.isEmpty()) {
+      mostrarToast('Firmá antes de guardar', false);
+      return;
+    }
+    // Aquí se enviaría sigPad.toDataURL() al servidor
+    document.getElementById('vista-actualizar').style.display = 'none';
+    document.getElementById('vista-firma-guardada').style.display = 'block';
+    sigPad = null;
+    mostrarToast('Firma guardada correctamente');
+  }
+
+  function mostrarToast(msg, ok = true) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.style.background = ok ? '#5a1e37' : '#c0392b';
+    t.classList.add('visible');
+    setTimeout(() => t.classList.remove('visible'), 3000);
+  }
+
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

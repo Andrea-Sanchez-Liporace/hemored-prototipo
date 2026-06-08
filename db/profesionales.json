@@ -1,0 +1,28 @@
+[
+  {
+    "id": 1,
+    "usuario_id": 4,
+    "matricula": "45231",
+    "especialidad": "Hematología",
+    "titulo": "Dr.",
+    "nombre_completo": "Dr. Carlos Méndez",
+    "universidad": "UBA",
+    "anio_graduacion": 2004,
+    "firma_digital_url": "assets/firmas/firma_cm.png",
+    "firma_registrada_en": "2026-01-15T09:42:00",
+    "activo": true
+  },
+  {
+    "id": 2,
+    "usuario_id": null,
+    "matricula": "38901",
+    "especialidad": "Hemoterapia",
+    "titulo": "Dra.",
+    "nombre_completo": "Dra. Laura Vidal",
+    "universidad": "UBA",
+    "anio_graduacion": 2008,
+    "firma_digital_url": null,
+    "firma_registrada_en": null,
+    "activo": true
+  }
+]

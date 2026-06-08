@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "nombre": "Local",
+    "descripcion": "Para hospitales y clínicas de alcance local",
+    "precio_base": 15000,
+    "max_campanas_simultaneas": 3,
+    "alcance": "local",
+    "es_promo": false,
+    "precio_promo": null,
+    "fecha_inicio_promo": null,
+    "fecha_fin_promo": null,
+    "activo": true
+  },
+  {
+    "id": 2,
+    "nombre": "Provincial",
+    "descripcion": "Para redes hospitalarias provinciales",
+    "precio_base": 35000,
+    "max_campanas_simultaneas": 10,
+    "alcance": "provincial",
+    "es_promo": true,
+    "precio_promo": 28000,
+    "fecha_inicio_promo": "2026-05-01",
+    "fecha_fin_promo": "2026-06-30",
+    "activo": true
+  },
+  {
+    "id": 3,
+    "nombre": "Nacional",
+    "descripcion": "Para grandes redes y organismos nacionales",
+    "precio_base": 75000,
+    "max_campanas_simultaneas": 999,
+    "alcance": "nacional",
+    "es_promo": false,
+    "precio_promo": null,
+    "fecha_inicio_promo": null,
+    "fecha_fin_promo": null,
+    "activo": true
+  }
+]

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Nueva campaña · Paso 3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-sep { color: #e8d0d8; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+    .page-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* STEPS */
+    .steps-bar { display: flex; gap: 0; margin-bottom: 28px; }
+    .step-b { display: flex; align-items: center; gap: 8px; }
+    .step-b-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; border: 1.5px solid #e8d0d8; color: #a9435d; background: white; flex-shrink: 0; }
+    .step-b-num.active { background: #5a1e37; border-color: #5a1e37; color: white; }
+    .step-b-num.done { background: #ef647c; border-color: #ef647c; color: white; }
+    .step-b-label { font-size: 12px; color: #a9435d; white-space: nowrap; }
+    .step-b-label.active { color: #5a1e37; font-weight: 500; }
+    .step-b-label.done { color: #5a1e37; }
+    .step-b-line { flex: 1; height: 1px; background: #e8d0d8; margin: 0 10px; min-width: 20px; }
+    .step-b-line.done { background: #ef647c; }
+
+    /* VISTA PREVIA CAMPAÑA */
+    .preview-campana { background: white; border-radius: 16px; border: 0.5px solid #e8d0d8; overflow: hidden; margin-bottom: 16px; }
+    .preview-campana-header { background: #5a1e37; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; }
+    .preview-campana-title { font-size: 18px; font-weight: 500; color: white; }
+    .preview-campana-hospital { font-size: 13px; color: #f28b98; margin-top: 3px; }
+    .badge-urgente { background: #fde8e8; color: #c0392b; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .preview-campana-body { padding: 24px 28px; }
+    .preview-meta { display: flex; gap: 24px; flex-wrap: wrap; padding: 14px 16px; background: #fdf0f3; border-radius: 10px; margin-bottom: 20px; }
+    .meta-item { }
+    .meta-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .meta-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .preview-desc-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+    .preview-desc-text { font-size: 14px; color: #5a3040; line-height: 1.7; margin-bottom: 20px; }
+    .preview-turnos-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
+    .preview-dias { display: flex; gap: 8px; flex-wrap: wrap; }
+    .preview-dia-chip { background: #fdf0f3; border: 0.5px solid #f28b98; border-radius: 8px; padding: 6px 12px; font-size: 12px; color: #782b46; }
+    .progress-bar { height: 6px; background: #fdf0f3; border-radius: 3px; margin-top: 16px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #ef647c; border-radius: 3px; width: 0%; }
+
+    /* CHECKLIST */
+    .checklist-card { background: white; border-radius: 16px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
+    .checklist-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .check-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .check-row:last-child { border-bottom: none; }
+    .check-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .check-icon.ok { background: #e1f5ee; }
+    .check-icon.warn { background: #faeeda; }
+    .check-text { flex: 1; font-size: 13px; color: #5a3040; }
+    .check-text strong { color: #5a1e37; }
+    .check-edit { font-size: 12px; color: #ef647c; cursor: pointer; text-decoration: none; white-space: nowrap; }
+
+    /* OPCIÓN PUBLICACIÓN */
+    .pub-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .pub-opt { border: 1.5px solid #e8d0d8; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; }
+    .pub-opt:hover { border-color: #ef647c; }
+    .pub-opt.selected { border-color: #5a1e37; background: #fdf0f3; }
+    .pub-opt-icon { font-size: 22px; margin-bottom: 8px; }
+    .pub-opt-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .pub-opt-desc { font-size: 12px; color: #5a3040; line-height: 1.4; }
+    .fecha-prog { display: none; margin-top: 12px; }
+    .fecha-prog.visible { display: block; }
+
+    /* ÉXITO */
+    .exito-view { display: none; text-align: center; padding: 48px 32px; }
+    .exito-view.active { display: block; }
+    .exito-icon { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .exito-title { font-size: 26px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
+    .exito-text { font-size: 15px; color: #5a3040; line-height: 1.7; margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .exito-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* SIDEBAR */
+    .sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .side-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .side-stat { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .side-stat:last-child { border-bottom: none; }
+    .side-stat-label { font-size: 12px; color: #5a3040; }
+    .side-stat-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
+
+    /* BOTONES */
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 8px; }
+    .btn-primary { background: #ef647c; color: white; border: none; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: #d4537e; }
+    .btn-secondary { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-draft { background: white; color: #a9435d; border: 1.5px dashed #a9435d; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
+    .btn-outline-dark { background: white; color: #5a1e37; border: 1.5px solid #5a1e37; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
+    .form-input { width: 100%; padding: 11px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; }
+    .form-input:focus { border-color: #ef647c; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) { .page-layout { grid-template-columns: 1fr; } .pub-options { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .pub-options { grid-template-columns: 1fr; }
+      .steps-bar { flex-wrap: wrap; gap: 8px; }
+      .step-b-line { display: none; }
+      .form-actions { flex-direction: column; }
+      .btn-primary, .btn-secondary, .btn-draft, .btn-outline-dark { width: 100%; justify-content: center; }
+      .exito-actions { flex-direction: column; align-items: center; }
+      .preview-meta { gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item active" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <a class="topbar-back" href="../hospital/nueva_campana_paso2.html">
+        <i class="ti ti-arrow-left"></i>Paso anterior
+      </a>
+      <span class="topbar-sep">/</span>
+      <span class="topbar-title" id="topbar-title">Revisión y publicación</span>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div class="topbar-btn"><i class="ti ti-bell" style="font-size:18px;"></i></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STEPS -->
+    <div class="steps-bar" id="steps-bar">
+      <div class="step-b">
+        <div class="step-b-num done"><i class="ti ti-check" style="font-size:12px;"></i></div>
+        <span class="step-b-label done">Información básica</span>
+      </div>
+      <div class="step-b-line done"></div>
+      <div class="step-b">
+        <div class="step-b-num done"><i class="ti ti-check" style="font-size:12px;"></i></div>
+        <span class="step-b-label done">Turnos y disponibilidad</span>
+      </div>
+      <div class="step-b-line done"></div>
+      <div class="step-b">
+        <div class="step-b-num active">3</div>
+        <span class="step-b-label active">Revisión y publicación</span>
+      </div>
+    </div>
+
+    <!-- FORMULARIO VIEW -->
+    <div id="form-view">
+      <div class="page-layout">
+        <div>
+
+          <!-- PREVIEW CAMPAÑA -->
+          <div class="preview-campana">
+            <div class="preview-campana-header">
+              <div>
+                <div class="preview-campana-title">Campaña paciente pediátrico</div>
+                <div class="preview-campana-hospital">Hospital Ramos Mejía · CABA</div>
+              </div>
+              <span class="badge-urgente">Urgente</span>
+            </div>
+            <div class="preview-campana-body">
+              <div class="preview-meta">
+                <div class="meta-item">
+                  <div class="meta-label">Tipo de sangre</div>
+                  <div class="meta-value">0- / 0+</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Fecha límite</div>
+                  <div class="meta-value">20 de mayo 2026</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Donantes necesarios</div>
+                  <div class="meta-value">10 donantes</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Turnos disponibles</div>
+                  <div class="meta-value">68 turnos · 136 cupos</div>
+                </div>
+              </div>
+              <div class="preview-desc-title">Descripción</div>
+              <div class="preview-desc-text">Paciente pediátrico de 8 años requiere transfusiones de sangre para cirugía cardíaca programada para el 22 de mayo. Cualquier persona en buenas condiciones de salud puede presentarse a donar.</div>
+              <div class="preview-turnos-title">Días disponibles</div>
+              <div class="preview-dias">
+                <span class="preview-dia-chip">Mar — 08:00 a 12:00 / 14:00 a 17:00</span>
+                <span class="preview-dia-chip">Mié — 08:00 a 12:00 / 14:00 a 17:00</span>
+                <span class="preview-dia-chip">Jue — 08:00 a 12:00 / 14:00 a 17:00</span>
+                <span class="preview-dia-chip">Vie — 08:00 a 12:00 / 14:00 a 17:00</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill"></div></div>
+            </div>
+          </div>
+
+          <!-- CHECKLIST -->
+          <div class="checklist-card">
+            <div class="checklist-title">
+              <i class="ti ti-checklist" style="color:#ef647c;"></i>
+              Verificación antes de publicar
+            </div>
+            <div class="check-row">
+              <div class="check-icon ok"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i></div>
+              <div class="check-text"><strong>Título y descripción</strong> completados correctamente</div>
+              <a class="check-edit" href="../hospital/nueva_campana.html">Editar</a>
+            </div>
+            <div class="check-row">
+              <div class="check-icon ok"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i></div>
+              <div class="check-text"><strong>Tipo de sangre y urgencia</strong> definidos</div>
+              <a class="check-edit" href="../hospital/nueva_campana.html">Editar</a>
+            </div>
+            <div class="check-row">
+              <div class="check-icon ok"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i></div>
+              <div class="check-text"><strong>Fecha límite</strong> establecida: 20 de mayo 2026</div>
+              <a class="check-edit" href="../hospital/nueva_campana.html">Editar</a>
+            </div>
+            <div class="check-row">
+              <div class="check-icon ok"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i></div>
+              <div class="check-text"><strong>68 turnos</strong> generados en 4 días de atención</div>
+              <a class="check-edit" href="../hospital/nueva_campana_paso2.html">Editar</a>
+            </div>
+            <div class="check-row">
+              <div class="check-icon warn"><i class="ti ti-alert" style="color:#e67e22;font-size:14px;"></i></div>
+              <div class="check-text"><strong>Atención:</strong> Tenés 3/3 campañas activas en tu plan. Al publicar esta campaña deberás pausar o cerrar una existente.</div>
+              <a class="check-edit" href="../hospital/campanas.html">Ver campañas</a>
+            </div>
+          </div>
+
+          <!-- OPCIONES DE PUBLICACIÓN -->
+          <div class="checklist-card">
+            <div class="checklist-title">
+              <i class="ti ti-send" style="color:#ef647c;"></i>
+              ¿Cuándo querés publicar?
+            </div>
+            <div class="pub-options">
+              <div class="pub-opt selected" onclick="selPub('ahora', this)">
+                <div class="pub-opt-icon">🚀</div>
+                <div class="pub-opt-title">Publicar ahora</div>
+                <div class="pub-opt-desc">La campaña queda visible para los donantes de inmediato</div>
+              </div>
+              <div class="pub-opt" onclick="selPub('programar', this)">
+                <div class="pub-opt-icon">📅</div>
+                <div class="pub-opt-title">Programar publicación</div>
+                <div class="pub-opt-desc">Elegís la fecha y hora en que se publica automáticamente</div>
+              </div>
+            </div>
+            <div class="fecha-prog" id="fecha-prog">
+              <label class="form-label">Fecha y hora de publicación</label>
+              <input class="form-input" type="datetime-local">
+            </div>
+          </div>
+
+          <!-- ACCIONES -->
+          <div class="form-actions">
+            <button class="btn-draft">
+              <i class="ti ti-file"></i>
+              Guardar borrador
+            </button>
+            <button class="btn-secondary" onclick="window.location='../hospital/nueva_campana_paso2.html'">Volver</button>
+            <button class="btn-primary" onclick="publicar()">
+              <i class="ti ti-send"></i>
+              Publicar campaña
+            </button>
+          </div>
+
+        </div>
+
+        <!-- SIDEBAR DERECHO -->
+        <div class="sidebar-right">
+          <div class="side-card">
+            <div class="side-title">
+              <i class="ti ti-chart-bar" style="color:#ef647c;font-size:16px;"></i>
+              Resumen de la campaña
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Campaña</span>
+              <span class="side-stat-value">Paciente pediátrico</span>
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Urgencia</span>
+              <span class="side-stat-value" style="color:#c0392b;">Urgente</span>
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Tipo de sangre</span>
+              <span class="side-stat-value">0- / 0+</span>
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Fecha límite</span>
+              <span class="side-stat-value">20 may 2026</span>
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Turnos generados</span>
+              <span class="side-stat-value">68 turnos</span>
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Cupos totales</span>
+              <span class="side-stat-value">136 cupos</span>
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Días activos</span>
+              <span class="side-stat-value">Mar / Mié / Jue / Vie</span>
+            </div>
+            <div class="side-stat">
+              <span class="side-stat-label">Confirmación</span>
+              <span class="side-stat-value">Manual</span>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <div class="side-title">
+              <i class="ti ti-checklist" style="color:#ef647c;font-size:16px;"></i>
+              Pasos completados
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:#ef647c;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="ti ti-check" style="color:white;font-size:11px;"></i>
+                </div>
+                <span style="font-size:12px;color:#5a1e37;font-weight:500;">Información básica</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:#ef647c;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="ti ti-check" style="color:white;font-size:11px;"></i>
+                </div>
+                <span style="font-size:12px;color:#5a1e37;font-weight:500;">Turnos y disponibilidad</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:#5a1e37;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="font-size:11px;color:white;font-weight:500;">3</span>
+                </div>
+                <span style="font-size:12px;color:#5a1e37;font-weight:500;">Revisión y publicación</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉXITO -->
+    <div class="exito-view" id="exito-view">
+      <div class="exito-icon">
+        <i class="ti ti-speakerphone" style="color:white;font-size:32px;"></i>
+      </div>
+      <div class="exito-title">¡Campaña publicada!</div>
+      <div class="exito-text">Tu campaña ya está visible para los donantes en HemoRed. Te notificaremos cuando los primeros turnos sean solicitados.</div>
+
+      <div style="background:white;border-radius:14px;padding:20px 28px;border:0.5px solid #e8d0d8;max-width:480px;margin:0 auto 28px;text-align:left;">
+        <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:12px;">Datos de la campaña publicada</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:8px;border-bottom:0.5px solid #f0e0e6;">
+            <span style="color:#5a3040;">Campaña</span>
+            <span style="font-weight:500;color:#5a1e37;">Paciente pediátrico</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:8px;border-bottom:0.5px solid #f0e0e6;">
+            <span style="color:#5a3040;">Turnos disponibles</span>
+            <span style="font-weight:500;color:#5a1e37;">68 turnos · 136 cupos</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:8px;border-bottom:0.5px solid #f0e0e6;">
+            <span style="color:#5a3040;">Fecha límite</span>
+            <span style="font-weight:500;color:#5a1e37;">20 de mayo 2026</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:#5a3040;">ID de campaña</span>
+            <span style="font-weight:500;color:#5a1e37;">#CMP-20260515-0089</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exito-actions">
+        <button class="btn-primary" onclick="window.location='../hospital/campanas.html'">
+          <i class="ti ti-list"></i>
+          Ver mis campañas
+        </button>
+        <button class="btn-outline-dark" onclick="window.location='../hospital/nueva_campana.html'">
+          <i class="ti ti-plus"></i>
+          Crear otra campaña
+        </button>
+        <button class="btn-secondary" onclick="window.location='../hospital/dashboard.html'">
+          Volver al inicio
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function selPub(tipo, el) {
+    document.querySelectorAll('.pub-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    const fechaProg = document.getElementById('fecha-prog');
+    fechaProg.classList.toggle('visible', tipo === 'programar');
+  }
+
+  function publicar() {
+    document.getElementById('form-view').style.display = 'none';
+    document.getElementById('steps-bar').style.display = 'none';
+    document.getElementById('exito-view').classList.add('active');
+    document.getElementById('topbar-title').textContent = '¡Campaña publicada!';
+    window.scrollTo(0, 0);
+  }
+
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+</body>
+</html>

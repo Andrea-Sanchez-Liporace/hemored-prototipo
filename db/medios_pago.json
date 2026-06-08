@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "nombre": "Transferencia bancaria",
+    "activo": true
+  },
+  {
+    "id": 2,
+    "nombre": "Tarjeta de crédito",
+    "activo": true
+  },
+  {
+    "id": 3,
+    "nombre": "Cheque",
+    "activo": true
+  },
+  {
+    "id": 4,
+    "nombre": "Efectivo",
+    "activo": false
+  }
+]

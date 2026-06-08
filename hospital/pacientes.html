@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Pacientes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .btn-nueva { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+
+    /* VISTA LISTA / DETALLE */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* FILTROS */
+    .filtros { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a9435d; font-size: 15px; }
+    .search-input { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; background: white; }
+    .search-input:focus { border-color: #ef647c; }
+    .filter-select { padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+
+    /* TABLA */
+    .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 80px; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
+    .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
+    .pac-row { display: grid; grid-template-columns: 2fr 1fr 1fr 80px; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; cursor: pointer; transition: background 0.1s; }
+    .pac-row:last-child { border-bottom: none; }
+    .pac-row:hover { background: #fdf0f3; }
+    .pac-donante { display: flex; align-items: center; gap: 10px; }
+    .pac-avatar { width: 36px; height: 36px; border-radius: 50%; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
+    .pac-nombre { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .pac-id { font-size: 11px; color: #a9435d; }
+    .td { font-size: 13px; color: #5a3040; }
+    .pac-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-activo { background: #e1f5ee; color: #04342c; }
+    .badge-alta { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .badge-urgente { background: #fde8e8; color: #c0392b; }
+    .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-xs { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+    .btn-xs-danger { background: white; color: #c0392b; border: 1px solid #e74c3c !important; }
+
+    /* DETALLE PACIENTE */
+    .detalle-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
+    .back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; background: none; border: none; font-family: 'Inter', sans-serif; margin-bottom: 20px; }
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .pac-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .pac-avatar-lg { width: 60px; height: 60px; border-radius: 50%; background: #fdf0f3; border: 2px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
+    .pac-header-name { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .pac-header-sub { font-size: 13px; color: #5a3040; }
+    .dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .dato { }
+    .dato-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .dato-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .campana-asociada { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .campana-asociada:last-child { border-bottom: none; }
+    .camp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .camp-info-name { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .camp-info-meta { font-size: 11px; color: #a9435d; }
+    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
+    .side-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+    .side-btn { width: 100%; background: #ef647c; color: white; border: none; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+    .side-btn-outline { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    /* MODAL NUEVO PACIENTE */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 20px 24px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .modal-close { background: none; border: none; cursor: pointer; color: #a9435d; font-size: 20px; }
+    .modal-body { padding: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-hint { font-size: 11px; color: #a9435d; margin-top: 4px; }
+    .modal-actions { display: flex; gap: 10px; padding: 16px 24px; border-top: 0.5px solid #e8d0d8; }
+    .btn-save { flex: 1; background: #ef647c; color: white; border: none; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-cancel { flex: 1; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) { .detalle-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .table-header { display: none; }
+      .pac-row { grid-template-columns: 1fr; gap: 6px; }
+      .td.hide-sm { display: none; }
+      .dato-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .filtros { flex-direction: column; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item active" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item" href="../hospital/facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title" id="topbar-title">Pacientes</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-btn"><i class="ti ti-bell" style="font-size:18px;"></i></div>
+      <button class="btn-nueva" onclick="abrirModal()">
+        <i class="ti ti-plus"></i>Nuevo paciente
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- VISTA LISTA -->
+    <div class="view active" id="view-lista">
+      <div class="filtros">
+        <div class="search-wrap">
+          <i class="ti ti-search search-icon"></i>
+          <input class="search-input" type="text" placeholder="Buscar por nombre o DNI...">
+        </div>
+        <select class="filter-select">
+          <option>Todas las campañas</option>
+          <option>Con campaña activa</option>
+          <option>Sin campaña activa</option>
+        </select>
+        <select class="filter-select">
+          <option>Todos los tipos de sangre</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>0+</option><option>0-</option><option>AB+</option><option>AB-</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="th">Paciente</div>
+          <div class="th">Tipo de sangre</div>
+          <div class="th hide-md">Diagnóstico</div>
+          <div class="th"></div>
+        </div>
+
+        <div class="pac-row" onclick="verDetalle('Juan Pérez')">
+          <div class="pac-donante">
+            <div class="pac-avatar">JP</div>
+            <div>
+              <div class="pac-nombre">Juan Pérez</div>
+              <div class="pac-id">ID #0042 · DNI 28.456.789</div>
+            </div>
+          </div>
+          <div class="td">0-</div>
+          <div class="td hide-md">Cirugía cardíaca</div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
+          </div>
+        </div>
+
+        <div class="pac-row" onclick="verDetalle('María García')">
+          <div class="pac-donante">
+            <div class="pac-avatar">MG</div>
+            <div>
+              <div class="pac-nombre">María García</div>
+              <div class="pac-id">ID #0038 · DNI 35.123.456</div>
+            </div>
+          </div>
+          <div class="td">A+</div>
+          <div class="td hide-md">Anemia crónica</div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
+          </div>
+        </div>
+
+        <div class="pac-row" onclick="verDetalle('Carlos López')">
+          <div class="pac-donante">
+            <div class="pac-avatar">CL</div>
+            <div>
+              <div class="pac-nombre">Carlos López</div>
+              <div class="pac-id">ID #0051 · DNI 41.789.012</div>
+            </div>
+          </div>
+          <div class="td">B+</div>
+          <div class="td hide-md">Politraumatismo</div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
+          </div>
+        </div>
+
+        <div class="pac-row" onclick="verDetalle('Ana Martínez')">
+          <div class="pac-donante">
+            <div class="pac-avatar">AM</div>
+            <div>
+              <div class="pac-nombre">Ana Martínez</div>
+              <div class="pac-id">ID #0055 · DNI 29.654.321</div>
+            </div>
+          </div>
+          <div class="td">0+</div>
+          <div class="td hide-md">Leucemia</div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VISTA DETALLE -->
+    <div class="view" id="view-detalle">
+      <button class="back-btn" onclick="volverLista()">
+        <i class="ti ti-arrow-left"></i>Pacientes
+      </button>
+      <div class="detalle-layout">
+        <div>
+          <div class="card">
+            <div class="pac-header">
+              <div class="pac-avatar-lg">JP</div>
+              <div>
+                <div class="pac-header-name">Juan Pérez</div>
+                <div class="pac-header-sub">ID #0042 · Pediatría · Hospital Ramos Mejía</div>
+              </div>
+            </div>
+            <div class="dato-grid">
+              <div class="dato"><div class="dato-label">DNI</div><div class="dato-value">28.456.789</div></div>
+              <div class="dato"><div class="dato-label">Fecha de nacimiento</div><div class="dato-value">12/03/2018 · 8 años</div></div>
+              <div class="dato"><div class="dato-label">Tipo de sangre</div><div class="dato-value">0-</div></div>
+              <div class="dato"><div class="dato-label">Diagnóstico</div><div class="dato-value">Cirugía cardíaca</div></div>
+              <div class="dato"><div class="dato-label">Médico tratante</div><div class="dato-value">Dr. Carlos Méndez</div></div>
+              <div class="dato"><div class="dato-label">Internado desde</div><div class="dato-value">10 de mayo 2026</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-speakerphone" style="color:#ef647c;"></i>Campañas asociadas</div>
+            <div class="campana-asociada">
+              <div class="camp-dot" style="background:#c0392b;"></div>
+              <div class="camp-info" style="flex:1;">
+                <div class="camp-info-name">Campaña paciente pediátrico</div>
+                <div class="camp-info-meta">Urgente · Activa · 7/10 cupos · Vence 20 may</div>
+              </div>
+              <button class="btn-xs btn-xs-outline">Ver campaña</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-notes" style="color:#ef647c;"></i>Observaciones clínicas</div>
+            <p style="font-size:14px;color:#5a3040;line-height:1.7;">Paciente pediátrico de 8 años con cardiopatía congénita. Requiere transfusiones previas a la cirugía programada para el 22 de mayo. Se necesita mínimo 10 unidades de sangre tipo 0 negativo o 0 positivo.</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="side-card">
+            <div class="side-title">Acciones rápidas</div>
+            <button class="side-btn" onclick="window.location='../hospital/nueva_campana.html'">
+              <i class="ti ti-speakerphone"></i>Nueva campaña para este paciente
+            </button>
+            <button class="side-btn-outline">
+              <i class="ti ti-pencil"></i>Editar datos del paciente
+            </button>
+            <button class="side-btn-outline" style="margin-top:8px;color:#c0392b;border-color:#e74c3c;">
+              <i class="ti ti-check"></i>Registrar alta médica
+            </button>
+          </div>
+          <div class="side-card">
+            <div class="side-title">Contacto de referencia</div>
+            <div style="font-size:13px;color:#5a3040;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;"><i class="ti ti-user" style="color:#ef647c;font-size:15px;"></i>Roberto Pérez (padre)</div>
+              <div style="display:flex;align-items:center;gap:8px;"><i class="ti ti-phone" style="color:#ef647c;font-size:15px;"></i>011 1234-5678</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL NUEVO PACIENTE -->
+<div class="modal-overlay" id="modal-nuevo">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nuevo paciente</div>
+      <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input class="form-input" type="text" placeholder="Juan">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido</label>
+          <input class="form-input" type="text" placeholder="Pérez">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">DNI</label>
+          <input class="form-input" type="text" placeholder="28.456.789">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de nacimiento</label>
+          <input class="form-input" type="date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo de sangre</label>
+          <select class="form-input">
+            <option value="" disabled selected>Seleccioná</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>0+</option><option>0-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Servicio / área</label>
+          <select class="form-input">
+            <option>Pediatría</option><option>Cardiología</option><option>Oncología</option>
+            <option>Traumatología</option><option>Hematología</option><option>Cirugía</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Diagnóstico</label>
+        <input class="form-input" type="text" placeholder="Ej: Cirugía cardíaca programada">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contacto de referencia <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+        <input class="form-input" type="text" placeholder="Nombre y teléfono del familiar">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+        <textarea class="form-input" style="resize:vertical;min-height:80px;" placeholder="Información clínica relevante para el equipo..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save">Guardar paciente</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function verDetalle(nombre) {
+    document.getElementById('view-lista').classList.remove('active');
+    document.getElementById('view-detalle').classList.add('active');
+    document.getElementById('topbar-title').textContent = nombre;
+    window.scrollTo(0,0);
+  }
+  function volverLista() {
+    document.getElementById('view-detalle').classList.remove('active');
+    document.getElementById('view-lista').classList.add('active');
+    document.getElementById('topbar-title').textContent = 'Pacientes';
+    window.scrollTo(0,0);
+  }
+  function abrirModal() {
+    document.getElementById('modal-nuevo').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarModal() {
+    document.getElementById('modal-nuevo').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

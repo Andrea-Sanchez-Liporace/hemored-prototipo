@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Formularios pre-donación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #fdf0f3; color: #1a0a0f; min-height: 100vh; display: flex; flex-direction: column; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: #5a1e37; position: sticky; top: 0; z-index: 50; }
+    .nav-logo { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .nav-logo span { color: #f28b98; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-user { font-size: 13px; color: #f28b98; }
+    .nav-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #f28b98; text-decoration: none; }
+
+    main { flex: 1; padding: 32px 24px; max-width: 640px; width: 100%; margin: 0 auto; }
+
+    /* TURNO BANNER */
+    .turno-banner { background: #5a1e37; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
+    .turno-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .turno-hosp { font-size: 15px; font-weight: 500; color: white; margin-bottom: 3px; }
+    .turno-meta-text { font-size: 12px; color: #f28b98; }
+
+    /* PROGRESS */
+    .progress-wrap { display: flex; gap: 4px; margin-bottom: 8px; }
+    .progress-step { flex: 1; height: 5px; border-radius: 3px; background: #e8d0d8; }
+    .progress-step.done { background: #ef647c; }
+    .progress-step.current { background: #5a1e37; }
+    .progress-labels { display: flex; margin-bottom: 24px; }
+    .progress-label { flex: 1; font-size: 11px; font-weight: 500; color: #a9435d; text-align: center; }
+    .progress-label.current { color: #5a1e37; }
+    .progress-label.done { color: #ef647c; }
+
+    .step-view { display: none; }
+    .step-view.active { display: block; }
+
+    /* CARDS */
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; box-shadow: 0 2px 16px rgba(90,30,55,0.06); }
+    .card-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .card-desc { font-size: 13px; color: #5a3040; line-height: 1.6; margin-bottom: 20px; }
+
+    /* DOCUMENTO AUTOEXCLUSIÓN */
+    .doc-section { margin-bottom: 20px; }
+    .doc-section-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 0.5px solid #f0e0e6; }
+    .doc-text { font-size: 13px; color: #1a0a0f; line-height: 1.8; margin-bottom: 10px; }
+    .doc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; padding-left: 0; }
+    .doc-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #1a0a0f; line-height: 1.6; }
+    .doc-list li::before { content: '●'; color: #ef647c; font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .doc-sub-list { list-style: none; display: flex; flex-direction: column; gap: 6px; padding-left: 20px; margin-top: 6px; }
+    .doc-sub-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #1a0a0f; line-height: 1.6; }
+    .doc-sub-list li::before { content: '–'; color: #a9435d; flex-shrink: 0; }
+    .doc-highlight { background: #fdf0f3; border-left: 3px solid #ef647c; padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; color: #5a3040; line-height: 1.6; }
+    .doc-nota { font-size: 12px; color: #a9435d; font-style: italic; margin-top: 14px; line-height: 1.5; }
+
+    /* AVISO */
+    .aviso { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+    .av-rojo { background: #fde8e8; border: 1px solid #c0392b; color: #922b21; }
+    .av-azul { background: #eef4ff; border: 1px solid #3498db; color: #1a4a7a; }
+    .av-gris { background: #f7f0f3; border: 0.5px solid #e8d0d8; color: #5a3040; }
+    .av-verde { background: #e1f5ee; border: 1px solid #27ae60; color: #04342c; }
+    .av-naranja { background: #faeeda; border: 1px solid #e67e22; color: #633806; }
+
+    /* CONFIRMACIÓN LECTURA */
+    .confirm-check { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #fdf0f3; border-radius: 12px; border: 1.5px solid #e8d0d8; cursor: pointer; transition: border-color 0.15s; margin-bottom: 14px; }
+    .confirm-check.checked { border-color: #27ae60; background: #e1f5ee; }
+    .confirm-check input { width: 18px; height: 18px; accent-color: #27ae60; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+    .confirm-check label { font-size: 14px; color: #1a0a0f; line-height: 1.5; cursor: pointer; }
+    .confirm-check.checked label { color: #04342c; }
+
+    /* EXCL ITEMS (F2) */
+    .excl-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .excl-item:last-child { border-bottom: none; }
+    .excl-text { font-size: 13px; color: #1a0a0f; line-height: 1.5; flex: 1; }
+    .excl-sino { display: flex; gap: 6px; flex-shrink: 0; }
+    .excl-btn { width: 48px; padding: 8px 0; border: 1.5px solid #e8d0d8; border-radius: 8px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; color: #5a3040; transition: all 0.12s; }
+    .excl-btn.sel-si { border-color: #c0392b; background: #fde8e8; color: #c0392b; }
+    .excl-btn.sel-no { border-color: #27ae60; background: #e1f5ee; color: #27ae60; }
+
+    .sec-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; border-bottom: 0.5px solid #f0e0e6; margin-bottom: 4px; }
+    .sec-title { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; }
+
+    /* FORM */
+    .form-group { margin-bottom: 14px; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 13px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+
+    /* FIRMA */
+    .sig-wrap { border: 1.5px solid #e8d0d8; border-radius: 10px; overflow: hidden; background: white; }
+    .sig-wrap canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
+    .sig-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #fdf0f3; border-top: 0.5px solid #e8d0d8; }
+    .sig-info { font-size: 11px; color: #a9435d; }
+    .btn-limpiar { background: none; border: none; font-size: 11px; color: #a9435d; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 4px; }
+    .sig-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+    .sig-badge.firmado { background: #e1f5ee; color: #04342c; }
+    .sig-badge.vacio { background: #fdf0f3; color: #a9435d; }
+    .firma-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .firma-label { font-size: 13px; font-weight: 500; color: #5a1e37; }
+
+    /* BOTONES */
+    .btn-primary { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
+    .btn-primary:hover { background: #d4537e; }
+    .btn-primary:disabled { background: #e8d0d8; cursor: not-allowed; }
+    .btn-outline { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+
+    /* SUCCESS */
+    .success-view { text-align: center; padding: 40px 20px; }
+    .success-icon { width: 80px; height: 80px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .success-title { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
+    .success-text { font-size: 14px; color: #5a3040; line-height: 1.7; margin-bottom: 24px; }
+    .checklist { text-align: left; background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid #e8d0d8; margin-bottom: 20px; }
+    .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #f0e0e6; font-size: 14px; color: #5a3040; }
+    .check-item:last-child { border-bottom: none; }
+
+    footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
+    .footer-logo { font-family: 'Lobster', cursive; font-size: 18px; color: white; }
+    .footer-logo span { color: #f28b98; }
+
+    @media (max-width: 600px) {
+      nav { padding: 14px 16px; }
+      main { padding: 20px 16px; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/donante.css">
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="../donante/dashboard.html">Hemo<span>red</span></a>
+  <div class="nav-right">
+    <span class="nav-user">Sofía Páez</span>
+    <a class="nav-back" href="../donante/mis_turnos.html">
+      <i class="ti ti-arrow-left" style="font-size:14px;"></i>Mis turnos
+    </a>
+  </div>
+</nav>
+
+<main>
+
+  <div class="turno-banner">
+    <div class="turno-icon"><i class="ti ti-building-hospital" style="color:white;font-size:20px;"></i></div>
+    <div>
+      <div class="turno-hosp">Hospital Ramos Mejía</div>
+      <div class="turno-meta-text">Mañana · martes 20 de mayo · 10:00hs · Campaña pediátrica</div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-step current" id="ps1"></div>
+    <div class="progress-step" id="ps2"></div>
+    <div class="progress-step" id="ps3"></div>
+  </div>
+  <div class="progress-labels">
+    <div class="progress-label current" id="pl1">Información y autoexclusión</div>
+    <div class="progress-label" id="pl2">Cuestionario médico</div>
+    <div class="progress-label" id="pl3">Listo</div>
+  </div>
+
+  <!-- ===== PASO 1: DOCUMENTO DE AUTOEXCLUSIÓN ===== -->
+  <div class="step-view active" id="step-1">
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-info-circle" style="color:#ef647c;"></i>Información importante para el donante</div>
+      <div class="card-desc">Lea atentamente la siguiente información antes de continuar. Si tiene dudas, puede consultarlas con el profesional que lo atenderá.</div>
+
+      <div class="doc-section">
+        <div class="doc-text">A toda la sangre extraída se le realizan los siguientes estudios: <strong>Sífilis, Chagas, Brucelosis, Hepatitis B y C, HIV/SIDA y HTLV I y II.</strong> El material utilizado es descartable por lo que no puede transmitir ninguna infección.</div>
+
+        <div class="doc-highlight">
+          Es importante saber que existe el llamado <strong>"período de ventana"</strong>: el intervalo de tiempo entre el momento en que ocurre una infección y el momento en que puede ser detectada por pruebas de laboratorio. Durante ese período, la persona no tiene síntomas pero el agente infeccioso está presente en su sangre y, si dona, existe elevado riesgo de que sea transmitido al receptor de la transfusión.
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">Situaciones en las que NO debe donar</div>
+        <div class="doc-text">Usted <strong>no debe donar</strong> si se encuentra en alguna de estas situaciones:</div>
+        <ul class="doc-list">
+          <li>Tiene o le han dicho que sus análisis son positivos para VIH/SIDA, Hepatitis B o C, Chagas, Brucelosis, HTLV I y II. Todas ellas son infecciones transmisibles por sangre.</li>
+          <li>Se encuentra en tratamiento de hemodiálisis y/o recibe regularmente transfusiones de componentes o derivados de la sangre.</li>
+          <li>Practica sexo a cambio de dinero o drogas. Estas prácticas se consideran de riesgo incrementado porque la persona podría verse bajo coacción e impedida de cuidarse por exigencia de quien le paga o le suministra drogas.</li>
+        </ul>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">Situaciones de exposición a riesgo</div>
+        <div class="doc-text">Usted <strong>no debe donar sangre</strong> si estuvo expuesto a alguna de las siguientes situaciones de riesgo:</div>
+
+        <div class="doc-text" style="font-weight:500;margin-top:10px;margin-bottom:6px;">Relaciones sexuales (oral, vaginal o anal):</div>
+        <ul class="doc-sub-list">
+          <li>Sin utilizar preservativo o campo de látex con una pareja no estable o de menos de 6 meses de constituida.</li>
+          <li>Ocasionales sin preservativo en el último año.</li>
+          <li>Bajo los efectos del alcohol o cualquier sustancia psicoactiva sin utilizar preservativo o campo de látex, con una pareja no habitual o de menos de 6 meses de constituida.</li>
+          <li>Entre más de dos personas al mismo tiempo, incluso si usó preservativo o campo de látex.</li>
+          <li>Con personas que tienen el virus de VIH, Hepatitis o HTLV I y II, incluso si usó preservativo o campo de látex en el último año.</li>
+          <li>Con personas que se dializan o reciben transfusiones frecuentemente, incluso si usó preservativo o campo de látex.</li>
+        </ul>
+
+        <ul class="doc-list" style="margin-top:12px;">
+          <li>Usó drogas inyectables o se inyectó otras sustancias (hormonas para aumentar la musculatura u otras).</li>
+          <li>Consumió cocaína, pasta base o drogas que se inhalan o aspiran en los últimos 12 meses.</li>
+        </ul>
+
+        <div class="doc-nota">Si no ha entendido algún punto o tiene dudas, consulte con el profesional que lo atenderá antes de continuar.</div>
+      </div>
+    </div>
+
+    <!-- CONFIRMACIÓN -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-writing" style="color:#ef647c;"></i>Confirmación de lectura</div>
+
+      <div class="aviso av-azul" style="margin-bottom:16px;">
+        <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
+        <span>Si alguna de las situaciones descriptas le aplica, <strong>no continúe con la donación</strong>. Puede comunicárselo al profesional de forma privada. Su decisión es confidencial y no será comunicada a terceros.</span>
+      </div>
+
+      <div class="confirm-check" id="check1-wrap" onclick="toggleCheck('check1','check1-wrap')">
+        <input type="checkbox" id="check1" onchange="actualizarBoton()">
+        <label for="check1">He leído y comprendido la información sobre las situaciones que me excluyen de la donación de sangre.</label>
+      </div>
+
+      <div class="confirm-check" id="check2-wrap" onclick="toggleCheck('check2','check2-wrap')">
+        <input type="checkbox" id="check2" onchange="actualizarBoton()">
+        <label for="check2">Confirmo que ninguna de las situaciones descriptas me aplica y deseo continuar con la donación.</label>
+      </div>
+
+      <div class="confirm-check" id="check3-wrap" onclick="toggleCheck('check3','check3-wrap')">
+        <input type="checkbox" id="check3" onchange="actualizarBoton()">
+        <label for="check3">Entiendo que si durante el proceso recuerdo alguna situación de riesgo, puedo comunicársela al profesional o completar el formulario post-donación de forma anónima.</label>
+      </div>
+
+      <div class="firma-header" style="margin-top:16px;">
+        <div class="firma-label">Su firma</div>
+        <div class="sig-badge vacio" id="f1-sig-st">Sin firmar</div>
+      </div>
+      <div class="sig-wrap">
+        <canvas id="sig-f1" height="130"></canvas>
+        <div class="sig-toolbar">
+          <span class="sig-info">Firme con el dedo o el mouse · Su firma habitual</span>
+          <button class="btn-limpiar" onclick="clearSig('sig-f1','f1-sig-st')"><i class="ti ti-eraser" style="font-size:11px;"></i>Limpiar</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-paso1" onclick="irPaso(2)" disabled style="opacity:0.5;cursor:not-allowed;">
+      Continuar al cuestionario médico <i class="ti ti-arrow-right"></i>
+    </button>
+
+  </div>
+
+  <!-- ===== PASO 2: CUESTIONARIO MÉDICO ===== -->
+  <div class="step-view" id="step-2">
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-clipboard-list" style="color:#ef647c;"></i>Cuestionario de salud</div>
+      <div class="card-desc">Responda con veracidad sobre su estado de salud actual y reciente. Esta información es confidencial y se utiliza para evaluar si puede donar de forma segura.</div>
+
+      <div class="sec-header"><div class="sec-title">Comprensión de la información</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Se le ha proporcionado información escrita para su autoexclusión predonación?</div>
+        <div class="excl-sino"><div class="excl-btn sel-no" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha comprendido las situaciones descriptas en el formulario de autoexclusión? (en caso de dudas, consulte con el profesional que lo atenderá)</div>
+        <div class="excl-sino"><div class="excl-btn sel-no" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">Precaución en las próximas 12 horas</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Debe realizar alguna actividad laboral o deportiva de riesgo (trabajo en altura, escalada, etc.) o conducir un vehículo de transporte público?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">Medicación</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Está tomando o ha tomado en los últimos días algún medicamento?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha tomado alguna vez Etretinato o alguna otra droga para psoriasis?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Está tomando medicación para la próstata?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Tomó aspirina o analgésicos en los últimos 3 días?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">En las últimas 2 semanas</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha presentado fiebre, acompañada de dolor de cabeza y malestar general?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha visitado al dentista?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">En el último mes</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha recibido alguna vacuna?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha estado en contacto con alguna persona que padeciera una enfermedad?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">En los últimos 3 meses</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Se realizó tatuajes, colocación de piercing, implantes dentales o acupuntura?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha sido sometido a endoscopía (gastroscopía / colonoscopía)?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">En los últimos 6 meses</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha asistido a la consulta de algún médico o ha estado hospitalizado?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha sido sometido a algún tipo de cirugía?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">En los últimos 12 meses</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Tuvo alguna de las relaciones y/o prácticas sexuales de riesgo incrementado descriptas en el documento de autoexclusión?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Estuvo en contacto con sangre o fluidos corporales a través de piel o mucosas lesionadas?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Recibió sangre, componentes o algún trasplante?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Convive o ha convivido con alguien que padeciera hepatitis o ictericia?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">En alguna ocasión en el transcurso de su vida</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha padecido alguna enfermedad grave que exigió control médico periódico?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha padecido hepatitis, ictericia o problemas de hígado?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha sufrido alguna enfermedad grave de pulmón, cerebro, riñón, tiroides, aparato digestivo u otras localizaciones?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha padecido problemas de corazón o de la presión sanguínea?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Padece diabetes tratada con insulina de origen animal?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha padecido algún tipo de cáncer?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha tenido hemorragias o alguna afección de la sangre como anemia o leucemia?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Se inyectó o se inyecta drogas intravenosas ilegales o aspiró cocaína regularmente?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha recibido hormona de crecimiento de origen humano (antes de 1987)?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha recibido tejido procedente de otra persona (duramadre, córnea u otros)?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Usted o algún familiar sufre o ha sufrido la enfermedad de Creutzfeldt-Jakob?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Tuvo paludismo en los últimos 3 años o estuvo en el último año en áreas endémicas de la enfermedad?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Le han dicho que tiene análisis positivos para VIH/SIDA, Hepatitis B o C, virus HTLV I-II, Chagas, brucelosis o sífilis?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">Estancias en el extranjero</div></div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha estado durante más de un año (sumando los períodos de permanencia) en el Reino Unido entre 1980 y 1996?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+      <div class="excl-item">
+        <div class="excl-text">¿Ha residido en algún otro país extranjero?</div>
+        <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+      </div>
+
+      <div class="sec-header"><div class="sec-title">Observaciones adicionales</div></div>
+      <div class="form-group">
+        <textarea class="form-input" style="resize:vertical;min-height:70px;" placeholder="¿Desea informar algo más al profesional que lo atenderá?"></textarea>
+      </div>
+    </div>
+
+    <!-- CONSENTIMIENTO Y FIRMA -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-writing" style="color:#ef647c;"></i>Declaración y consentimiento informado</div>
+      <div style="background:#fdf0f3;border-radius:10px;padding:14px;font-size:13px;color:#5a3040;line-height:1.7;margin-bottom:16px;border:0.5px solid #e8d0d8;">
+        No me encuentro en ninguna de las situaciones que excluyen de la donación de sangre y he tenido la oportunidad de pedir información y de autoexcluirme. He recibido información sobre el destino de mi donación de sangre y sobre los efectos secundarios que puedo presentar en relación con la donación. No he recibido dinero u otra compensación para donar sangre.<br><br>
+        Declaro que contesté sinceramente todas las preguntas. Consiento expresamente que se me efectúen las pruebas necesarias para detectar Infecciones Transmisibles por Transfusión y que los datos de esta donación se incorporen al Registro de Donantes de Sangre (REDOS). Dejo constancia de habérseme asegurado debida confidencialidad de los resultados de los estudios, autorizando se me cite para ser informado personalmente por los médicos en caso de alguna anormalidad.
+      </div>
+      <div class="firma-header">
+        <div class="firma-label">Firma del donante</div>
+        <div class="sig-badge vacio" id="f2-sig-st">Sin firmar</div>
+      </div>
+      <div class="sig-wrap">
+        <canvas id="sig-f2" height="130"></canvas>
+        <div class="sig-toolbar">
+          <span class="sig-info">Firme con el dedo o el mouse · Su firma habitual</span>
+          <button class="btn-limpiar" onclick="clearSig('sig-f2','f2-sig-st')"><i class="ti ti-eraser" style="font-size:11px;"></i>Limpiar</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="irPaso(3)">
+      <i class="ti ti-check"></i>Confirmar y enviar formularios
+    </button>
+    <button class="btn-outline" onclick="irPaso(1)">
+      <i class="ti ti-arrow-left"></i>Volver a la información
+    </button>
+
+  </div>
+
+  <!-- ===== PASO 3: CONFIRMACIÓN ===== -->
+  <div class="step-view" id="step-3">
+    <div class="success-view">
+      <div class="success-icon">
+        <i class="ti ti-check" style="color:white;font-size:36px;"></i>
+      </div>
+      <div class="success-title">¡Todo listo para su donación!</div>
+      <div class="success-text">Completó los formularios pre-donación. El hospital ya recibió su información. ¡Hasta mañana!</div>
+
+      <div class="checklist">
+        <div class="check-item"><i class="ti ti-circle-check" style="color:#27ae60;font-size:16px;"></i>Documento de autoexclusión — leído y firmado</div>
+        <div class="check-item"><i class="ti ti-circle-check" style="color:#27ae60;font-size:16px;"></i>Cuestionario de salud — completado y firmado</div>
+        <div class="check-item" style="color:#a9435d;"><i class="ti ti-clock" style="color:#e67e22;font-size:16px;"></i>Evaluación clínica — la realiza el profesional en el turno</div>
+        <div class="check-item" style="color:#a9435d;"><i class="ti ti-clock" style="color:#e67e22;font-size:16px;"></i>Formulario post-donación — se completa después de donar</div>
+      </div>
+
+      <div class="aviso av-verde" style="text-align:left;margin-bottom:20px;">
+        <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
+        <span>Recuerde llevar su DNI. Si tiene algún cambio en su estado de salud antes del turno, puede actualizar sus respuestas desde "Mis turnos".</span>
+      </div>
+
+      <a href="../donante/mis_turnos.html" style="text-decoration:none;">
+        <button class="btn-primary"><i class="ti ti-calendar"></i>Ver mis turnos</button>
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-logo">Hemo<span>red</span></div>
+</footer>
+
+<script>
+  const pads = {};
+
+  window.addEventListener('load', () => {
+    setTimeout(() => initPad('sig-f1', 'f1-sig-st'), 150);
+  });
+
+  function initPad(id, stId) {
+    if (pads[id]) return;
+    const cv = document.getElementById(id);
+    if (!cv) return;
+    const r = Math.max(window.devicePixelRatio || 1, 1);
+    cv.width = cv.offsetWidth * r;
+    cv.getContext('2d').scale(r, r);
+    pads[id] = new SignaturePad(cv, { penColor: '#1a0a0f', minWidth: 1.2, maxWidth: 3 });
+    pads[id].addEventListener('endStroke', () => {
+      const el = document.getElementById(stId);
+      if (!el) return;
+      const empty = pads[id].isEmpty();
+      el.textContent = empty ? 'Sin firmar' : '✓ Firmado';
+      el.className = 'sig-badge ' + (empty ? 'vacio' : 'firmado');
+      actualizarBoton();
+    });
+  }
+
+  function clearSig(padId, stId) {
+    if (pads[padId]) {
+      pads[padId].clear();
+      const el = document.getElementById(stId);
+      el.textContent = 'Sin firmar';
+      el.className = 'sig-badge vacio';
+      actualizarBoton();
+    }
+  }
+
+  function toggleCheck(checkId, wrapId) {
+    const cb = document.getElementById(checkId);
+    cb.checked = !cb.checked;
+    document.getElementById(wrapId).classList.toggle('checked', cb.checked);
+    actualizarBoton();
+  }
+
+  function actualizarBoton() {
+    const c1 = document.getElementById('check1').checked;
+    const c2 = document.getElementById('check2').checked;
+    const c3 = document.getElementById('check3').checked;
+    const firmado = pads['sig-f1'] && !pads['sig-f1'].isEmpty();
+    const btn = document.getElementById('btn-paso1');
+    const ok = c1 && c2 && c3 && firmado;
+    btn.disabled = !ok;
+    btn.style.opacity = ok ? '1' : '0.5';
+    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+  }
+
+  function excl(btn, val) {
+    btn.parentElement.querySelectorAll('.excl-btn').forEach(b => b.className = 'excl-btn');
+    btn.className = 'excl-btn ' + (val === 'si' ? 'sel-si' : 'sel-no');
+  }
+
+  function irPaso(n) {
+    document.querySelectorAll('.step-view').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+    [1,2,3].forEach(i => {
+      const ps = document.getElementById('ps' + i);
+      const pl = document.getElementById('pl' + i);
+      if (!ps || !pl) return;
+      ps.className = 'progress-step' + (i < n ? ' done' : i === n ? ' current' : '');
+      pl.className = 'progress-label' + (i < n ? ' done' : i === n ? ' current' : '');
+    });
+    window.scrollTo(0, 0);
+    if (n === 2) setTimeout(() => initPad('sig-f2', 'f2-sig-st'), 150);
+  }
+</script>
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

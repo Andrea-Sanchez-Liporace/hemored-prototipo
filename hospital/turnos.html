@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Gestión de turnos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e8d0d8; cursor: pointer; transition: border-color 0.15s; }
+    .stat-card:hover { border-color: #ef647c; }
+    .stat-card.active-filter { border-color: #5a1e37; background: #fdf0f3; }
+    .stat-num { font-size: 28px; font-weight: 500; color: #5a1e37; }
+    .stat-label { font-size: 12px; color: #5a3040; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
+    .estado-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+    /* BANNER PENDIENTES */
+    .pendientes-banner { background: #5a1e37; border-radius: 14px; padding: 18px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .pb-left { display: flex; align-items: center; gap: 14px; }
+    .pb-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pb-title { font-size: 15px; font-weight: 500; color: white; margin-bottom: 2px; }
+    .pb-sub { font-size: 12px; color: #f28b98; }
+    .btn-confirmar-todos { background: #ef647c; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+
+    /* VISTA TABS */
+    .view-tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 20px; }
+    .vtab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .vtab.active { background: #5a1e37; color: white; }
+    .vtab:hover:not(.active) { background: #fdf0f3; }
+
+    /* FILTROS */
+    .filtros { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a9435d; font-size: 15px; }
+    .search-input { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; }
+    .search-input:focus { border-color: #ef647c; }
+    .filter-select { padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+
+    /* TABLA */
+    .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .table-header { display: grid; grid-template-columns: 1.8fr 1.4fr 1fr 1fr 1fr 120px; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
+    .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
+    .turno-row { display: grid; grid-template-columns: 1.8fr 1.4fr 1fr 1fr 1fr 120px; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; transition: background 0.1s; }
+    .turno-row:last-child { border-bottom: none; }
+    .turno-row:hover { background: #fdf0f3; }
+    .turno-donante { display: flex; align-items: center; gap: 10px; }
+    .turno-avatar { width: 32px; height: 32px; border-radius: 50%; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
+    .turno-nombre { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .turno-sub { font-size: 11px; color: #a9435d; }
+    .td { font-size: 13px; color: #5a3040; }
+    .campana-chip { display: inline-flex; align-items: center; gap: 4px; background: #fdf0f3; border: 0.5px solid #f28b98; border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #782b46; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .turno-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .tb-pendiente { background: #faeeda; color: #412402; }
+    .tb-confirmado { background: #e1f5ee; color: #04342c; }
+    .tb-cancelado { background: #f7f0f3; color: #a9435d; }
+    .tb-completado { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .turno-actions { display: flex; gap: 5px; justify-content: flex-end; }
+    .btn-xs { padding: 5px 9px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-xs-ok { background: #e1f5ee; color: #04342c; }
+    .btn-xs-no { background: #fde8e8; color: #c0392b; }
+    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+
+    /* VISTA CALENDARIO */
+    .calendario { display: none; }
+    .calendario.active { display: block; }
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .cal-mes { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .cal-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e8d0d8; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #5a1e37; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .cal-dia-header { text-align: center; font-size: 11px; font-weight: 500; color: #a9435d; padding: 6px 0; }
+    .cal-dia { background: white; border-radius: 10px; border: 0.5px solid #e8d0d8; padding: 10px 8px; min-height: 80px; cursor: pointer; transition: border-color 0.15s; }
+    .cal-dia:hover { border-color: #ef647c; }
+    .cal-dia.hoy { border-color: #ef647c; background: #fdf0f3; }
+    .cal-dia.inactivo { opacity: 0.4; cursor: default; }
+    .cal-dia-num { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; }
+    .cal-dia.hoy .cal-dia-num { color: #ef647c; }
+    .cal-turno-chip { font-size: 10px; background: #fdf0f3; color: #782b46; border-radius: 4px; padding: 2px 5px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-turno-chip.pendiente { background: #faeeda; color: #412402; }
+    .cal-turno-chip.confirmado { background: #e1f5ee; color: #04342c; }
+
+    /* PAGINACIÓN */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 0.5px solid #e8d0d8; }
+    .pag-info { font-size: 12px; color: #a9435d; }
+    .pag-btns { display: flex; gap: 4px; }
+    .pag-btn { width: 32px; height: 32px; border-radius: 7px; border: 1px solid #e8d0d8; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: #5a3040; }
+    .pag-btn.active { background: #5a1e37; color: white; border-color: #5a1e37; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) {
+      .table-header { grid-template-columns: 1.5fr 1fr 1fr 100px; }
+      .turno-row { grid-template-columns: 1.5fr 1fr 1fr 100px; }
+      .td.hide-md { display: none; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .table-header { display: none; }
+      .turno-row { grid-template-columns: 1fr; gap: 6px; }
+      .td.hide-sm { display: none; }
+      .turno-actions { justify-content: flex-start; }
+      .pendientes-banner { flex-direction: column; align-items: flex-start; }
+      .btn-confirmar-todos { width: 100%; justify-content: center; }
+      .cal-grid { gap: 4px; }
+      .cal-dia { min-height: 60px; padding: 6px 4px; }
+      .filtros { flex-direction: column; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item active" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Gestión de turnos</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="topbar-btn">
+        <i class="ti ti-bell" style="font-size:18px;"></i>
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS CLICKEABLES -->
+    <div class="stats-row">
+      <div class="stat-card active-filter" onclick="filtrarEstado('todos', this)">
+        <div class="stat-num">28</div>
+        <div class="stat-label">Todos los turnos</div>
+      </div>
+      <div class="stat-card" onclick="filtrarEstado('pendiente', this)">
+        <div class="stat-num" style="color:#e67e22;">8</div>
+        <div class="stat-label"><div class="estado-dot" style="background:#e67e22;"></div>Pendientes</div>
+      </div>
+      <div class="stat-card" onclick="filtrarEstado('confirmado', this)">
+        <div class="stat-num" style="color:#27ae60;">12</div>
+        <div class="stat-label"><div class="estado-dot" style="background:#27ae60;"></div>Confirmados</div>
+      </div>
+      <div class="stat-card" onclick="filtrarEstado('completado', this)">
+        <div class="stat-num" style="color:#782b46;">8</div>
+        <div class="stat-label"><div class="estado-dot" style="background:#ef647c;"></div>Completados</div>
+      </div>
+    </div>
+
+    <!-- BANNER PENDIENTES -->
+    <div class="pendientes-banner">
+      <div class="pb-left">
+        <div class="pb-icon">
+          <i class="ti ti-clock" style="color:white;font-size:20px;"></i>
+        </div>
+        <div>
+          <div class="pb-title">8 turnos pendientes de confirmación</div>
+          <div class="pb-sub">El más antiguo fue solicitado hace 3 horas · Hoy tenés 4 turnos</div>
+        </div>
+      </div>
+      <button class="btn-confirmar-todos">
+        <i class="ti ti-check-all"></i>
+        Confirmar todos
+      </button>
+    </div>
+
+    <!-- VISTA LISTA / CALENDARIO -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+      <div class="view-tabs">
+        <button class="vtab active" onclick="cambiarVista('lista', this)">
+          <i class="ti ti-list" style="font-size:14px;margin-right:4px;"></i>Lista
+        </button>
+        <button class="vtab" onclick="cambiarVista('calendario', this)">
+          <i class="ti ti-calendar" style="font-size:14px;margin-right:4px;"></i>Calendario
+        </button>
+      </div>
+      <div class="filtros" style="margin-bottom:0;">
+        <div class="search-wrap" style="max-width:240px;">
+          <i class="ti ti-search search-icon"></i>
+          <input class="search-input" type="text" placeholder="Buscar donante...">
+        </div>
+        <select class="filter-select">
+          <option>Todas las campañas</option>
+          <option>Campaña pediátrica</option>
+          <option>Banco tipo A</option>
+          <option>Reserva general</option>
+        </select>
+        <select class="filter-select">
+          <option>Hoy</option>
+          <option>Esta semana</option>
+          <option>Este mes</option>
+          <option>Todos</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- VISTA LISTA -->
+    <div id="vista-lista">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="th">Donante</div>
+          <div class="th">Campaña</div>
+          <div class="th hide-md">Fecha y hora</div>
+          <div class="th hide-md">Estado</div>
+          <div class="th hide-md">Solicitado</div>
+          <div class="th"></div>
+        </div>
+
+        <!-- PENDIENTES -->
+        <div class="turno-row">
+          <div class="turno-donante">
+            <div class="turno-avatar">ML</div>
+            <div><div class="turno-nombre">María López</div><div class="turno-sub">DNI 28.456.789</div></div>
+          </div>
+          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
+          <div class="td hide-md">Hoy · 10:00hs</div>
+          <div class="td hide-md"><span class="turno-badge tb-pendiente">Pendiente</span></div>
+          <div class="td hide-md">hace 1h</div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-ok">Confirmar</button>
+            <button class="btn-xs btn-xs-no">Rechazar</button>
+          </div>
+        </div>
+
+        <div class="turno-row">
+          <div class="turno-donante">
+            <div class="turno-avatar">JG</div>
+            <div><div class="turno-nombre">Juan García</div><div class="turno-sub">DNI 32.123.456</div></div>
+          </div>
+          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
+          <div class="td hide-md">Hoy · 11:30hs</div>
+          <div class="td hide-md"><span class="turno-badge tb-pendiente">Pendiente</span></div>
+          <div class="td hide-md">hace 3h</div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-ok">Confirmar</button>
+            <button class="btn-xs btn-xs-no">Rechazar</button>
+          </div>
+        </div>
+
+        <div class="turno-row">
+          <div class="turno-donante">
+            <div class="turno-avatar">RM</div>
+            <div><div class="turno-nombre">Roberto Martínez</div><div class="turno-sub">DNI 25.789.012</div></div>
+          </div>
+          <div class="td"><span class="campana-chip">Banco tipo A</span></div>
+          <div class="td hide-md">Hoy · 14:00hs</div>
+          <div class="td hide-md"><span class="turno-badge tb-pendiente">Pendiente</span></div>
+          <div class="td hide-md">hace 5h</div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-ok">Confirmar</button>
+            <button class="btn-xs btn-xs-no">Rechazar</button>
+          </div>
+        </div>
+
+        <!-- CONFIRMADOS -->
+        <div class="turno-row">
+          <div class="turno-donante">
+            <div class="turno-avatar">SP</div>
+            <div><div class="turno-nombre">Sofía Páez</div><div class="turno-sub">DNI 12.345.678</div></div>
+          </div>
+          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
+          <div class="td hide-md">Mañana · 08:00hs</div>
+          <div class="td hide-md"><span class="turno-badge tb-confirmado">Confirmado</span></div>
+          <div class="td hide-md">ayer</div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-outline">Ver perfil</button>
+          </div>
+        </div>
+
+        <div class="turno-row">
+          <div class="turno-donante">
+            <div class="turno-avatar">AR</div>
+            <div><div class="turno-nombre">Ana Rodríguez</div><div class="turno-sub">DNI 35.789.012</div></div>
+          </div>
+          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
+          <div class="td hide-md">Mañana · 09:30hs</div>
+          <div class="td hide-md"><span class="turno-badge tb-confirmado">Confirmado</span></div>
+          <div class="td hide-md">hace 2 días</div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-outline">Ver perfil</button>
+          </div>
+        </div>
+
+        <!-- COMPLETADOS -->
+        <div class="turno-row">
+          <div class="turno-donante">
+            <div class="turno-avatar">CM</div>
+            <div><div class="turno-nombre">Carlos Méndez</div><div class="turno-sub">DNI 29.654.321</div></div>
+          </div>
+          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
+          <div class="td hide-md">19 may · 14:00hs</div>
+          <div class="td hide-md"><span class="turno-badge tb-completado">Donación realizada</span></div>
+          <div class="td hide-md">hace 3 días</div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-outline" onclick="abrirModalDonacion()">Registrar donación</button>
+          </div>
+        </div>
+
+        <div class="turno-row">
+          <div class="turno-donante">
+            <div class="turno-avatar">LP</div>
+            <div><div class="turno-nombre">Laura Pérez</div><div class="turno-sub">DNI 41.234.567</div></div>
+          </div>
+          <div class="td"><span class="campana-chip">Banco tipo A</span></div>
+          <div class="td hide-md">18 may · 10:00hs</div>
+          <div class="td hide-md"><span class="turno-badge tb-cancelado">Cancelado</span></div>
+          <div class="td hide-md">hace 4 días</div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-outline">Ver motivo</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pagination">
+        <div class="pag-info">Mostrando 7 de 28 turnos</div>
+        <div class="pag-btns">
+          <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
+          <div class="pag-btn active">1</div>
+          <div class="pag-btn">2</div>
+          <div class="pag-btn">3</div>
+          <div class="pag-btn"><i class="ti ti-chevron-right" style="font-size:14px;"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA CALENDARIO -->
+    <div id="vista-calendario" style="display:none;">
+      <div class="cal-nav">
+        <button class="cal-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></button>
+        <div class="cal-mes">Mayo 2026</div>
+        <button class="cal-btn"><i class="ti ti-chevron-right" style="font-size:14px;"></i></button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-dia-header">Lun</div>
+        <div class="cal-dia-header">Mar</div>
+        <div class="cal-dia-header">Mié</div>
+        <div class="cal-dia-header">Jue</div>
+        <div class="cal-dia-header">Vie</div>
+        <div class="cal-dia-header">Sáb</div>
+        <div class="cal-dia-header">Dom</div>
+
+        <!-- Semana 1 -->
+        <div class="cal-dia inactivo"><div class="cal-dia-num">28</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">29</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">30</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">1</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">2</div><div class="cal-turno-chip confirmado">2 confirmados</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">3</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">4</div></div>
+
+        <!-- Semana 2 -->
+        <div class="cal-dia"><div class="cal-dia-num">5</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">6</div><div class="cal-turno-chip confirmado">3 confirmados</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">7</div><div class="cal-turno-chip confirmado">1 confirmado</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">8</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">9</div><div class="cal-turno-chip">2 completados</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">10</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">11</div></div>
+
+        <!-- Semana 3 -->
+        <div class="cal-dia"><div class="cal-dia-num">12</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">13</div><div class="cal-turno-chip">1 completado</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">14</div><div class="cal-turno-chip">3 completados</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">15</div><div class="cal-turno-chip">1 completado</div></div>
+        <div class="cal-dia hoy"><div class="cal-dia-num">15</div><div class="cal-turno-chip pendiente">3 pendientes</div><div class="cal-turno-chip confirmado">2 confirmados</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">16</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">17</div></div>
+
+        <!-- Semana 4 -->
+        <div class="cal-dia"><div class="cal-dia-num">18</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">19</div><div class="cal-turno-chip confirmado">2 confirmados</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">20</div><div class="cal-turno-chip confirmado">4 confirmados</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">21</div><div class="cal-turno-chip pendiente">2 pendientes</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">22</div><div class="cal-turno-chip pendiente">1 pendiente</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">23</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">24</div></div>
+
+        <!-- Semana 5 -->
+        <div class="cal-dia"><div class="cal-dia-num">25</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">26</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">27</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">28</div></div>
+        <div class="cal-dia"><div class="cal-dia-num">29</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">30</div></div>
+        <div class="cal-dia inactivo"><div class="cal-dia-num">31</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function filtrarEstado(estado, el) {
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+    el.classList.add('active-filter');
+    const rows = document.querySelectorAll('.turno-row');
+    rows.forEach(row => {
+      if (estado === 'todos') { row.style.display = ''; return; }
+      const badge = row.querySelector('.turno-badge');
+      const texto = badge ? badge.textContent.toLowerCase() : '';
+      const match =
+        (estado === 'pendiente' && texto.includes('pendiente')) ||
+        (estado === 'confirmado' && texto.includes('confirmado')) ||
+        (estado === 'completado' && (texto.includes('completado') || texto.includes('realizada')));
+      row.style.display = match ? '' : 'none';
+    });
+  }
+
+  function cambiarVista(vista, el) {
+    document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('vista-lista').style.display = vista === 'lista' ? 'block' : 'none';
+    document.getElementById('vista-calendario').style.display = vista === 'calendario' ? 'block' : 'none';
+  }
+
+  function abrirModalDonacion() {
+    document.getElementById('modal-donacion').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarModalDonacion() {
+    document.getElementById('modal-donacion').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+
+<!-- MODAL REGISTRAR DONACIÓN -->
+<div id="modal-donacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:440px;overflow:hidden;">
+    <div style="padding:20px 24px;border-bottom:0.5px solid #e8d0d8;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:500;color:#5a1e37;">Registrar donación realizada</div>
+      <button onclick="cerrarModalDonacion()" style="background:none;border:none;cursor:pointer;color:#a9435d;font-size:20px;"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="padding:24px;">
+
+      <!-- Info turno -->
+      <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
+        <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO</div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;">Carlos Méndez</div>
+        <div style="font-size:13px;color:#5a3040;margin-top:3px;">19 may · 14:00hs · Campaña pediátrica</div>
+      </div>
+
+      <!-- Profesional que atendió -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Profesional que atendió la donación</label>
+        <select style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;background:white;">
+          <option value="" disabled selected>Seleccioná un profesional</option>
+          <option>Dr. Carlos Méndez</option>
+          <option>Dra. Ana Rodríguez</option>
+          <option>Dr. Luis Fernández</option>
+          <option>Dra. Marta Peralta</option>
+        </select>
+        <p style="font-size:11px;color:#a9435d;margin-top:4px;">El profesional quedará asociado a esta donación y firmará el resultado del análisis.</p>
+      </div>
+
+      <!-- Volumen -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Volumen donado (ml)</label>
+        <input type="number" value="450" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+      </div>
+
+      <!-- Observaciones -->
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+        <textarea style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;resize:vertical;min-height:70px;" placeholder="Alguna observación clínica relevante..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="cerrarModalDonacion()" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cancelar</button>
+        <button onclick="cerrarModalDonacion()" style="flex:1;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Confirmar donación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

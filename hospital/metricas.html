@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Métricas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .filter-select { padding: 8px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+    .btn-export { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+
+    /* KPIs */
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .kpi-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .kpi-trend { font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: 20px; }
+    .kpi-trend.up { background: #e1f5ee; color: #27ae60; }
+    .kpi-trend.down { background: #fde8e8; color: #c0392b; }
+    .kpi-num { font-size: 32px; font-weight: 500; color: #3d0f20; line-height: 1; margin-bottom: 4px; }
+    .kpi-label { font-size: 13px; color: #5a3040; }
+    .kpi-sub { font-size: 11px; color: #a9435d; margin-top: 2px; }
+
+    /* CHARTS GRID */
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .charts-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-card { background: white; border-radius: 14px; padding: 22px; border: 0.5px solid #e8d0d8; }
+    .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .chart-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .chart-sub { font-size: 12px; color: #a9435d; }
+    .chart-legend { display: flex; gap: 12px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #5a3040; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .chart-wrap { position: relative; }
+
+    /* EFECTIVIDAD POR CAMPAÑA */
+    .campanas-table { width: 100%; }
+    .camp-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .camp-row:last-child { border-bottom: none; }
+    .camp-info { flex: 1; min-width: 0; }
+    .camp-name { font-size: 13px; font-weight: 500; color: #5a1e37; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .camp-meta { font-size: 11px; color: #a9435d; }
+    .camp-efectividad { text-align: right; flex-shrink: 0; }
+    .efectividad-num { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .efectividad-bar { width: 80px; height: 4px; background: #fdf0f3; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .efectividad-fill { height: 100%; background: #ef647c; border-radius: 2px; }
+
+    /* TIPOS DE SANGRE */
+    .sangre-list { display: flex; flex-direction: column; gap: 10px; }
+    .sangre-row { display: flex; align-items: center; gap: 10px; }
+    .sangre-tipo { font-size: 13px; font-weight: 500; color: #5a1e37; width: 32px; flex-shrink: 0; }
+    .sangre-bar-wrap { flex: 1; height: 8px; background: #fdf0f3; border-radius: 4px; overflow: hidden; }
+    .sangre-bar { height: 100%; background: #ef647c; border-radius: 4px; }
+    .sangre-count { font-size: 12px; color: #a9435d; width: 28px; text-align: right; flex-shrink: 0; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1200px) { .kpis { grid-template-columns: repeat(2, 1fr); } .charts-row-3 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 1024px) { .charts-row { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .charts-row-3 { grid-template-columns: 1fr; }
+      .topbar-actions .btn-export span { display: none; }
+    }
+    @media (max-width: 480px) { .kpis { grid-template-columns: 1fr 1fr; } }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item active" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Métricas</div>
+    </div>
+    <div class="topbar-actions">
+      <select class="filter-select" onchange="cambiarPeriodo(this.value)">
+        <option value="mes">Este mes</option>
+        <option value="trimestre">Último trimestre</option>
+        <option value="anio">Este año</option>
+        <option value="total">Total histórico</option>
+      </select>
+      <button class="btn-export">
+        <i class="ti ti-download"></i>
+        <span>Exportar</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-heart" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+18%</span>
+        </div>
+        <div class="kpi-num">47</div>
+        <div class="kpi-label">Donaciones realizadas</div>
+        <div class="kpi-sub">vs 40 el mes anterior</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-speakerphone" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+2</span>
+        </div>
+        <div class="kpi-num">3</div>
+        <div class="kpi-label">Campañas activas</div>
+        <div class="kpi-sub">7 campañas en total</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-target" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+5%</span>
+        </div>
+        <div class="kpi-num">78%</div>
+        <div class="kpi-label">Efectividad promedio</div>
+        <div class="kpi-sub">Turnos confirmados / solicitados</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-users" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend down"><i class="ti ti-arrow-down" style="font-size:10px;"></i>-3</span>
+        </div>
+        <div class="kpi-num">124</div>
+        <div class="kpi-label">Donantes registrados</div>
+        <div class="kpi-sub">vs 127 el mes anterior</div>
+      </div>
+    </div>
+
+    <!-- DONACIONES POR MES + DONA POR DÍA -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Donaciones por mes</div>
+            <div class="chart-sub">Últimos 6 meses</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#ef647c;"></div>Donaciones</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f28b98;"></div>Turnos solicitados</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="chart-donaciones"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Estado de turnos</div>
+            <div class="chart-sub">Este mes</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:180px;">
+          <canvas id="chart-estados"></canvas>
+        </div>
+        <div class="chart-legend" style="margin-top:12px;justify-content:center;">
+          <div class="legend-item"><div class="legend-dot" style="background:#27ae60;"></div>Confirmados</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e67e22;"></div>Pendientes</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#c0392b;"></div>Cancelados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EFECTIVIDAD POR CAMPAÑA + TIPOS DE SANGRE + DONANTES POR DÍA -->
+    <div class="charts-row-3">
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Efectividad por campaña</div>
+            <div class="chart-sub">Donaciones / cupo objetivo</div>
+          </div>
+        </div>
+        <div class="campanas-table">
+          <div class="camp-row">
+            <div class="camp-info">
+              <div class="camp-name">Campaña pediátrica</div>
+              <div class="camp-meta">7 de 10 cupos · Urgente</div>
+            </div>
+            <div class="camp-efectividad">
+              <div class="efectividad-num">70%</div>
+              <div class="efectividad-bar"><div class="efectividad-fill" style="width:70%;"></div></div>
+            </div>
+          </div>
+          <div class="camp-row">
+            <div class="camp-info">
+              <div class="camp-name">Banco tipo A</div>
+              <div class="camp-meta">4 de 10 cupos</div>
+            </div>
+            <div class="camp-efectividad">
+              <div class="efectividad-num">40%</div>
+              <div class="efectividad-bar"><div class="efectividad-fill" style="width:40%;"></div></div>
+            </div>
+          </div>
+          <div class="camp-row">
+            <div class="camp-info">
+              <div class="camp-name">Reserva general mayo</div>
+              <div class="camp-meta">2 de 8 cupos</div>
+            </div>
+            <div class="camp-efectividad">
+              <div class="efectividad-num">25%</div>
+              <div class="efectividad-bar"><div class="efectividad-fill" style="width:25%;"></div></div>
+            </div>
+          </div>
+          <div class="camp-row">
+            <div class="camp-info">
+              <div class="camp-name">Campaña abril — tipo O</div>
+              <div class="camp-meta">10 de 10 cupos · Cerrada</div>
+            </div>
+            <div class="camp-efectividad">
+              <div class="efectividad-num" style="color:#27ae60;">100%</div>
+              <div class="efectividad-bar"><div class="efectividad-fill" style="width:100%;background:#27ae60;"></div></div>
+            </div>
+          </div>
+          <div class="camp-row">
+            <div class="camp-info">
+              <div class="camp-name">Campaña marzo — general</div>
+              <div class="camp-meta">6 de 8 cupos · Cerrada</div>
+            </div>
+            <div class="camp-efectividad">
+              <div class="efectividad-num">75%</div>
+              <div class="efectividad-bar"><div class="efectividad-fill" style="width:75%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Donaciones por tipo de sangre</div>
+            <div class="chart-sub">Acumulado histórico</div>
+          </div>
+        </div>
+        <div class="sangre-list">
+          <div class="sangre-row">
+            <div class="sangre-tipo">0+</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:85%;"></div></div>
+            <div class="sangre-count">34</div>
+          </div>
+          <div class="sangre-row">
+            <div class="sangre-tipo">A+</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:70%;"></div></div>
+            <div class="sangre-count">28</div>
+          </div>
+          <div class="sangre-row">
+            <div class="sangre-tipo">0-</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:55%;"></div></div>
+            <div class="sangre-count">22</div>
+          </div>
+          <div class="sangre-row">
+            <div class="sangre-tipo">B+</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:40%;"></div></div>
+            <div class="sangre-count">16</div>
+          </div>
+          <div class="sangre-row">
+            <div class="sangre-tipo">AB+</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:25%;"></div></div>
+            <div class="sangre-count">10</div>
+          </div>
+          <div class="sangre-row">
+            <div class="sangre-tipo">A-</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:20%;"></div></div>
+            <div class="sangre-count">8</div>
+          </div>
+          <div class="sangre-row">
+            <div class="sangre-tipo">B-</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:12%;"></div></div>
+            <div class="sangre-count">5</div>
+          </div>
+          <div class="sangre-row">
+            <div class="sangre-tipo">AB-</div>
+            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:8%;"></div></div>
+            <div class="sangre-count">3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Donantes por día de la semana</div>
+            <div class="chart-sub">Promedio del último mes</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="chart-dias"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // CHART — Donaciones por mes
+  const ctx1 = document.getElementById('chart-donaciones').getContext('2d');
+  new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: ['Dic', 'Ene', 'Feb', 'Mar', 'Abr', 'May'],
+      datasets: [
+        {
+          label: 'Donaciones',
+          data: [28, 32, 35, 38, 40, 47],
+          backgroundColor: '#ef647c',
+          borderRadius: 6,
+          borderSkipped: false,
+        },
+        {
+          label: 'Solicitados',
+          data: [35, 40, 42, 45, 50, 60],
+          backgroundColor: '#fdf0f3',
+          borderRadius: 6,
+          borderSkipped: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#a9435d' } },
+        y: { grid: { color: '#f0e0e6' }, ticks: { font: { size: 11 }, color: '#a9435d' } }
+      }
+    }
+  });
+
+  // CHART — Estados (donut)
+  const ctx2 = document.getElementById('chart-estados').getContext('2d');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Confirmados', 'Pendientes', 'Cancelados'],
+      datasets: [{
+        data: [47, 8, 5],
+        backgroundColor: ['#27ae60', '#e67e22', '#c0392b'],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // CHART — Donantes por día
+  const ctx3 = document.getElementById('chart-dias').getContext('2d');
+  new Chart(ctx3, {
+    type: 'bar',
+    data: {
+      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+      datasets: [{
+        data: [4, 9, 8, 7, 6, 2, 0],
+        backgroundColor: ['#fdf0f3','#ef647c','#ef647c','#ef647c','#ef647c','#f28b98','#fdf0f3'],
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#a9435d' } },
+        y: { grid: { color: '#f0e0e6' }, ticks: { font: { size: 11 }, color: '#a9435d', stepSize: 2 } }
+      }
+    }
+  });
+
+  function cambiarPeriodo(periodo) { /* actualizar datos según periodo */ }
+
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

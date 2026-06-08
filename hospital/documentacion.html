@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Documentación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 24px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+    .tab.active { background: #5a1e37; color: white; }
+    .tab:hover:not(.active) { background: #fdf0f3; }
+    .tab-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; }
+    .tab.active .tab-badge { background: rgba(255,255,255,0.3); }
+
+    /* BANNER PENDIENTES */
+    .pendientes-banner { background: #5a1e37; border-radius: 14px; padding: 18px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .pb-left { display: flex; align-items: center; gap: 14px; }
+    .pb-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pb-title { font-size: 15px; font-weight: 500; color: white; margin-bottom: 2px; }
+    .pb-sub { font-size: 12px; color: #f28b98; }
+
+    /* TABLA */
+    .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .table-header { display: grid; gap: 0; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
+    .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
+    .doc-row { display: grid; gap: 0; padding: 16px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; transition: background 0.1s; }
+    .doc-row:last-child { border-bottom: none; }
+    .doc-row:hover { background: #fdf0f3; }
+    .donante-info { display: flex; align-items: center; gap: 10px; }
+    .donante-avatar { width: 34px; height: 34px; border-radius: 50%; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
+    .donante-nombre { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .donante-sub { font-size: 11px; color: #a9435d; }
+    .td { font-size: 13px; color: #5a3040; }
+    .doc-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-pendiente { background: #faeeda; color: #412402; }
+    .badge-cargado { background: #e1f5ee; color: #04342c; }
+    .badge-solicitado { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-xs { padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; display: flex; align-items: center; gap: 5px; }
+    .btn-xs-primary { background: #ef647c; color: white; }
+    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+
+    /* MODAL CARGAR RESULTADO */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 20px 24px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .modal-close { background: none; border: none; cursor: pointer; color: #a9435d; font-size: 20px; }
+    .modal-body { padding: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-hint { font-size: 11px; color: #a9435d; margin-top: 4px; }
+    .donante-card { background: #fdf0f3; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; border: 0.5px solid #f28b98; }
+    .modal-actions { display: flex; gap: 10px; padding: 16px 24px; border-top: 0.5px solid #e8d0d8; }
+    .btn-save { flex: 1; background: #ef647c; color: white; border: none; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-cancel { flex: 1; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+    /* MODAL EMITIR CERTIFICADO */
+    .cert-preview { background: #3d0f20; border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; }
+    .cert-preview-text { font-size: 13px; color: #f28b98; line-height: 1.6; }
+    .cert-preview-text strong { color: white; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) {
+      .table-header, .doc-row { grid-template-columns: 1.5fr 1fr 1fr 120px !important; }
+      .td.hide-md { display: none; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .table-header { display: none; }
+      .doc-row { grid-template-columns: 1fr !important; gap: 8px; }
+      .td.hide-sm { display: none; }
+      .row-actions { justify-content: flex-start; }
+      .pendientes-banner { flex-direction: column; align-items: flex-start; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item active" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item" href="../hospital/facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Documentación</div>
+    </div>
+    <div class="topbar-btn">
+      <i class="ti ti-bell" style="font-size:18px;"></i>
+      <div class="notif-dot"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="tabs">
+      <button class="tab active" onclick="cambiarTab('resultados', this)">
+        <i class="ti ti-test-pipe" style="font-size:14px;"></i>Resultados de análisis
+        <span class="tab-badge">3</span>
+      </button>
+      <button class="tab" onclick="cambiarTab('certificados', this)">
+        <i class="ti ti-certificate" style="font-size:14px;"></i>Certificados
+        <span class="tab-badge">2</span>
+      </button>
+    </div>
+
+    <!-- TAB RESULTADOS -->
+    <div id="tab-resultados">
+      <div class="pendientes-banner">
+        <div class="pb-left">
+          <div class="pb-icon">
+            <i class="ti ti-test-pipe" style="color:white;font-size:20px;"></i>
+          </div>
+          <div>
+            <div class="pb-title">3 resultados pendientes de carga</div>
+            <div class="pb-sub">Donaciones realizadas que aún no tienen resultado de análisis cargado</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="th">Donante</div>
+          <div class="th">Campaña</div>
+          <div class="th hide-md">Fecha donación</div>
+          <div class="th">Estado</div>
+          <div class="th"></div>
+        </div>
+
+        <!-- Pendientes -->
+        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="donante-info">
+            <div class="donante-avatar">CM</div>
+            <div>
+              <div class="donante-nombre">Carlos Méndez</div>
+              <div class="donante-sub">DNI 29.654.321</div>
+            </div>
+          </div>
+          <div class="td">Campaña pediátrica</div>
+          <div class="td hide-md">19 may 2026</div>
+          <div class="td"><span class="doc-badge badge-pendiente">Pendiente</span></div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-primary" onclick="abrirModalResultado()">
+              <i class="ti ti-upload" style="font-size:11px;"></i>Cargar resultado
+            </button>
+          </div>
+        </div>
+
+        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="donante-info">
+            <div class="donante-avatar">SP</div>
+            <div>
+              <div class="donante-nombre">Sofía Páez</div>
+              <div class="donante-sub">DNI 12.345.678</div>
+            </div>
+          </div>
+          <div class="td">Campaña pediátrica</div>
+          <div class="td hide-md">20 may 2026</div>
+          <div class="td"><span class="doc-badge badge-pendiente">Pendiente</span></div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-primary" onclick="abrirModalResultado()">
+              <i class="ti ti-upload" style="font-size:11px;"></i>Cargar resultado
+            </button>
+          </div>
+        </div>
+
+        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="donante-info">
+            <div class="donante-avatar">AR</div>
+            <div>
+              <div class="donante-nombre">Ana Rodríguez</div>
+              <div class="donante-sub">DNI 35.789.012</div>
+            </div>
+          </div>
+          <div class="td">Banco tipo A</div>
+          <div class="td hide-md">18 may 2026</div>
+          <div class="td"><span class="doc-badge badge-pendiente">Pendiente</span></div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-primary" onclick="abrirModalResultado()">
+              <i class="ti ti-upload" style="font-size:11px;"></i>Cargar resultado
+            </button>
+          </div>
+        </div>
+
+        <!-- Cargados -->
+        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="donante-info">
+            <div class="donante-avatar">ML</div>
+            <div>
+              <div class="donante-nombre">María López</div>
+              <div class="donante-sub">DNI 28.456.789</div>
+            </div>
+          </div>
+          <div class="td">Reserva general</div>
+          <div class="td hide-md">15 may 2026</div>
+          <div class="td"><span class="doc-badge badge-cargado">Cargado</span></div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-outline">
+              <i class="ti ti-eye" style="font-size:11px;"></i>Ver
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB CERTIFICADOS -->
+    <div id="tab-certificados" style="display:none;">
+      <div class="pendientes-banner">
+        <div class="pb-left">
+          <div class="pb-icon">
+            <i class="ti ti-certificate" style="color:white;font-size:20px;"></i>
+          </div>
+          <div>
+            <div class="pb-title">2 certificados solicitados por donantes</div>
+            <div class="pb-sub">Los donantes están esperando que emitas su certificado de donación</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="th">Donante</div>
+          <div class="th">Emitido para</div>
+          <div class="th hide-md">Fecha donación</div>
+          <div class="th">Estado</div>
+          <div class="th"></div>
+        </div>
+
+        <!-- Solicitados -->
+        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="donante-info">
+            <div class="donante-avatar">SP</div>
+            <div>
+              <div class="donante-nombre">Sofía Páez</div>
+              <div class="donante-sub">DNI 12.345.678</div>
+            </div>
+          </div>
+          <div class="td">Ministerio de Salud CABA</div>
+          <div class="td hide-md">20 may 2026</div>
+          <div class="td"><span class="doc-badge badge-solicitado">Solicitado</span></div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-primary" onclick="abrirModalCertificado()">
+              <i class="ti ti-certificate" style="font-size:11px;"></i>Emitir
+            </button>
+          </div>
+        </div>
+
+        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="donante-info">
+            <div class="donante-avatar">CM</div>
+            <div>
+              <div class="donante-nombre">Carlos Méndez</div>
+              <div class="donante-sub">DNI 29.654.321</div>
+            </div>
+          </div>
+          <div class="td">Aysa SA</div>
+          <div class="td hide-md">19 may 2026</div>
+          <div class="td"><span class="doc-badge badge-solicitado">Solicitado</span></div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-primary" onclick="abrirModalCertificado()">
+              <i class="ti ti-certificate" style="font-size:11px;"></i>Emitir
+            </button>
+          </div>
+        </div>
+
+        <!-- Emitidos -->
+        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+          <div class="donante-info">
+            <div class="donante-avatar">ML</div>
+            <div>
+              <div class="donante-nombre">María López</div>
+              <div class="donante-sub">DNI 28.456.789</div>
+            </div>
+          </div>
+          <div class="td">Hospital San Martín</div>
+          <div class="td hide-md">15 may 2026</div>
+          <div class="td"><span class="doc-badge badge-cargado">Emitido</span></div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-outline">
+              <i class="ti ti-download" style="font-size:11px;"></i>Descargar
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL CARGAR RESULTADO -->
+<div class="modal-overlay" id="modal-resultado">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Cargar resultado de análisis</div>
+      <button class="modal-close" onclick="cerrarModal('modal-resultado')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="donante-card">
+        <div class="donante-avatar">CM</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">Carlos Méndez</div>
+          <div style="font-size:12px;color:#a9435d;">Campaña pediátrica · 19 may 2026</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Profesional que realizó el análisis</label>
+        <select class="form-input">
+          <option value="" disabled selected>Seleccioná un profesional</option>
+          <option>Dr. Carlos Méndez</option>
+          <option>Dra. Ana Rodríguez</option>
+          <option>Dr. Luis Fernández</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Resultado general</label>
+          <select class="form-input">
+            <option selected>Apto para donar</option>
+            <option>No apto — observaciones</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Volumen donado (ml)</label>
+          <input class="form-input" type="number" value="450">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Archivo del resultado <span style="font-weight:400;color:#a9435d;">(PDF)</span></label>
+        <input class="form-input" type="file" accept=".pdf" style="padding:8px 14px;cursor:pointer;">
+        <p class="form-hint">El donante recibirá una notificación cuando el resultado esté disponible.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+        <textarea class="form-input" style="resize:vertical;min-height:70px;" placeholder="Alguna observación clínica relevante..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal('modal-resultado')">Cancelar</button>
+      <button class="btn-save" onclick="cerrarModal('modal-resultado')">Cargar resultado</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EMITIR CERTIFICADO -->
+<div class="modal-overlay" id="modal-certificado">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Emitir certificado de donación</div>
+      <button class="modal-close" onclick="cerrarModal('modal-certificado')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="donante-card">
+        <div class="donante-avatar">SP</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">Sofía Páez · DNI 12.345.678</div>
+          <div style="font-size:12px;color:#a9435d;">Donación del 20 may 2026 · Campaña pediátrica</div>
+        </div>
+      </div>
+
+      <div class="cert-preview">
+        <div class="cert-preview-text">
+          Se certifica que <strong>Sofía Páez</strong>, DNI <strong>12.345.678</strong>, realizó una donación voluntaria de sangre en <strong>Hospital Ramos Mejía</strong> el <strong>20 de mayo de 2026</strong>, emitido para <strong>Ministerio de Salud CABA</strong>.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Emitido para</label>
+        <input class="form-input" type="text" value="Ministerio de Salud CABA">
+        <p class="form-hint">El donante solicitó este nombre. Podés modificarlo si hay un error.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Profesional firmante</label>
+        <select class="form-input">
+          <option selected>Dr. Carlos Méndez</option>
+          <option>Dra. Ana Rodríguez</option>
+        </select>
+      </div>
+
+      <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;display:flex;gap:8px;align-items:flex-start;">
+        <i class="ti ti-info-circle" style="color:#ef647c;font-size:16px;flex-shrink:0;margin-top:1px;"></i>
+        <p style="font-size:12px;color:#5a3040;line-height:1.5;">Al emitir el certificado, el donante recibirá una notificación y podrá descargarlo desde su cuenta.</p>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal('modal-certificado')">Cancelar</button>
+      <button class="btn-save" onclick="cerrarModal('modal-certificado')">Emitir certificado</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cambiarTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-resultados').style.display = tab === 'resultados' ? 'block' : 'none';
+    document.getElementById('tab-certificados').style.display = tab === 'certificados' ? 'block' : 'none';
+  }
+  function abrirModalResultado() {
+    document.getElementById('modal-resultado').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function abrirModalCertificado() {
+    document.getElementById('modal-certificado').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarModal(id) {
+    document.getElementById(id).classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

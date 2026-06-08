@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Dashboard Donante</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-info { overflow: hidden; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+    .sidebar-footer { padding: 16px 12px; border-top: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-alert { background: rgba(239,100,124,0.15); border: 1px solid rgba(239,100,124,0.3); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+    .sidebar-alert-title { font-size: 12px; font-weight: 500; color: #f28b98; margin-bottom: 4px; }
+    .sidebar-alert-text { font-size: 11px; color: rgba(242,139,152,0.8); line-height: 1.4; }
+    .sidebar-alert-btn { display: block; background: #ef647c; color: white; border: none; padding: 7px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; text-align: center; margin-top: 8px; font-family: 'Inter', sans-serif; text-decoration: none; width: 100%; }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+
+    /* BIENVENIDA */
+    .welcome { margin-bottom: 28px; }
+    .welcome h1 { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .welcome p { font-size: 14px; color: #5a3040; }
+
+    /* STATS RÁPIDAS */
+    .quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    .qstat { background: white; border-radius: 12px; padding: 20px; border: 0.5px solid #e8d0d8; display: flex; align-items: center; gap: 14px; }
+    .qstat-icon { width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .qstat-body { }
+    .qstat-num { font-size: 24px; font-weight: 500; color: #5a1e37; }
+    .qstat-label { font-size: 12px; color: #5a3040; margin-top: 2px; }
+
+    /* BUSCADOR */
+    .search-section { background: white; border-radius: 16px; padding: 28px; border: 0.5px solid #e8d0d8; margin-bottom: 24px; }
+    .search-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .search-subtitle { font-size: 13px; color: #5a3040; margin-bottom: 20px; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+    .search-input-wrap { flex: 1; position: relative; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a9435d; font-size: 16px; }
+    .search-input { width: 100%; padding: 11px 14px 11px 38px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; }
+    .search-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .search-input::placeholder { color: #c994a4; }
+    .search-btn { background: #ef647c; color: white; border: none; padding: 11px 20px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .search-btn:hover { background: #d4537e; }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; }
+    .filter-select { padding: 8px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+    .filter-select:focus { border-color: #ef647c; }
+
+    /* CAMPAÑAS */
+    .campaigns-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .campaigns-title { font-size: 15px; font-weight: 500; color: #5a1e37; }
+    .campaigns-count { font-size: 13px; color: #a9435d; }
+    .campaigns-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .campaign-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; transition: border-color 0.15s; cursor: pointer; }
+    .campaign-card:hover { border-color: #ef647c; }
+    .campaign-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .campaign-hospital { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .campaign-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .campaign-badge.urgente { background: #fde8e8; color: #c0392b; }
+    .campaign-badge.activa { background: #e1f5ee; color: #04342c; }
+    .campaign-tipo { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .tipo-badge { display: inline-flex; align-items: center; gap: 4px; background: #fdf0f3; border: 0.5px solid #f28b98; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 500; color: #782b46; }
+    .campaign-info { display: flex; gap: 16px; margin-bottom: 14px; }
+    .campaign-info-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #5a3040; }
+    .campaign-desc { font-size: 12px; color: #5a3040; line-height: 1.5; margin-bottom: 14px; }
+    .campaign-footer { display: flex; align-items: center; justify-content: space-between; }
+    .campaign-spots { font-size: 12px; color: #a9435d; }
+    .campaign-btn { background: #ef647c; color: white; border: none; padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .campaign-btn:hover { background: #d4537e; }
+    .progress-bar { height: 4px; background: #fdf0f3; border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #ef647c; border-radius: 2px; }
+
+    /* PRÓXIMO TURNO */
+    .proximo-turno { background: #5a1e37; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .pt-left { display: flex; align-items: center; gap: 14px; }
+    .pt-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pt-title { font-size: 13px; color: #f28b98; margin-bottom: 3px; }
+    .pt-value { font-size: 15px; font-weight: 500; color: white; }
+    .pt-btn { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+
+    /* MOBILE OVERLAY */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; margin-bottom: 4px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .campaigns-grid { grid-template-columns: 1fr; }
+      .quick-stats { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; flex-direction: column; }
+      .content { padding: 20px; }
+      .quick-stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .qstat:last-child { grid-column: span 2; }
+      .search-bar { flex-direction: column; }
+      .proximo-turno { flex-direction: column; align-items: flex-start; gap: 12px; }
+    }
+    @media (max-width: 480px) {
+      .quick-stats { grid-template-columns: 1fr; }
+      .qstat:last-child { grid-column: span 1; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/donante.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SP</div>
+    <div class="sidebar-user-info">
+      <div class="sidebar-user-name"><span data-sesion-nombre>Sofía Páez</span></div>
+      <div class="sidebar-user-role">Donante</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item active" href="../donante/dashboard.html">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      Buscar campañas
+    </a>
+    <a class="nav-item" href="../donante/mis_turnos.html">
+      <i class="ti ti-calendar" aria-hidden="true"></i>
+      Mis turnos
+    </a>
+    <a class="nav-item" href="../donante/mis_turnos.html">
+      <i class="ti ti-heart" aria-hidden="true"></i>
+      Mis donaciones
+    </a>
+    <a class="nav-item" href="../donante/mis_documentos.html">
+      <i class="ti ti-file-text" aria-hidden="true"></i>
+      Mis documentos
+    </a>
+
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../donante/perfil.html">
+      <i class="ti ti-user" aria-hidden="true"></i>
+      Mi perfil
+    </a>
+    <a class="nav-item" href="../donante/notificaciones.html">
+      <i class="ti ti-bell" aria-hidden="true"></i>
+      Notificaciones
+    </a>
+    <a class="nav-item" href="../publico/login.html">
+      <i class="ti ti-logout" aria-hidden="true"></i>
+      Cerrar sesión
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-alert">
+      <div class="sidebar-alert-title">⚠️ Perfil incompleto</div>
+      <div class="sidebar-alert-text">Completá tu tipo de sangre para ver campañas compatibles.</div>
+      <a class="sidebar-alert-btn" href="../donante/perfil.html">Completar perfil</a>
+    </div>
+  </div>
+</aside>
+
+<!-- OVERLAY MOBILE -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title">Buscar campañas</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-btn">
+        <i class="ti ti-bell" style="font-size:18px;" aria-hidden="true"></i>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="topbar-btn">
+        <i class="ti ti-user" style="font-size:18px;" aria-hidden="true"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- BIENVENIDA -->
+    <div class="welcome">
+      <h1>¡Hola, Sofía! 👋</h1>
+      <p>Encontrá una campaña activa y reservá tu turno.</p>
+    </div>
+
+    <!-- STATS RÁPIDAS -->
+    <div class="quick-stats">
+      <div class="qstat">
+        <div class="qstat-icon" style="background:#fdf0f3;">
+          <i class="ti ti-heart" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div class="qstat-body">
+          <div class="qstat-num">3</div>
+          <div class="qstat-label">Donaciones realizadas</div>
+        </div>
+      </div>
+      <div class="qstat">
+        <div class="qstat-icon" style="background:#fdf0f3;">
+          <i class="ti ti-calendar-check" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div class="qstat-body">
+          <div class="qstat-num">1</div>
+          <div class="qstat-label">Turno próximo</div>
+        </div>
+      </div>
+      <div class="qstat">
+        <div class="qstat-icon" style="background:#fdf0f3;">
+          <i class="ti ti-users" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div class="qstat-body">
+          <div class="qstat-num">12</div>
+          <div class="qstat-label">Vidas ayudadas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRÓXIMO TURNO -->
+    <div class="proximo-turno">
+      <div class="pt-left">
+        <div class="pt-icon">
+          <i class="ti ti-calendar" style="color:white;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="pt-title">Próximo turno confirmado</div>
+          <div class="pt-value">Martes 20 de mayo · 10:00hs · Hospital Ramos Mejía</div>
+        </div>
+      </div>
+      <button class="pt-btn">Ver detalles</button>
+    </div>
+
+    <!-- BUSCADOR -->
+    <div class="search-section">
+      <div class="search-title">Campañas activas</div>
+      <div class="search-subtitle">Buscá por hospital, tipo de sangre o ubicación</div>
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <i class="ti ti-search search-icon" aria-hidden="true"></i>
+          <input class="search-input" type="text" placeholder="Hospital, campaña o ciudad...">
+        </div>
+        <button class="search-btn">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          Buscar
+        </button>
+      </div>
+      <div class="filters">
+        <select class="filter-select">
+          <option value="">Tipo de sangre</option>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option>
+          <option>0+</option><option>0-</option>
+        </select>
+        <select class="filter-select">
+          <option value="">Provincia</option>
+          <option>Buenos Aires</option>
+          <option>CABA</option>
+          <option>Córdoba</option>
+          <option>Santa Fe</option>
+          <option>Mendoza</option>
+        </select>
+        <select class="filter-select">
+          <option value="">Urgencia</option>
+          <option>Urgente</option>
+          <option>Normal</option>
+        </select>
+        <select class="filter-select">
+          <option value="">Ordenar por</option>
+          <option>Más recientes</option>
+          <option>Más urgentes</option>
+          <option>Más cercanas</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div class="campaigns-header">
+      <div class="campaigns-title">Resultados</div>
+      <div class="campaigns-count">4 campañas encontradas</div>
+    </div>
+    <div class="campaigns-grid">
+
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-hospital">Hospital Ramos Mejía</div>
+          <span class="campaign-badge urgente">Urgente</span>
+        </div>
+        <div class="campaign-tipo">
+          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>0-</span>
+          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>0+</span>
+        </div>
+        <div class="campaign-info">
+          <div class="campaign-info-item">
+            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
+            CABA
+          </div>
+          <div class="campaign-info-item">
+            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
+            Vence 20 may
+          </div>
+        </div>
+        <div class="campaign-desc">Paciente pediátrico requiere donaciones urgentes de sangre tipo 0 para cirugía programada.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
+        <div class="campaign-footer">
+          <div class="campaign-spots">7 de 10 turnos cubiertos</div>
+          <button class="campaign-btn">Reservar turno</button>
+        </div>
+      </div>
+
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-hospital">Hospital Garrahan</div>
+          <span class="campaign-badge activa">Activa</span>
+        </div>
+        <div class="campaign-tipo">
+          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>A+</span>
+          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>A-</span>
+        </div>
+        <div class="campaign-info">
+          <div class="campaign-info-item">
+            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
+            CABA
+          </div>
+          <div class="campaign-info-item">
+            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
+            Vence 30 may
+          </div>
+        </div>
+        <div class="campaign-desc">Campaña de banco de sangre general. Se necesitan donantes de tipo A para reserva hospitalaria.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:40%;"></div></div>
+        <div class="campaign-footer">
+          <div class="campaign-spots">4 de 10 turnos cubiertos</div>
+          <button class="campaign-btn">Reservar turno</button>
+        </div>
+      </div>
+
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-hospital">Hospital San Martín</div>
+          <span class="campaign-badge activa">Activa</span>
+        </div>
+        <div class="campaign-tipo">
+          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>B+</span>
+        </div>
+        <div class="campaign-info">
+          <div class="campaign-info-item">
+            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
+            La Plata
+          </div>
+          <div class="campaign-info-item">
+            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
+            Vence 25 may
+          </div>
+        </div>
+        <div class="campaign-desc">Paciente adulto con anemia severa. Se solicitan donantes de tipo B positivo con urgencia moderada.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:20%;"></div></div>
+        <div class="campaign-footer">
+          <div class="campaign-spots">2 de 8 turnos cubiertos</div>
+          <button class="campaign-btn">Reservar turno</button>
+        </div>
+      </div>
+
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-hospital">Hospital Italiano</div>
+          <span class="campaign-badge activa">Activa</span>
+        </div>
+        <div class="campaign-tipo">
+          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>AB+</span>
+          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>AB-</span>
+        </div>
+        <div class="campaign-info">
+          <div class="campaign-info-item">
+            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
+            CABA
+          </div>
+          <div class="campaign-info-item">
+            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
+            Vence 1 jun
+          </div>
+        </div>
+        <div class="campaign-desc">Campaña de banco de sangre para tipo AB. Donantes de cualquier subtipo bienvenidos.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:55%;"></div></div>
+        <div class="campaign-footer">
+          <div class="campaign-spots">6 de 12 turnos cubiertos</div>
+          <button class="campaign-btn">Reservar turno</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('donante');
+    await HemoRed.data.cargarDashboardDonante();
+  });
+</script>
+</body>
+</html>

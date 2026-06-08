@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "nombre": "DNI",
+    "descripcion": "Documento Nacional de Identidad"
+  },
+  {
+    "id": 2,
+    "nombre": "Pasaporte",
+    "descripcion": "Pasaporte internacional"
+  },
+  {
+    "id": 3,
+    "nombre": "LC",
+    "descripcion": "Libreta Cívica"
+  },
+  {
+    "id": 4,
+    "nombre": "LE",
+    "descripcion": "Libreta de Enrolamiento"
+  },
+  {
+    "id": 5,
+    "nombre": "CE",
+    "descripcion": "Cédula de Extranjero"
+  }
+]

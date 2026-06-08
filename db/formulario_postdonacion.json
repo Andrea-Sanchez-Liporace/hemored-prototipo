@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "numero_bolsa": "BLS-2026-0821",
+    "token": "A74K9M",
+    "token_expira_en": "2026-05-18T09:25:00",
+    "token_usado": true,
+    "usar_para_transfusion": true,
+    "motivo_descarte": null,
+    "completado_en": "2026-05-17T09:48:00"
+  },
+  {
+    "id": 2,
+    "numero_bolsa": "BLS-2026-0834",
+    "token": "B85L2N",
+    "token_expira_en": "2026-05-18T10:25:00",
+    "token_usado": false,
+    "usar_para_transfusion": null,
+    "motivo_descarte": null,
+    "completado_en": null
+  }
+]

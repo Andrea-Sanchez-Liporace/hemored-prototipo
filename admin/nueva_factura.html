@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed Admin — Nueva factura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #1a1a2e; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: #f28b98; margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .sidebar-user { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+    .nav-item.active .nav-badge { background: rgba(255,255,255,0.3); }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,0.25); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #999; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-back:hover { color: #1a1a1a; }
+    .topbar-sep { color: #e0e0e0; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+    .page-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; max-width: 1000px; }
+
+    /* FORM */
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e0e0e0; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-label { font-size: 13px; font-weight: 500; color: #1a1a2e; margin-bottom: 6px; display: block; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 9px; font-size: 14px; color: #1a1a1a; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; }
+    .form-input:focus { border-color: #1a1a2e; box-shadow: 0 0 0 3px rgba(26,26,46,0.08); }
+    .form-input:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
+    .form-hint { font-size: 11px; color: #999; margin-top: 4px; }
+    select.form-input { cursor: pointer; }
+
+    /* PREVIEW FACTURA */
+    .preview { background: white; border-radius: 14px; border: 0.5px solid #e0e0e0; overflow: hidden; }
+    .preview-header { background: #1a1a2e; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .preview-logo { font-family: 'Lobster', cursive; font-size: 20px; color: white; }
+    .preview-logo span { color: #f28b98; }
+    .preview-tag { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: .1em; }
+    .preview-body { padding: 24px; }
+    .preview-row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 0.5px solid #f0f0f0; }
+    .preview-row:last-child { border-bottom: none; }
+    .preview-label { color: #999; }
+    .preview-value { font-weight: 500; color: #1a1a2e; }
+    .preview-total { background: #f5f5f5; border-radius: 10px; padding: 14px 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .preview-total-label { font-size: 14px; font-weight: 500; color: #1a1a2e; }
+    .preview-total-value { font-size: 22px; font-weight: 500; color: #1a1a2e; }
+
+    /* ACCIONES */
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    .btn-primary { background: #1a1a2e; color: white; border: none; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: #2d2d4e; }
+    .btn-secondary { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+    /* SUCCESS */
+    .success-view { display: none; text-align: center; padding: 48px 32px; background: white; border-radius: 16px; border: 0.5px solid #e0e0e0; max-width: 480px; }
+    .success-view.active { display: block; }
+    .success-icon { width: 72px; height: 72px; border-radius: 50%; background: #1a1a2e; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .success-title { font-size: 22px; font-weight: 500; color: #1a1a2e; margin-bottom: 10px; }
+    .success-text { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 24px; }
+    .btn-volver { background: #1a1a2e; color: white; border: none; padding: 12px 28px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) { .page-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-actions { flex-direction: column; }
+      .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/admin.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../admin/dashboard.html">Hemo<span>red</span></a>
+    <div class="sidebar-badge"><i class="ti ti-shield" style="font-size:10px;"></i>Super Admin</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SA</div>
+    <div>
+      <div class="sidebar-user-name">Admin HemoRed</div>
+      <div class="sidebar-user-role">Superadministrador</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+    <a class="nav-item active" href="../admin/hospitales.html">
+      <i class="ti ti-building-hospital"></i>Hospitales
+      <span class="nav-badge">4</span>
+    </a>
+    <a class="nav-item" href="../admin/donantes.html"><i class="ti ti-users"></i>Donantes</a>
+    <a class="nav-item" href="../admin/metricas.html"><i class="ti ti-chart-bar"></i>Métricas globales</a>
+    <div class="nav-section-label">Negocio</div>
+    <a class="nav-item" href="../admin/planes.html"><i class="ti ti-star"></i>Planes</a>
+    <a class="nav-item" href="../admin/facturacion.html"><i class="ti ti-receipt"></i>Facturación global</a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-settings"></i>Configuración</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <a class="topbar-back" href="../admin/hospital_detalle.html">
+        <i class="ti ti-arrow-left"></i>Hospital Ramos Mejía
+      </a>
+      <span class="topbar-sep">/</span>
+      <span class="topbar-title">Nueva factura</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="form-view">
+      <div class="page-layout">
+        <div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-building-hospital" style="color:#ef647c;"></i>Hospital</div>
+            <div class="form-group">
+              <label class="form-label">Institución</label>
+              <input class="form-input" type="text" value="Hospital Ramos Mejía" disabled>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Razón social</label>
+                <input class="form-input" type="text" value="Hospital Ramos Mejía SA" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">CUIT</label>
+                <input class="form-input" type="text" value="30-12345678-9" disabled>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Condición IVA</label>
+                <input class="form-input" type="text" value="Responsable inscripto" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email para envío</label>
+                <input class="form-input" type="email" value="facturacion@ramosmejia.gob.ar">
+                <p class="form-hint">Podés modificar el email receptor si es necesario.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-receipt" style="color:#ef647c;"></i>Datos de la factura</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Período facturado</label>
+                <input class="form-input" type="month" value="2026-06" oninput="actualizarPreview()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fecha de emisión</label>
+                <input class="form-input" type="date" value="2026-06-01">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Plan facturado</label>
+                <select class="form-input" onchange="actualizarMonto(this.value)">
+                  <option value="15000" selected>Plan Provincial · $15.000</option>
+                  <option value="25000">Plan Nacional · $25.000</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Condición de pago</label>
+                <select class="form-input">
+                  <option selected>30 días</option>
+                  <option>Contado</option>
+                  <option>60 días</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Subtotal (sin IVA)</label>
+                <input class="form-input" type="number" id="input-subtotal" value="15000" oninput="recalcular()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">IVA (%)</label>
+                <select class="form-input" onchange="recalcular()">
+                  <option value="21" selected>21%</option>
+                  <option value="10.5">10.5%</option>
+                  <option value="0">Exento</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Observaciones <span style="font-weight:400;color:#999;">(opcional)</span></label>
+              <textarea class="form-input" style="resize:vertical;min-height:70px;" placeholder="Notas internas o mensaje para el hospital..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="window.location='../admin/hospital_detalle.html'">Cancelar</button>
+            <button class="btn-primary" onclick="emitirFactura()">
+              <i class="ti ti-send"></i>Emitir y enviar factura
+            </button>
+          </div>
+
+        </div>
+
+        <!-- PREVIEW -->
+        <div>
+          <div class="preview">
+            <div class="preview-header">
+              <div class="preview-logo">Hemo<span>red</span></div>
+              <div class="preview-tag">Factura</div>
+            </div>
+            <div class="preview-body">
+              <div class="preview-row"><span class="preview-label">Nro. de factura</span><span class="preview-value" id="prev-nro">FAC-2026-0004</span></div>
+              <div class="preview-row"><span class="preview-label">Emisión</span><span class="preview-value">01/06/2026</span></div>
+              <div class="preview-row"><span class="preview-label">Período</span><span class="preview-value" id="prev-periodo">Junio 2026</span></div>
+              <div class="preview-row"><span class="preview-label">Hospital</span><span class="preview-value">Hospital Ramos Mejía</span></div>
+              <div class="preview-row"><span class="preview-label">CUIT</span><span class="preview-value">30-12345678-9</span></div>
+              <div class="preview-row"><span class="preview-label">Concepto</span><span class="preview-value" id="prev-plan">Plan Provincial</span></div>
+              <div class="preview-row"><span class="preview-label">Subtotal</span><span class="preview-value" id="prev-sub">$15.000</span></div>
+              <div class="preview-row"><span class="preview-label">IVA 21%</span><span class="preview-value" id="prev-iva">$3.150</span></div>
+              <div class="preview-total">
+                <span class="preview-total-label">Total</span>
+                <span class="preview-total-value" id="prev-total">$18.150</span>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:11px;color:#999;text-align:center;margin-top:10px;line-height:1.5;">La factura se envía por email al hospital y queda registrada en el sistema.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="success-view" class="success-view">
+      <div class="success-icon">
+        <i class="ti ti-check" style="color:white;font-size:32px;"></i>
+      </div>
+      <div class="success-title">Factura emitida</div>
+      <div class="success-text">La factura FAC-2026-0004 fue emitida y enviada a facturacion@ramosmejia.gob.ar. Quedó registrada en el historial de facturación del hospital.</div>
+      <button class="btn-volver" onclick="window.location='../admin/hospital_detalle.html'">
+        <i class="ti ti-arrow-left"></i>Volver al hospital
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function recalcular() {
+    const sub = parseFloat(document.getElementById('input-subtotal').value) || 0;
+    const ivaSelect = document.querySelector('select[onchange="recalcular()"]');
+    const ivaPct = parseFloat(ivaSelect.value);
+    const iva = sub * ivaPct / 100;
+    const total = sub + iva;
+    document.getElementById('prev-sub').textContent = '$' + sub.toLocaleString('es-AR');
+    document.getElementById('prev-iva').textContent = '$' + iva.toLocaleString('es-AR');
+    document.getElementById('prev-total').textContent = '$' + total.toLocaleString('es-AR');
+  }
+
+  function actualizarMonto(val) {
+    document.getElementById('input-subtotal').value = val;
+    const planName = val === '15000' ? 'Plan Provincial' : 'Plan Nacional';
+    document.getElementById('prev-plan').textContent = planName;
+    recalcular();
+  }
+
+  function actualizarPreview() {
+    const val = document.querySelector('input[type="month"]').value;
+    if (val) {
+      const [y, m] = val.split('-');
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      document.getElementById('prev-periodo').textContent = meses[parseInt(m)-1] + ' ' + y;
+    }
+  }
+
+  function emitirFactura() {
+    document.getElementById('form-view').style.display = 'none';
+    document.getElementById('success-view').classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

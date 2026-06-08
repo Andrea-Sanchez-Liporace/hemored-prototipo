@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed Admin — Métricas globales</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #1a1a2e; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 10px; color: #f28b98; margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .sidebar-user { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,0.25); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .filter-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; color: #1a1a1a; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+    .btn-export { background: white; color: #1a1a2e; border: 1.5px solid #e0e0e0; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+
+    /* SECTION TABS */
+    .section-tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e0e0e0; width: fit-content; margin-bottom: 28px; }
+    .stab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #999; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .stab.active { background: #1a1a2e; color: white; }
+    .stab:hover:not(.active) { background: #f5f5f5; }
+
+    /* SECTION */
+    .section { display: none; }
+    .section.active { display: block; }
+    .section-title { font-size: 15px; font-weight: 500; color: #1a1a2e; margin-bottom: 16px; margin-top: 28px; }
+    .section-title:first-child { margin-top: 0; }
+
+    /* KPIs */
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .kpi { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e0e0e0; }
+    .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .kpi-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+    .kpi-trend { font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 20px; }
+    .kpi-trend.up { background: #e1f5ee; color: #27ae60; }
+    .kpi-trend.down { background: #fde8e8; color: #c0392b; }
+    .kpi-num { font-size: 28px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
+    .kpi-label { font-size: 12px; color: #888; }
+    .kpi-sub { font-size: 11px; color: #bbb; margin-top: 2px; }
+
+    /* CHARTS */
+    .charts-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .charts-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+    .chart-card { background: white; border-radius: 14px; padding: 22px; border: 0.5px solid #e0e0e0; }
+    .chart-title { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 3px; }
+    .chart-sub { font-size: 12px; color: #999; margin-bottom: 16px; }
+    .chart-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #555; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* TABLA APERTURA */
+    .apertura-table { width: 100%; }
+    .apt-row { display: grid; gap: 0; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; align-items: center; }
+    .apt-row:last-child { border-bottom: none; }
+    .apt-header { font-size: 11px; font-weight: 500; color: #999; text-transform: uppercase; letter-spacing: .06em; padding-bottom: 8px; border-bottom: 0.5px solid #e0e0e0; margin-bottom: 4px; }
+    .apt-name { font-size: 13px; font-weight: 500; color: #1a1a2e; }
+    .apt-sub { font-size: 11px; color: #999; }
+    .apt-bar { height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .apt-bar-fill { height: 100%; background: #ef647c; border-radius: 2px; }
+    .apt-num { font-size: 13px; font-weight: 500; color: #1a1a2e; text-align: right; }
+    .apt-pct { font-size: 11px; color: #999; text-align: right; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1200px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 1024px) { .charts-2 { grid-template-columns: 1fr; } .charts-3 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .charts-3 { grid-template-columns: 1fr; }
+      .topbar-actions .btn-export span { display: none; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/admin.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../admin/dashboard.html">Hemo<span>red</span></a>
+    <div class="sidebar-badge"><i class="ti ti-shield" style="font-size:10px;"></i>Super Admin</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SA</div>
+    <div>
+      <div class="sidebar-user-name">Admin HemoRed</div>
+      <div class="sidebar-user-role">Superadministrador</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+    <a class="nav-item" href="../admin/hospitales.html"><i class="ti ti-building-hospital"></i>Hospitales<span class="nav-badge">4</span></a>
+    <a class="nav-item" href="../admin/donantes.html"><i class="ti ti-users"></i>Donantes</a>
+    <a class="nav-item active" href="../admin/metricas.html"><i class="ti ti-chart-bar"></i>Métricas globales</a>
+    <div class="nav-section-label">Negocio</div>
+    <a class="nav-item" href="../admin/planes.html"><i class="ti ti-star"></i>Planes</a>
+    <a class="nav-item" href="../admin/facturacion.html"><i class="ti ti-receipt"></i>Facturación global<span class="nav-badge">2</span></a>
+    <div class="nav-section-label">Sistema</div>
+    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-settings"></i>Configuración</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Métricas globales</div>
+    </div>
+    <div class="topbar-actions">
+      <select class="filter-select">
+        <option>Este año</option>
+        <option>Último trimestre</option>
+        <option>Este mes</option>
+        <option>Total histórico</option>
+      </select>
+      <button class="btn-export"><i class="ti ti-download"></i><span>Exportar</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- FILTROS GLOBALES -->
+    <div style="background:white;border-radius:12px;padding:16px 20px;border:0.5px solid #e0e0e0;margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+      <div style="font-size:12px;font-weight:500;color:#999;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;">Filtrar por</div>
+      <input type="text" placeholder="Nombre de institución..." style="padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;font-family:'Inter',sans-serif;width:200px;">
+      <select style="padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;font-family:'Inter',sans-serif;background:white;cursor:pointer;">
+        <option>Tipo: Todos</option>
+        <option>Pública</option>
+        <option>Privada</option>
+      </select>
+      <select style="padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;font-family:'Inter',sans-serif;background:white;cursor:pointer;">
+        <option>Todas las provincias</option>
+        <option>CABA</option>
+        <option>Buenos Aires</option>
+        <option>Córdoba</option>
+        <option>Santa Fe</option>
+        <option>Mendoza</option>
+      </select>
+      <select style="padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;font-family:'Inter',sans-serif;background:white;cursor:pointer;">
+        <option>Todos los planes</option>
+        <option>Plan Provincial</option>
+        <option>Plan Nacional</option>
+      </select>
+      <select style="padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;color:#1a1a1a;outline:none;font-family:'Inter',sans-serif;background:white;cursor:pointer;">
+        <option>Todos los estados</option>
+        <option>Activo</option>
+        <option>Suspendido</option>
+        <option>Inactivo</option>
+      </select>
+      <button style="background:#1a1a2e;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;margin-left:auto;">
+        <i class="ti ti-adjustments-horizontal"></i>Aplicar filtros
+      </button>
+    </div>
+
+    <!-- TABS SECCIONES -->
+    <div class="section-tabs">
+      <button class="stab active" onclick="cambiarSeccion('donaciones', this)">Donaciones</button>
+      <button class="stab" onclick="cambiarSeccion('negocio', this)">Negocio</button>
+      <button class="stab" onclick="cambiarSeccion('facturacion', this)">Facturación</button>
+      <button class="stab" onclick="cambiarSeccion('operacional', this)">Operacional</button>
+    </div>
+
+    <!-- SECCIÓN DONACIONES -->
+    <div class="section active" id="sec-donaciones">
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-heart" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+18%</span></div>
+          <div class="kpi-num">12.847</div><div class="kpi-label">Donaciones totales</div><div class="kpi-sub">en lo que va del año</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-target" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+5%</span></div>
+          <div class="kpi-num">78%</div><div class="kpi-label">Tasa de conversión</div><div class="kpi-sub">turnos → donaciones efectivas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-droplet" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+12%</span></div>
+          <div class="kpi-num">5.781 L</div><div class="kpi-label">Litros donados</div><div class="kpi-sub">~450ml por donación</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-calendar-stats" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+0.3</span></div>
+          <div class="kpi-num">2.1</div><div class="kpi-label">Promedio donaciones</div><div class="kpi-sub">por donante · anual</div>
+        </div>
+      </div>
+
+      <div class="charts-2">
+        <div class="chart-card">
+          <div class="chart-title">Donaciones por mes</div>
+          <div class="chart-sub">Últimos 12 meses</div>
+          <div style="height:220px;"><canvas id="ch-don-mes"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Litros donados por tipo de sangre</div>
+          <div class="chart-sub">Acumulado anual</div>
+          <div style="height:220px;"><canvas id="ch-sangre"></canvas></div>
+        </div>
+      </div>
+
+      <div class="charts-2">
+        <div class="chart-card">
+          <div class="chart-title">Completitud de campañas por mes</div>
+          <div class="chart-sub">% de cupos cubiertos promedio</div>
+          <div style="height:200px;"><canvas id="ch-completitud"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Tasa de cancelación de turnos</div>
+          <div class="chart-sub">Mensual · toda la plataforma</div>
+          <div style="height:200px;"><canvas id="ch-cancelacion"></canvas></div>
+        </div>
+      </div>
+
+      <div class="section-title">Donaciones por provincia</div>
+      <div class="chart-card">
+        <div class="apertura-table">
+          <div class="apt-row apt-header" style="grid-template-columns:2fr 3fr 1fr 1fr;">
+            <div>Provincia</div><div>Distribución</div><div>Donaciones</div><div>% del total</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr;">
+            <div><div class="apt-name">CABA</div><div class="apt-sub">8 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:42%;"></div></div></div>
+            <div class="apt-num">5.396</div><div class="apt-pct">42%</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr;">
+            <div><div class="apt-name">Buenos Aires</div><div class="apt-sub">6 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:28%;"></div></div></div>
+            <div class="apt-num">3.597</div><div class="apt-pct">28%</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr;">
+            <div><div class="apt-name">Córdoba</div><div class="apt-sub">4 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:15%;"></div></div></div>
+            <div class="apt-num">1.927</div><div class="apt-pct">15%</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr;">
+            <div><div class="apt-name">Santa Fe</div><div class="apt-sub">3 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:10%;"></div></div></div>
+            <div class="apt-num">1.285</div><div class="apt-pct">10%</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr;">
+            <div><div class="apt-name">Otras provincias</div><div class="apt-sub">3 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:5%;"></div></div></div>
+            <div class="apt-num">642</div><div class="apt-pct">5%</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECCIÓN NEGOCIO -->
+    <div class="section" id="sec-negocio">
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-cash" style="color:#27ae60;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+12%</span></div>
+          <div class="kpi-num">$432k</div><div class="kpi-label">MRR</div><div class="kpi-sub">ingresos recurrentes mensuales</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fde8e8;"><i class="ti ti-trend-down" style="color:#c0392b;font-size:16px;"></i></div><span class="kpi-trend down"><i class="ti ti-arrow-down" style="font-size:9px;"></i>-1%</span></div>
+          <div class="kpi-num">4.2%</div><div class="kpi-label">Churn mensual</div><div class="kpi-sub">hospitales que cancelaron</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#f0f0ff;"><i class="ti ti-building-hospital" style="color:#5a1e37;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+3</span></div>
+          <div class="kpi-num">24</div><div class="kpi-label">Hospitales activos</div><div class="kpi-sub">15 Provincial · 9 Nacional</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#faeeda;"><i class="ti ti-clock" style="color:#e67e22;font-size:16px;"></i></div><span class="kpi-trend down"><i class="ti ti-arrow-down" style="font-size:9px;"></i>-2 días</span></div>
+          <div class="kpi-num">6 días</div><div class="kpi-label">Tiempo hasta 1ra campaña</div><div class="kpi-sub">desde activación de cuenta</div>
+        </div>
+      </div>
+
+      <div class="charts-2">
+        <div class="chart-card">
+          <div class="chart-title">MRR histórico</div>
+          <div class="chart-sub">Últimos 12 meses</div>
+          <div style="height:220px;"><canvas id="ch-mrr"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Nuevas suscripciones por mes y plan</div>
+          <div class="chart-sub">Provincial vs Nacional</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#1a1a2e;"></div>Provincial</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ef647c;"></div>Nacional</div>
+          </div>
+          <div style="height:180px;"><canvas id="ch-suscripciones"></canvas></div>
+        </div>
+      </div>
+
+      <div class="charts-2">
+        <div class="chart-card">
+          <div class="chart-title">Upgrades y downgrades</div>
+          <div class="chart-sub">Hospitales que cambiaron de plan</div>
+          <div style="height:200px;"><canvas id="ch-upgrades"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Hospitales activos por provincia</div>
+          <div class="chart-sub">Distribución geográfica</div>
+          <div style="height:200px;"><canvas id="ch-pcias"></canvas></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECCIÓN FACTURACIÓN -->
+    <div class="section" id="sec-facturacion">
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-receipt" style="color:#27ae60;font-size:16px;"></i></div></div>
+          <div class="kpi-num">$4.8M</div><div class="kpi-label">Facturado este año</div><div class="kpi-sub">24 hospitales activos</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-check" style="color:#27ae60;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+3%</span></div>
+          <div class="kpi-num">91%</div><div class="kpi-label">Tasa de cobro</div><div class="kpi-sub">facturas pagas vs emitidas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fde8e8;"><i class="ti ti-alert-circle" style="color:#c0392b;font-size:16px;"></i></div></div>
+          <div class="kpi-num">$432k</div><div class="kpi-label">Facturas impagas</div><div class="kpi-sub">9% del total facturado</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#faeeda;"><i class="ti ti-clock" style="color:#e67e22;font-size:16px;"></i></div></div>
+          <div class="kpi-num">22 días</div><div class="kpi-label">Días promedio de cobro</div><div class="kpi-sub">desde emisión hasta pago</div>
+        </div>
+      </div>
+
+      <div class="charts-2">
+        <div class="chart-card">
+          <div class="chart-title">Facturación mensual</div>
+          <div class="chart-sub">Emitido vs cobrado</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#1a1a2e;"></div>Emitido</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#27ae60;"></div>Cobrado</div>
+          </div>
+          <div style="height:200px;"><canvas id="ch-fact-mes"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Estado de facturas</div>
+          <div class="chart-sub">Distribución actual</div>
+          <div style="height:200px;"><canvas id="ch-fact-estado"></canvas></div>
+        </div>
+      </div>
+
+      <div class="section-title">Facturación por provincia</div>
+      <div class="chart-card">
+        <div class="apertura-table">
+          <div class="apt-row apt-header" style="grid-template-columns:2fr 3fr 1fr 1fr 1fr;">
+            <div>Provincia</div><div>Distribución</div><div>Facturado</div><div>Cobrado</div><div>Pendiente</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr 1fr;">
+            <div><div class="apt-name">CABA</div><div class="apt-sub">8 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:45%;"></div></div></div>
+            <div class="apt-num">$2.16M</div><div class="apt-num" style="color:#27ae60;">$1.98M</div><div class="apt-num" style="color:#c0392b;">$180k</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr 1fr;">
+            <div><div class="apt-name">Buenos Aires</div><div class="apt-sub">6 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:30%;"></div></div></div>
+            <div class="apt-num">$1.44M</div><div class="apt-num" style="color:#27ae60;">$1.30M</div><div class="apt-num" style="color:#c0392b;">$140k</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr 1fr;">
+            <div><div class="apt-name">Córdoba</div><div class="apt-sub">4 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:16%;"></div></div></div>
+            <div class="apt-num">$768k</div><div class="apt-num" style="color:#27ae60;">$720k</div><div class="apt-num" style="color:#e67e22;">$48k</div>
+          </div>
+          <div class="apt-row" style="grid-template-columns:2fr 3fr 1fr 1fr 1fr;">
+            <div><div class="apt-name">Otras</div><div class="apt-sub">6 hospitales</div></div>
+            <div><div class="apt-bar"><div class="apt-bar-fill" style="width:9%;"></div></div></div>
+            <div class="apt-num">$432k</div><div class="apt-num" style="color:#27ae60;">$368k</div><div class="apt-num" style="color:#e67e22;">$64k</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECCIÓN OPERACIONAL -->
+    <div class="section" id="sec-operacional">
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-clock" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>-4hs</span></div>
+          <div class="kpi-num">18hs</div><div class="kpi-label">Tiempo aprobación</div><div class="kpi-sub">promedio desde solicitud</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-certificate" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend down"><i class="ti ti-arrow-down" style="font-size:9px;"></i>-8%</span></div>
+          <div class="kpi-num">76%</div><div class="kpi-label">Resultados cargados</div><div class="kpi-sub">vs donaciones registradas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-speakerphone" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+2hs</span></div>
+          <div class="kpi-num">4hs</div><div class="kpi-label">1er turno post-publicación</div><div class="kpi-sub">campaña → primera reserva</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-star" style="color:#ef647c;font-size:16px;"></i></div><span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:9px;"></i>+5%</span></div>
+          <div class="kpi-num">68%</div><div class="kpi-label">Campañas completadas al 100%</div><div class="kpi-sub">cupo cubierto antes de vencer</div>
+        </div>
+      </div>
+
+      <div class="charts-2">
+        <div class="chart-card">
+          <div class="chart-title">Completitud de campañas por mes</div>
+          <div class="chart-sub">% promedio de cupos cubiertos · aperturado por provincia</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#1a1a2e;"></div>CABA</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ef647c;"></div>Bs As</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f28b98;"></div>Córdoba</div>
+          </div>
+          <div style="height:220px;"><canvas id="ch-comp-pcia"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Campañas completadas vs no completadas</div>
+          <div class="chart-sub">Por mes</div>
+          <div style="height:220px;"><canvas id="ch-campanas-estado"></canvas></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Donaciones por mes
+  new Chart(document.getElementById('ch-don-mes').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr','May'],
+      datasets: [{ data: [820,910,880,1020,1100,980,850,1050,1120,1180,1058,1247], backgroundColor: '#ef647c', borderRadius: 5, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999' } } } }
+  });
+
+  // Sangre
+  new Chart(document.getElementById('ch-sangre').getContext('2d'), {
+    type: 'bar', indexAxis: 'y',
+    data: { labels: ['0+','A+','0-','B+','AB+','A-','B-','AB-'],
+      datasets: [{ data: [1540,1260,990,720,450,360,225,135], backgroundColor: ['#1a1a2e','#2d2d4e','#ef647c','#f28b98','#5a1e37','#782b46','#a9435d','#fdf0f3'].reverse(), borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } } } }
+  });
+
+  // Completitud
+  new Chart(document.getElementById('ch-completitud').getContext('2d'), {
+    type: 'line',
+    data: { labels: ['Ene','Feb','Mar','Abr','May'],
+      datasets: [{ data: [62,65,70,72,78], borderColor: '#ef647c', backgroundColor: 'rgba(239,100,124,0.08)', fill: true, tension: 0.4, pointBackgroundColor: '#ef647c', pointRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999', callback: v => v + '%' }, min: 50, max: 100 } } }
+  });
+
+  // Cancelación
+  new Chart(document.getElementById('ch-cancelacion').getContext('2d'), {
+    type: 'line',
+    data: { labels: ['Ene','Feb','Mar','Abr','May'],
+      datasets: [{ data: [18,16,14,13,12], borderColor: '#c0392b', backgroundColor: 'rgba(192,57,43,0.06)', fill: true, tension: 0.4, pointBackgroundColor: '#c0392b', pointRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999', callback: v => v + '%' } } } }
+  });
+
+  // MRR
+  new Chart(document.getElementById('ch-mrr').getContext('2d'), {
+    type: 'line',
+    data: { labels: ['Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr','May'],
+      datasets: [{ data: [216000,240000,270000,285000,312000,330000,348000,348000,376000,398000,398000,432000], borderColor: '#27ae60', backgroundColor: 'rgba(39,174,96,0.08)', fill: true, tension: 0.4, pointBackgroundColor: '#27ae60', pointRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999', callback: v => '$' + (v/1000).toFixed(0) + 'k' } } } }
+  });
+
+  // Suscripciones
+  new Chart(document.getElementById('ch-suscripciones').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Ene','Feb','Mar','Abr','May'],
+      datasets: [
+        { data: [3,2,4,2,3], backgroundColor: '#1a1a2e', borderRadius: 4, borderSkipped: false, label: 'Provincial' },
+        { data: [1,2,1,2,2], backgroundColor: '#ef647c', borderRadius: 4, borderSkipped: false, label: 'Nacional' }
+      ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, stacked: true, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, stacked: true, ticks: { font: { size: 10 }, color: '#999', stepSize: 1 } } } }
+  });
+
+  // Upgrades
+  new Chart(document.getElementById('ch-upgrades').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Ene','Feb','Mar','Abr','May'],
+      datasets: [
+        { label: 'Upgrades', data: [2,1,3,2,2], backgroundColor: '#27ae60', borderRadius: 4, borderSkipped: false },
+        { label: 'Downgrades', data: [-1,0,-1,-1,0], backgroundColor: '#c0392b', borderRadius: 4, borderSkipped: false }
+      ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999' } } } }
+  });
+
+  // Provincias hospitales
+  new Chart(document.getElementById('ch-pcias').getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: ['CABA','Bs As','Córdoba','Santa Fe','Otros'],
+      datasets: [{ data: [8,6,4,3,3], backgroundColor: ['#1a1a2e','#2d2d4e','#ef647c','#f28b98','#fdf0f3'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'right', labels: { font: { size: 11 }, color: '#555', boxWidth: 10 } } } }
+  });
+
+  // Facturación mes
+  new Chart(document.getElementById('ch-fact-mes').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Ene','Feb','Mar','Abr','May'],
+      datasets: [
+        { label: 'Emitido', data: [780000,810000,850000,830000,864000], backgroundColor: '#e0e0e0', borderRadius: 5, borderSkipped: false },
+        { label: 'Cobrado', data: [720000,760000,800000,790000,810000], backgroundColor: '#27ae60', borderRadius: 5, borderSkipped: false }
+      ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999', callback: v => '$' + (v/1000).toFixed(0) + 'k' } } } }
+  });
+
+  // Estado facturas (donut)
+  new Chart(document.getElementById('ch-fact-estado').getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: ['Pagas','Pendientes','Vencidas'],
+      datasets: [{ data: [91,6,3], backgroundColor: ['#27ae60','#e67e22','#c0392b'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, color: '#555', boxWidth: 10, padding: 16 } } } }
+  });
+
+  // Completitud por pcia
+  new Chart(document.getElementById('ch-comp-pcia').getContext('2d'), {
+    type: 'line',
+    data: { labels: ['Ene','Feb','Mar','Abr','May'],
+      datasets: [
+        { data: [72,75,80,82,85], borderColor: '#1a1a2e', tension: 0.4, pointRadius: 3, fill: false },
+        { data: [60,63,68,70,75], borderColor: '#ef647c', tension: 0.4, pointRadius: 3, fill: false },
+        { data: [55,58,62,65,70], borderColor: '#f28b98', tension: 0.4, pointRadius: 3, fill: false }
+      ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 }, color: '#999', callback: v => v + '%' } } } }
+  });
+
+  // Campañas estado
+  new Chart(document.getElementById('ch-campanas-estado').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Ene','Feb','Mar','Abr','May'],
+      datasets: [
+        { label: '100% completadas', data: [18,22,25,24,28], backgroundColor: '#27ae60', borderRadius: 4, borderSkipped: false },
+        { label: 'No completadas', data: [8,6,7,5,6], backgroundColor: '#f0f0f0', borderRadius: 4, borderSkipped: false }
+      ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, stacked: true, ticks: { font: { size: 10 }, color: '#999' } }, y: { grid: { color: '#f0f0f0' }, stacked: true, ticks: { font: { size: 10 }, color: '#999' } } } }
+  });
+
+  function cambiarSeccion(sec, el) {
+    document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + sec).classList.add('active');
+  }
+
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

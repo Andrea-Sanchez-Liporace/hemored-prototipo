@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Formulario post-donación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #1a0a0f; color: #1a0a0f; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+
+    .wrap { width: 100%; max-width: 480px; }
+
+    /* LOGO */
+    .logo-wrap { text-align: center; margin-bottom: 28px; }
+    .logo { font-family: 'Lobster', cursive; font-size: 32px; color: white; }
+    .logo span { color: #f28b98; }
+    .logo-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+    /* CARD */
+    .card { background: white; border-radius: 20px; overflow: hidden; }
+    .card-header { background: #5a1e37; padding: 24px; }
+    .card-title { font-size: 18px; font-weight: 500; color: white; margin-bottom: 6px; }
+    .card-sub { font-size: 13px; color: #f28b98; line-height: 1.5; }
+    .card-body { padding: 28px; }
+
+    /* AVISO CONFIDENCIALIDAD */
+    .conf-badge { display: flex; align-items: center; gap: 8px; background: #fdf0f3; border: 1px solid #f28b98; border-radius: 10px; padding: 12px 14px; margin-bottom: 24px; font-size: 13px; color: #5a3040; line-height: 1.5; }
+
+    /* TOKEN */
+    .token-section { margin-bottom: 24px; }
+    .token-label { font-size: 12px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; display: block; }
+    .token-display { background: #fdf0f3; border: 1px solid #e8d0d8; border-radius: 10px; padding: 12px 16px; font-size: 20px; font-weight: 500; color: #5a1e37; letter-spacing: .12em; text-align: center; }
+    .token-nota { font-size: 11px; color: #a9435d; margin-top: 6px; text-align: center; }
+
+    /* PREGUNTA PRINCIPAL */
+    .pregunta { font-size: 16px; font-weight: 500; color: #1a0a0f; margin-bottom: 8px; line-height: 1.5; }
+    .pregunta-desc { font-size: 13px; color: #5a3040; line-height: 1.6; margin-bottom: 20px; }
+
+    /* OPCIONES */
+    .opciones { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .opcion { border: 2px solid #e8d0d8; border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.15s; display: flex; align-items: flex-start; gap: 14px; }
+    .opcion:hover { border-color: #ef647c; }
+    .opcion.sel-si { border-color: #27ae60; background: #e1f5ee; }
+    .opcion.sel-no { border-color: #c0392b; background: #fde8e8; }
+    .opcion-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .opcion-title { font-size: 15px; font-weight: 500; color: #1a0a0f; margin-bottom: 4px; }
+    .opcion-desc { font-size: 12px; color: #5a3040; line-height: 1.5; }
+    .opcion.sel-si .opcion-title { color: #04342c; }
+    .opcion.sel-no .opcion-title { color: #c0392b; }
+
+    /* MOTIVO (si NO) */
+    .motivo-wrap { display: none; background: #fde8e8; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #c0392b; }
+    .motivo-label { font-size: 13px; font-weight: 500; color: #922b21; margin-bottom: 10px; }
+    .motivo-opts { display: flex; flex-direction: column; gap: 8px; }
+    .motivo-opt { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: background 0.12s; }
+    .motivo-opt:hover { background: rgba(192,57,43,0.08); }
+    .motivo-opt input { width: 16px; height: 16px; accent-color: #c0392b; cursor: pointer; }
+    .motivo-opt label { font-size: 13px; color: #5a3040; cursor: pointer; line-height: 1.4; }
+
+    /* AVISO PRIVACIDAD PROTEGIDA */
+    .priv-nota { background: #f0f4ff; border: 1px solid #3498db; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; font-size: 12px; color: #1a4a7a; line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+
+    /* BTN */
+    .btn-enviar { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-enviar:hover { background: #d4537e; }
+    .btn-enviar:disabled { background: #e8d0d8; cursor: not-allowed; }
+
+    /* SUCCESS */
+    .success-view { display: none; text-align: center; padding: 16px 0; }
+    .success-icon { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .success-title { font-size: 22px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+    .success-text { font-size: 14px; color: #5a3040; line-height: 1.7; }
+
+    /* FOOTER */
+    .page-footer { text-align: center; margin-top: 20px; font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.6; }
+
+    @media (max-width: 480px) {
+      body { padding: 16px; justify-content: flex-start; padding-top: 32px; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="logo-wrap">
+    <div class="logo">Hemo<span>red</span></div>
+    <div class="logo-sub">Formulario de autoexclusión post-donación</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">¿Tu sangre puede ser usada?</div>
+      <div class="card-sub">Este formulario es completamente anónimo. Solo se vincula al número de tu donación, no a tu nombre ni datos personales.</div>
+    </div>
+
+    <div class="card-body" id="form-body">
+
+      <div class="conf-badge">
+        <i class="ti ti-lock" style="color:#ef647c;font-size:18px;flex-shrink:0;"></i>
+        <span>Tu respuesta es <strong>estrictamente confidencial</strong>. Nadie en la sala sabe qué elegiste. Solo el personal autorizado del banco de sangre puede acceder a esta información.</span>
+      </div>
+
+      <!-- TOKEN -->
+      <div class="token-section">
+        <span class="token-label">Tu código de donación</span>
+        <div class="token-display" id="token-display">A7 · 4K · 9M</div>
+        <div class="token-nota">Este código identifica tu donación. No está vinculado a tu nombre.</div>
+      </div>
+
+      <!-- PREGUNTA -->
+      <div class="pregunta">¿Considerás que tu sangre puede usarse para transfundir a un paciente?</div>
+      <div class="pregunta-desc">Respondé honestamente. Si olvidaste mencionar algo durante la entrevista, o si en los últimos minutos recordaste alguna situación de riesgo — esta es tu oportunidad de indicarlo en total privacidad.</div>
+
+      <div class="opciones">
+        <div class="opcion" id="opt-si" onclick="seleccion('si')">
+          <div class="opcion-icon" style="background:#e1f5ee;">
+            <i class="ti ti-heart-check" style="font-size:20px;color:#27ae60;"></i>
+          </div>
+          <div>
+            <div class="opcion-title">Sí, puede usarse</div>
+            <div class="opcion-desc">Respondí con sinceridad durante la entrevista y no tengo conocimiento de ningún factor de riesgo adicional.</div>
+          </div>
+        </div>
+
+        <div class="opcion" id="opt-no" onclick="seleccion('no')">
+          <div class="opcion-icon" style="background:#fde8e8;">
+            <i class="ti ti-heart-off" style="font-size:20px;color:#c0392b;"></i>
+          </div>
+          <div>
+            <div class="opcion-title">No, descartarla de forma segura</div>
+            <div class="opcion-desc">Hay algo que no pude mencionar durante la entrevista. La bolsa debe descartarse sin transfundirse.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOTIVO SI DICE NO -->
+      <div class="motivo-wrap" id="motivo-wrap">
+        <div class="motivo-label">¿Cuál es el motivo? (opcional pero ayuda)</div>
+        <div class="motivo-opts">
+          <div class="motivo-opt">
+            <input type="radio" name="motivo" id="m1" value="conducta_riesgo">
+            <label for="m1">Olvidé mencionar una conducta de riesgo reciente</label>
+          </div>
+          <div class="motivo-opt">
+            <input type="radio" name="motivo" id="m2" value="sintomas">
+            <label for="m2">Empecé a sentir síntomas (fiebre, malestar) al terminar</label>
+          </div>
+          <div class="motivo-opt">
+            <input type="radio" name="motivo" id="m3" value="medicacion">
+            <label for="m3">Tomé alguna sustancia o medicamento que no declaré</label>
+          </div>
+          <div class="motivo-opt">
+            <input type="radio" name="motivo" id="m4" value="presion">
+            <label for="m4">Vine a donar por presión de terceros, no fue voluntario</label>
+          </div>
+          <div class="motivo-opt">
+            <input type="radio" name="motivo" id="m5" value="otro">
+            <label for="m5">Otro motivo que prefiero no especificar</label>
+          </div>
+        </div>
+        <div style="background:#fde8e8;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:#922b21;line-height:1.5;">
+          Tu bolsa será procesada normalmente frente a los demás para cuidar tu privacidad, pero será descartada de forma interna e inmediata. Gracias por tu honestidad — protegés una vida.
+        </div>
+      </div>
+
+      <!-- PRIVACIDAD -->
+      <div class="priv-nota">
+        <i class="ti ti-shield" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
+        <span>Esta respuesta solo puede ser consultada por el personal autorizado del banco de sangre. Nunca se te notificará ni se usará esta información para sancionarte. Tu privacidad está protegida por ley.</span>
+      </div>
+
+      <button class="btn-enviar" id="btn-enviar" onclick="enviar()" disabled>
+        Enviar respuesta
+      </button>
+
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-view" id="success-view">
+      <div class="success-icon">
+        <i class="ti ti-check" style="color:white;font-size:32px;"></i>
+      </div>
+      <div class="success-title">Respuesta registrada</div>
+      <div class="success-text" id="success-msg">Gracias por completar el formulario. Tu respuesta fue registrada de forma anónima y segura.</div>
+      <div style="background:#fdf0f3;border-radius:12px;padding:16px 20px;margin-top:20px;text-align:left;">
+        <div style="font-size:12px;color:#a9435d;margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;">Cuidados post-donación</div>
+        <div style="font-size:13px;color:#5a3040;line-height:1.7;">
+          • Tomá abundante líquido durante las próximas horas<br>
+          • Evitá actividades físicas intensas por el resto del día<br>
+          • Si tenés mareos o te sentís mal, avisá al personal antes de salir<br>
+          • Podés volver a donar en 90 días
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    Este formulario expira en 24 horas.<br>
+    HemoRed · Sistema de donación de sangre
+  </div>
+
+</div>
+
+<script>
+  let respuesta = null;
+
+  // Leer token de URL
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  if (token) {
+    const formatted = token.replace(/(.{2})(.{2})(.{2})/,'$1 · $2 · $3');
+    document.getElementById('token-display').textContent = formatted.toUpperCase() || 'A7 · 4K · 9M';
+  }
+
+  function seleccion(val) {
+    respuesta = val;
+    document.getElementById('opt-si').className = 'opcion' + (val === 'si' ? ' sel-si' : '');
+    document.getElementById('opt-no').className = 'opcion' + (val === 'no' ? ' sel-no' : '');
+    document.getElementById('motivo-wrap').style.display = val === 'no' ? 'block' : 'none';
+    document.getElementById('btn-enviar').disabled = false;
+  }
+
+  function enviar() {
+    const body = document.getElementById('form-body');
+    const success = document.getElementById('success-view');
+    const msg = document.getElementById('success-msg');
+
+    if (respuesta === 'no') {
+      msg.textContent = 'Gracias por tu honestidad. Tu bolsa será descartada de forma segura. Esta información es completamente confidencial.';
+    } else {
+      msg.textContent = 'Gracias por tu donación y por completar el formulario. Tu respuesta fue registrada de forma anónima y segura.';
+    }
+
+    body.style.display = 'none';
+    success.style.display = 'block';
+  }
+</script>
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

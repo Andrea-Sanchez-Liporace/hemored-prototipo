@@ -1,0 +1,43 @@
+/* ============================================================
+   HEMORED — DONANTE CSS
+   Estilos específicos del rol donante
+   ============================================================ */
+
+.sidebar-donante { background: var(--color-borravino-dark); }
+
+/* TURNO CARDS */
+.turno-card { background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid var(--color-rosa-border); display: flex; align-items: center; gap: 20px; transition: border-color var(--transition-base); }
+.turno-card:hover { border-color: var(--color-rosa-light); }
+.turno-card.completado { opacity: 0.65; }
+.turno-card.en-curso { border-left: 3px solid var(--color-rosa); background: #fdf9fb; }
+.turno-fecha { width: 48px; text-align: center; flex-shrink: 0; }
+.turno-fecha-dia { font-size: 24px; font-weight: 500; color: var(--color-borravino); line-height: 1; }
+.turno-fecha-mes { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; }
+.turno-info { flex: 1; }
+.turno-hospital { font-size: 15px; font-weight: 500; color: var(--color-borravino); margin-bottom: 3px; }
+.turno-meta { font-size: 12px; color: var(--color-text-muted); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* BADGE FORMULARIOS */
+.form-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: var(--radius-full); font-size: 11px; font-weight: 500; }
+.fb-ok { background: var(--color-success-bg); color: var(--color-success-text); }
+.fb-pendiente { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.fb-bloqueado { background: #f5f5f5; color: #888; }
+.fb-disponible { background: var(--color-rosa-pale); color: var(--color-borravino); border: 0.5px solid var(--color-rosa-light); }
+
+/* DOC CARDS */
+.doc-card { background: white; border-radius: 12px; padding: 16px 20px; border: 0.5px solid var(--color-rosa-border); display: flex; align-items: center; gap: 14px; cursor: pointer; transition: border-color var(--transition-base); margin-bottom: 10px; }
+.doc-card:hover { border-color: var(--color-rosa-light); }
+.doc-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.doc-icon-resultado { background: var(--color-rosa-pale); }
+.doc-icon-certificado { background: var(--color-success-bg); }
+.doc-icon-evaluacion { background: var(--color-info-bg); }
+.doc-title { font-size: 14px; font-weight: 500; color: var(--color-borravino); margin-bottom: 3px; }
+.doc-meta { font-size: 12px; color: var(--color-text-muted); display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* CAMPANA CARD */
+.campana-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid var(--color-rosa-border); margin-bottom: 12px; transition: border-color var(--transition-base); }
+.campana-card:hover { border-color: var(--color-rosa); }
+.campana-urgente { border-left: 3px solid var(--color-danger); }
+.campana-titulo { font-size: 15px; font-weight: 500; color: var(--color-borravino); margin-bottom: 6px; }
+.campana-progreso { height: 6px; background: var(--color-rosa-mid); border-radius: 3px; overflow: hidden; margin: 10px 0; }
+.campana-progreso-fill { height: 100%; background: var(--color-rosa); border-radius: 3px; transition: width 0.5s ease; }

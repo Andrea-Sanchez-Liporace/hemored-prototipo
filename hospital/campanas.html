@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Campañas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-nueva { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .btn-nueva:hover { background: #d4537e; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+
+    /* STATS RÁPIDAS */
+    .stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-chip { background: white; border-radius: 10px; padding: 14px 16px; border: 0.5px solid #e8d0d8; cursor: pointer; transition: border-color 0.15s; }
+    .stat-chip:hover { border-color: #ef647c; }
+    .stat-chip.active-filter { border-color: #5a1e37; background: #fdf0f3; }
+    .stat-chip-num { font-size: 24px; font-weight: 500; color: #5a1e37; }
+    .stat-chip-label { font-size: 11px; color: #5a3040; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+    .estado-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-activa { background: #27ae60; }
+    .dot-programada { background: #7f77dd; }
+    .dot-pausada { background: #e67e22; }
+    .dot-cerrada { background: #a9435d; }
+    .dot-borrador { background: #b0b0b0; }
+
+    /* FILTROS */
+    .filtros { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a9435d; font-size: 15px; }
+    .search-input { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; }
+    .search-input:focus { border-color: #ef647c; }
+    .filter-select { padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+
+    /* TABLA */
+    .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 120px; gap: 0; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
+    .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
+    .table-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 120px; gap: 0; padding: 16px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; transition: background 0.1s; cursor: pointer; }
+    .table-row:last-child { border-bottom: none; }
+    .table-row:hover { background: #fdf0f3; }
+    .td { font-size: 13px; color: #5a3040; }
+    .camp-name { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .camp-sub { font-size: 11px; color: #a9435d; }
+    .estado-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .estado-activa { background: #e1f5ee; color: #04342c; }
+    .estado-programada { background: #f0f0ff; color: #3d37a0; }
+    .estado-pausada { background: #faeeda; color: #412402; }
+    .estado-cerrada { background: #f7f0f3; color: #782b46; }
+    .estado-borrador { background: #f5f5f5; color: #666; }
+    .estado-urgente { background: #fde8e8; color: #c0392b; }
+    .progress-mini { height: 4px; background: #fdf0f3; border-radius: 2px; overflow: hidden; margin-top: 4px; width: 100%; }
+    .progress-mini-fill { height: 100%; background: #ef647c; border-radius: 2px; }
+    .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-xs { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; white-space: nowrap; }
+    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+    .btn-xs-outline:hover { border-color: #a9435d !important; }
+    .btn-xs-danger { background: white; color: #c0392b; border: 1px solid #e74c3c !important; }
+    .btn-xs-pause { background: white; color: #e67e22; border: 1px solid #e67e22 !important; }
+    .btn-xs-activate { background: white; color: #27ae60; border: 1px solid #27ae60 !important; }
+
+    /* EMPTY */
+    .empty-state { text-align: center; padding: 56px 24px; }
+    .empty-icon { width: 56px; height: 56px; border-radius: 50%; background: #fdf0f3; border: 1px solid #f28b98; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+    .empty-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; }
+    .empty-text { font-size: 13px; color: #5a3040; }
+
+    /* PAGINACIÓN */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 0.5px solid #e8d0d8; }
+    .pag-info { font-size: 12px; color: #a9435d; }
+    .pag-btns { display: flex; gap: 4px; }
+    .pag-btn { width: 32px; height: 32px; border-radius: 7px; border: 1px solid #e8d0d8; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: #5a3040; }
+    .pag-btn.active { background: #5a1e37; color: white; border-color: #5a1e37; }
+    .pag-btn:hover:not(.active) { border-color: #a9435d; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1400px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1024px) {
+      .table-header { grid-template-columns: 2fr 1fr 1fr 100px; }
+      .table-row { grid-template-columns: 2fr 1fr 1fr 100px; }
+      .td.hide-md { display: none; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .table-header { display: none; }
+      .table-row { grid-template-columns: 1fr; gap: 8px; }
+      .td.hide-sm { display: none; }
+      .row-actions { justify-content: flex-start; }
+      .filtros { flex-direction: column; align-items: stretch; }
+      .search-wrap { min-width: unset; }
+    }
+    @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr 1fr; } }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item active" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Campañas</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-btn"><i class="ti ti-bell" style="font-size:18px;"></i></div>
+      <button class="btn-nueva" onclick="window.location='../hospital/nueva_campana.html'">
+        <i class="ti ti-plus"></i>Nueva campaña
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- BANNER PACIENTE (se muestra solo cuando viene con ?paciente=...) -->
+    <div id="paciente-banner" style="display:none;background:#fdf0f3;border:1px solid #f28b98;border-radius:12px;padding:14px 20px;margin-bottom:20px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:9px;background:#5a1e37;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ti-user" style="color:white;font-size:16px;"></i>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#5a1e37;" id="banner-titulo">Campañas del paciente</div>
+          <div style="font-size:11px;color:#a9435d;" id="banner-sub">Mostrando solo campañas asociadas a este paciente</div>
+        </div>
+      </div>
+      <button onclick="volverPaciente()" style="display:flex;align-items:center;gap:6px;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
+        <i class="ti ti-arrow-left" style="font-size:12px;"></i>Volver al paciente
+      </button>
+    </div>
+
+    <!-- STATS CHIPS — clickeables como filtro -->
+    <div class="stats-row">
+      <div class="stat-chip active-filter" onclick="filtrarEstado('todas', this)">
+        <div class="stat-chip-num">8</div>
+        <div class="stat-chip-label">Todas</div>
+      </div>
+      <div class="stat-chip" onclick="filtrarEstado('activa', this)">
+        <div class="stat-chip-num" style="color:#27ae60;">3</div>
+        <div class="stat-chip-label"><div class="estado-dot dot-activa"></div>Activas</div>
+      </div>
+      <div class="stat-chip" onclick="filtrarEstado('programada', this)">
+        <div class="stat-chip-num" style="color:#7f77dd;">1</div>
+        <div class="stat-chip-label"><div class="estado-dot dot-programada"></div>Programadas</div>
+      </div>
+      <div class="stat-chip" onclick="filtrarEstado('pausada', this)">
+        <div class="stat-chip-num" style="color:#e67e22;">1</div>
+        <div class="stat-chip-label"><div class="estado-dot dot-pausada"></div>Pausadas</div>
+      </div>
+      <div class="stat-chip" onclick="filtrarEstado('cerrada', this)">
+        <div class="stat-chip-num" style="color:#a9435d;">2</div>
+        <div class="stat-chip-label"><div class="estado-dot dot-cerrada"></div>Cerradas</div>
+      </div>
+      <div class="stat-chip" onclick="filtrarEstado('borrador', this)">
+        <div class="stat-chip-num" style="color:#888;">1</div>
+        <div class="stat-chip-label"><div class="estado-dot dot-borrador"></div>Borradores</div>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filtros">
+      <div class="search-wrap">
+        <i class="ti ti-search search-icon"></i>
+        <input class="search-input" type="text" placeholder="Buscar campaña...">
+      </div>
+      <select class="filter-select">
+        <option>Todos los tipos de sangre</option>
+        <option>A+</option><option>A-</option>
+        <option>B+</option><option>B-</option>
+        <option>0+</option><option>0-</option>
+        <option>AB+</option><option>AB-</option>
+      </select>
+      <select class="filter-select">
+        <option>Ordenar por</option>
+        <option>Más recientes</option>
+        <option>Fecha límite más próxima</option>
+        <option>Mayor urgencia</option>
+        <option>Más cupos libres</option>
+      </select>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="th">Campaña</div>
+        <div class="th">Estado</div>
+        <div class="th hide-md">Tipo sangre</div>
+        <div class="th hide-md">Cupos</div>
+        <div class="th">Fecha límite</div>
+        <div class="th"></div>
+      </div>
+
+      <!-- ACTIVA URGENTE -->
+      <div class="table-row">
+        <div>
+          <div class="camp-name">Campaña paciente pediátrico <span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span></div>
+          <div class="camp-sub">Paciente: Juan Pérez · Creada hace 2 días</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-activa">● Activa</span>
+        </div>
+        <div class="td hide-md">0- / 0+</div>
+        <div class="td hide-md">
+          7/10
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:70%;"></div></div>
+        </div>
+        <div class="td">20 may 2026</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/campana_detalle.html'">Ver</button>
+          <button class="btn-xs btn-xs-pause">Pausar</button>
+        </div>
+      </div>
+
+      <!-- ACTIVA -->
+      <div class="table-row">
+        <div>
+          <div class="camp-name">Banco de sangre tipo A</div>
+          <div class="camp-sub">Campaña genérica · Creada hace 5 días</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-activa">● Activa</span>
+        </div>
+        <div class="td hide-md">A+ / A-</div>
+        <div class="td hide-md">
+          4/10
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:40%;"></div></div>
+        </div>
+        <div class="td">30 may 2026</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline">Ver</button>
+          <button class="btn-xs btn-xs-pause">Pausar</button>
+        </div>
+      </div>
+
+      <!-- ACTIVA -->
+      <div class="table-row">
+        <div>
+          <div class="camp-name">Reserva general mayo</div>
+          <div class="camp-sub">Campaña genérica · Creada hace 1 semana</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-activa">● Activa</span>
+        </div>
+        <div class="td hide-md">Todos</div>
+        <div class="td hide-md">
+          2/8
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:25%;"></div></div>
+        </div>
+        <div class="td">31 may 2026</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline">Ver</button>
+          <button class="btn-xs btn-xs-pause">Pausar</button>
+        </div>
+      </div>
+
+      <!-- PROGRAMADA -->
+      <div class="table-row">
+        <div>
+          <div class="camp-name">Campaña junio — tipo B</div>
+          <div class="camp-sub">Se publica el 1 jun 2026 a las 08:00hs</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-programada">◷ Programada</span>
+        </div>
+        <div class="td hide-md">B+ / B-</div>
+        <div class="td hide-md">
+          0/12
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:0%;"></div></div>
+        </div>
+        <div class="td">30 jun 2026</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline">Ver</button>
+          <button class="btn-xs btn-xs-outline">Editar</button>
+        </div>
+      </div>
+
+      <!-- PAUSADA -->
+      <div class="table-row">
+        <div>
+          <div class="camp-name">Campaña banco AB</div>
+          <div class="camp-sub">Pausada hace 3 días</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-pausada">⏸ Pausada</span>
+        </div>
+        <div class="td hide-md">AB+ / AB-</div>
+        <div class="td hide-md">
+          3/6
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:50%;"></div></div>
+        </div>
+        <div class="td">15 jun 2026</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline">Ver</button>
+          <button class="btn-xs btn-xs-activate">Reactivar</button>
+        </div>
+      </div>
+
+      <!-- BORRADOR -->
+      <div class="table-row" data-estado="borrador">
+        <div>
+          <div class="camp-name">Banco de sangre tipo O — junio</div>
+          <div class="camp-sub">Borrador · Última edición hace 1 día</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-borrador">✎ Borrador</span>
+        </div>
+        <div class="td hide-md">0+</div>
+        <div class="td hide-md">
+          0/10
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:0%;"></div></div>
+        </div>
+        <div class="td">—</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline">Editar</button>
+          <button class="btn-xs btn-xs-danger">Eliminar</button>
+        </div>
+      </div>
+
+      <!-- CERRADA -->
+      <div class="table-row">
+        <div>
+          <div class="camp-name">Campaña abril — tipo O</div>
+          <div class="camp-sub">Cerrada el 30 abr 2026 · Cupo completo</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-cerrada">✓ Cerrada</span>
+        </div>
+        <div class="td hide-md">0+ / 0-</div>
+        <div class="td hide-md">
+          10/10
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:100%;background:#27ae60;"></div></div>
+        </div>
+        <div class="td">30 abr 2026</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline">Ver métricas</button>
+        </div>
+      </div>
+
+      <!-- CERRADA -->
+      <div class="table-row">
+        <div>
+          <div class="camp-name">Campaña marzo — general</div>
+          <div class="camp-sub">Cerrada el 31 mar 2026 · Fecha vencida</div>
+        </div>
+        <div class="td">
+          <span class="estado-badge estado-cerrada">✓ Cerrada</span>
+        </div>
+        <div class="td hide-md">Todos</div>
+        <div class="td hide-md">
+          6/8
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:75%;"></div></div>
+        </div>
+        <div class="td">31 mar 2026</div>
+        <div class="row-actions">
+          <button class="btn-xs btn-xs-outline">Ver métricas</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PAGINACIÓN -->
+    <div class="pagination">
+      <div class="pag-info">Mostrando 8 de 8 campañas</div>
+      <div class="pag-btns">
+        <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
+        <div class="pag-btn active">1</div>
+        <div class="pag-btn">2</div>
+        <div class="pag-btn"><i class="ti ti-chevron-right" style="font-size:14px;"></i></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function filtrarEstado(estado, el) {
+    document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active-filter'));
+    el.classList.add('active-filter');
+    const rows = document.querySelectorAll('.table-row');
+    rows.forEach(row => {
+      if (estado === 'todas') { row.style.display = ''; return; }
+      const badge = row.querySelector('.estado-badge');
+      const texto = badge ? badge.textContent.toLowerCase() : '';
+      const match =
+        (estado === 'activa' && (texto.includes('activa'))) ||
+        (estado === 'programada' && texto.includes('programada')) ||
+        (estado === 'pausada' && texto.includes('pausada')) ||
+        (estado === 'cerrada' && texto.includes('cerrada')) ||
+        (estado === 'borrador' && texto.includes('borrador'));
+      row.style.display = match ? '' : 'none';
+    });
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+
+  // Detectar parámetro paciente en URL
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const paciente = params.get('paciente');
+    const id = params.get('id');
+    if (paciente) {
+      const banner = document.getElementById('paciente-banner');
+      banner.style.display = 'flex';
+      document.getElementById('banner-titulo').textContent = 'Campañas de ' + paciente;
+      document.getElementById('banner-sub').textContent = id ? 'ID #' + id + ' · Solo campañas asociadas a este paciente' : 'Solo campañas asociadas a este paciente';
+    }
+  })();
+
+  function volverPaciente() {
+    window.history.back();
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

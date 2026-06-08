@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Mis turnos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 24px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .tab.active { background: #5a1e37; color: white; }
+    .tab:hover:not(.active) { background: #fdf0f3; }
+
+    /* PRÓXIMO TURNO BANNER */
+    .proximo-banner { background: #5a1e37; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .pb-left { display: flex; align-items: center; gap: 14px; }
+    .pb-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pb-label { font-size: 12px; color: #f28b98; margin-bottom: 3px; }
+    .pb-value { font-size: 15px; font-weight: 500; color: white; }
+    .pb-btn { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+
+    /* TURNOS LIST */
+    .section-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+    .turnos-list { display: flex; flex-direction: column; gap: 12px; }
+    .turno-card { background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid #e8d0d8; display: flex; align-items: center; gap: 16px; }
+    .turno-card:hover { border-color: #f28b98; }
+    .turno-date { width: 52px; text-align: center; background: #fdf0f3; border-radius: 10px; padding: 8px 4px; flex-shrink: 0; border: 0.5px solid #f28b98; }
+    .turno-date-day { font-size: 22px; font-weight: 500; color: #5a1e37; line-height: 1; }
+    .turno-date-month { font-size: 11px; color: #a9435d; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+    .turno-info { flex: 1; }
+    .turno-hospital { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .turno-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .turno-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #5a3040; }
+    .turno-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .turno-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .turno-badge.confirmado { background: #e1f5ee; color: #04342c; }
+    .turno-badge.pendiente { background: #faeeda; color: #412402; }
+    .turno-badge.cancelado { background: #f7f0f3; color: #a9435d; }
+    .turno-badge.completado { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .turno-actions { display: flex; gap: 8px; }
+    .form-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .fb-completado { background: #e1f5ee; color: #04342c; }
+    .fb-pendiente { background: #faeeda; color: #412402; }
+    .fb-disponible { background: #fdf0f3; color: #5a1e37; border: 0.5px solid #f28b98; }
+    .forms-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid #f0e0e6; }
+    .btn-sm { padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-sm-primary { background: #ef647c; color: white; }
+    .btn-sm-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+    .btn-sm-danger { background: white; color: #c0392b; border: 1px solid #e74c3c !important; }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 60px 24px; }
+    .empty-icon { width: 64px; height: 64px; border-radius: 50%; background: #fdf0f3; border: 1px solid #f28b98; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .empty-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+    .empty-text { font-size: 14px; color: #5a3040; margin-bottom: 20px; }
+    .btn-buscar { background: #ef647c; color: white; border: none; padding: 11px 24px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; }
+
+    /* MODAL */
+    .fecha-tab-m { padding: 7px 14px; border-radius: 8px; border: 1.5px solid #e8d0d8; font-size: 12px; color: #5a3040; cursor: pointer; background: white; font-family: 'Inter', sans-serif; }
+    .fecha-tab-m.active { background: #5a1e37; border-color: #5a1e37; color: white; }
+    .turno-m { border: 1.5px solid #e8d0d8; border-radius: 9px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
+    .turno-m:hover:not(.ocp) { border-color: #ef647c; background: #fdf0f3; }
+    .turno-m.selected { border-color: #ef647c; background: #fdf0f3; }
+    .turno-m.ocp { opacity: 0.5; cursor: not-allowed; background: #f7f0f3; }
+    .th { font-size: 15px; font-weight: 500; color: #5a1e37; }
+    .ts { font-size: 10px; margin-top: 2px; }
+    .ts.libre { color: #27ae60; }
+    .ts.ocp { color: #c0392b; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .turno-card { flex-wrap: wrap; gap: 12px; }
+      .turno-date { width: 44px; }
+      .turno-info { min-width: 0; }
+      .turno-right { align-items: flex-start; width: 100%; flex-direction: row; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+      .turno-actions { flex-wrap: wrap; }
+      .proximo-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .pb-btn { width: 100%; text-align: center; }
+      .turno-meta { gap: 8px; }
+      .tabs { width: 100%; justify-content: stretch; }
+      .tab { flex: 1; text-align: center; padding: 8px 10px; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/donante.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SP</div>
+    <div>
+      <div class="sidebar-user-name">Sofía Páez</div>
+      <div class="sidebar-user-role">Donante</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../donante/dashboard.html"><i class="ti ti-search" aria-hidden="true"></i>Buscar campañas</a>
+    <a class="nav-item active" href="../donante/mis_turnos.html"><i class="ti ti-calendar" aria-hidden="true"></i>Mis turnos</a>
+    <a class="nav-item" href="../donante/mis_turnos.html"><i class="ti ti-heart" aria-hidden="true"></i>Mis donaciones</a>
+    <a class="nav-item" href="../donante/mis_documentos.html"><i class="ti ti-file-text" aria-hidden="true"></i>Mis documentos</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../donante/perfil.html"><i class="ti ti-user" aria-hidden="true"></i>Mi perfil</a>
+    <a class="nav-item" href="../donante/notificaciones.html"><i class="ti ti-bell" aria-hidden="true"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title">Mis turnos</div>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div class="topbar-btn">
+        <i class="ti ti-bell" style="font-size:18px;" aria-hidden="true"></i>
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- PRÓXIMO TURNO -->
+    <div class="proximo-banner">
+      <div class="pb-left">
+        <div class="pb-icon">
+          <i class="ti ti-calendar-check" style="color:white;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="pb-label">Próximo turno confirmado</div>
+          <div class="pb-value">Martes 20 de mayo · 10:00hs · Hospital Ramos Mejía</div>
+        </div>
+      </div>
+      <button class="pb-btn" onclick="verDetalle()">Ver detalles</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="cambiarTab('proximos', this)">Próximos</button>
+      <button class="tab" onclick="cambiarTab('historial', this)">Historial</button>
+      <button class="tab" onclick="cambiarTab('cancelados', this)">Cancelados</button>
+    </div>
+
+    <!-- PRÓXIMOS -->
+    <div id="tab-proximos">
+      <div class="section-title">Turnos confirmados y pendientes</div>
+      <div class="turnos-list">
+
+        <div class="turno-card" style="flex-direction:column;align-items:stretch;gap:12px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="turno-date">
+              <div class="turno-date-day">20</div>
+              <div class="turno-date-month">may</div>
+            </div>
+            <div class="turno-info">
+              <div class="turno-hospital">Hospital Ramos Mejía</div>
+              <div class="turno-meta">
+                <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>10:00hs</div>
+                <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
+                <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20240520-0042</div>
+              </div>
+            </div>
+            <div class="turno-right">
+              <span class="turno-badge confirmado">Confirmado</span>
+              <div class="turno-actions">
+                <button class="btn-sm btn-sm-outline">Ver campaña</button>
+                <button class="btn-sm btn-sm-outline" onclick="abrirModal()">Modificar</button>
+              </div>
+            </div>
+          </div>
+          <!-- FORMULARIOS PRE-DONACIÓN -->
+          <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #f28b98;">
+            <div style="font-size:12px;font-weight:500;color:#5a1e37;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="ti ti-clipboard-list" style="font-size:13px;color:#ef647c;"></i>Formularios pre-donación</div>
+            <div class="forms-row" style="border:none;padding:0;margin:0;">
+              <span class="form-badge fb-completado"><i class="ti ti-check" style="font-size:10px;"></i>Autoexclusión completado</span>
+              <span class="form-badge fb-disponible"><i class="ti ti-pencil" style="font-size:10px;"></i>Cuestionario pendiente</span>
+              <span class="form-badge" style="background:#f5f5f5;color:#888;"><i class="ti ti-lock" style="font-size:10px;"></i>Evaluación clínica — lo carga el profesional</span>
+            </div>
+            <button onclick="window.location='../donante/formularios_predonacion.html'" style="margin-top:10px;background:#ef647c;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;">
+              <i class="ti ti-arrow-right" style="font-size:12px;"></i>Completar cuestionario
+            </button>
+          </div>
+        </div>
+
+        <div class="turno-card" style="flex-direction:column;align-items:stretch;gap:12px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="turno-date">
+              <div class="turno-date-day">28</div>
+              <div class="turno-date-month">may</div>
+            </div>
+            <div class="turno-info">
+              <div class="turno-hospital">Hospital Garrahan</div>
+              <div class="turno-meta">
+                <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>09:30hs</div>
+                <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
+                <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20240528-0015</div>
+              </div>
+            </div>
+            <div class="turno-right">
+              <span class="turno-badge pendiente">Pendiente</span>
+              <div class="turno-actions">
+                <button class="btn-sm btn-sm-outline">Ver campaña</button>
+                <button class="btn-sm btn-sm-outline" onclick="abrirModal()">Modificar</button>
+              </div>
+            </div>
+          </div>
+          <div style="background:#f7f0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #e8d0d8;display:flex;align-items:center;gap:8px;">
+            <i class="ti ti-clock" style="color:#a9435d;font-size:14px;flex-shrink:0;"></i>
+            <span style="font-size:12px;color:#a9435d;">Los formularios pre-donación se habilitarán 2 horas antes del turno · 27 may a las 07:30hs</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div id="tab-historial" style="display:none;">
+      <div class="section-title">Turnos anteriores</div>
+      <div class="turnos-list">
+
+        <div class="turno-card">
+          <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
+            <div class="turno-date-day" style="color:#1a6b3a;">12</div>
+            <div class="turno-date-month" style="color:#27ae60;">mar</div>
+          </div>
+          <div class="turno-info">
+            <div class="turno-hospital">Hospital San Martín</div>
+            <div class="turno-meta">
+              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>08:00hs</div>
+              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>La Plata</div>
+            </div>
+          </div>
+          <div class="turno-right">
+            <span class="turno-badge completado">Donación realizada</span>
+            <div class="turno-actions">
+              <button class="btn-sm btn-sm-primary">Ver resultado</button>
+              <button class="btn-sm btn-sm-outline">Comprobante</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="turno-card">
+          <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
+            <div class="turno-date-day" style="color:#1a6b3a;">18</div>
+            <div class="turno-date-month" style="color:#27ae60;">nov</div>
+          </div>
+          <div class="turno-info">
+            <div class="turno-hospital">Hospital Italiano</div>
+            <div class="turno-meta">
+              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>11:00hs</div>
+              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
+            </div>
+          </div>
+          <div class="turno-right">
+            <span class="turno-badge completado">Donación realizada</span>
+            <div class="turno-actions">
+              <button class="btn-sm btn-sm-primary">Ver resultado</button>
+              <button class="btn-sm btn-sm-outline">Comprobante</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="turno-card">
+          <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
+            <div class="turno-date-day" style="color:#1a6b3a;">05</div>
+            <div class="turno-date-month" style="color:#27ae60;">ago</div>
+          </div>
+          <div class="turno-info">
+            <div class="turno-hospital">Hospital Ramos Mejía</div>
+            <div class="turno-meta">
+              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>09:00hs</div>
+              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
+            </div>
+          </div>
+          <div class="turno-right">
+            <span class="turno-badge completado">Donación realizada</span>
+            <div class="turno-actions">
+              <button class="btn-sm btn-sm-primary">Ver resultado</button>
+              <button class="btn-sm btn-sm-outline">Comprobante</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CANCELADOS -->
+    <div id="tab-cancelados" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="ti ti-calendar-off" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i>
+        </div>
+        <div class="empty-title">No tenés turnos cancelados</div>
+        <div class="empty-text">Cuando canceles un turno va a aparecer acá.</div>
+        <a href="../donante/dashboard.html">
+          <button class="btn-buscar">
+            <i class="ti ti-search" aria-hidden="true"></i>
+            Buscar campañas
+          </button>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let fechaModal = 'Lun 19 may';
+  let horaModal = null;
+
+  function abrirModal() {
+    document.getElementById('modal-modificar').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarModal() {
+    document.getElementById('modal-modificar').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  function selFechaM(el) {
+    document.querySelectorAll('.fecha-tab-m').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    fechaModal = el.textContent;
+    horaModal = null;
+    document.querySelectorAll('.turno-m:not(.ocp)').forEach(t => t.classList.remove('selected'));
+    document.getElementById('modal-sel').style.display = 'none';
+    document.getElementById('btn-confirmar-cambio').disabled = true;
+    document.getElementById('btn-confirmar-cambio').style.opacity = '0.5';
+  }
+  function selTurnoM(el, hora) {
+    document.querySelectorAll('.turno-m:not(.ocp)').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    horaModal = hora;
+    document.getElementById('modal-sel').style.display = 'block';
+    document.getElementById('modal-sel-text').textContent = fechaModal + ' · ' + hora + 'hs';
+    document.getElementById('btn-confirmar-cambio').disabled = false;
+    document.getElementById('btn-confirmar-cambio').style.opacity = '1';
+  }
+  function confirmarCambio() {
+    cerrarModal();
+    alert('Turno modificado: ' + fechaModal + ' · ' + horaModal + 'hs');
+  }
+  function cancelarTurno() {
+    cerrarModal();
+    document.getElementById('modal-cancelar').style.display = 'flex';
+  }
+  function cerrarModalCancelar() {
+    document.getElementById('modal-cancelar').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  function confirmarCancelacion() {
+    document.getElementById('modal-cancelar').style.display = 'none';
+    document.body.style.overflow = '';
+    alert('Turno cancelado correctamente.');
+  }
+
+  function cambiarTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-proximos').style.display = 'none';
+    document.getElementById('tab-historial').style.display = 'none';
+    document.getElementById('tab-cancelados').style.display = 'none';
+    document.getElementById('tab-' + tab).style.display = 'block';
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+  function verDetalle() {
+    window.location.href = '../donante/campana_detalle.html';
+  }
+</script>
+
+
+<!-- MODAL MODIFICAR TURNO -->
+<div id="modal-modificar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:480px;overflow:hidden;max-height:90vh;overflow-y:auto;">
+    <div style="padding:20px 24px;border-bottom:0.5px solid #e8d0d8;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:500;color:#5a1e37;">Modificar turno</div>
+      <button onclick="cerrarModal()" style="background:none;border:none;cursor:pointer;color:#a9435d;font-size:20px;"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="padding:20px 24px;">
+
+      <!-- Info turno actual -->
+      <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
+        <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO ACTUAL</div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;">Hospital Ramos Mejía</div>
+        <div style="font-size:13px;color:#5a3040;margin-top:3px;">Martes 20 de mayo · 10:00hs</div>
+      </div>
+
+      <!-- Selección nueva fecha -->
+      <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:10px;">Elegí una nueva fecha</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="fecha-tab-m active" onclick="selFechaM(this)">Lun 19 may</button>
+        <button class="fecha-tab-m" onclick="selFechaM(this)">Mar 20 may</button>
+        <button class="fecha-tab-m" onclick="selFechaM(this)">Mié 21 may</button>
+        <button class="fecha-tab-m" onclick="selFechaM(this)">Jue 22 may</button>
+      </div>
+
+      <!-- Grilla de horarios -->
+      <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:10px;">Elegí un horario</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
+        <div class="turno-m" onclick="selTurnoM(this,'08:00')"><div class="th">08:00</div><div class="ts libre">Disponible</div></div>
+        <div class="turno-m" onclick="selTurnoM(this,'08:30')"><div class="th">08:30</div><div class="ts libre">Disponible</div></div>
+        <div class="turno-m ocp"><div class="th">09:00</div><div class="ts ocp">Ocupado</div></div>
+        <div class="turno-m" onclick="selTurnoM(this,'09:30')"><div class="th">09:30</div><div class="ts libre">Disponible</div></div>
+        <div class="turno-m" onclick="selTurnoM(this,'10:00')"><div class="th">10:00</div><div class="ts libre">Disponible</div></div>
+        <div class="turno-m ocp"><div class="th">10:30</div><div class="ts ocp">Ocupado</div></div>
+      </div>
+
+      <!-- Selección actual -->
+      <div id="modal-sel" style="display:none;background:#fdf0f3;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#5a1e37;">
+        <strong>Nueva selección:</strong> <span id="modal-sel-text"></span>
+      </div>
+
+      <!-- Botones -->
+      <button id="btn-confirmar-cambio" onclick="confirmarCambio()" disabled style="width:100%;background:#ef647c;color:white;border:none;padding:13px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px;opacity:0.5;">
+        Confirmar cambio de turno
+      </button>
+      <button onclick="cancelarTurno()" style="width:100%;background:white;color:#c0392b;border:1.5px solid #e74c3c;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
+        Cancelar este turno
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMACIÓN CANCELAR -->
+<div id="modal-cancelar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:400px;padding:28px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:#fde8e8;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+        <i class="ti ti-calendar-off" style="color:#c0392b;font-size:24px;"></i>
+      </div>
+      <div style="font-size:18px;font-weight:500;color:#5a1e37;margin-bottom:8px;">¿Cancelar el turno?</div>
+      <div style="font-size:13px;color:#5a3040;line-height:1.6;">Esta acción libera el cupo para otro donante. Si cambiás de idea podés reservar un nuevo turno.</div>
+    </div>
+    <button onclick="confirmarCancelacion()" style="width:100%;background:#c0392b;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;">Sí, cancelar turno</button>
+    <button onclick="cerrarModalCancelar()" style="width:100%;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:11px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Volver</button>
+  </div>
+</div>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

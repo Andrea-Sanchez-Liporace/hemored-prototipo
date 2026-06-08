@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "donacion_id": 1,
+    "usuario_id": 5,
+    "hospital_id": 1,
+    "numero_certificado": "CERT-2026-RM-0821",
+    "fecha_donacion": "2026-05-17",
+    "volumen_ml": 450,
+    "hospital_nombre": "Hospital Ramos Mejía",
+    "profesional_nombre": "Dr. Carlos Méndez",
+    "profesional_matricula": "45231",
+    "emitido_en": "2026-05-17T11:00:00",
+    "url_pdf": null
+  },
+  {
+    "id": 2,
+    "donacion_id": 2,
+    "usuario_id": 1,
+    "hospital_id": 1,
+    "numero_certificado": "CERT-2026-RM-0834",
+    "fecha_donacion": "2026-05-17",
+    "volumen_ml": 450,
+    "hospital_nombre": "Hospital Ramos Mejía",
+    "profesional_nombre": "Dr. Carlos Méndez",
+    "profesional_matricula": "45231",
+    "emitido_en": "2026-05-17T11:30:00",
+    "url_pdf": null
+  }
+]

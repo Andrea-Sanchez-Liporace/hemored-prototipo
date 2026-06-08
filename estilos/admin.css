@@ -1,0 +1,44 @@
+/* ============================================================
+   HEMORED — ADMIN CSS
+   Estilos específicos del super administrador
+   ============================================================ */
+
+.sidebar-admin { background: #1a1a2e; }
+.sidebar-admin .nav-item { color: #7c8db5; }
+.sidebar-admin .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+.sidebar-admin .nav-item.active { background: #16213e; color: white; }
+.sidebar-admin .nav-badge { background: #3498db; }
+
+/* HOSPITAL TABLE */
+.hospital-row { background: white; border-radius: 10px; padding: 14px 20px; border: 0.5px solid var(--color-rosa-border); display: flex; align-items: center; gap: 14px; margin-bottom: 8px; cursor: pointer; transition: border-color var(--transition-base); }
+.hospital-row:hover { border-color: var(--color-rosa-light); }
+
+/* ESTADO HOSPITAL BADGES */
+.estado-activo          { background: var(--color-success-bg); color: var(--color-success-text); }
+.estado-pendiente       { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.estado-pago-vencer     { background: #fef3cd; color: #856404; }
+.estado-pago-retrasado  { background: var(--color-danger-bg); color: var(--color-danger-text); }
+.estado-inactivo        { background: #f5f5f5; color: #666; }
+.estado-suspendido      { background: #2c2c2c; color: white; }
+
+/* METRICAS */
+.metrica-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid var(--color-rosa-border); }
+.metrica-num { font-size: 32px; font-weight: 500; color: var(--color-borravino); line-height: 1; }
+.metrica-label { font-size: 13px; color: var(--color-text-muted); margin-top: 4px; }
+.metrica-trend { font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.trend-up { color: var(--color-success); }
+.trend-down { color: var(--color-danger); }
+
+/* PLAN CARDS */
+.plan-card { background: white; border-radius: 14px; padding: 24px; border: 2px solid var(--color-rosa-border); transition: border-color var(--transition-base); }
+.plan-card:hover { border-color: var(--color-rosa); }
+.plan-card.featured { border-color: var(--color-borravino); }
+.plan-nombre { font-size: 20px; font-weight: 500; color: var(--color-borravino); }
+.plan-precio { font-size: 32px; font-weight: 500; color: var(--color-borravino); margin: 10px 0; }
+.plan-precio span { font-size: 14px; font-weight: 400; color: var(--color-text-muted); }
+
+/* TABS */
+.tabs { display: flex; gap: 0; border-bottom: 1.5px solid var(--color-rosa-border); margin-bottom: 20px; }
+.tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--color-text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: all var(--transition-base); }
+.tab:hover { color: var(--color-borravino); }
+.tab.active { color: var(--color-borravino); border-bottom-color: var(--color-rosa); }

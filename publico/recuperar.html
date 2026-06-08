@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Recuperar contraseña</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #fdf0f3; color: #1a0a0f; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* NAV */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 80px; background: #5a1e37; }
+    .nav-logo { font-family: 'Lobster', cursive; font-size: 26px; color: white; text-decoration: none; }
+    .nav-logo span { color: #f28b98; }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a { font-size: 14px; color: #f28b98; text-decoration: none; }
+    .nav-links a:hover { color: white; }
+    .burger-btn { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+    .burger-btn span { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; }
+    .mobile-menu { display: none; flex-direction: column; background: #4a1830; overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+    .mobile-menu.active { max-height: 400px; }
+    .mobile-menu a { display: block; padding: 14px 24px; color: #f28b98; font-size: 14px; text-decoration: none; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+
+    /* MAIN */
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+
+    /* STEPS */
+    .step { display: none; width: 100%; max-width: 400px; }
+    .step.active { display: block; }
+
+    /* FORM CARD */
+    .form-card { background: white; border-radius: 20px; padding: 44px 40px; border: 0.5px solid #e8d0d8; box-shadow: 0 4px 32px rgba(90,30,55,0.08); }
+    .form-logo { font-family: 'Lobster', cursive; font-size: 28px; color: #5a1e37; text-align: center; margin-bottom: 6px; }
+    .form-logo span { color: #ef647c; }
+    .form-icon { width: 56px; height: 56px; border-radius: 16px; background: #fdf0f3; border: 1px solid #f28b98; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .form-title { font-size: 20px; font-weight: 500; color: #5a1e37; text-align: center; margin-bottom: 8px; }
+    .form-subtitle { font-size: 14px; color: #5a3040; text-align: center; margin-bottom: 28px; line-height: 1.5; }
+    .form-group { margin-bottom: 18px; }
+    .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
+    .form-input { width: 100%; padding: 11px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-input::placeholder { color: #c994a4; }
+    .form-hint { font-size: 11px; color: #a9435d; margin-top: 4px; }
+    .form-btn { width: 100%; background: #ef647c; color: white; border: none; padding: 13px; border-radius: 9px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 4px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .form-btn:hover { background: #d4537e; }
+    .form-back { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; margin-top: 16px; background: none; border: none; font-family: 'Inter', sans-serif; width: 100%; text-decoration: none; }
+    .form-back:hover { color: #5a1e37; }
+
+    /* CÓDIGO */
+    .code-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 6px; }
+    .code-input { width: 48px; height: 56px; border: 1.5px solid #e8d0d8; border-radius: 10px; font-size: 22px; font-weight: 500; text-align: center; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; }
+    .code-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .resend-link { font-size: 12px; color: #a9435d; text-align: center; display: block; margin-top: 10px; cursor: pointer; }
+    .resend-link:hover { color: #ef647c; }
+    .email-highlight { font-weight: 500; color: #5a1e37; }
+
+    /* SUCCESS */
+    .success-check { width: 64px; height: 64px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+
+    /* FOOTER */
+    footer { padding: 24px 80px; background: #3d0f20; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-family: 'Lobster', cursive; font-size: 18px; color: white; }
+    .footer-logo span { color: #f28b98; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 12px; color: #f28b98; text-decoration: none; }
+    .footer-copy { font-size: 11px; color: #c994a4; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .burger-btn { display: flex; }
+      .mobile-menu { display: flex; }
+      .form-card { padding: 32px 24px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 14px; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+  
+  .nav-public-links { display: flex; align-items: center; gap: 28px; }
+  .nav-public-links a { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.65); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; transition: color 0.15s; }
+  .nav-public-links a:hover { color: white; }
+  .nav-public-links a.nav-active { color: #f9c0cc; border-bottom: 2px solid #f9c0cc; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="../index.html">Hemo<span>red</span></a>
+  <div class="nav-public-links">
+    <a href="../index.html">Home</a>
+    <a href="nosotros.html">Nosotros</a>
+  </div>
+  <button class="burger-btn" onclick="document.getElementById('mobile-menu').classList.toggle('active')" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#">Cómo funciona</a>
+  <a href="#">Para hospitales</a>
+  <a href="../publico/nosotros.html">Nosotros</a>
+</div>
+
+<main>
+
+  <!-- PASO 1 — Ingresá tu email -->
+  <div class="step active" id="step-email">
+    <div class="form-card">
+      <div class="form-logo">Hemo<span>red</span></div>
+      <div style="height:20px;"></div>
+      <div class="form-icon">
+        <i class="ti ti-lock" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i>
+      </div>
+      <div class="form-title">¿Olvidaste tu contraseña?</div>
+      <div class="form-subtitle">Ingresá tu email y te enviamos un código para restablecerla.</div>
+
+      <div class="form-group">
+        <label class="form-label" for="r-email">Email</label>
+        <input class="form-input" id="r-email" type="email" placeholder="tu@email.com">
+      </div>
+
+      <button class="form-btn" onclick="paso2()">
+        <i class="ti ti-send" aria-hidden="true"></i>
+        Enviar código
+      </button>
+      <a class="form-back" href="../publico/login.html">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>
+        Volver al login
+      </a>
+    </div>
+  </div>
+
+  <!-- PASO 2 — Ingresá el código -->
+  <div class="step" id="step-codigo">
+    <div class="form-card">
+      <div class="form-logo">Hemo<span>red</span></div>
+      <div style="height:20px;"></div>
+      <div class="form-icon">
+        <i class="ti ti-mail-opened" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i>
+      </div>
+      <div class="form-title">Revisá tu email</div>
+      <div class="form-subtitle">Te enviamos un código de 6 dígitos a <span class="email-highlight" id="email-display">tu@email.com</span>. Ingresalo acá.</div>
+
+      <div class="code-inputs">
+        <input class="code-input" type="text" maxlength="1" oninput="moverFoco(this, 1)">
+        <input class="code-input" type="text" maxlength="1" oninput="moverFoco(this, 2)">
+        <input class="code-input" type="text" maxlength="1" oninput="moverFoco(this, 3)">
+        <input class="code-input" type="text" maxlength="1" oninput="moverFoco(this, 4)">
+        <input class="code-input" type="text" maxlength="1" oninput="moverFoco(this, 5)">
+        <input class="code-input" type="text" maxlength="1" oninput="moverFoco(this, 6)">
+      </div>
+      <span class="resend-link" onclick="reenviarCodigo()">¿No recibiste el código? Reenviarlo</span>
+
+      <div style="height:20px;"></div>
+      <button class="form-btn" onclick="paso3()">
+        <i class="ti ti-check" aria-hidden="true"></i>
+        Verificar código
+      </button>
+      <button class="form-back" onclick="paso1()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>
+        Volver
+      </button>
+    </div>
+  </div>
+
+  <!-- PASO 3 — Nueva contraseña -->
+  <div class="step" id="step-nueva">
+    <div class="form-card">
+      <div class="form-logo">Hemo<span>red</span></div>
+      <div style="height:20px;"></div>
+      <div class="form-icon">
+        <i class="ti ti-key" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i>
+      </div>
+      <div class="form-title">Nueva contraseña</div>
+      <div class="form-subtitle">Elegí una contraseña segura para tu cuenta.</div>
+
+      <div class="form-group">
+        <label class="form-label" for="r-pass">Nueva contraseña</label>
+        <input class="form-input" id="r-pass" type="password" placeholder="Mínimo 8 caracteres">
+        <p class="form-hint">Mínimo 8 caracteres</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="r-pass2">Repetir nueva contraseña</label>
+        <input class="form-input" id="r-pass2" type="password" placeholder="••••••••">
+      </div>
+
+      <button class="form-btn" onclick="paso4()">
+        <i class="ti ti-lock-check" aria-hidden="true"></i>
+        Restablecer contraseña
+      </button>
+    </div>
+  </div>
+
+  <!-- PASO 4 — Éxito -->
+  <div class="step" id="step-exito">
+    <div class="form-card" style="text-align:center;">
+      <div class="form-logo">Hemo<span>red</span></div>
+      <div style="height:24px;"></div>
+      <div class="success-check">
+        <i class="ti ti-check" style="color:white;font-size:28px;" aria-hidden="true"></i>
+      </div>
+      <div class="form-title">¡Contraseña restablecida!</div>
+      <div class="form-subtitle" style="margin-bottom:28px;">Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tu nueva contraseña.</div>
+      <a href="../publico/login.html">
+        <button class="form-btn">
+          <i class="ti ti-login" aria-hidden="true"></i>
+          Ir al login
+        </button>
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Hemo<span>red</span></div>
+  <div class="footer-links">
+    <a href="../publico/nosotros.html">Nosotros</a>
+    <a href="#">Términos</a>
+    <a href="#">Privacidad</a>
+    <a href="#">Contacto</a>
+  </div>
+  <div class="footer-copy">© 2026 HemoRed</div>
+</footer>
+
+<script>
+  const steps = ['step-email', 'step-codigo', 'step-nueva', 'step-exito'];
+
+  function mostrar(id) {
+    steps.forEach(s => document.getElementById(s).classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function paso1() { mostrar('step-email'); }
+
+  function paso2() {
+    const email = document.getElementById('r-email').value || 'tu@email.com';
+    document.getElementById('email-display').textContent = email;
+    mostrar('step-codigo');
+  }
+
+  function paso3() { mostrar('step-nueva'); }
+  function paso4() { mostrar('step-exito'); }
+
+  function moverFoco(el, pos) {
+    if (el.value.length === 1 && pos < 6) {
+      el.parentElement.children[pos].focus();
+    }
+  }
+
+  function reenviarCodigo() {
+    const link = document.querySelector('.resend-link');
+    link.textContent = '✓ Código reenviado';
+    link.style.color = '#5a1e37';
+    setTimeout(() => {
+      link.textContent = '¿No recibiste el código? Reenviarlo';
+      link.style.color = '';
+    }, 3000);
+  }
+</script>
+
+</body>
+</html>

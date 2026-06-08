@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Campaña</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-user-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #ef647c; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.5); padding: 12px 12px 4px; }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* TOPBAR */
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; }
+    .topbar-back:hover { color: #5a1e37; }
+    .topbar-sep { color: #e8d0d8; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* STEPS INDICATOR */
+    .steps-indicator { background: white; border-bottom: 0.5px solid #e8d0d8; padding: 14px 32px; display: flex; align-items: center; gap: 0; }
+    .step-ind { display: flex; align-items: center; gap: 8px; }
+    .step-ind-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; border: 1.5px solid #e8d0d8; color: #a9435d; background: white; flex-shrink: 0; }
+    .step-ind-num.active { background: #ef647c; border-color: #ef647c; color: white; }
+    .step-ind-num.done { background: #5a1e37; border-color: #5a1e37; color: white; }
+    .step-ind-label { font-size: 12px; color: #a9435d; white-space: nowrap; }
+    .step-ind-label.active { color: #5a1e37; font-weight: 500; }
+    .step-ind-label.done { color: #5a1e37; }
+    .step-line { flex: 1; height: 1px; background: #e8d0d8; margin: 0 12px; }
+    .step-line.done { background: #5a1e37; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+    .step-content { display: none; }
+    .step-content.active { display: block; }
+
+    /* ── PASO 1: DETALLE CAMPAÑA ── */
+    .campaign-detail { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+    .campaign-main { display: flex; flex-direction: column; gap: 20px; }
+    .card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; }
+    .campaign-hero { background: white; border-radius: 14px; padding: 28px; border: 0.5px solid #e8d0d8; }
+    .campaign-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+    .campaign-hospital-name { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .campaign-hospital-dir { font-size: 13px; color: #5a3040; display: flex; align-items: center; gap: 4px; }
+    .badge-urgente { background: #fde8e8; color: #c0392b; border: 0.5px solid #e74c3c; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-activa { background: #e1f5ee; color: #04342c; border: 0.5px solid #27ae60; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .campaign-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; padding: 16px; background: #fdf0f3; border-radius: 10px; }
+    .meta-item { display: flex; flex-direction: column; gap: 3px; }
+    .meta-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .meta-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .campaign-desc-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+    .campaign-desc-text { font-size: 14px; color: #5a3040; line-height: 1.7; }
+    .progress-section { margin-top: 20px; }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .progress-label { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .progress-count { font-size: 13px; color: #a9435d; }
+    .progress-bar { height: 8px; background: #fdf0f3; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #ef647c; border-radius: 4px; }
+
+    /* SIDEBAR CAMPAÑA */
+    .campaign-sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .info-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .info-card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+    .info-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+    .info-row:last-child { margin-bottom: 0; }
+    .info-icon { width: 32px; height: 32px; border-radius: 8px; background: #fdf0f3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .info-body { }
+    .info-body-label { font-size: 11px; color: #a9435d; font-weight: 500; margin-bottom: 2px; }
+    .info-body-value { font-size: 13px; color: #5a3040; }
+    .sangre-tipo { display: inline-flex; align-items: center; gap: 4px; background: #fde8e8; border: 0.5px solid #e74c3c; color: #c0392b; padding: 3px 10px; border-radius: 20px; font-size: 13px; font-weight: 500; margin-right: 4px; margin-bottom: 4px; }
+    .btn-reservar { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+    .btn-reservar:hover { background: #d4537e; }
+    .nota-info { font-size: 11px; color: #a9435d; text-align: center; margin-top: 10px; line-height: 1.5; }
+
+    /* ── PASO 2: SELECCIÓN TURNO ── */
+    .turnos-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    .turnos-section { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; }
+    .turnos-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .turnos-subtitle { font-size: 13px; color: #5a3040; margin-bottom: 20px; }
+    .fecha-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .fecha-tab { padding: 8px 16px; border-radius: 9px; border: 1.5px solid #e8d0d8; font-size: 13px; color: #5a3040; cursor: pointer; transition: all 0.15s; background: white; font-family: 'Inter', sans-serif; }
+    .fecha-tab:hover { border-color: #ef647c; color: #5a1e37; }
+    .fecha-tab.active { background: #5a1e37; border-color: #5a1e37; color: white; }
+    .turnos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .turno-opt { border: 1.5px solid #e8d0d8; border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.15s; }
+    .turno-opt:hover { border-color: #ef647c; background: #fdf0f3; }
+    .turno-opt.selected { border-color: #ef647c; background: #fdf0f3; }
+    .turno-opt.ocupado { background: #f7f0f3; cursor: not-allowed; opacity: 0.5; }
+    .turno-hora { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .turno-opt.ocupado .turno-hora { color: #a9435d; }
+    .turno-estado { font-size: 11px; color: #5a3040; }
+    .turno-estado.libre { color: #27ae60; }
+    .turno-estado.ocupado { color: #c0392b; }
+    .turno-resumen { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .turno-resumen-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+    .turno-resumen-empty { font-size: 13px; color: #a9435d; text-align: center; padding: 20px 0; }
+    .turno-resumen-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
+    .turno-resumen-icon { width: 32px; height: 32px; border-radius: 8px; background: #fdf0f3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .turno-resumen-label { font-size: 11px; color: #a9435d; margin-bottom: 2px; }
+    .turno-resumen-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .btn-continuar { width: 100%; background: #ef647c; color: white; border: none; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-continuar:hover { background: #d4537e; }
+    .btn-continuar:disabled { background: #f28b98; cursor: not-allowed; }
+    .btn-volver { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 11px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 8px; }
+
+    /* ── PASO 3: CONFIRMACIÓN ── */
+    .confirmacion { max-width: 560px; margin: 0 auto; }
+    .confirmacion-card { background: white; border-radius: 16px; padding: 32px; border: 0.5px solid #e8d0d8; margin-bottom: 16px; }
+    .confirmacion-title { font-size: 18px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
+    .confirmacion-subtitle { font-size: 13px; color: #5a3040; margin-bottom: 24px; }
+    .confirmacion-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .confirmacion-item:last-child { border-bottom: none; }
+    .conf-icon { width: 40px; height: 40px; border-radius: 10px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .conf-label { font-size: 12px; color: #a9435d; margin-bottom: 2px; }
+    .conf-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .aviso-card { background: #faeeda; border: 1px solid #e67e22; border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+    .aviso-text { font-size: 13px; color: #633806; line-height: 1.6; }
+    .aviso-text strong { color: #412402; }
+    .btn-confirmar { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-confirmar:hover { background: #d4537e; }
+
+    /* ── PASO 4: ÉXITO ── */
+    .exito { max-width: 520px; margin: 0 auto; text-align: center; }
+    .exito-icon { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .exito h2 { font-size: 26px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
+    .exito p { font-size: 15px; color: #5a3040; line-height: 1.7; margin-bottom: 28px; }
+    .exito-card { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; margin-bottom: 20px; text-align: left; }
+    .exito-card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
+    .exito-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .exito-row:last-child { border-bottom: none; }
+    .exito-row-icon { width: 32px; height: 32px; border-radius: 8px; background: #fdf0f3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .exito-row-label { font-size: 11px; color: #a9435d; margin-bottom: 1px; }
+    .exito-row-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .exito-actions { display: flex; flex-direction: column; gap: 10px; }
+    .btn-calendario { background: #5a1e37; color: white; border: none; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-volver-buscar { background: white; color: #5a1e37; border: 1.5px solid #5a1e37; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) {
+      .campaign-detail { grid-template-columns: 1fr; }
+      .campaign-sidebar { display: grid; grid-template-columns: 1fr 1fr; }
+      .turnos-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .campaign-sidebar { grid-template-columns: 1fr; }
+      .turnos-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-indicator { padding: 12px 20px; gap: 4px; }
+      .step-ind-label { display: none; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/donante.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SP</div>
+    <div>
+      <div class="sidebar-user-name">Sofía Páez</div>
+      <div class="sidebar-user-role">Donante</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item active" href="../donante/dashboard.html">
+      <i class="ti ti-search" aria-hidden="true"></i>Buscar campañas
+    </a>
+    <a class="nav-item" href="../donante/mis_turnos.html"><i class="ti ti-calendar" aria-hidden="true"></i>Mis turnos</a>
+    <a class="nav-item" href="../donante/mis_turnos.html"><i class="ti ti-heart" aria-hidden="true"></i>Mis donaciones</a>
+    <a class="nav-item" href="../donante/mis_documentos.html"><i class="ti ti-file-text" aria-hidden="true"></i>Mis documentos</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../donante/perfil.html"><i class="ti ti-user" aria-hidden="true"></i>Mi perfil</a>
+    <a class="nav-item" href="../donante/notificaciones.html"><i class="ti ti-bell" aria-hidden="true"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="topbar-back" href="../donante/dashboard.html">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Campañas
+      </a>
+      <span class="topbar-sep">/</span>
+      <span class="topbar-title" id="topbar-title">Detalle de campaña</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-btn">
+        <i class="ti ti-bell" style="font-size:18px;" aria-hidden="true"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEPS INDICATOR -->
+  <div class="steps-indicator">
+    <div class="step-ind">
+      <div class="step-ind-num active" id="ind-1">1</div>
+      <span class="step-ind-label active" id="lbl-1">Campaña</span>
+    </div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-ind">
+      <div class="step-ind-num" id="ind-2">2</div>
+      <span class="step-ind-label" id="lbl-2">Elegí tu turno</span>
+    </div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-ind">
+      <div class="step-ind-num" id="ind-3">3</div>
+      <span class="step-ind-label" id="lbl-3">Confirmación</span>
+    </div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step-ind">
+      <div class="step-ind-num" id="ind-4">4</div>
+      <span class="step-ind-label" id="lbl-4">¡Listo!</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- PASO 1 — DETALLE CAMPAÑA -->
+    <div class="step-content active" id="paso-1">
+      <div class="campaign-detail">
+        <div class="campaign-main">
+          <div class="campaign-hero">
+            <div class="campaign-top">
+              <div>
+                <div class="campaign-hospital-name">Hospital Ramos Mejía</div>
+                <div class="campaign-hospital-dir">
+                  <i class="ti ti-map-pin" style="color:#a9435d;font-size:14px;" aria-hidden="true"></i>
+                  Av. General Urquiza 609, CABA
+                </div>
+              </div>
+              <span class="badge-urgente">Urgente</span>
+            </div>
+            <div class="campaign-meta">
+              <div class="meta-item">
+                <div class="meta-label">Tipo de sangre necesaria</div>
+                <div class="meta-value">0- / 0+</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Fecha límite</div>
+                <div class="meta-value">20 de mayo 2026</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Donantes necesarios</div>
+                <div class="meta-value">10 donantes</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Publicada</div>
+                <div class="meta-value">hace 2 días</div>
+              </div>
+            </div>
+            <div class="campaign-desc-title">Descripción de la campaña</div>
+            <div class="campaign-desc-text">Paciente pediátrico de 8 años requiere transfusiones de sangre para cirugía cardíaca programada para el 22 de mayo. El banco de sangre del hospital necesita cubrir la reserva mínima para la operación. Cualquier persona en buenas condiciones de salud puede presentarse a donar.</div>
+            <div class="progress-section">
+              <div class="progress-header">
+                <span class="progress-label">Cupos cubiertos</span>
+                <span class="progress-count">7 de 10</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:70%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="campaign-desc-title" style="margin-bottom:14px;">Requisitos para donar</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+                <i class="ti ti-check" style="color:#27ae60;font-size:16px;" aria-hidden="true"></i>
+                Tener entre 18 y 65 años
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+                <i class="ti ti-check" style="color:#27ae60;font-size:16px;" aria-hidden="true"></i>
+                Pesar más de 50 kg
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+                <i class="ti ti-check" style="color:#27ae60;font-size:16px;" aria-hidden="true"></i>
+                No haber donado sangre en los últimos 3 meses
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+                <i class="ti ti-check" style="color:#27ae60;font-size:16px;" aria-hidden="true"></i>
+                Presentar DNI al momento de la donación
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+                <i class="ti ti-info-circle" style="color:#a9435d;font-size:16px;" aria-hidden="true"></i>
+                El tipo de sangre compatible lo verifica el equipo médico en el momento
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="campaign-sidebar">
+          <div class="info-card">
+            <div class="info-card-title">Información del hospital</div>
+            <div class="info-row">
+              <div class="info-icon"><i class="ti ti-phone" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+              <div class="info-body">
+                <div class="info-body-label">Teléfono</div>
+                <div class="info-body-value">011 4127-0200</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="ti ti-clock" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+              <div class="info-body">
+                <div class="info-body-label">Horario de donación</div>
+                <div class="info-body-value">Lun a Vie · 8:00 a 16:00hs</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="ti ti-map-pin" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+              <div class="info-body">
+                <div class="info-body-label">Cómo llegar</div>
+                <div class="info-body-value">Líneas 4, 36, 55 — Subte B Medrano</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <button class="btn-reservar" onclick="irPaso(2)">
+              <i class="ti ti-calendar-plus" aria-hidden="true"></i>
+              Reservar turno
+            </button>
+            <p class="nota-info">Podés cancelar tu turno hasta 24hs antes sin penalidad.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2 — SELECCIÓN DE TURNO -->
+    <div class="step-content" id="paso-2">
+      <div class="turnos-layout">
+        <div class="turnos-section">
+          <div class="turnos-title">Elegí tu turno</div>
+          <div class="turnos-subtitle">Seleccioná el día y horario que mejor te quede</div>
+
+          <div class="fecha-tabs">
+            <button class="fecha-tab active" onclick="seleccionarFecha(this, 'Lunes 19 may')">Lun 19 may</button>
+            <button class="fecha-tab" onclick="seleccionarFecha(this, 'Martes 20 may')">Mar 20 may</button>
+            <button class="fecha-tab" onclick="seleccionarFecha(this, 'Miércoles 21 may')">Mié 21 may</button>
+            <button class="fecha-tab" onclick="seleccionarFecha(this, 'Jueves 22 may')">Jue 22 may</button>
+          </div>
+
+          <div class="turnos-grid" id="turnos-grid">
+            <div class="turno-opt" onclick="seleccionarTurno(this, '08:00')">
+              <div class="turno-hora">08:00</div>
+              <div class="turno-estado libre">Disponible</div>
+            </div>
+            <div class="turno-opt" onclick="seleccionarTurno(this, '08:30')">
+              <div class="turno-hora">08:30</div>
+              <div class="turno-estado libre">Disponible</div>
+            </div>
+            <div class="turno-opt ocupado">
+              <div class="turno-hora">09:00</div>
+              <div class="turno-estado ocupado">Ocupado</div>
+            </div>
+            <div class="turno-opt" onclick="seleccionarTurno(this, '09:30')">
+              <div class="turno-hora">09:30</div>
+              <div class="turno-estado libre">Disponible</div>
+            </div>
+            <div class="turno-opt ocupado">
+              <div class="turno-hora">10:00</div>
+              <div class="turno-estado ocupado">Ocupado</div>
+            </div>
+            <div class="turno-opt" onclick="seleccionarTurno(this, '10:30')">
+              <div class="turno-hora">10:30</div>
+              <div class="turno-estado libre">Disponible</div>
+            </div>
+            <div class="turno-opt" onclick="seleccionarTurno(this, '11:00')">
+              <div class="turno-hora">11:00</div>
+              <div class="turno-estado libre">Disponible</div>
+            </div>
+            <div class="turno-opt ocupado">
+              <div class="turno-hora">11:30</div>
+              <div class="turno-estado ocupado">Ocupado</div>
+            </div>
+            <div class="turno-opt" onclick="seleccionarTurno(this, '12:00')">
+              <div class="turno-hora">12:00</div>
+              <div class="turno-estado libre">Disponible</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="turno-resumen">
+            <div class="turno-resumen-title">Tu selección</div>
+            <div id="resumen-vacio" class="turno-resumen-empty">Seleccioná un turno para continuar</div>
+            <div id="resumen-datos" style="display:none;">
+              <div class="turno-resumen-item">
+                <div class="turno-resumen-icon"><i class="ti ti-calendar" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+                <div>
+                  <div class="turno-resumen-label">Fecha</div>
+                  <div class="turno-resumen-value" id="res-fecha">—</div>
+                </div>
+              </div>
+              <div class="turno-resumen-item">
+                <div class="turno-resumen-icon"><i class="ti ti-clock" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+                <div>
+                  <div class="turno-resumen-label">Hora</div>
+                  <div class="turno-resumen-value" id="res-hora">—</div>
+                </div>
+              </div>
+              <div class="turno-resumen-item">
+                <div class="turno-resumen-icon"><i class="ti ti-building-hospital" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+                <div>
+                  <div class="turno-resumen-label">Hospital</div>
+                  <div class="turno-resumen-value">Hospital Ramos Mejía</div>
+                </div>
+              </div>
+            </div>
+            <button class="btn-continuar" id="btn-continuar" disabled onclick="irPaso(3)">
+              <i class="ti ti-arrow-right" aria-hidden="true"></i>
+              Continuar
+            </button>
+            <button class="btn-volver" onclick="irPaso(1)">Volver</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3 — CONFIRMACIÓN -->
+    <div class="step-content" id="paso-3">
+      <div class="confirmacion">
+        <div class="confirmacion-card">
+          <div class="confirmacion-title">Confirmá tu reserva</div>
+          <div class="confirmacion-subtitle">Revisá los datos antes de confirmar tu turno</div>
+
+          <div class="confirmacion-item">
+            <div class="conf-icon"><i class="ti ti-building-hospital" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="conf-label">Hospital</div>
+              <div class="conf-value">Hospital Ramos Mejía</div>
+            </div>
+          </div>
+          <div class="confirmacion-item">
+            <div class="conf-icon"><i class="ti ti-map-pin" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="conf-label">Dirección</div>
+              <div class="conf-value">Av. General Urquiza 609, CABA</div>
+            </div>
+          </div>
+          <div class="confirmacion-item">
+            <div class="conf-icon"><i class="ti ti-calendar" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="conf-label">Fecha</div>
+              <div class="conf-value" id="conf-fecha">Lunes 19 de mayo 2026</div>
+            </div>
+          </div>
+          <div class="confirmacion-item">
+            <div class="conf-icon"><i class="ti ti-clock" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="conf-label">Hora</div>
+              <div class="conf-value" id="conf-hora">08:00hs</div>
+            </div>
+          </div>
+          <div class="confirmacion-item">
+            <div class="conf-icon"><i class="ti ti-user" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="conf-label">Donante</div>
+              <div class="conf-value">Sofía Páez · DNI 12.345.678</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="aviso-card">
+          <i class="ti ti-info-circle" style="color:#e67e22;font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
+          <div class="aviso-text">
+            <strong>Recordá presentarte con tu DNI.</strong> Si no podés asistir, cancelá tu turno con al menos 24hs de anticipación para liberar el cupo para otro donante.
+          </div>
+        </div>
+
+        <button class="btn-confirmar" onclick="irPaso(4)">
+          <i class="ti ti-check" aria-hidden="true"></i>
+          Confirmar reserva
+        </button>
+        <button class="btn-volver" style="margin-top:10px;width:100%;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;" onclick="irPaso(2)">Volver</button>
+      </div>
+    </div>
+
+    <!-- PASO 4 — ÉXITO -->
+    <div class="step-content" id="paso-4">
+      <div class="exito">
+        <div class="exito-icon">
+          <i class="ti ti-heart" style="color:white;font-size:32px;" aria-hidden="true"></i>
+        </div>
+        <h2>¡Turno reservado!</h2>
+        <p>Tu reserva fue confirmada. Te enviamos un resumen por email. Recordá llevar tu DNI el día de la donación.</p>
+
+        <div class="exito-card">
+          <div class="exito-card-title">Detalles de tu turno</div>
+          <div class="exito-row">
+            <div class="exito-row-icon"><i class="ti ti-building-hospital" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="exito-row-label">Hospital</div>
+              <div class="exito-row-value">Hospital Ramos Mejía</div>
+            </div>
+          </div>
+          <div class="exito-row">
+            <div class="exito-row-icon"><i class="ti ti-map-pin" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="exito-row-label">Dirección</div>
+              <div class="exito-row-value">Av. General Urquiza 609, CABA</div>
+            </div>
+          </div>
+          <div class="exito-row">
+            <div class="exito-row-icon"><i class="ti ti-calendar" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="exito-row-label">Fecha y hora</div>
+              <div class="exito-row-value" id="exito-fecha">Lunes 19 de mayo · 08:00hs</div>
+            </div>
+          </div>
+          <div class="exito-row">
+            <div class="exito-row-icon"><i class="ti ti-hash" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
+            <div>
+              <div class="exito-row-label">Número de reserva</div>
+              <div class="exito-row-value">#TRN-20240519-0042</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="exito-actions">
+          <button class="btn-calendario">
+            <i class="ti ti-calendar-plus" aria-hidden="true"></i>
+            Agregar al calendario
+          </button>
+          <a href="../donante/dashboard.html">
+            <button class="btn-volver-buscar" style="width:100%;">
+              <i class="ti ti-search" aria-hidden="true"></i>
+              Volver a campañas
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let fechaSeleccionada = 'Lunes 19 may';
+  let horaSeleccionada = null;
+
+  function irPaso(n) {
+    document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+    document.getElementById('paso-' + n).classList.add('active');
+
+    // Update indicators
+    for (let i = 1; i <= 4; i++) {
+      const num = document.getElementById('ind-' + i);
+      const lbl = document.getElementById('lbl-' + i);
+      num.classList.remove('active', 'done');
+      lbl.classList.remove('active', 'done');
+      if (i < n) { num.classList.add('done'); num.innerHTML = '<i class="ti ti-check" style="font-size:12px;"></i>'; lbl.classList.add('done'); }
+      else if (i === n) { num.classList.add('active'); num.textContent = i; lbl.classList.add('active'); }
+      else { num.textContent = i; }
+    }
+    for (let i = 1; i <= 3; i++) {
+      const line = document.getElementById('line-' + i);
+      line.classList.toggle('done', i < n);
+    }
+
+    const titles = ['Detalle de campaña', 'Elegí tu turno', 'Confirmación', '¡Turno reservado!'];
+    document.getElementById('topbar-title').textContent = titles[n - 1];
+    window.scrollTo(0, 0);
+  }
+
+  function seleccionarFecha(el, fecha) {
+    document.querySelectorAll('.fecha-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    fechaSeleccionada = fecha;
+    horaSeleccionada = null;
+    document.querySelectorAll('.turno-opt:not(.ocupado)').forEach(t => t.classList.remove('selected'));
+    document.getElementById('resumen-vacio').style.display = 'block';
+    document.getElementById('resumen-datos').style.display = 'none';
+    document.getElementById('btn-continuar').disabled = true;
+  }
+
+  function seleccionarTurno(el, hora) {
+    document.querySelectorAll('.turno-opt:not(.ocupado)').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    horaSeleccionada = hora;
+    document.getElementById('res-fecha').textContent = fechaSeleccionada;
+    document.getElementById('res-hora').textContent = hora + 'hs';
+    document.getElementById('resumen-vacio').style.display = 'none';
+    document.getElementById('resumen-datos').style.display = 'block';
+    document.getElementById('btn-continuar').disabled = false;
+    document.getElementById('conf-fecha').textContent = fechaSeleccionada + ' 2026';
+    document.getElementById('conf-hora').textContent = hora + 'hs';
+    document.getElementById('exito-fecha').textContent = fechaSeleccionada + ' · ' + hora + 'hs';
+  }
+
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

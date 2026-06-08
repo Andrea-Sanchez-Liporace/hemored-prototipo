@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Notificaciones Hospital</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .btn-marcar { background: white; color: #a9435d; border: 1px solid #e8d0d8; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; max-width: 720px; }
+
+    .filtros { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filtro-chip { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid #e8d0d8; background: white; color: #a9435d; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .filtro-chip.active { background: #5a1e37; color: white; border-color: #5a1e37; }
+
+    .notif-group { margin-bottom: 28px; }
+    .notif-group-title { font-size: 12px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+    .notif-list { display: flex; flex-direction: column; gap: 8px; }
+    .notif-item { background: white; border-radius: 14px; padding: 16px 20px; border: 0.5px solid #e8d0d8; display: flex; align-items: flex-start; gap: 14px; cursor: pointer; transition: border-color 0.15s; }
+    .notif-item:hover { border-color: #f28b98; }
+    .notif-item.unread { border-left: 3px solid #ef647c; background: #fdf9fb; }
+    .notif-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .notif-item.unread .notif-title { color: #3d0f20; }
+    .notif-desc { font-size: 13px; color: #5a3040; line-height: 1.5; margin-bottom: 6px; }
+    .notif-time { font-size: 11px; color: #a9435d; }
+    .notif-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+    .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; }
+    .notif-action { padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+    .notif-action-primary { background: #ef647c; color: white; border: none; }
+    .notif-action-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8; }
+    .notif-action-warn { background: white; color: #e67e22; border: 1px solid #e67e22; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .notif-right { display: none; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item active" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
+    <a class="nav-item" href="../hospital/facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Notificaciones</div>
+    </div>
+    <button class="btn-marcar">Marcar todas como leídas</button>
+  </div>
+
+  <div class="content">
+
+    <div class="filtros">
+      <button class="filtro-chip active">Todas</button>
+      <button class="filtro-chip">No leídas</button>
+      <button class="filtro-chip">Turnos</button>
+      <button class="filtro-chip">Certificados</button>
+      <button class="filtro-chip">Campañas</button>
+      <button class="filtro-chip">Facturación</button>
+    </div>
+
+    <!-- HOY -->
+    <div class="notif-group">
+      <div class="notif-group-title">Hoy</div>
+      <div class="notif-list">
+
+        <!-- Certificado solicitado -->
+        <div class="notif-item unread">
+          <div class="notif-icon" style="background:#fdf0f3;border:0.5px solid #f28b98;">
+            <i class="ti ti-certificate" style="color:#ef647c;font-size:20px;"></i>
+          </div>
+          <div class="notif-body">
+            <div class="notif-title">Solicitud de certificado</div>
+            <div class="notif-desc"><strong>Sofía Páez</strong> solicitó el certificado de su donación del 20 de mayo para <strong>Ministerio de Salud CABA</strong>.</div>
+            <div class="notif-time">hace 2 horas</div>
+          </div>
+          <div class="notif-right">
+            <div class="unread-dot"></div>
+            <button class="notif-action notif-action-primary" onclick="window.location='../hospital/documentacion.html'">Emitir certificado</button>
+          </div>
+        </div>
+
+        <!-- Nuevo turno solicitado -->
+        <div class="notif-item unread">
+          <div class="notif-icon" style="background:#faeeda;">
+            <i class="ti ti-calendar-plus" style="color:#e67e22;font-size:20px;"></i>
+          </div>
+          <div class="notif-body">
+            <div class="notif-title">Nuevo turno solicitado</div>
+            <div class="notif-desc"><strong>María López</strong> solicitó un turno para hoy a las 10:00hs en la campaña pediátrica.</div>
+            <div class="notif-time">hace 4 horas</div>
+          </div>
+          <div class="notif-right">
+            <div class="unread-dot"></div>
+            <button class="notif-action notif-action-warn" onclick="window.location='../hospital/turnos.html'">Confirmar turno</button>
+          </div>
+        </div>
+
+        <!-- Turno cancelado -->
+        <div class="notif-item unread">
+          <div class="notif-icon" style="background:#fde8e8;">
+            <i class="ti ti-calendar-off" style="color:#c0392b;font-size:20px;"></i>
+          </div>
+          <div class="notif-body">
+            <div class="notif-title">Turno cancelado por el donante</div>
+            <div class="notif-desc"><strong>Laura Pérez</strong> canceló su turno del 18 de mayo a las 10:00hs. El cupo quedó disponible.</div>
+            <div class="notif-time">hace 6 horas</div>
+          </div>
+          <div class="notif-right">
+            <div class="unread-dot"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AYER -->
+    <div class="notif-group">
+      <div class="notif-group-title">Ayer</div>
+      <div class="notif-list">
+
+        <!-- Campaña por vencer -->
+        <div class="notif-item">
+          <div class="notif-icon" style="background:#faeeda;">
+            <i class="ti ti-alarm" style="color:#e67e22;font-size:20px;"></i>
+          </div>
+          <div class="notif-body">
+            <div class="notif-title">Campaña por vencer</div>
+            <div class="notif-desc">La campaña <strong>Paciente pediátrico</strong> vence en 5 días. Quedan 3 cupos sin cubrir.</div>
+            <div class="notif-time">ayer a las 09:00hs</div>
+          </div>
+          <div class="notif-right">
+            <button class="notif-action notif-action-outline" onclick="window.location='../hospital/campana_detalle.html'">Ver campaña</button>
+          </div>
+        </div>
+
+        <!-- Factura pendiente -->
+        <div class="notif-item">
+          <div class="notif-icon" style="background:#fde8e8;">
+            <i class="ti ti-receipt" style="color:#c0392b;font-size:20px;"></i>
+          </div>
+          <div class="notif-body">
+            <div class="notif-title">Factura pendiente de pago</div>
+            <div class="notif-desc">La factura de junio 2026 por $18.150 está pendiente. Vence el 30 de junio.</div>
+            <div class="notif-time">ayer a las 08:00hs</div>
+          </div>
+          <div class="notif-right">
+            <button class="notif-action notif-action-primary" onclick="window.location='../hospital/facturacion.html'">Ver factura</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ESTA SEMANA -->
+    <div class="notif-group">
+      <div class="notif-group-title">Esta semana</div>
+      <div class="notif-list">
+
+        <div class="notif-item">
+          <div class="notif-icon" style="background:#e1f5ee;">
+            <i class="ti ti-heart" style="color:#27ae60;font-size:20px;"></i>
+          </div>
+          <div class="notif-body">
+            <div class="notif-title">Nueva donación registrada</div>
+            <div class="notif-desc"><strong>Carlos Méndez</strong> completó su donación. Recordá cargar el resultado del análisis cuando esté disponible.</div>
+            <div class="notif-time">19 may · 15:30hs</div>
+          </div>
+          <div class="notif-right">
+            <button class="notif-action notif-action-outline" onclick="window.location='../hospital/documentacion.html'">Cargar resultado</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>

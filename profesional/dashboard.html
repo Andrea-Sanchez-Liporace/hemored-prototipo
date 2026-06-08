@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Panel Profesional</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-prof { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
+    .sidebar-prof-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-prof-role { font-size: 11px; color: #f28b98; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-date { font-size: 13px; color: #a9435d; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    .content { padding: 32px; flex: 1; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .stat { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e8d0d8; }
+    .stat-num { font-size: 28px; font-weight: 500; color: #5a1e37; }
+    .stat-label { font-size: 12px; color: #a9435d; margin-top: 3px; }
+
+    .filtros { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filtro-chip { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid #e8d0d8; background: white; color: #a9435d; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .filtro-chip.active { background: #5a1e37; color: white; border-color: #5a1e37; }
+
+    .turnos-list { display: flex; flex-direction: column; gap: 12px; }
+    .turno-card { background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid #e8d0d8; display: flex; align-items: center; gap: 20px; transition: border-color 0.15s; }
+    .turno-card:hover { border-color: #f28b98; }
+    .turno-card.completado { opacity: 0.65; }
+    .turno-card.en-curso { border-left: 3px solid #ef647c; background: #fdf9fb; }
+    .turno-hora { width: 60px; text-align: center; flex-shrink: 0; }
+    .turno-hora-num { font-size: 20px; font-weight: 500; color: #5a1e37; line-height: 1; }
+    .turno-hora-label { font-size: 10px; color: #a9435d; margin-top: 2px; }
+    .turno-sep { width: 1px; height: 48px; background: #f0e0e6; flex-shrink: 0; }
+    .turno-info { flex: 1; }
+    .turno-donante { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+    .turno-meta { font-size: 12px; color: #a9435d; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .turno-meta-item { display: flex; align-items: center; gap: 4px; }
+    .turno-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+    .tb-pendiente { background: #faeeda; color: #412402; }
+    .tb-en-curso { background: #fdf0f3; color: #5a1e37; border: 0.5px solid #f28b98; }
+    .tb-completado { background: #e1f5ee; color: #04342c; }
+    .tb-no-apto { background: #fde8e8; color: #c0392b; }
+    .turno-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-atender { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
+    .btn-outline-sm { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 20px; width: 100%; max-width: 600px; max-height: 94vh; overflow-y: auto; display: flex; flex-direction: column; }
+    .modal-header { padding: 18px 24px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 10; flex-shrink: 0; }
+    .modal-title { font-size: 15px; font-weight: 500; color: #5a1e37; }
+    .modal-subtitle { font-size: 11px; color: #a9435d; margin-top: 2px; }
+    .modal-close { background: none; border: none; cursor: pointer; color: #a9435d; font-size: 20px; }
+    .modal-body { padding: 20px 24px; flex: 1; }
+    .modal-actions { padding: 14px 24px; border-top: 0.5px solid #e8d0d8; display: flex; gap: 10px; position: sticky; bottom: 0; background: white; flex-shrink: 0; }
+
+    /* PROGRESS */
+    .progress-wrap { display: flex; gap: 4px; margin-bottom: 8px; }
+    .progress-step { flex: 1; height: 4px; border-radius: 2px; background: #f0e0e6; transition: background 0.3s; }
+    .progress-step.done { background: #ef647c; }
+    .progress-step.current { background: #5a1e37; }
+    .progress-labels { display: flex; margin-bottom: 20px; }
+    .progress-label { font-size: 10px; font-weight: 500; color: #a9435d; flex: 1; text-align: center; }
+    .progress-label.current { color: #5a1e37; }
+    .progress-label.done { color: #ef647c; }
+
+    /* DONANTE CARD */
+    .donante-card { background: #fdf0f3; border-radius: 12px; padding: 14px 18px; border: 0.5px solid #f28b98; margin-bottom: 18px; display: flex; align-items: center; gap: 14px; }
+    .donante-avatar { width: 42px; height: 42px; border-radius: 50%; background: #5a1e37; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: white; flex-shrink: 0; }
+    .donante-nombre { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .donante-meta { font-size: 11px; color: #a9435d; margin-top: 2px; }
+
+    /* SECTION HEADERS */
+    .sec-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; border-bottom: 0.5px solid #f0e0e6; margin-bottom: 4px; }
+    .sec-title { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; }
+    .btn-mod { background: white; color: #e67e22; border: 1.5px solid #e67e22; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 4px; }
+
+    /* AVISOS */
+    .aviso { border-radius: 9px; padding: 9px 13px; margin: 8px 0; display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.5; }
+    .av-naranja { background: #faeeda; border: 1px solid #e67e22; color: #633806; }
+    .av-rojo { background: #fde8e8; border: 1px solid #c0392b; color: #922b21; }
+    .av-azul { background: #eef4ff; border: 1px solid #3498db; color: #1a4a7a; }
+    .av-gris { background: #f7f0f3; border: 0.5px solid #e8d0d8; color: #5a3040; }
+
+    /* FORM */
+    .form-group { margin-bottom: 12px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-label { font-size: 12px; font-weight: 500; color: #5a1e37; margin-bottom: 5px; display: block; }
+    .form-input { width: 100%; padding: 9px 13px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; background: white; }
+    .form-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
+    .form-hint { font-size: 10px; color: #a9435d; margin-top: 3px; }
+
+    /* EXCL ITEMS */
+    .excl-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .excl-item:last-child { border-bottom: none; }
+    .excl-text { font-size: 13px; color: #1a0a0f; line-height: 1.5; flex: 1; }
+    .excl-sino { display: flex; gap: 5px; flex-shrink: 0; }
+    .excl-btn { width: 40px; padding: 6px; border: 1.5px solid #e8d0d8; border-radius: 7px; text-align: center; cursor: pointer; font-size: 12px; font-weight: 500; color: #5a3040; transition: all 0.12s; }
+    .excl-btn.sel-si { border-color: #c0392b; background: #fde8e8; color: #c0392b; }
+    .excl-btn.sel-no { border-color: #27ae60; background: #e1f5ee; color: #27ae60; }
+
+    /* RESPONSABLE */
+    .responsable-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 14px; }
+    .resp-opt { border: 2px solid #e8d0d8; border-radius: 10px; padding: 14px; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: all 0.15s; }
+    .resp-opt:hover { border-color: #ef647c; }
+    .resp-opt.sel-donante { border-color: #27ae60; background: #e1f5ee; }
+    .resp-opt.sel-prof { border-color: #e67e22; background: #faeeda; }
+    .resp-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .resp-label { font-size: 12px; font-weight: 500; color: #1a0a0f; }
+
+    /* APTO */
+    .apto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+    .apto-opt { border: 2px solid #e8d0d8; border-radius: 12px; padding: 18px 14px; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: all 0.15s; }
+    .apto-opt:hover { border-color: #ef647c; }
+    .apto-opt.sel-apto { border-color: #27ae60; background: #e1f5ee; }
+    .apto-opt.sel-no { border-color: #c0392b; background: #fde8e8; }
+    .apto-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .apto-label { font-size: 13px; font-weight: 500; }
+
+    /* SIGNATURE PAD */
+    .sig-wrap { border: 1.5px solid #e8d0d8; border-radius: 10px; overflow: hidden; background: white; }
+    .sig-wrap canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
+    .sig-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #fdf0f3; border-top: 0.5px solid #e8d0d8; }
+    .sig-info { font-size: 11px; color: #a9435d; }
+    .btn-limpiar { background: none; border: none; font-size: 11px; color: #a9435d; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 4px; }
+    .sig-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+    .sig-badge.firmado { background: #e1f5ee; color: #04342c; }
+    .sig-badge.vacio { background: #fdf0f3; color: #a9435d; }
+    .firma-section { margin-top: 14px; }
+    .firma-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .firma-label { font-size: 12px; font-weight: 500; color: #5a1e37; }
+    .check-prof { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #5a1e37; font-weight: 500; margin-top: 12px; }
+    .check-prof input { width: 16px; height: 16px; accent-color: #ef647c; cursor: pointer; }
+
+    /* QR */
+    .qr-wrap { background: #1a0a0f; border-radius: 14px; padding: 24px; text-align: center; }
+    .qr-box { width: 160px; height: 160px; background: white; border-radius: 10px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; }
+    .qr-title { font-size: 15px; font-weight: 500; color: white; margin-bottom: 6px; }
+    .qr-sub { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 12px; }
+    .qr-token { font-size: 20px; font-weight: 500; color: #f28b98; letter-spacing: .12em; }
+    .qr-nota { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 6px; }
+    .btn-respaldo { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 9px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; margin: 12px auto 0; }
+
+    /* SUCCESS */
+    .success-wrap { text-align: center; padding: 24px 20px; }
+    .success-icon { width: 64px; height: 64px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+    .success-title { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+    .success-text { font-size: 13px; color: #5a3040; line-height: 1.6; margin-bottom: 18px; }
+    .resumen { background: #fdf0f3; border-radius: 12px; padding: 14px 16px; text-align: left; }
+    .res-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 0.5px solid #e8d0d8; }
+    .res-row:last-child { border-bottom: none; }
+    .res-label { color: #a9435d; }
+    .res-val { font-weight: 500; color: #5a1e37; }
+
+    /* BTNS */
+    .btn-save { flex: 1; background: #ef647c; color: white; border: none; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-back { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px 16px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-cancel { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px 18px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .form-row { grid-template-columns: 1fr; }
+      .turno-card { flex-wrap: wrap; }
+      .turno-actions { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/profesional.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="sidebar-prof">
+    <div class="sidebar-avatar">CM</div>
+    <div>
+      <div class="sidebar-prof-name">Dr. Carlos Méndez</div>
+      <div class="sidebar-prof-role">Hematología · Ramos Mejía</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos del día<span class="nav-badge">4</span></a>
+    <a class="nav-item" href="../profesional/perfil.html"><i class="ti ti-user"></i>Mi perfil</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Turnos del día</div>
+    </div>
+    <div class="topbar-date">Domingo 17 de mayo 2026</div>
+  </div>
+
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">6</div><div class="stat-label">Turnos hoy</div></div>
+      <div class="stat"><div class="stat-num" style="color:#27ae60;">2</div><div class="stat-label">Completados</div></div>
+      <div class="stat"><div class="stat-num" style="color:#e67e22;">3</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat"><div class="stat-num" style="color:#c0392b;">1</div><div class="stat-label">No aptos</div></div>
+    </div>
+
+    <div class="filtros">
+      <button class="filtro-chip active" onclick="filtrar('todos',this)">Todos</button>
+      <button class="filtro-chip" onclick="filtrar('pendiente',this)">Pendientes</button>
+      <button class="filtro-chip" onclick="filtrar('completado',this)">Completados</button>
+      <button class="filtro-chip" onclick="filtrar('no-apto',this)">No aptos</button>
+    </div>
+
+    <div class="turnos-list">
+      <div class="turno-card completado" data-estado="completado">
+        <div class="turno-hora"><div class="turno-hora-num">09:00</div><div class="turno-hora-label">hs</div></div>
+        <div class="turno-sep"></div>
+        <div class="turno-info">
+          <div class="turno-donante">María López</div>
+          <div class="turno-meta">
+            <span class="turno-meta-item"><i class="ti ti-droplet" style="font-size:11px;"></i>A+</span>
+            <span class="turno-meta-item"><i class="ti ti-speakerphone" style="font-size:11px;"></i>Campaña pediátrica</span>
+            <span class="turno-meta-item"><i class="ti ti-test-pipe" style="font-size:11px;"></i>450ml</span>
+          </div>
+        </div>
+        <span class="turno-badge tb-completado"><i class="ti ti-check" style="font-size:10px;"></i>Completado</span>
+        <div class="turno-actions"><button class="btn-outline-sm">Ver registro</button></div>
+      </div>
+
+      <div class="turno-card completado" data-estado="no-apto">
+        <div class="turno-hora"><div class="turno-hora-num">09:30</div><div class="turno-hora-label">hs</div></div>
+        <div class="turno-sep"></div>
+        <div class="turno-info">
+          <div class="turno-donante">Roberto Fernández</div>
+          <div class="turno-meta">
+            <span class="turno-meta-item"><i class="ti ti-droplet" style="font-size:11px;"></i>0+</span>
+            <span class="turno-meta-item"><i class="ti ti-speakerphone" style="font-size:11px;"></i>Banco general</span>
+            <span class="turno-meta-item" style="color:#c0392b;"><i class="ti ti-x" style="font-size:11px;"></i>Presión elevada</span>
+          </div>
+        </div>
+        <span class="turno-badge tb-no-apto">No apto</span>
+        <div class="turno-actions"><button class="btn-outline-sm">Ver registro</button></div>
+      </div>
+
+      <div class="turno-card en-curso" data-estado="pendiente">
+        <div class="turno-hora"><div class="turno-hora-num">10:00</div><div class="turno-hora-label">hs</div></div>
+        <div class="turno-sep"></div>
+        <div class="turno-info">
+          <div class="turno-donante">Sofía Páez</div>
+          <div class="turno-meta">
+            <span class="turno-meta-item"><i class="ti ti-droplet" style="font-size:11px;"></i>0-</span>
+            <span class="turno-meta-item"><i class="ti ti-speakerphone" style="font-size:11px;"></i>Campaña pediátrica</span>
+            <span class="turno-meta-item" style="color:#ef647c;"><i class="ti ti-clock" style="font-size:11px;"></i>En atención</span>
+          </div>
+        </div>
+        <span class="turno-badge tb-en-curso">● En curso</span>
+        <div class="turno-actions">
+          <button class="btn-atender" onclick="abrirModal('sofia')"><i class="ti ti-clipboard-check"></i>Continuar</button>
+        </div>
+      </div>
+
+      <div class="turno-card" data-estado="pendiente">
+        <div class="turno-hora"><div class="turno-hora-num">10:30</div><div class="turno-hora-label">hs</div></div>
+        <div class="turno-sep"></div>
+        <div class="turno-info">
+          <div class="turno-donante">Carlos Méndez</div>
+          <div class="turno-meta">
+            <span class="turno-meta-item"><i class="ti ti-droplet" style="font-size:11px;"></i>B+</span>
+            <span class="turno-meta-item"><i class="ti ti-speakerphone" style="font-size:11px;"></i>Campaña pediátrica</span>
+          </div>
+        </div>
+        <span class="turno-badge tb-pendiente">Pendiente</span>
+        <div class="turno-actions">
+          <button class="btn-atender" onclick="abrirModal('carlos')"><i class="ti ti-user-check"></i>Iniciar</button>
+        </div>
+      </div>
+
+      <div class="turno-card" data-estado="pendiente">
+        <div class="turno-hora"><div class="turno-hora-num">11:00</div><div class="turno-hora-label">hs</div></div>
+        <div class="turno-sep"></div>
+        <div class="turno-info">
+          <div class="turno-donante">Ana Rodríguez</div>
+          <div class="turno-meta">
+            <span class="turno-meta-item"><i class="ti ti-droplet" style="font-size:11px;"></i>A-</span>
+            <span class="turno-meta-item"><i class="ti ti-speakerphone" style="font-size:11px;"></i>Banco general</span>
+          </div>
+        </div>
+        <span class="turno-badge tb-pendiente">Pendiente</span>
+        <div class="turno-actions">
+          <button class="btn-atender" onclick="abrirModal('ana')"><i class="ti ti-user-check"></i>Iniciar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" id="modal-inner">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-titulo">Atención</div>
+        <div class="modal-subtitle" id="modal-sub">Formulario 1 de 4</div>
+      </div>
+      <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- F1: AUTOEXCLUSIÓN PRE-DONACIÓN -->
+    <div id="f1">
+      <div class="modal-body">
+        <div class="progress-wrap">
+          <div class="progress-step current"></div><div class="progress-step"></div>
+          <div class="progress-step"></div><div class="progress-step"></div>
+        </div>
+        <div class="progress-labels">
+          <div class="progress-label current">Autoexclusión</div>
+          <div class="progress-label">Cuestionario</div>
+          <div class="progress-label">Evaluación</div>
+          <div class="progress-label">Extracción</div>
+        </div>
+
+        <div class="donante-card">
+          <div class="donante-avatar" id="f1-av">CM</div>
+          <div><div class="donante-nombre" id="f1-nom">Carlos Méndez</div><div class="donante-meta" id="f1-met">DNI · tipo de sangre · hora</div></div>
+        </div>
+
+        <div class="sec-header">
+          <div class="sec-title">¿Quién completa este formulario?</div>
+          <div style="font-size:11px;color:#a9435d;" id="f1-fecha"></div>
+        </div>
+        <div class="responsable-grid">
+          <div class="resp-opt" id="f1-rd" onclick="setResp(1,'donante')">
+            <div class="resp-icon" style="background:#e1f5ee;"><i class="ti ti-user-check" style="font-size:18px;color:#27ae60;"></i></div>
+            <div class="resp-label">El donante</div>
+          </div>
+          <div class="resp-opt" id="f1-rp" onclick="setResp(1,'prof')">
+            <div class="resp-icon" style="background:#faeeda;"><i class="ti ti-stethoscope" style="font-size:18px;color:#e67e22;"></i></div>
+            <div class="resp-label">El profesional</div>
+          </div>
+        </div>
+        <div class="aviso av-naranja" id="f1-av-prof" style="display:none;"><i class="ti ti-alert-circle" style="font-size:13px;flex-shrink:0;margin-top:1px;"></i>Completado por el profesional · Se registrará como caso de seguimiento.</div>
+        <div class="aviso av-rojo" id="f1-av-mod" style="display:none;"><i class="ti ti-edit" style="font-size:13px;flex-shrink:0;margin-top:1px;"></i>Modificado por el profesional · Se registran fecha y hora.</div>
+
+        <div class="sec-header" style="margin-top:6px;">
+          <div class="sec-title">Verificación del documento de autoexclusión</div>
+        </div>
+
+        <div style="background:#fdf0f3;border-radius:12px;padding:14px 16px;margin-bottom:14px;border:0.5px solid #e8d0d8;font-size:12px;color:#5a3040;line-height:1.6;">
+          El donante debe haber leído el documento de información y autoexclusión antes de continuar. Si llegó sin haberlo leído, facilítele el documento en este momento — tablet o papel — y aguarde su lectura.
+        </div>
+
+          <div class="excl-item">
+            <div class="excl-text">¿Se le proporcionó al donante el documento de información y autoexclusión predonación?</div>
+            <div class="excl-sino"><div class="excl-btn sel-no" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿El donante leyó y comprende las situaciones descriptas en el documento de autoexclusión?</div>
+            <div class="excl-sino"><div class="excl-btn sel-no" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿El donante tiene dudas o consultas sobre el documento de autoexclusión?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si');mostrarDudas()">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no');ocultarDudas()">No</div></div>
+          </div>
+
+          <div id="f1-dudas" style="display:none;background:#faeeda;border-radius:10px;padding:14px;margin:8px 0;border:1px solid #e67e22;">
+            <div style="font-size:12px;font-weight:500;color:#412402;margin-bottom:8px;">Registre la duda o consulta planteada por el donante</div>
+            <textarea style="width:100%;padding:9px 13px;border:1px solid #e67e22;border-radius:8px;font-size:13px;outline:none;font-family:'Inter',sans-serif;resize:vertical;min-height:70px;background:white;" placeholder="Describa la duda planteada y la respuesta brindada al donante..."></textarea>
+          </div>
+
+          <div class="excl-item">
+            <div class="excl-text">¿El donante confirma que ninguna de las situaciones de exclusión le aplica y desea continuar con la donación?</div>
+            <div class="excl-sino"><div class="excl-btn sel-no" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
+          </div>
+
+        <div class="firma-section">
+          <div class="firma-header">
+            <div class="firma-label">Firma del donante</div>
+            <div class="sig-badge vacio" id="f1-sig-st">Sin firmar</div>
+          </div>
+          <div class="sig-wrap"><canvas id="sig-f1" height="110"></canvas>
+            <div class="sig-toolbar"><span class="sig-info">Firmá con el dedo o el mouse</span><button class="btn-limpiar" onclick="clearSig('sig-f1','f1-sig-st')"><i class="ti ti-eraser" style="font-size:11px;"></i>Limpiar</button></div>
+          </div>
+        </div>
+
+        <label class="check-prof">
+          <input type="checkbox" id="f1-chk" onchange="toggleProfFirma(1)">
+          El profesional asistió en el llenado
+        </label>
+        <div id="f1-prof-sig" style="display:none;margin-top:12px;">
+          <div class="firma-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div class="firma-label">Firma del profesional — aplicada automáticamente</div>
+            <span class="sig-badge firmado">✓ Guardada en perfil</span>
+          </div>
+          <div style="border:1.5px solid #27ae60;border-radius:10px;overflow:hidden;background:white;">
+            <div style="padding:14px 20px;display:flex;align-items:center;justify-content:center;min-height:80px;">
+              <svg width="220" height="60" viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20,55 C30,25 45,20 55,35 C65,50 70,30 85,28 C100,26 105,45 115,42 C125,39 130,25 145,30 C160,35 162,50 175,45 C188,40 192,28 205,32 C218,36 220,52 235,48 C248,44 255,35 265,38" stroke="#1a0a0f" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M25,60 C35,58 45,62 55,60 C65,58 75,62 85,60" stroke="#1a0a0f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div style="background:#e1f5ee;padding:7px 14px;border-top:0.5px solid #27ae60;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#04342c;">Dr. Carlos Méndez · Mat. 45.231 · Hematología</span>
+              <span style="font-size:10px;color:#27ae60;">Reg. 15/01/2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn-save" onclick="goF(2)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- F2: CUESTIONARIO MÉDICO -->
+    <div id="f2" style="display:none;">
+      <div class="modal-body">
+        <div class="progress-wrap">
+          <div class="progress-step done"></div><div class="progress-step current"></div>
+          <div class="progress-step"></div><div class="progress-step"></div>
+        </div>
+        <div class="progress-labels">
+          <div class="progress-label done">Autoexclusión</div>
+          <div class="progress-label current">Cuestionario</div>
+          <div class="progress-label">Evaluación</div>
+          <div class="progress-label">Extracción</div>
+        </div>
+
+        <div class="donante-card">
+          <div class="donante-avatar" id="f2-av">CM</div>
+          <div><div class="donante-nombre" id="f2-nom">Carlos Méndez</div><div class="donante-meta">Cuestionario médico completo</div></div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="sec-title" id="f2-resp-label" style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.08em;">Completado por el donante</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:11px;color:#a9435d;" id="f2-fecha"></div>
+            <button class="btn-mod" id="f2-bmod" style="display:none;" onclick="setMod(2)"><i class="ti ti-pencil" style="font-size:11px;"></i>Modificar</button>
+          </div>
+        </div>
+        <div class="aviso av-naranja" id="f2-av-prof" style="display:none;"><i class="ti ti-alert-circle" style="font-size:13px;flex-shrink:0;margin-top:1px;"></i>Completado por el profesional · Caso de seguimiento.</div>
+        <div class="aviso av-rojo" id="f2-av-mod" style="display:none;"><i class="ti ti-edit" style="font-size:13px;flex-shrink:0;margin-top:1px;"></i>Modificado por el profesional · Se registran fecha y hora.</div>
+
+        <div id="f2-items">
+                    <div class="sec-header"><div class="sec-title">Comprensión de la información</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Se le ha proporcionado información escrita para su autoexclusión predonación?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha comprendido las situaciones descriptas en el formulario de autoexclusión? (en caso de dudas, consulte con el profesional que lo atenderá)</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">Precaución en las próximas 12 horas</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Debe realizar alguna actividad laboral o deportiva de riesgo (trabajo en altura, escalada, etc.) o conducir un vehículo de transporte público?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">Medicación</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Está tomando o ha tomado en los últimos días algún medicamento?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha tomado alguna vez Etretinato o alguna otra droga para psoriasis?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Está tomando medicación para la próstata?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tomó aspirina o analgésicos en los últimos 3 días?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">En las últimas 2 semanas</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha presentado fiebre, acompañada de dolor de cabeza y malestar general?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha visitado al dentista?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">En el último mes</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha recibido alguna vacuna?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha estado en contacto con alguna persona que padeciera una enfermedad?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">En los últimos 3 meses</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Se realizó tatuajes, colocación de piercing, implantes dentales o acupuntura?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha sido sometido a endoscopía (gastroscopía / colonoscopía)?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">En los últimos 6 meses</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha asistido a la consulta de algún médico o ha estado hospitalizado?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha sido sometido a algún tipo de cirugía?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">En los últimos 12 meses</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo alguna de las relaciones y/o prácticas sexuales de riesgo incrementado descriptas en el formulario de autoexclusión?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Estuvo en contacto con sangre o fluidos corporales a través de piel o mucosas lesionadas?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Recibió sangre, componentes o algún trasplante?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Convive o ha convivido con alguien que padeciera hepatitis o ictericia?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">Conductas sexuales — información estrictamente confidencial</div></div>
+          <div class="aviso av-gris"><i class="ti ti-lock" style="font-size:13px;flex-shrink:0;margin-top:1px;"></i>Esta información es estrictamente confidencial y se utiliza exclusivamente para evaluar el riesgo de transmisión de enfermedades infecciosas. No discrimina por orientación sexual ni identidad de género.</div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo relaciones sexuales (oral, vaginal o anal) sin utilizar preservativo o campo de látex con una pareja no estable o de menos de 6 meses de constituida?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo relaciones sexuales ocasionales sin preservativo en el último año?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo relaciones sexuales bajo los efectos del alcohol o cualquier sustancia psicoactiva sin utilizar preservativo o campo de látex, con una pareja no habitual o de menos de 6 meses de constituida?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo relaciones sexuales entre más de dos personas al mismo tiempo, incluso si usó preservativo o campo de látex?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo relaciones sexuales con personas que tienen el virus de VIH, Hepatitis o HTLV I y II, incluso si usó preservativo o campo de látex en el último año?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo relaciones sexuales con personas que se dializan o reciben transfusiones frecuentemente, incluso si usó preservativo o campo de látex?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Usó drogas inyectables o se inyectó otras sustancias (hormonas para aumentar la musculatura u otras)?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Consumió cocaína, pasta base o drogas que se inhalan o aspiran en los últimos 12 meses?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">En alguna ocasión en el transcurso de su vida</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha padecido alguna enfermedad grave que exigió control médico periódico?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha padecido hepatitis, ictericia o problemas de hígado?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha sufrido alguna enfermedad grave de pulmón, cerebro, riñón, tiroides, aparato digestivo u otras localizaciones?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha padecido problemas de corazón o de la presión sanguínea?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Padece diabetes tratada con insulina de origen animal?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha padecido algún tipo de cáncer?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha tenido hemorragias o alguna afección de la sangre como anemia o leucemia?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Se inyectó o se inyecta drogas intravenosas ilegales o aspiró cocaína regularmente?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha recibido hormona de crecimiento de origen humano (antes de 1987)?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha recibido tejido procedente de otra persona (duramadre, córnea u otros)?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Usted o algún familiar sufre o ha sufrido la enfermedad de Creutzfeldt-Jakob?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Tuvo paludismo en los últimos 3 años o estuvo en el último año en áreas endémicas de la enfermedad?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Le han dicho que tiene análisis positivos para VIH/SIDA, Hepatitis B o C, virus HTLV I-II, Chagas, brucelosis o sífilis?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="sec-header"><div class="sec-title">Estancias en el extranjero</div></div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha estado durante más de un año (sumando los períodos de permanencia) en el Reino Unido entre 1980 y 1996?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+          <div class="excl-item">
+            <div class="excl-text">¿Ha residido en algún otro país extranjero?</div>
+            <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
+          </div>
+
+          <div class="sec-header"><div class="sec-title">Observaciones adicionales</div></div>
+          <div class="form-group"><textarea class="form-input" style="resize:vertical;min-height:60px;" placeholder="Información adicional relevante..."></textarea></div>
+
+        <!-- DECLARACIÓN Y CONSENTIMIENTO -->
+        <div class="sec-header"><div class="sec-title">Declaración y consentimiento informado</div></div>
+        <div style="background:#fdf0f3;border-radius:10px;padding:14px;font-size:12px;color:#5a3040;line-height:1.7;margin-bottom:14px;border:0.5px solid #e8d0d8;">
+          Declaro que respondí sinceramente todas las preguntas y comprendo el destino de mi donación. Consiento expresamente que se me efectúen las pruebas necesarias para detectar Infecciones Transmisibles por Transfusión y que los datos de esta donación se incorporen al Registro de Donantes de Sangre (REDOS). Se me ha asegurado debida confidencialidad de los resultados.
+        </div>
+
+        <div class="firma-section">
+          <div class="firma-header">
+            <div class="firma-label">Firma del donante</div>
+            <div class="sig-badge vacio" id="f2-sig-st">Sin firmar</div>
+          </div>
+          <div class="sig-wrap"><canvas id="sig-f2" height="110"></canvas>
+            <div class="sig-toolbar"><span class="sig-info">Firmá con el dedo o el mouse</span><button class="btn-limpiar" onclick="clearSig('sig-f2','f2-sig-st')"><i class="ti ti-eraser" style="font-size:11px;"></i>Limpiar</button></div>
+          </div>
+        </div>
+
+        <label class="check-prof">
+          <input type="checkbox" id="f2-chk" onchange="toggleProfFirma(2)">
+          El profesional asistió en el llenado
+        </label>
+        <div id="f2-prof-sig" style="display:none;margin-top:12px;">
+          <div class="firma-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div class="firma-label">Firma del profesional — aplicada automáticamente</div>
+            <span class="sig-badge firmado">✓ Guardada en perfil</span>
+          </div>
+          <div style="border:1.5px solid #27ae60;border-radius:10px;overflow:hidden;background:white;">
+            <div style="padding:14px 20px;display:flex;align-items:center;justify-content:center;min-height:80px;">
+              <svg width="220" height="60" viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20,55 C30,25 45,20 55,35 C65,50 70,30 85,28 C100,26 105,45 115,42 C125,39 130,25 145,30 C160,35 162,50 175,45 C188,40 192,28 205,32 C218,36 220,52 235,48 C248,44 255,35 265,38" stroke="#1a0a0f" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M25,60 C35,58 45,62 55,60 C65,58 75,62 85,60" stroke="#1a0a0f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div style="background:#e1f5ee;padding:7px 14px;border-top:0.5px solid #27ae60;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#04342c;">Dr. Carlos Méndez · Mat. 45.231 · Hematología</span>
+              <span style="font-size:10px;color:#27ae60;">Reg. 15/01/2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-back" onclick="goF(1)"><i class="ti ti-arrow-left"></i></button>
+        <button class="btn-save" onclick="goF(3)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- F3: EVALUACIÓN CLÍNICA -->
+    <div id="f3" style="display:none;">
+      <div class="modal-body">
+        <div class="progress-wrap">
+          <div class="progress-step done"></div><div class="progress-step done"></div>
+          <div class="progress-step current"></div><div class="progress-step"></div>
+        </div>
+        <div class="progress-labels">
+          <div class="progress-label done">Autoexclusión</div>
+          <div class="progress-label done">Cuestionario</div>
+          <div class="progress-label current">Evaluación</div>
+          <div class="progress-label">Extracción</div>
+        </div>
+
+        <div class="donante-card">
+          <div class="donante-avatar" id="f3-av">CM</div>
+          <div><div class="donante-nombre" id="f3-nom">Carlos Méndez</div><div class="donante-meta">Evaluación del profesional</div></div>
+        </div>
+
+        <div class="sec-header"><div class="sec-title">Signos vitales</div></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Presión arterial</label><input class="form-input" type="text" placeholder="120/80 mmHg"><p class="form-hint">Apto: 90/60 – 180/100</p></div>
+          <div class="form-group"><label class="form-label">Frecuencia cardíaca</label><input class="form-input" type="text" placeholder="72 lpm"><p class="form-hint">Apto: 50 – 100 lpm</p></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Temperatura</label><input class="form-input" type="text" placeholder="36.5 °C"><p class="form-hint">Apto: 36 – 37.5 °C</p></div>
+          <div class="form-group"><label class="form-label">Glucosa en sangre</label><input class="form-input" type="text" placeholder="90 mg/dL"><p class="form-hint">Apto: 70 – 200 mg/dL</p></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Peso (kg)</label><input class="form-input" type="number" placeholder="70"><p class="form-hint">Mínimo: 50 kg</p></div>
+          <div class="form-group"><label class="form-label">Hemoglobina (g/dL)</label><input class="form-input" type="text" placeholder="13.5"><p class="form-hint">Mín: 12.5(F) / 13.5(M)</p></div>
+        </div>
+
+        <div class="sec-header"><div class="sec-title">Control adicional</div></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Última donación — lugar y fecha</label><input class="form-input" type="text" placeholder="Hospital Italiano · 12/03/2026"></div>
+          <div class="form-group"><label class="form-label">¿Reacciones post-donación anteriores?</label><select class="form-input"><option>No</option><option>Sí — mareo leve</option><option>Sí — desmayo</option><option>Sí — otro</option></select></div>
+        </div>
+
+        <div class="sec-header"><div class="sec-title">Decisión del profesional</div></div>
+        <div class="apto-grid">
+          <div class="apto-opt" id="f3-apto" onclick="setApto('apto')">
+            <div class="apto-icon" style="background:#e1f5ee;"><i class="ti ti-heart-check" style="font-size:22px;color:#27ae60;"></i></div>
+            <div class="apto-label" style="color:#27ae60;">Apto para donar</div>
+          </div>
+          <div class="apto-opt" id="f3-no" onclick="setApto('no')">
+            <div class="apto-icon" style="background:#fde8e8;"><i class="ti ti-heart-off" style="font-size:22px;color:#c0392b;"></i></div>
+            <div class="apto-label" style="color:#c0392b;">No apto</div>
+          </div>
+        </div>
+        <div id="f3-motivo" style="display:none;margin-top:12px;">
+          <div class="form-group"><label class="form-label">Motivo</label>
+            <select class="form-input"><option value="" disabled selected>Seleccioná</option><option>Presión arterial fuera de rango</option><option>Glucosa fuera de rango</option><option>Temperatura elevada</option><option>Hemoglobina baja</option><option>Peso insuficiente</option><option>Medicación incompatible</option><option>Período de espera no cumplido</option><option>Declaración de exclusión positiva</option><option>Otro</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Observaciones</label><textarea class="form-input" style="resize:vertical;min-height:60px;" placeholder="Detalles..."></textarea></div>
+        </div>
+
+        <div class="firma-section" style="margin-top:14px;">
+          <div class="firma-header">
+            <div class="firma-label">Firma del profesional</div>
+            <div class="sig-badge vacio" id="f3-sig-st">Sin firmar</div>
+          </div>
+          <div class="sig-wrap"><canvas id="sig-f3" height="120"></canvas>
+            <div class="sig-toolbar"><span class="sig-info">Dr. Carlos Méndez · Hematología · Mat. 45.231</span><button class="btn-limpiar" onclick="clearSig('sig-f3','f3-sig-st')"><i class="ti ti-eraser" style="font-size:11px;"></i>Limpiar</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-back" onclick="goF(2)"><i class="ti ti-arrow-left"></i></button>
+        <button class="btn-save" id="f3-btn-sig" onclick="goF(4)">Registrar extracción <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- F4: EXTRACCIÓN + QR -->
+    <div id="f4" style="display:none;">
+      <div class="modal-body">
+        <div class="progress-wrap">
+          <div class="progress-step done"></div><div class="progress-step done"></div>
+          <div class="progress-step done"></div><div class="progress-step current"></div>
+        </div>
+        <div class="progress-labels">
+          <div class="progress-label done">Autoexclusión</div>
+          <div class="progress-label done">Cuestionario</div>
+          <div class="progress-label done">Evaluación</div>
+          <div class="progress-label current">Extracción</div>
+        </div>
+
+        <div class="donante-card">
+          <div class="donante-avatar" id="f4-av">CM</div>
+          <div>
+            <div class="donante-nombre" id="f4-nom">Carlos Méndez</div>
+            <div class="donante-meta" id="f4-apto" style="color:#27ae60;font-weight:500;"><i class="ti ti-heart-check" style="font-size:12px;"></i> Apto para donar</div>
+          </div>
+        </div>
+
+        <div class="sec-header"><div class="sec-title">Datos de la extracción</div></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Volumen donado (ml)</label><input class="form-input" type="number" value="450"></div>
+          <div class="form-group"><label class="form-label">Nro. de bolsa / muestra</label><input class="form-input" id="inp-bolsa" type="text" placeholder="BLS-2026-0847"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Hora de inicio</label><input class="form-input" type="time" value="10:35"></div>
+          <div class="form-group"><label class="form-label">Hora de finalización</label><input class="form-input" type="time" value="10:55"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Tipo de bolsa / marca</label><input class="form-input" type="text" placeholder="Fresenius Kabi 450ml"></div>
+          <div class="form-group"><label class="form-label">Reacciones durante la extracción</label><select class="form-input"><option>Sin reacciones</option><option>Mareo leve resuelto</option><option>Hematoma en zona de punción</option><option>Otro</option></select></div>
+        </div>
+        <div class="form-group"><label class="form-label">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label><textarea class="form-input" style="resize:vertical;min-height:55px;" placeholder="Indicaciones al donante, notas clínicas..."></textarea></div>
+
+        <div class="sec-header" style="margin-top:6px;"><div class="sec-title">Formulario de autoexclusión post-donación</div></div>
+        <div class="aviso av-azul"><i class="ti ti-info-circle" style="font-size:13px;flex-shrink:0;margin-top:1px;"></i>Mostrá este QR al donante antes de que se retire. Es anónimo — solo se vincula al número de bolsa, no al nombre del donante.</div>
+
+        <div class="qr-wrap">
+          <div class="qr-box">
+            <svg viewBox="0 0 100 100" width="140" height="140" xmlns="http://www.w3.org/2000/svg">
+              <rect width="100" height="100" fill="white"/>
+              <rect x="10" y="10" width="30" height="30" fill="none" stroke="#1a0a0f" stroke-width="4"/>
+              <rect x="15" y="15" width="20" height="20" fill="#1a0a0f"/>
+              <rect x="60" y="10" width="30" height="30" fill="none" stroke="#1a0a0f" stroke-width="4"/>
+              <rect x="65" y="15" width="20" height="20" fill="#1a0a0f"/>
+              <rect x="10" y="60" width="30" height="30" fill="none" stroke="#1a0a0f" stroke-width="4"/>
+              <rect x="15" y="65" width="20" height="20" fill="#1a0a0f"/>
+              <rect x="45" y="10" width="5" height="5" fill="#1a0a0f"/>
+              <rect x="45" y="20" width="5" height="5" fill="#1a0a0f"/>
+              <rect x="50" y="45" width="5" height="5" fill="#1a0a0f"/>
+              <rect x="60" y="50" width="10" height="5" fill="#1a0a0f"/>
+              <rect x="75" y="45" width="15" height="5" fill="#1a0a0f"/>
+              <rect x="45" y="55" width="5" height="10" fill="#1a0a0f"/>
+              <rect x="55" y="60" width="15" height="5" fill="#1a0a0f"/>
+              <rect x="75" y="55" width="5" height="10" fill="#1a0a0f"/>
+              <rect x="55" y="70" width="5" height="20" fill="#1a0a0f"/>
+              <rect x="65" y="75" width="10" height="5" fill="#1a0a0f"/>
+              <rect x="80" y="70" width="10" height="5" fill="#1a0a0f"/>
+            </svg>
+          </div>
+          <div class="qr-title">Autoexclusión post-donación</div>
+          <div class="qr-sub">El donante escanea con su celular antes de retirarse.<br>No requiere login ni datos personales.</div>
+          <div class="qr-token" id="qr-tok">A7 · 4K · 9M</div>
+          <div class="qr-nota">Token único · Expira en 24hs · Vinculado al nro. de bolsa · No al nombre</div>
+          <button class="btn-respaldo" onclick="alert('Link enviado a la casilla interna del donante como respaldo.')">
+            <i class="ti ti-send"></i>Enviar link de respaldo a casilla interna
+          </button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-back" onclick="goF(3)"><i class="ti ti-arrow-left"></i></button>
+        <button class="btn-save" onclick="finalizar()"><i class="ti ti-check"></i>Confirmar y finalizar</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="f-ok" style="display:none;">
+      <div class="success-wrap">
+        <div class="success-icon"><i class="ti ti-check" style="color:white;font-size:28px;"></i></div>
+        <div class="success-title">Atención completada</div>
+        <div class="success-text">La donación fue registrada. El turno quedó marcado como completado.</div>
+        <div class="resumen">
+          <div class="res-row"><span class="res-label">Donante</span><span class="res-val" id="ok-don">—</span></div>
+          <div class="res-row"><span class="res-label">Nro. de bolsa</span><span class="res-val" id="ok-bolsa">—</span></div>
+          <div class="res-row"><span class="res-label">Volumen</span><span class="res-val">450 ml</span></div>
+          <div class="res-row"><span class="res-label">Form. post-donación</span><span class="res-val" style="color:#e67e22;">⏳ QR entregado · Pendiente</span></div>
+          <div class="res-row"><span class="res-label">Registrado por</span><span class="res-val">Dr. Carlos Méndez</span></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-save" onclick="cerrarModal()">Volver a los turnos</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const donantes = {
+    carlos: { nom: 'Carlos Méndez', av: 'CM', met: 'DNI 29.654.321 · B+ · 10:30hs' },
+    sofia:  { nom: 'Sofía Páez',    av: 'SP', met: 'DNI 12.345.678 · 0- · 10:00hs' },
+    ana:    { nom: 'Ana Rodríguez', av: 'AR', met: 'DNI 35.789.012 · A- · 11:00hs' }
+  };
+
+  let currentDon = null;
+  let aptoDec = null;
+  const pads = {};
+
+  function abrirModal(key) {
+    currentDon = donantes[key];
+    aptoDec = null;
+    ['f1','f2','f3','f4'].forEach(f => {
+      const av = document.getElementById(f+'-av'); if (av) av.textContent = currentDon.av;
+      const nm = document.getElementById(f+'-nom'); if (nm) nm.textContent = currentDon.nom;
+    });
+    const met = document.getElementById('f1-met'); if (met) met.textContent = currentDon.met;
+    document.getElementById('ok-don').textContent = currentDon.nom;
+    const now = new Date();
+    const fd = now.toLocaleDateString('es-AR') + ' · ' + now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) + 'hs';
+    ['f1-fecha','f2-fecha'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = 'Hoy ' + fd; });
+    document.getElementById('qr-tok').textContent = genToken();
+    goF(1);
+    document.getElementById('modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(initPads, 150);
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function goF(n) {
+    ['f1','f2','f3','f4','f-ok'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    const target = n === 'ok' ? 'f-ok' : 'f' + n;
+    document.getElementById(target).style.display = 'block';
+    const subs = { 1:'Form 1/4 — Autoexclusión predonación', 2:'Form 2/4 — Cuestionario médico', 3:'Form 3/4 — Evaluación clínica', 4:'Form 4/4 — Extracción y QR post-donación', ok:'Completado' };
+    document.getElementById('modal-sub').textContent = subs[n] || '';
+    document.getElementById('modal-inner').scrollTop = 0;
+    setTimeout(initPads, 150);
+  }
+
+  // SIGNATURE PADS
+  function initPads() {
+    ['sig-f1','sig-f1p','sig-f2','sig-f2p','sig-f3'].forEach(id => {
+      const cv = document.getElementById(id);
+      if (!cv || pads[id]) return;
+      const r = Math.max(window.devicePixelRatio || 1, 1);
+      cv.width = cv.offsetWidth * r;
+      cv.getContext('2d').scale(r, r);
+      pads[id] = new SignaturePad(cv, { penColor: '#1a0a0f', minWidth: 1, maxWidth: 2.5 });
+      const map = { 'sig-f1':'f1-sig-st','sig-f1p':'f1-psig-st','sig-f2':'f2-sig-st','sig-f2p':'f2-psig-st','sig-f3':'f3-sig-st' };
+      pads[id].addEventListener('endStroke', () => updSig(id, map[id]));
+    });
+  }
+
+  function updSig(padId, stId) {
+    const el = document.getElementById(stId); if (!el) return;
+    const empty = pads[padId]?.isEmpty();
+    el.textContent = empty ? 'Sin firmar' : '✓ Firmado';
+    el.className = 'sig-badge ' + (empty ? 'vacio' : 'firmado');
+  }
+
+  function clearSig(padId, stId) {
+    if (pads[padId]) { pads[padId].clear(); updSig(padId, stId); }
+  }
+
+  // RESPONSABLE
+  function setResp(f, tipo) {
+    document.getElementById('f'+f+'-rd').className = 'resp-opt' + (tipo==='donante' ? ' sel-donante' : '');
+    document.getElementById('f'+f+'-rp').className = 'resp-opt' + (tipo==='prof' ? ' sel-prof' : '');
+    const avp = document.getElementById('f'+f+'-av-prof'); if (avp) avp.style.display = tipo==='prof' ? 'flex' : 'none';
+    const bmod = document.getElementById('f'+f+'-bmod'); if (bmod) bmod.style.display = tipo==='donante' ? 'flex' : 'none';
+    const rl = document.getElementById('f'+f+'-resp-label'); if (rl) rl.textContent = tipo==='donante' ? 'Completado por el donante' : 'Completado por el profesional';
+  }
+
+  function setMod(f) {
+    const avm = document.getElementById('f'+f+'-av-mod'); if (avm) avm.style.display = 'flex';
+    const bmod = document.getElementById('f'+f+'-bmod'); if (bmod) bmod.style.display = 'none';
+    const rl = document.getElementById('f'+f+'-resp-label'); if (rl) { rl.textContent = 'Modificado por el profesional'; rl.style.color = '#c0392b'; }
+  }
+
+  function toggleProfFirma(f) {
+    const chk = document.getElementById('f'+f+'-chk');
+    const wrap = document.getElementById('f'+f+'-prof-sig');
+    if (wrap) wrap.style.display = chk.checked ? 'block' : 'none';
+    setTimeout(initPads, 150);
+  }
+
+  // EXCL BUTTONS
+  function mostrarDudas() {
+    document.getElementById('f1-dudas').style.display = 'block';
+  }
+  function ocultarDudas() {
+    document.getElementById('f1-dudas').style.display = 'none';
+  }
+  function excl(btn, val) {
+    btn.parentElement.querySelectorAll('.excl-btn').forEach(b => b.className = 'excl-btn');
+    btn.className = 'excl-btn ' + (val==='si' ? 'sel-si' : 'sel-no');
+  }
+
+  // APTO
+  function setApto(tipo) {
+    aptoDec = tipo;
+    document.getElementById('f3-apto').className = 'apto-opt' + (tipo==='apto' ? ' sel-apto' : '');
+    document.getElementById('f3-no').className = 'apto-opt' + (tipo==='no' ? ' sel-no' : '');
+    document.getElementById('f3-motivo').style.display = tipo==='no' ? 'block' : 'none';
+    const btn = document.getElementById('f3-btn-sig');
+    const meta = document.getElementById('f4-apto');
+    if (tipo==='no') {
+      btn.innerHTML = 'Finalizar sin extracción';
+      btn.onclick = () => { document.getElementById('ok-bolsa').textContent = 'N/A — No apto'; goF('ok'); };
+      if (meta) { meta.innerHTML = '<i class="ti ti-heart-off" style="font-size:12px;"></i> No apto'; meta.style.color = '#c0392b'; }
+    } else {
+      btn.innerHTML = 'Registrar extracción <i class="ti ti-arrow-right"></i>';
+      btn.onclick = () => goF(4);
+      if (meta) { meta.innerHTML = '<i class="ti ti-heart-check" style="font-size:12px;"></i> Apto para donar'; meta.style.color = '#27ae60'; }
+    }
+  }
+
+  function finalizar() {
+    const bolsa = document.getElementById('inp-bolsa')?.value || '—';
+    document.getElementById('ok-bolsa').textContent = bolsa;
+    goF('ok');
+  }
+
+  // FILTROS
+  function filtrar(estado, el) {
+    document.querySelectorAll('.filtro-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.turno-card').forEach(c => {
+      c.style.display = estado==='todos' || c.dataset.estado===estado ? '' : 'none';
+    });
+  }
+
+  function genToken() {
+    const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let t = '';
+    for (let i=0;i<9;i++) { if(i===3||i===6) t+=' · '; t+=c[Math.floor(Math.random()*c.length)]; }
+    return t;
+  }
+
+  function abrirSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
+  function cerrarSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+</script>
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('profesional');
+    await HemoRed.data.cargarTurnosProfesional();
+  });
+</script>
+</body>
+</html>

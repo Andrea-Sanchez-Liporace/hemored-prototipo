@@ -1,0 +1,139 @@
+{
+  "app": "HemoRed",
+  "version": "1.0 — Demo prototipo",
+  "login_url": "hemored_login.html",
+  "descripcion": "Credenciales de acceso para demostración del prototipo. Un solo login redirige a cada rol automáticamente.",
+
+  "usuarios": [
+    {
+      "rol": "Donante",
+      "nombre": "Sofía Páez",
+      "email": "donante@hemored.com",
+      "password": "donante123",
+      "dashboard": "hemored_dashboard_donante.html",
+      "descripcion": "Donante registrada con turnos activos, documentos y formularios pre-donación disponibles",
+      "vistas_clave": [
+        "hemored_dashboard_donante.html",
+        "hemored_mis_turnos.html",
+        "hemored_mis_documentos.html",
+        "hemored_formularios_predonacion.html",
+        "hemored_campana_detalle.html",
+        "hemored_perfil_donante.html",
+        "hemored_notificaciones_donante.html",
+        "hemored_postdonacion_anonimo.html"
+      ]
+    },
+    {
+      "rol": "Hospital",
+      "nombre": "Hospital Ramos Mejía",
+      "email": "hospital@hemored.com",
+      "password": "hospital123",
+      "dashboard": "hemored_dashboard_hospital.html",
+      "descripcion": "Hospital activo con campañas, turnos, pacientes y profesionales cargados",
+      "vistas_clave": [
+        "hemored_dashboard_hospital.html",
+        "hemored_hospital_campanas.html",
+        "hemored_hospital_turnos.html",
+        "hemored_pacientes.html",
+        "hemored_paciente_detalle.html",
+        "hemored_profesionales.html",
+        "hemored_profesional_detalle.html",
+        "hemored_documentacion.html",
+        "hemored_notificaciones_hospital.html",
+        "hemored_perfil_hospital.html",
+        "hemored_facturacion.html",
+        "hemored_nueva_campana.html"
+      ]
+    },
+    {
+      "rol": "Profesional de salud",
+      "nombre": "Dr. Carlos Méndez",
+      "email": "profesional@hemored.com",
+      "password": "prof123",
+      "dashboard": "hemored_profesional_dashboard.html",
+      "descripcion": "Profesional de Hematología con turnos del día asignados. Puede iniciar el flujo completo de atención con los 4 formularios.",
+      "vistas_clave": [
+        "hemored_profesional_dashboard.html",
+        "hemored_profesional_perfil.html"
+      ]
+    },
+    {
+      "rol": "Super Administrador",
+      "nombre": "Admin HemoRed",
+      "email": "admin@hemored.com",
+      "password": "admin123",
+      "dashboard": "hemored_admin_dashboard.html",
+      "descripcion": "Acceso total al panel de administración. Puede gestionar hospitales, donantes, planes, facturación y métricas globales.",
+      "vistas_clave": [
+        "hemored_admin_dashboard.html",
+        "hemored_admin_hospitales.html",
+        "hemored_admin_hospital_detalle.html",
+        "hemored_admin_donantes.html",
+        "hemored_admin_donante_detalle.html",
+        "hemored_admin_metricas.html",
+        "hemored_admin_planes.html",
+        "hemored_admin_facturacion.html",
+        "hemored_admin_nueva_factura.html"
+      ]
+    }
+  ],
+
+  "flujos_principales": {
+    "donante": {
+      "reserva_turno": [
+        "hemored_dashboard_donante.html",
+        "hemored_campana_detalle.html (paso 1 a 4)"
+      ],
+      "formularios_predonacion": [
+        "hemored_mis_turnos.html",
+        "hemored_formularios_predonacion.html (paso 1: autoexclusión → paso 2: cuestionario → paso 3: confirmación)"
+      ],
+      "post_donacion": [
+        "hemored_postdonacion_anonimo.html?token=A7·4K·9M"
+      ],
+      "documentos": [
+        "hemored_mis_documentos.html (tabs: resultados / evaluaciones clínicas / certificados / consentimientos)"
+      ]
+    },
+    "hospital": {
+      "nueva_campana": [
+        "hemored_nueva_campana.html",
+        "hemored_nueva_campana_paso2.html",
+        "hemored_nueva_campana_paso3.html"
+      ],
+      "gestionar_turno": [
+        "hemored_hospital_turnos.html → modal Registrar donación"
+      ],
+      "emitir_certificado": [
+        "hemored_documentacion.html (tab certificados)"
+      ]
+    },
+    "profesional": {
+      "atender_donante": [
+        "hemored_profesional_dashboard.html → botón Iniciar atención",
+        "Modal: F1 verificación autoexclusión → F2 cuestionario → F3 evaluación clínica → F4 extracción + QR"
+      ]
+    },
+    "admin": {
+      "aprobar_hospital": [
+        "hemored_admin_hospitales.html → Ver → hemored_admin_hospital_detalle.html → tab Acciones"
+      ],
+      "emitir_factura": [
+        "hemored_admin_hospital_detalle.html → tab Facturación → Nueva factura → hemored_admin_nueva_factura.html"
+      ]
+    }
+  },
+
+  "vistas_publicas_sin_login": [
+    "hemored_landing_v4.html",
+    "hemored_nosotros.html",
+    "hemored_contacto.html",
+    "hemored_registro.html",
+    "hemored_pago.html",
+    "hemored_cuenta_pendiente.html",
+    "hemored_recuperar.html",
+    "hemored_postdonacion_anonimo.html"
+  ],
+
+  "nota": "Super Admin no tiene registro público. Su cuenta es creada internamente por el equipo de HemoRed."
+}

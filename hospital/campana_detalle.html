@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Detalle de campaña</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
+
+    /* SIDEBAR */
+    .sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
+    .sidebar-logo a span { color: #f28b98; }
+    .sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+    .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
+    .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: #5a1e37; color: white; }
+    .nav-item i { font-size: 18px; flex-shrink: 0; }
+    .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: rgba(242,139,152,0.4); padding: 12px 12px 4px; }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .topbar-sep { color: #e8d0d8; }
+    .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-sm-action { padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; border: none; }
+    .btn-editar { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8 !important; }
+    .btn-pausar { background: white; color: #e67e22; border: 1.5px solid #e67e22 !important; }
+    .btn-cerrar { background: white; color: #c0392b; border: 1.5px solid #e74c3c !important; }
+    .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+    .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
+
+    /* CONTENT */
+    .content { padding: 32px; flex: 1; }
+    .detail-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* HEADER CAMPAÑA */
+    .camp-header { background: #3d0f20; border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+    .camp-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+    .camp-title { font-size: 22px; font-weight: 500; color: white; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .camp-urgente-tag { display: inline-flex; align-items: center; gap: 3px; background: #fde8e8; color: #c0392b; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; }
+    .camp-hospital { font-size: 13px; color: #f28b98; }
+    .estado-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .estado-activa { background: #e1f5ee; color: #04342c; }
+    .camp-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .camp-meta-item { }
+    .camp-meta-label { font-size: 11px; color: rgba(242,139,152,0.7); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .camp-meta-value { font-size: 15px; font-weight: 500; color: white; }
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #ef647c; border-radius: 3px; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 20px; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+    .tab.active { background: #5a1e37; color: white; }
+    .tab:hover:not(.active) { background: #fdf0f3; }
+
+    /* PANEL */
+    .panel { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 0.5px solid #e8d0d8; }
+    .panel-title { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .panel-count { font-size: 12px; color: #a9435d; }
+
+    /* TABLA TURNOS */
+    .turnos-table-header { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 100px; padding: 10px 20px; background: #fdf0f3; border-bottom: 0.5px solid #e8d0d8; }
+    .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
+    .turno-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 100px; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; }
+    .turno-row:last-child { border-bottom: none; }
+    .turno-row:hover { background: #fdf0f3; }
+    .turno-donante { display: flex; align-items: center; gap: 10px; }
+    .turno-avatar { width: 32px; height: 32px; border-radius: 50%; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
+    .turno-nombre { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .turno-dni { font-size: 11px; color: #a9435d; }
+    .td { font-size: 13px; color: #5a3040; }
+    .turno-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .tb-pendiente { background: #faeeda; color: #412402; }
+    .tb-confirmado { background: #e1f5ee; color: #04342c; }
+    .tb-cancelado { background: #f7f0f3; color: #a9435d; }
+    .tb-completado { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
+    .turno-actions { display: flex; gap: 5px; }
+    .btn-xs { padding: 5px 9px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+    .btn-xs-ok { background: #e1f5ee; color: #04342c; }
+    .btn-xs-no { background: #fde8e8; color: #c0392b; }
+    .btn-xs-outline { background: white; color: #5a1e37; border: 1px solid #e8d0d8 !important; }
+
+    /* DESCRIPCIÓN TAB */
+    .desc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .desc-item { background: white; border-radius: 12px; padding: 18px; border: 0.5px solid #e8d0d8; }
+    .desc-item-label { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .desc-item-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
+    .desc-item-sub { font-size: 12px; color: #5a3040; margin-top: 3px; }
+    .desc-full { background: white; border-radius: 12px; padding: 18px; border: 0.5px solid #e8d0d8; }
+    .desc-full-text { font-size: 14px; color: #5a3040; line-height: 1.7; }
+
+    /* SIDEBAR DERECHO */
+    .sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+    .side-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+    .side-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .side-stat { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid #f0e0e6; }
+    .side-stat:last-child { border-bottom: none; }
+    .side-stat-label { font-size: 12px; color: #5a3040; }
+    .side-stat-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
+    .side-actions { display: flex; flex-direction: column; gap: 8px; }
+    .btn-action { width: 100%; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; border: none; }
+    .btn-action-primary { background: #ef647c; color: white; }
+    .btn-action-outline { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8 !important; }
+    .btn-action-warn { background: white; color: #e67e22; border: 1.5px solid #e67e22 !important; }
+    .btn-action-danger { background: white; color: #c0392b; border: 1.5px solid #e74c3c !important; }
+
+    /* MOBILE */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    @media (max-width: 1024px) {
+      .detail-layout { grid-template-columns: 1fr; }
+      .camp-meta { grid-template-columns: repeat(2, 1fr); }
+      .sidebar-right { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .mobile-topbar-btn { display: flex; }
+      .content { padding: 20px; }
+      .camp-meta { grid-template-columns: repeat(2, 1fr); }
+      .topbar-actions .btn-sm-action span { display: none; }
+      .turnos-table-header { display: none; }
+      .turno-row { grid-template-columns: 1fr; gap: 6px; }
+      .td.hide-sm { display: none; }
+      .desc-grid { grid-template-columns: 1fr; }
+      .sidebar-right { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-hospital">
+    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
+    <a class="nav-item active" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
+    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
+    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
+    <div class="nav-section-label">Gestión</div>
+    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
+    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
+    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
+    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <a class="topbar-back" href="../hospital/campanas.html">
+        <i class="ti ti-arrow-left"></i>Campañas
+      </a>
+      <span class="topbar-sep">/</span>
+      <span class="topbar-title">Campaña paciente pediátrico</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-sm-action btn-editar"><i class="ti ti-pencil"></i><span>Editar</span></button>
+      <button class="btn-sm-action btn-pausar"><i class="ti ti-player-pause"></i><span>Pausar</span></button>
+      <button class="btn-sm-action btn-cerrar"><i class="ti ti-x"></i><span>Cerrar</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="detail-layout">
+      <div>
+
+        <!-- HEADER CAMPAÑA -->
+        <div class="camp-header">
+          <div class="camp-header-top">
+            <div>
+              <div class="camp-title">
+                Campaña paciente pediátrico
+                <span class="camp-urgente-tag"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span>
+              </div>
+              <div class="camp-hospital">Hospital Ramos Mejía · CABA · Publicada hace 2 días</div>
+            </div>
+            <span class="estado-badge estado-activa">● Activa</span>
+          </div>
+          <div class="camp-meta">
+            <div class="camp-meta-item">
+              <div class="camp-meta-label">Tipo de sangre</div>
+              <div class="camp-meta-value">0- / 0+</div>
+            </div>
+            <div class="camp-meta-item">
+              <div class="camp-meta-label">Fecha límite</div>
+              <div class="camp-meta-value">20 may 2026</div>
+            </div>
+            <div class="camp-meta-item">
+              <div class="camp-meta-label">Donantes cubiertos</div>
+              <div class="camp-meta-value">7 / 10</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
+            </div>
+            <div class="camp-meta-item">
+              <div class="camp-meta-label">Paciente</div>
+              <div class="camp-meta-value">Juan Pérez</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+          <button class="tab active" onclick="cambiarTab('turnos', this)">Turnos</button>
+          <button class="tab" onclick="cambiarTab('descripcion', this)">Descripción</button>
+          <button class="tab" onclick="cambiarTab('donantes', this)">Donantes confirmados</button>
+        </div>
+
+        <!-- TAB TURNOS -->
+        <div id="tab-turnos">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Turnos solicitados</div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <select style="padding:6px 10px;border:1px solid #e8d0d8;border-radius:7px;font-size:12px;color:#5a1e37;outline:none;font-family:'Inter',sans-serif;background:white;">
+                  <option>Todos los estados</option>
+                  <option>Pendientes</option>
+                  <option>Confirmados</option>
+                  <option>Cancelados</option>
+                  <option>Completados</option>
+                </select>
+                <span class="panel-count">12 turnos</span>
+              </div>
+            </div>
+            <div class="turnos-table-header">
+              <div class="th">Donante</div>
+              <div class="th">Fecha y hora</div>
+              <div class="th hide-sm">Estado</div>
+              <div class="th hide-sm">Registrado</div>
+              <div class="th"></div>
+            </div>
+
+            <div class="turno-row">
+              <div class="turno-donante">
+                <div class="turno-avatar">ML</div>
+                <div>
+                  <div class="turno-nombre">María López</div>
+                  <div class="turno-dni">DNI 28.456.789</div>
+                </div>
+              </div>
+              <div class="td">Hoy · 10:00hs</div>
+              <div class="td hide-sm"><span class="turno-badge tb-pendiente">Pendiente</span></div>
+              <div class="td hide-sm">hace 1h</div>
+              <div class="turno-actions">
+                <button class="btn-xs btn-xs-ok">Confirmar</button>
+                <button class="btn-xs btn-xs-no">Rechazar</button>
+              </div>
+            </div>
+
+            <div class="turno-row">
+              <div class="turno-donante">
+                <div class="turno-avatar">JG</div>
+                <div>
+                  <div class="turno-nombre">Juan García</div>
+                  <div class="turno-dni">DNI 32.123.456</div>
+                </div>
+              </div>
+              <div class="td">Hoy · 11:30hs</div>
+              <div class="td hide-sm"><span class="turno-badge tb-pendiente">Pendiente</span></div>
+              <div class="td hide-sm">hace 3h</div>
+              <div class="turno-actions">
+                <button class="btn-xs btn-xs-ok">Confirmar</button>
+                <button class="btn-xs btn-xs-no">Rechazar</button>
+              </div>
+            </div>
+
+            <div class="turno-row">
+              <div class="turno-donante">
+                <div class="turno-avatar">SP</div>
+                <div>
+                  <div class="turno-nombre">Sofía Páez</div>
+                  <div class="turno-dni">DNI 12.345.678</div>
+                </div>
+              </div>
+              <div class="td">Mañana · 08:00hs</div>
+              <div class="td hide-sm"><span class="turno-badge tb-confirmado">Confirmado</span></div>
+              <div class="td hide-sm">ayer</div>
+              <div class="turno-actions">
+                <button class="btn-xs btn-xs-outline">Ver perfil</button>
+              </div>
+            </div>
+
+            <div class="turno-row">
+              <div class="turno-donante">
+                <div class="turno-avatar">AR</div>
+                <div>
+                  <div class="turno-nombre">Ana Rodríguez</div>
+                  <div class="turno-dni">DNI 35.789.012</div>
+                </div>
+              </div>
+              <div class="td">Mañana · 09:30hs</div>
+              <div class="td hide-sm"><span class="turno-badge tb-confirmado">Confirmado</span></div>
+              <div class="td hide-sm">hace 2 días</div>
+              <div class="turno-actions">
+                <button class="btn-xs btn-xs-outline">Ver perfil</button>
+              </div>
+            </div>
+
+            <div class="turno-row">
+              <div class="turno-donante">
+                <div class="turno-avatar">CM</div>
+                <div>
+                  <div class="turno-nombre">Carlos Méndez</div>
+                  <div class="turno-dni">DNI 29.654.321</div>
+                </div>
+              </div>
+              <div class="td">19 may · 14:00hs</div>
+              <div class="td hide-sm"><span class="turno-badge tb-completado">Donación realizada</span></div>
+              <div class="td hide-sm">hace 3 días</div>
+              <div class="turno-actions">
+                <button class="btn-xs btn-xs-outline">Ver resultado</button>
+              </div>
+            </div>
+
+            <div class="turno-row">
+              <div class="turno-donante">
+                <div class="turno-avatar">LP</div>
+                <div>
+                  <div class="turno-nombre">Laura Pérez</div>
+                  <div class="turno-dni">DNI 41.234.567</div>
+                </div>
+              </div>
+              <div class="td">18 may · 10:00hs</div>
+              <div class="td hide-sm"><span class="turno-badge tb-cancelado">Cancelado</span></div>
+              <div class="td hide-sm">hace 4 días</div>
+              <div class="turno-actions">
+                <button class="btn-xs btn-xs-outline">Ver motivo</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TAB DESCRIPCIÓN -->
+        <div id="tab-descripcion" style="display:none;">
+          <div class="desc-grid">
+            <div class="desc-item">
+              <div class="desc-item-label">Tipo de sangre</div>
+              <div class="desc-item-value">0- / 0+</div>
+            </div>
+            <div class="desc-item">
+              <div class="desc-item-label">Urgencia</div>
+              <div class="desc-item-value" style="color:#c0392b;">🔴 Urgente</div>
+            </div>
+            <div class="desc-item">
+              <div class="desc-item-label">Fecha límite</div>
+              <div class="desc-item-value">20 de mayo 2026</div>
+            </div>
+            <div class="desc-item">
+              <div class="desc-item-label">Paciente asociado</div>
+              <div class="desc-item-value">Juan Pérez</div>
+              <div class="desc-item-sub">ID #0042 · Pediatría</div>
+            </div>
+            <div class="desc-item">
+              <div class="desc-item-label">Días de atención</div>
+              <div class="desc-item-value">Mar / Mié / Jue / Vie</div>
+              <div class="desc-item-sub">08:00–12:00 y 14:00–17:00</div>
+            </div>
+            <div class="desc-item">
+              <div class="desc-item-label">Duración por turno</div>
+              <div class="desc-item-value">30 minutos</div>
+              <div class="desc-item-sub">2 donantes por turno · Confirmación manual</div>
+            </div>
+          </div>
+          <div class="desc-full">
+            <div class="desc-item-label" style="margin-bottom:10px;">Descripción</div>
+            <div class="desc-full-text">Paciente pediátrico de 8 años requiere transfusiones de sangre para cirugía cardíaca programada para el 22 de mayo. El banco de sangre del hospital necesita cubrir la reserva mínima para la operación. Cualquier persona en buenas condiciones de salud puede presentarse a donar. El equipo médico verifica la compatibilidad al momento de la donación.</div>
+          </div>
+        </div>
+
+        <!-- TAB DONANTES CONFIRMADOS -->
+        <div id="tab-donantes" style="display:none;">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Donantes con turno confirmado</div>
+              <span class="panel-count">5 donantes</span>
+            </div>
+            <div style="padding:0 20px;">
+              <div class="turno-row" style="grid-template-columns:1.5fr 1fr 1fr 100px;">
+                <div class="turno-donante">
+                  <div class="turno-avatar">SP</div>
+                  <div><div class="turno-nombre">Sofía Páez</div><div class="turno-dni">DNI 12.345.678</div></div>
+                </div>
+                <div class="td">Mañana · 08:00hs</div>
+                <div class="td"><span class="turno-badge tb-confirmado">Confirmado</span></div>
+                <div class="turno-actions"><button class="btn-xs btn-xs-outline">Ver perfil</button></div>
+              </div>
+              <div class="turno-row" style="grid-template-columns:1.5fr 1fr 1fr 100px;">
+                <div class="turno-donante">
+                  <div class="turno-avatar">AR</div>
+                  <div><div class="turno-nombre">Ana Rodríguez</div><div class="turno-dni">DNI 35.789.012</div></div>
+                </div>
+                <div class="td">Mañana · 09:30hs</div>
+                <div class="td"><span class="turno-badge tb-confirmado">Confirmado</span></div>
+                <div class="turno-actions"><button class="btn-xs btn-xs-outline">Ver perfil</button></div>
+              </div>
+              <div class="turno-row" style="grid-template-columns:1.5fr 1fr 1fr 100px;">
+                <div class="turno-donante">
+                  <div class="turno-avatar">CM</div>
+                  <div><div class="turno-nombre">Carlos Méndez</div><div class="turno-dni">DNI 29.654.321</div></div>
+                </div>
+                <div class="td">19 may · 14:00hs</div>
+                <div class="td"><span class="turno-badge tb-completado">Donación realizada</span></div>
+                <div class="turno-actions"><button class="btn-xs btn-xs-outline">Ver resultado</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR DERECHO -->
+      <div class="sidebar-right">
+        <div class="side-card">
+          <div class="side-title"><i class="ti ti-chart-pie" style="color:#ef647c;font-size:16px;"></i>Resumen</div>
+          <div class="side-stat"><span class="side-stat-label">Turnos solicitados</span><span class="side-stat-value">12</span></div>
+          <div class="side-stat"><span class="side-stat-label">Confirmados</span><span class="side-stat-value" style="color:#27ae60;">5</span></div>
+          <div class="side-stat"><span class="side-stat-label">Pendientes</span><span class="side-stat-value" style="color:#e67e22;">2</span></div>
+          <div class="side-stat"><span class="side-stat-label">Cancelados</span><span class="side-stat-value" style="color:#c0392b;">1</span></div>
+          <div class="side-stat"><span class="side-stat-label">Completados</span><span class="side-stat-value" style="color:#782b46;">4</span></div>
+          <div class="side-stat"><span class="side-stat-label">Cupos libres</span><span class="side-stat-value">3 de 10</span></div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-title"><i class="ti ti-settings" style="color:#ef647c;font-size:16px;"></i>Acciones</div>
+          <div class="side-actions">
+            <button class="btn-action btn-action-primary">
+              <i class="ti ti-check-all"></i>Confirmar todos los pendientes
+            </button>
+            <button class="btn-action btn-action-outline">
+              <i class="ti ti-pencil"></i>Editar campaña
+            </button>
+            <button class="btn-action btn-action-warn">
+              <i class="ti ti-player-pause"></i>Pausar campaña
+            </button>
+            <button class="btn-action btn-action-danger">
+              <i class="ti ti-x"></i>Cerrar campaña
+            </button>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-title"><i class="ti ti-calendar" style="color:#ef647c;font-size:16px;"></i>Próximos turnos</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:0.5px solid #f0e0e6;">
+              <span style="color:#5a3040;">Hoy 10:00hs</span>
+              <span style="color:#e67e22;font-weight:500;">2 pendientes</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:0.5px solid #f0e0e6;">
+              <span style="color:#5a3040;">Mañana 08:00hs</span>
+              <span style="color:#27ae60;font-weight:500;">Confirmado</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;">
+              <span style="color:#5a3040;">Mañana 09:30hs</span>
+              <span style="color:#27ae60;font-weight:500;">Confirmado</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cambiarTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-turnos').style.display = 'none';
+    document.getElementById('tab-descripcion').style.display = 'none';
+    document.getElementById('tab-donantes').style.display = 'none';
+    document.getElementById('tab-' + tab).style.display = 'block';
+  }
+  function abrirSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+  }
+  function cerrarSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+</script>
+
+  <script src="../js/db.js"></script>
+  <script src="../js/sesion.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/data.js"></script>
+</body>
+</html>
