@@ -88,10 +88,10 @@
       <div class="topbar-title">Buscar campañas</div>
     </div>
     <div class="topbar-actions">
-      <div class="topbar-btn">
+      <a class="topbar-btn" href="../donante/notificaciones.html">
         <i class="ti ti-bell" style="font-size:18px;" aria-hidden="true"></i>
         <div class="notif-dot"></div>
-      </div>
+      </a>
       <div class="topbar-btn">
         <i class="ti ti-user" style="font-size:18px;" aria-hidden="true"></i>
       </div>
@@ -149,7 +149,7 @@
           <div class="pt-value">Martes 20 de mayo · 10:00hs · Hospital Ramos Mejía</div>
         </div>
       </div>
-      <button class="pt-btn">Ver detalles</button>
+      <button class="pt-btn" onclick="abrirModalTurno()">Ver detalles</button>
     </div>
 
     <!-- BUSCADOR -->
@@ -313,7 +313,74 @@
   </div>
 </div>
 
+<!-- MODAL DETALLE DE TURNO -->
+<div id="modal-turno" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:460px;overflow:hidden;">
+    <div style="padding:20px 24px;border-bottom:0.5px solid #e8d0d8;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:500;color:#5a1e37;">Detalle del turno</div>
+      <button onclick="cerrarModalTurno()" style="background:none;border:none;cursor:pointer;color:#a9435d;font-size:20px;"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="padding:24px;">
+
+      <!-- Fecha y hospital -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <div style="background:#fdf0f3;border:1.5px solid #f28b98;border-radius:12px;padding:10px 14px;text-align:center;min-width:56px;">
+          <div style="font-size:22px;font-weight:600;color:#5a1e37;line-height:1;">20</div>
+          <div style="font-size:11px;font-weight:500;color:#ef647c;text-transform:uppercase;">may</div>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:500;color:#5a1e37;">Hospital Ramos Mejía</div>
+          <div style="font-size:13px;color:#5a3040;margin-top:3px;">Martes · 10:00hs · CABA</div>
+          <span style="display:inline-block;margin-top:6px;background:#e6f7ed;color:#1a6b3a;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:500;">Confirmado</span>
+        </div>
+      </div>
+
+      <!-- Info campaña -->
+      <div style="background:#fdf9fb;border-radius:10px;padding:14px 16px;border:0.5px solid #e8d0d8;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Campaña</div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;margin-bottom:4px;">Campaña urgente 0−</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <div style="font-size:12px;color:#5a3040;display:flex;align-items:center;gap:4px;"><i class="ti ti-droplet" style="color:#a9435d;"></i>0− · 0+</div>
+          <div style="font-size:12px;color:#5a3040;display:flex;align-items:center;gap:4px;"><i class="ti ti-hash" style="color:#a9435d;"></i>#TRN-20240520-0042</div>
+        </div>
+      </div>
+
+      <!-- Formularios -->
+      <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #f28b98;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:500;color:#5a1e37;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="ti ti-clipboard-list" style="color:#ef647c;"></i>Formularios pre-donación</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#1a6b3a;"><i class="ti ti-circle-check" style="color:#27ae60;"></i>Autoexclusión completado</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#a9435d;"><i class="ti ti-circle" style="color:#ef647c;"></i>Cuestionario pendiente</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#888;"><i class="ti ti-lock" style="color:#ccc;"></i>Evaluación clínica — lo carga el profesional</div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <button onclick="window.location='../donante/formularios_predonacion.html'" style="width:100%;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;">
+        Completar cuestionario
+      </button>
+      <div style="display:flex;gap:8px;">
+        <button onclick="window.location='../donante/mis_turnos.html'" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:10px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
+          Modificar turno
+        </button>
+        <button onclick="window.location='../donante/campana_detalle.html'" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:10px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
+          Ver campaña
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
+  function abrirModalTurno() {
+    document.getElementById('modal-turno').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarModalTurno() {
+    document.getElementById('modal-turno').style.display = 'none';
+    document.body.style.overflow = '';
+  }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('sidebar-overlay').classList.add('open');
