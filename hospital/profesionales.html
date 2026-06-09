@@ -60,26 +60,26 @@
     <div class="filtros">
       <div class="search-wrap">
         <i class="ti ti-search search-icon"></i>
-        <input class="search-input" type="text" placeholder="Buscar por nombre o matrícula...">
+        <input class="search-input" type="text" placeholder="Buscar por nombre o matrícula..." oninput="filtrarProfesionales()">
       </div>
-      <select class="filter-select">
-        <option>Todas las especialidades</option>
+      <select class="filter-select" onchange="filtrarProfesionales()">
+        <option value="">Todas las especialidades</option>
         <option>Hematología</option>
         <option>Cardiología</option>
         <option>Oncología</option>
         <option>Cirugía</option>
         <option>Pediatría</option>
       </select>
-      <select class="filter-select">
-        <option>Todos los estados</option>
-        <option>Activos</option>
-        <option>Inactivos</option>
+      <select class="filter-select" onchange="filtrarProfesionales()">
+        <option value="">Todos los estados</option>
+        <option value="activo">Activos</option>
+        <option value="inactivo">Inactivos</option>
       </select>
     </div>
 
     <div class="prof-grid">
 
-      <div class="prof-card">
+      <div class="prof-card" data-nombre="dr. carlos méndez mat. 45.231" data-especialidad="Hematología" data-estado="activo">
         <div class="prof-card-header">
           <div class="prof-avatar">CM</div>
           <div>
@@ -100,7 +100,7 @@
         </div>
       </div>
 
-      <div class="prof-card">
+      <div class="prof-card" data-nombre="dra. ana rodríguez mat. 38.904" data-especialidad="Oncología" data-estado="activo">
         <div class="prof-card-header">
           <div class="prof-avatar">AR</div>
           <div>
@@ -121,7 +121,7 @@
         </div>
       </div>
 
-      <div class="prof-card">
+      <div class="prof-card" data-nombre="dr. luis fernández mat. 52.117" data-especialidad="Cirugía" data-estado="activo">
         <div class="prof-card-header">
           <div class="prof-avatar">LF</div>
           <div>
@@ -142,7 +142,7 @@
         </div>
       </div>
 
-      <div class="prof-card">
+      <div class="prof-card" data-nombre="dra. marta peralta mat. 29.445" data-especialidad="Pediatría" data-estado="inactivo">
         <div class="prof-card-header">
           <div class="prof-avatar">MP</div>
           <div>
@@ -163,6 +163,7 @@
         </div>
       </div>
 
+      <div id="sin-resultados-prof" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;grid-column:1/-1;">Sin resultados</div>
     </div>
   </div>
 </div>
@@ -216,6 +217,26 @@
 </div>
 
 <script>
+  function filtrarProfesionales() {
+    const busqueda = document.querySelector('.search-input').value.toLowerCase();
+    const selects = document.querySelectorAll('.filtros .filter-select');
+    const especialidad = selects[0].value;
+    const estado = selects[1].value;
+    const cards = document.querySelectorAll('.prof-card');
+    let visibles = 0;
+    cards.forEach(card => {
+      const nombre = (card.dataset.nombre || '').toLowerCase();
+      const esp = (card.dataset.especialidad || '').toLowerCase();
+      const est = card.dataset.estado || '';
+      const matchNombre = !busqueda || nombre.includes(busqueda);
+      const matchEsp = !especialidad || esp.includes(especialidad.toLowerCase());
+      const matchEstado = !estado || est === estado;
+      const mostrar = matchNombre && matchEsp && matchEstado;
+      card.style.display = mostrar ? '' : 'none';
+      if (mostrar) visibles++;
+    });
+    document.getElementById('sin-resultados-prof').style.display = visibles === 0 ? 'block' : 'none';
+  }
   function abrirModal() {
     document.getElementById('modal-nuevo').classList.add('active');
     document.body.style.overflow = 'hidden';

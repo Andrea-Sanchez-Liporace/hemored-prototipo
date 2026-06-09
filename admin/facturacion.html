@@ -116,29 +116,29 @@
       <div class="filtros-label">Filtrar</div>
       <div class="search-wrap">
         <i class="ti ti-search search-icon"></i>
-        <input class="search-input" type="text" placeholder="Hospital o nro. de factura...">
+        <input class="search-input" type="text" placeholder="Hospital o nro. de factura..." oninput="aplicarFiltrosFact()">
       </div>
-      <select class="filter-select">
-        <option>Todos los estados</option>
-        <option>Pagadas</option>
-        <option>Pendientes</option>
-        <option>Vencidas</option>
+      <select class="filter-select" onchange="aplicarFiltrosFact()">
+        <option value="">Todos los estados</option>
+        <option value="pagada">Pagadas</option>
+        <option value="pendiente">Pendientes</option>
+        <option value="vencida">Vencidas</option>
       </select>
-      <select class="filter-select">
-        <option>Todos los períodos</option>
+      <select class="filter-select" onchange="aplicarFiltrosFact()">
+        <option value="">Todos los períodos</option>
         <option>Mayo 2026</option>
         <option>Abril 2026</option>
         <option>Marzo 2026</option>
         <option>Febrero 2026</option>
         <option>Enero 2026</option>
       </select>
-      <select class="filter-select">
-        <option>Todos los planes</option>
-        <option>Plan Provincial</option>
-        <option>Plan Nacional</option>
+      <select class="filter-select" onchange="aplicarFiltrosFact()">
+        <option value="">Todos los planes</option>
+        <option value="Nacional">Plan Provincial</option>
+        <option value="Provincial">Plan Nacional</option>
       </select>
-      <select class="filter-select">
-        <option>Todas las provincias</option>
+      <select class="filter-select" onchange="aplicarFiltrosFact()">
+        <option value="">Todas las provincias</option>
         <option>CABA</option>
         <option>Buenos Aires</option>
         <option>Córdoba</option>
@@ -170,7 +170,7 @@
       </div>
 
       <!-- VENCIDA -->
-      <div class="fact-row" style="background:#fef9f9;">
+      <div class="fact-row" data-estado="vencida" data-nombre="hospital garrahan fac-2026-0041" data-periodo="Abril 2026" data-plan="Nacional" data-provincia="CABA" style="background:#fef9f9;">
         <div class="hosp-info">
           <div class="hosp-avatar">HG</div>
           <div><div class="hosp-nombre">Hospital Garrahan</div><div class="hosp-sub">Nacional · CABA</div></div>
@@ -186,7 +186,7 @@
       </div>
 
       <!-- PENDIENTE -->
-      <div class="fact-row">
+      <div class="fact-row" data-estado="pendiente" data-nombre="hospital ramos mejía fac-2026-0044" data-periodo="Junio 2026" data-plan="Provincial" data-provincia="CABA">
         <div class="hosp-info">
           <div class="hosp-avatar">HR</div>
           <div><div class="hosp-nombre">Hospital Ramos Mejía</div><div class="hosp-sub">Provincial · CABA</div></div>
@@ -201,7 +201,7 @@
         </div>
       </div>
 
-      <div class="fact-row">
+      <div class="fact-row" data-estado="pendiente" data-nombre="hospital san martín fac-2026-0043" data-periodo="Junio 2026" data-plan="Provincial" data-provincia="Buenos Aires">
         <div class="hosp-info">
           <div class="hosp-avatar">HS</div>
           <div><div class="hosp-nombre">Hospital San Martín</div><div class="hosp-sub">Provincial · La Plata</div></div>
@@ -217,7 +217,7 @@
       </div>
 
       <!-- PAGADAS -->
-      <div class="fact-row">
+      <div class="fact-row" data-estado="pagada" data-nombre="hospital italiano fac-2026-0040" data-periodo="Mayo 2026" data-plan="Nacional" data-provincia="CABA">
         <div class="hosp-info">
           <div class="hosp-avatar">HI</div>
           <div><div class="hosp-nombre">Hospital Italiano</div><div class="hosp-sub">Nacional · CABA</div></div>
@@ -232,7 +232,7 @@
         </div>
       </div>
 
-      <div class="fact-row">
+      <div class="fact-row" data-estado="pagada" data-nombre="fundación médica del sur fac-2026-0039" data-periodo="Mayo 2026" data-plan="Provincial" data-provincia="Buenos Aires">
         <div class="hosp-info">
           <div class="hosp-avatar">FM</div>
           <div><div class="hosp-nombre">Fundación Médica del Sur</div><div class="hosp-sub">Provincial · Mendoza</div></div>
@@ -247,7 +247,7 @@
         </div>
       </div>
 
-      <div class="fact-row">
+      <div class="fact-row" data-estado="pagada" data-nombre="hospital ramos mejía fac-2026-0038" data-periodo="Mayo 2026" data-plan="Provincial" data-provincia="CABA">
         <div class="hosp-info">
           <div class="hosp-avatar">HR</div>
           <div><div class="hosp-nombre">Hospital Ramos Mejía</div><div class="hosp-sub">Provincial · CABA</div></div>
@@ -262,10 +262,11 @@
         </div>
       </div>
 
+      <div id="sin-resultados-fact" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
     </div>
 
     <div class="pagination">
-      <div class="pag-info">Mostrando 6 de 142 facturas</div>
+      <div class="pag-info" id="pag-info-fact">Mostrando 6 de 142 facturas</div>
       <div class="pag-btns">
         <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
         <div class="pag-btn active">1</div>
@@ -279,9 +280,43 @@
 </div>
 
 <script>
+  var _tabFact = 'todas';
+
   function cambiarTab(tab, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
+    _tabFact = tab;
+    aplicarFiltrosFact();
+  }
+
+  function aplicarFiltrosFact() {
+    const busqueda = document.querySelector('.search-input').value.toLowerCase();
+    const selects = document.querySelectorAll('.filtros .filter-select');
+    const estado = selects[0].value;
+    const periodo = selects[1].value;
+    const plan = selects[2].value;
+    const provincia = selects[3].value;
+    const rows = document.querySelectorAll('.fact-row');
+    let visibles = 0;
+    rows.forEach(row => {
+      const nombre = (row.dataset.nombre || '').toLowerCase();
+      const matchNombre = !busqueda || nombre.includes(busqueda);
+      const matchEstado = !estado || row.dataset.estado === estado;
+      const matchPeriodo = !periodo || row.dataset.periodo === periodo;
+      const matchPlan = !plan || row.dataset.plan === plan;
+      const matchProvincia = !provincia || row.dataset.provincia === provincia;
+      const matchTab =
+        _tabFact === 'todas' ||
+        (_tabFact === 'vencidas' && row.dataset.estado === 'vencida') ||
+        (_tabFact === 'pendientes' && row.dataset.estado === 'pendiente') ||
+        (_tabFact === 'pagadas' && row.dataset.estado === 'pagada');
+      const mostrar = matchNombre && matchEstado && matchPeriodo && matchPlan && matchProvincia && matchTab;
+      row.style.display = mostrar ? '' : 'none';
+      if (mostrar) visibles++;
+    });
+    document.getElementById('sin-resultados-fact').style.display = visibles === 0 ? 'block' : 'none';
+    const pi = document.getElementById('pag-info-fact');
+    if (pi) pi.textContent = 'Mostrando ' + visibles + ' de 142 facturas';
   }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');

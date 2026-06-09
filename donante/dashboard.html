@@ -167,14 +167,14 @@
         </button>
       </div>
       <div class="filters">
-        <select class="filter-select">
+        <select class="filter-select" id="f-sangre" onchange="filtrarCampanas()">
           <option value="">Tipo de sangre</option>
           <option>A+</option><option>A-</option>
           <option>B+</option><option>B-</option>
           <option>AB+</option><option>AB-</option>
           <option>0+</option><option>0-</option>
         </select>
-        <select class="filter-select">
+        <select class="filter-select" id="f-provincia" onchange="filtrarCampanas()">
           <option value="">Provincia</option>
           <option>Buenos Aires</option>
           <option>CABA</option>
@@ -182,16 +182,15 @@
           <option>Santa Fe</option>
           <option>Mendoza</option>
         </select>
-        <select class="filter-select">
+        <select class="filter-select" id="f-urgencia" onchange="filtrarCampanas()">
           <option value="">Urgencia</option>
-          <option>Urgente</option>
-          <option>Normal</option>
+          <option value="urgente">Urgente</option>
+          <option value="activa">Normal</option>
         </select>
-        <select class="filter-select">
+        <select class="filter-select" id="f-orden" onchange="filtrarCampanas()">
           <option value="">Ordenar por</option>
-          <option>Más recientes</option>
-          <option>Más urgentes</option>
-          <option>Más cercanas</option>
+          <option value="urgentes">Más urgentes</option>
+          <option value="recientes">Más recientes</option>
         </select>
       </div>
     </div>
@@ -203,7 +202,7 @@
     </div>
     <div class="campaigns-grid">
 
-      <div class="campaign-card">
+      <div class="campaign-card" data-sangre="0-,0+" data-provincia="CABA" data-urgencia="urgente">
         <div class="campaign-header">
           <div class="campaign-hospital">Hospital Ramos Mejía</div>
           <span class="campaign-badge urgente">Urgente</span>
@@ -230,7 +229,7 @@
         </div>
       </div>
 
-      <div class="campaign-card">
+      <div class="campaign-card" data-sangre="A+,A-" data-provincia="CABA" data-urgencia="activa">
         <div class="campaign-header">
           <div class="campaign-hospital">Hospital Garrahan</div>
           <span class="campaign-badge activa">Activa</span>
@@ -257,7 +256,7 @@
         </div>
       </div>
 
-      <div class="campaign-card">
+      <div class="campaign-card" data-sangre="B+" data-provincia="Buenos Aires" data-urgencia="activa">
         <div class="campaign-header">
           <div class="campaign-hospital">Hospital San Martín</div>
           <span class="campaign-badge activa">Activa</span>
@@ -283,7 +282,7 @@
         </div>
       </div>
 
-      <div class="campaign-card">
+      <div class="campaign-card" data-sangre="AB+,AB-" data-provincia="CABA" data-urgencia="activa">
         <div class="campaign-header">
           <div class="campaign-hospital">Hospital Italiano</div>
           <span class="campaign-badge activa">Activa</span>
@@ -330,6 +329,34 @@
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
 <script>
+  function filtrarCampanas() {
+    const sangre   = document.getElementById('f-sangre').value;
+    const provincia = document.getElementById('f-provincia').value;
+    const urgencia  = document.getElementById('f-urgencia').value;
+    const orden     = document.getElementById('f-orden').value;
+
+    const cards = Array.from(document.querySelectorAll('.campaign-card'));
+    let visibles = 0;
+
+    cards.forEach(card => {
+      const matchSangre   = !sangre   || card.dataset.sangre.split(',').includes(sangre);
+      const matchProvincia = !provincia || card.dataset.provincia === provincia;
+      const matchUrgencia  = !urgencia  || card.dataset.urgencia === urgencia;
+      const visible = matchSangre && matchProvincia && matchUrgencia;
+      card.style.display = visible ? '' : 'none';
+      if (visible) visibles++;
+    });
+
+    document.querySelector('.campaigns-count').textContent = visibles + ' campaña' + (visibles !== 1 ? 's' : '') + ' encontrada' + (visibles !== 1 ? 's' : '');
+
+    if (orden === 'urgentes') {
+      const grid = document.querySelector('.campaigns-grid');
+      Array.from(grid.children)
+        .sort((a, b) => (a.dataset.urgencia === 'urgente' ? -1 : 1))
+        .forEach(c => grid.appendChild(c));
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('donante');
     await HemoRed.data.cargarDashboardDonante();

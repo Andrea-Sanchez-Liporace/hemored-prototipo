@@ -54,21 +54,22 @@
   <div class="content">
 
     <div class="filtros">
-      <button class="filtro-chip active">Todas</button>
-      <button class="filtro-chip">No leídas</button>
-      <button class="filtro-chip">Turnos</button>
-      <button class="filtro-chip">Certificados</button>
-      <button class="filtro-chip">Campañas</button>
-      <button class="filtro-chip">Facturación</button>
+      <button class="filtro-chip active" onclick="filtrarNotifHosp('todas', this)">Todas</button>
+      <button class="filtro-chip" onclick="filtrarNotifHosp('noleidas', this)">No leídas</button>
+      <button class="filtro-chip" onclick="filtrarNotifHosp('turnos', this)">Turnos</button>
+      <button class="filtro-chip" onclick="filtrarNotifHosp('certificados', this)">Certificados</button>
+      <button class="filtro-chip" onclick="filtrarNotifHosp('campanas', this)">Campañas</button>
+      <button class="filtro-chip" onclick="filtrarNotifHosp('facturacion', this)">Facturación</button>
     </div>
 
+    <div id="sin-resultados-notif-hosp" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
+
     <!-- HOY -->
-    <div class="notif-group">
+    <div class="notif-group" id="group-hoy-hosp">
       <div class="notif-group-title">Hoy</div>
       <div class="notif-list">
 
-        <!-- Certificado solicitado -->
-        <div class="notif-item unread">
+        <div class="notif-item unread" data-tipo="certificados">
           <div class="notif-icon" style="background:#fdf0f3;border:0.5px solid #f28b98;">
             <i class="ti ti-certificate" style="color:#ef647c;font-size:20px;"></i>
           </div>
@@ -83,8 +84,7 @@
           </div>
         </div>
 
-        <!-- Nuevo turno solicitado -->
-        <div class="notif-item unread">
+        <div class="notif-item unread" data-tipo="turnos">
           <div class="notif-icon" style="background:#faeeda;">
             <i class="ti ti-calendar-plus" style="color:#e67e22;font-size:20px;"></i>
           </div>
@@ -99,8 +99,7 @@
           </div>
         </div>
 
-        <!-- Turno cancelado -->
-        <div class="notif-item unread">
+        <div class="notif-item unread" data-tipo="turnos">
           <div class="notif-icon" style="background:#fde8e8;">
             <i class="ti ti-calendar-off" style="color:#c0392b;font-size:20px;"></i>
           </div>
@@ -118,12 +117,11 @@
     </div>
 
     <!-- AYER -->
-    <div class="notif-group">
+    <div class="notif-group" id="group-ayer-hosp">
       <div class="notif-group-title">Ayer</div>
       <div class="notif-list">
 
-        <!-- Campaña por vencer -->
-        <div class="notif-item">
+        <div class="notif-item" data-tipo="campanas">
           <div class="notif-icon" style="background:#faeeda;">
             <i class="ti ti-alarm" style="color:#e67e22;font-size:20px;"></i>
           </div>
@@ -137,8 +135,7 @@
           </div>
         </div>
 
-        <!-- Factura pendiente -->
-        <div class="notif-item">
+        <div class="notif-item" data-tipo="facturacion">
           <div class="notif-icon" style="background:#fde8e8;">
             <i class="ti ti-receipt" style="color:#c0392b;font-size:20px;"></i>
           </div>
@@ -156,11 +153,11 @@
     </div>
 
     <!-- ESTA SEMANA -->
-    <div class="notif-group">
+    <div class="notif-group" id="group-semana-hosp">
       <div class="notif-group-title">Esta semana</div>
       <div class="notif-list">
 
-        <div class="notif-item">
+        <div class="notif-item" data-tipo="turnos">
           <div class="notif-icon" style="background:#e1f5ee;">
             <i class="ti ti-heart" style="color:#27ae60;font-size:20px;"></i>
           </div>
@@ -181,6 +178,22 @@
 </div>
 
 <script>
+  function filtrarNotifHosp(tipo, el) {
+    document.querySelectorAll('.filtro-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const items = document.querySelectorAll('.notif-item');
+    items.forEach(item => {
+      if (tipo === 'todas') { item.style.display = ''; return; }
+      if (tipo === 'noleidas') { item.style.display = item.classList.contains('unread') ? '' : 'none'; return; }
+      item.style.display = item.dataset.tipo === tipo ? '' : 'none';
+    });
+    document.querySelectorAll('.notif-group').forEach(group => {
+      const visibles = group.querySelectorAll('.notif-item:not([style*="display: none"])');
+      group.style.display = visibles.length === 0 ? 'none' : '';
+    });
+    const totalVisibles = document.querySelectorAll('.notif-item:not([style*="display: none"])').length;
+    document.getElementById('sin-resultados-notif-hosp').style.display = totalVisibles === 0 ? 'block' : 'none';
+  }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('sidebar-overlay').classList.add('open');

@@ -62,15 +62,15 @@
       <div class="filtros">
         <div class="search-wrap">
           <i class="ti ti-search search-icon"></i>
-          <input class="search-input" type="text" placeholder="Buscar por nombre o DNI...">
+          <input class="search-input" type="text" placeholder="Buscar por nombre o DNI..." oninput="filtrarPacientes()">
         </div>
-        <select class="filter-select">
-          <option>Todas las campañas</option>
-          <option>Con campaña activa</option>
-          <option>Sin campaña activa</option>
+        <select class="filter-select" onchange="filtrarPacientes()">
+          <option value="">Todas las campañas</option>
+          <option value="con">Con campaña activa</option>
+          <option value="sin">Sin campaña activa</option>
         </select>
-        <select class="filter-select">
-          <option>Todos los tipos de sangre</option>
+        <select class="filter-select" onchange="filtrarPacientes()">
+          <option value="">Todos los tipos de sangre</option>
           <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
           <option>0+</option><option>0-</option><option>AB+</option><option>AB-</option>
         </select>
@@ -84,7 +84,7 @@
           <div class="th"></div>
         </div>
 
-        <div class="pac-row" onclick="verDetalle('Juan Pérez')">
+        <div class="pac-row" data-nombre="juan pérez" data-sangre="0-" data-campana="con" onclick="verDetalle('Juan Pérez')">
           <div class="pac-donante">
             <div class="pac-avatar">JP</div>
             <div>
@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <div class="pac-row" onclick="verDetalle('María García')">
+        <div class="pac-row" data-nombre="maría garcía" data-sangre="A+" data-campana="sin" onclick="verDetalle('María García')">
           <div class="pac-donante">
             <div class="pac-avatar">MG</div>
             <div>
@@ -114,7 +114,7 @@
           </div>
         </div>
 
-        <div class="pac-row" onclick="verDetalle('Carlos López')">
+        <div class="pac-row" data-nombre="carlos lópez" data-sangre="B+" data-campana="sin" onclick="verDetalle('Carlos López')">
           <div class="pac-donante">
             <div class="pac-avatar">CL</div>
             <div>
@@ -129,7 +129,7 @@
           </div>
         </div>
 
-        <div class="pac-row" onclick="verDetalle('Ana Martínez')">
+        <div class="pac-row" data-nombre="ana martínez" data-sangre="0+" data-campana="con" onclick="verDetalle('Ana Martínez')">
           <div class="pac-donante">
             <div class="pac-avatar">AM</div>
             <div>
@@ -144,6 +144,7 @@
           </div>
         </div>
 
+        <div id="sin-resultados-pac" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
       </div>
     </div>
 
@@ -303,6 +304,24 @@
   function cerrarModal() {
     document.getElementById('modal-nuevo').classList.remove('active');
     document.body.style.overflow = '';
+  }
+  function filtrarPacientes() {
+    const busqueda = document.querySelector('.search-input').value.toLowerCase();
+    const selects = document.querySelectorAll('#view-lista .filter-select');
+    const campana = selects[0].value;
+    const sangre = selects[1].value;
+    const rows = document.querySelectorAll('.pac-row');
+    let visibles = 0;
+    rows.forEach(row => {
+      const nombre = (row.dataset.nombre || '').toLowerCase();
+      const matchNombre = !busqueda || nombre.includes(busqueda);
+      const matchCampana = !campana || row.dataset.campana === campana;
+      const matchSangre = !sangre || row.dataset.sangre === sangre;
+      const mostrar = matchNombre && matchCampana && matchSangre;
+      row.style.display = mostrar ? '' : 'none';
+      if (mostrar) visibles++;
+    });
+    document.getElementById('sin-resultados-pac').style.display = visibles === 0 ? 'block' : 'none';
   }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');

@@ -110,13 +110,13 @@
       <div class="filtros" style="margin-bottom:0;">
         <div class="search-wrap" style="max-width:240px;">
           <i class="ti ti-search search-icon"></i>
-          <input class="search-input" type="text" placeholder="Buscar donante...">
+          <input class="search-input" type="text" placeholder="Buscar donante..." oninput="aplicarFiltrosTurnos()">
         </div>
-        <select class="filter-select">
-          <option>Todas las campañas</option>
-          <option>Campaña pediátrica</option>
-          <option>Banco tipo A</option>
-          <option>Reserva general</option>
+        <select class="filter-select" onchange="aplicarFiltrosTurnos()">
+          <option value="">Todas las campañas</option>
+          <option value="pediátrica">Campaña pediátrica</option>
+          <option value="tipo a">Banco tipo A</option>
+          <option value="reserva">Reserva general</option>
         </select>
         <select class="filter-select">
           <option>Hoy</option>
@@ -140,7 +140,7 @@
         </div>
 
         <!-- PENDIENTES -->
-        <div class="turno-row">
+        <div class="turno-row" data-nombre="maría lópez" data-campana="pediátrica">
           <div class="turno-donante">
             <div class="turno-avatar">ML</div>
             <div><div class="turno-nombre">María López</div><div class="turno-sub">DNI 28.456.789</div></div>
@@ -155,7 +155,7 @@
           </div>
         </div>
 
-        <div class="turno-row">
+        <div class="turno-row" data-nombre="juan garcía" data-campana="pediátrica">
           <div class="turno-donante">
             <div class="turno-avatar">JG</div>
             <div><div class="turno-nombre">Juan García</div><div class="turno-sub">DNI 32.123.456</div></div>
@@ -170,7 +170,7 @@
           </div>
         </div>
 
-        <div class="turno-row">
+        <div class="turno-row" data-nombre="roberto martínez" data-campana="tipo a">
           <div class="turno-donante">
             <div class="turno-avatar">RM</div>
             <div><div class="turno-nombre">Roberto Martínez</div><div class="turno-sub">DNI 25.789.012</div></div>
@@ -186,7 +186,7 @@
         </div>
 
         <!-- CONFIRMADOS -->
-        <div class="turno-row">
+        <div class="turno-row" data-nombre="sofía páez" data-campana="pediátrica">
           <div class="turno-donante">
             <div class="turno-avatar">SP</div>
             <div><div class="turno-nombre">Sofía Páez</div><div class="turno-sub">DNI 12.345.678</div></div>
@@ -200,7 +200,7 @@
           </div>
         </div>
 
-        <div class="turno-row">
+        <div class="turno-row" data-nombre="ana rodríguez" data-campana="pediátrica">
           <div class="turno-donante">
             <div class="turno-avatar">AR</div>
             <div><div class="turno-nombre">Ana Rodríguez</div><div class="turno-sub">DNI 35.789.012</div></div>
@@ -215,7 +215,7 @@
         </div>
 
         <!-- COMPLETADOS -->
-        <div class="turno-row">
+        <div class="turno-row" data-nombre="carlos méndez" data-campana="pediátrica">
           <div class="turno-donante">
             <div class="turno-avatar">CM</div>
             <div><div class="turno-nombre">Carlos Méndez</div><div class="turno-sub">DNI 29.654.321</div></div>
@@ -229,7 +229,7 @@
           </div>
         </div>
 
-        <div class="turno-row">
+        <div class="turno-row" data-nombre="laura pérez" data-campana="tipo a">
           <div class="turno-donante">
             <div class="turno-avatar">LP</div>
             <div><div class="turno-nombre">Laura Pérez</div><div class="turno-sub">DNI 41.234.567</div></div>
@@ -243,10 +243,11 @@
           </div>
         </div>
 
+        <div id="sin-resultados-turnos" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
       </div>
 
       <div class="pagination">
-        <div class="pag-info">Mostrando 7 de 28 turnos</div>
+        <div class="pag-info" id="pag-info-turnos">Mostrando 7 de 28 turnos</div>
         <div class="pag-btns">
           <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
           <div class="pag-btn active">1</div>
@@ -324,20 +325,41 @@
 </div>
 
 <script>
+  var _filtroEstadoTurno = 'todos';
+
   function filtrarEstado(estado, el) {
     document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
     el.classList.add('active-filter');
+    _filtroEstadoTurno = estado;
+    aplicarFiltrosTurnos();
+  }
+
+  function aplicarFiltrosTurnos() {
+    const busqueda = document.querySelector('.search-input').value.toLowerCase();
+    const selects = document.querySelectorAll('.filtros .filter-select');
+    const campana = selects[0].value;
     const rows = document.querySelectorAll('.turno-row');
+    let visibles = 0;
     rows.forEach(row => {
-      if (estado === 'todos') { row.style.display = ''; return; }
       const badge = row.querySelector('.turno-badge');
       const texto = badge ? badge.textContent.toLowerCase() : '';
-      const match =
-        (estado === 'pendiente' && texto.includes('pendiente')) ||
-        (estado === 'confirmado' && texto.includes('confirmado')) ||
-        (estado === 'completado' && (texto.includes('completado') || texto.includes('realizada')));
-      row.style.display = match ? '' : 'none';
+      const nombre = (row.dataset.nombre || '').toLowerCase();
+      const campRow = (row.dataset.campana || '').toLowerCase();
+      const matchEstado =
+        _filtroEstadoTurno === 'todos' ||
+        (_filtroEstadoTurno === 'pendiente' && texto.includes('pendiente')) ||
+        (_filtroEstadoTurno === 'confirmado' && texto.includes('confirmado')) ||
+        (_filtroEstadoTurno === 'completado' && (texto.includes('completado') || texto.includes('realizada')));
+      const matchNombre = !busqueda || nombre.includes(busqueda);
+      const matchCampana = !campana || campRow.includes(campana.toLowerCase());
+      const mostrar = matchEstado && matchNombre && matchCampana;
+      row.style.display = mostrar ? '' : 'none';
+      if (mostrar) visibles++;
     });
+    const sr = document.getElementById('sin-resultados-turnos');
+    if (sr) sr.style.display = visibles === 0 ? 'block' : 'none';
+    const pi = document.getElementById('pag-info-turnos');
+    if (pi) pi.textContent = 'Mostrando ' + visibles + ' de 28 turnos';
   }
 
   function cambiarVista(vista, el) {

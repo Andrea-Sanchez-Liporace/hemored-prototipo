@@ -94,15 +94,15 @@
     <div class="filtros">
       <div class="search-wrap">
         <i class="ti ti-search search-icon"></i>
-        <input class="search-input" type="text" placeholder="Buscar por nombre, CUIT o email...">
+        <input class="search-input" type="text" placeholder="Buscar por nombre, CUIT o email..." oninput="aplicarFiltrosHosp()">
       </div>
-      <select class="filter-select">
-        <option>Todos los planes</option>
-        <option>Plan Provincial</option>
-        <option>Plan Nacional</option>
+      <select class="filter-select" onchange="aplicarFiltrosHosp()">
+        <option value="">Todos los planes</option>
+        <option value="Provincial">Plan Provincial</option>
+        <option value="Nacional">Plan Nacional</option>
       </select>
-      <select class="filter-select">
-        <option>Todas las provincias</option>
+      <select class="filter-select" onchange="aplicarFiltrosHosp()">
+        <option value="">Todas las provincias</option>
         <option>CABA</option>
         <option>Buenos Aires</option>
         <option>Córdoba</option>
@@ -128,7 +128,7 @@
       </div>
 
       <!-- PENDIENTES -->
-      <div class="hosp-row" data-estado="pendiente" onclick="window.location='../admin/hospital_detalle.html'">
+      <div class="hosp-row" data-estado="pendiente" data-nombre="hospital ramos mejía admin@ramosmejia.gob.ar cuit 30-12345678-9" data-plan="Provincial" data-provincia="CABA" onclick="window.location='../admin/hospital_detalle.html'">
         <div class="hosp-info">
           <div class="hosp-avatar">HR</div>
           <div><div class="hosp-nombre">Hospital Ramos Mejía</div><div class="hosp-sub">admin@ramosmejia.gob.ar · CUIT 30-12345678-9</div></div>
@@ -143,7 +143,7 @@
         </div>
       </div>
 
-      <div class="hosp-row" data-estado="pendiente" onclick="window.location='../admin/hospital_detalle.html'">
+      <div class="hosp-row" data-estado="pendiente" data-nombre="clínica argentina contacto@clinicaargentina.com.ar cuit 30-98765432-1" data-plan="Nacional" data-provincia="Córdoba" onclick="window.location='../admin/hospital_detalle.html'">
         <div class="hosp-info">
           <div class="hosp-avatar">CA</div>
           <div><div class="hosp-nombre">Clínica Argentina</div><div class="hosp-sub">contacto@clinicaargentina.com.ar · CUIT 30-98765432-1</div></div>
@@ -159,7 +159,7 @@
       </div>
 
       <!-- ACTIVOS -->
-      <div class="hosp-row" data-estado="activo" onclick="window.location='../admin/hospital_detalle.html'">
+      <div class="hosp-row" data-estado="activo" data-nombre="hospital italiano admin@hospitalitaliano.org.ar" data-plan="Nacional" data-provincia="CABA" onclick="window.location='../admin/hospital_detalle.html'">
         <div class="hosp-info">
           <div class="hosp-avatar">HI</div>
           <div><div class="hosp-nombre">Hospital Italiano</div><div class="hosp-sub">admin@hospitalitaliano.org.ar</div></div>
@@ -173,7 +173,7 @@
         </div>
       </div>
 
-      <div class="hosp-row" data-estado="activo" onclick="window.location='../admin/hospital_detalle.html'">
+      <div class="hosp-row" data-estado="retrasado" data-nombre="hospital garrahan admin@garrahan.gob.ar" data-plan="Nacional" data-provincia="CABA" onclick="window.location='../admin/hospital_detalle.html'">
         <div class="hosp-info">
           <div class="hosp-avatar">HG</div>
           <div><div class="hosp-nombre">Hospital Garrahan</div><div class="hosp-sub">admin@garrahan.gob.ar</div></div>
@@ -188,7 +188,7 @@
         </div>
       </div>
 
-      <div class="hosp-row" data-estado="vencer" onclick="window.location='../admin/hospital_detalle.html'">
+      <div class="hosp-row" data-estado="vencer" data-nombre="hospital san martín admin@sanmartin.gob.ar" data-plan="Provincial" data-provincia="Buenos Aires" onclick="window.location='../admin/hospital_detalle.html'">
         <div class="hosp-info">
           <div class="hosp-avatar">HS</div>
           <div><div class="hosp-nombre">Hospital San Martín</div><div class="hosp-sub">admin@sanmartin.gob.ar</div></div>
@@ -202,7 +202,7 @@
         </div>
       </div>
 
-      <div class="hosp-row" data-estado="activo" onclick="window.location='../admin/hospital_detalle.html'">
+      <div class="hosp-row" data-estado="activo" data-nombre="fundación médica del sur info@fundacionmedica.com.ar" data-plan="Provincial" data-provincia="Buenos Aires" onclick="window.location='../admin/hospital_detalle.html'">
         <div class="hosp-info">
           <div class="hosp-avatar">FM</div>
           <div><div class="hosp-nombre">Fundación Médica del Sur</div><div class="hosp-sub">info@fundacionmedica.com.ar</div></div>
@@ -217,7 +217,7 @@
       </div>
 
       <!-- INACTIVO -->
-      <div class="hosp-row" data-estado="inactivo" onclick="window.location='../admin/hospital_detalle.html'">
+      <div class="hosp-row" data-estado="inactivo" data-nombre="clínica xeneize" data-plan="Provincial" data-provincia="Buenos Aires" onclick="window.location='../admin/hospital_detalle.html'">
         <div class="hosp-info">
           <div class="hosp-avatar" style="background:#888;">CX</div>
           <div><div class="hosp-nombre" style="color:#888;">Clínica Xeneize</div><div class="hosp-sub">Dado de baja el 10 mar 2026</div></div>
@@ -231,10 +231,11 @@
         </div>
       </div>
 
+      <div id="sin-resultados-hosp" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
     </div>
 
     <div class="pagination">
-      <div class="pag-info">Mostrando 7 de 28 hospitales</div>
+      <div class="pag-info" id="pag-info-hosp">Mostrando 7 de 28 hospitales</div>
       <div class="pag-btns">
         <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
         <div class="pag-btn active">1</div>
@@ -248,13 +249,35 @@
 </div>
 
 <script>
+  var _filtroEstadoHospAdmin = 'todos';
+
   function filtrar(estado, el) {
     document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active-filter'));
     el.classList.add('active-filter');
-    document.querySelectorAll('.hosp-row').forEach(r => {
-      if (estado === 'todos') { r.style.display = ''; return; }
-      r.style.display = r.dataset.estado === estado ? '' : 'none';
+    _filtroEstadoHospAdmin = estado;
+    aplicarFiltrosHosp();
+  }
+
+  function aplicarFiltrosHosp() {
+    const busqueda = document.querySelector('.search-input').value.toLowerCase();
+    const selects = document.querySelectorAll('.filtros .filter-select');
+    const plan = selects[0].value;
+    const provincia = selects[1].value;
+    const rows = document.querySelectorAll('.hosp-row');
+    let visibles = 0;
+    rows.forEach(row => {
+      const nombre = (row.dataset.nombre || '').toLowerCase();
+      const matchEstado = _filtroEstadoHospAdmin === 'todos' || row.dataset.estado === _filtroEstadoHospAdmin;
+      const matchNombre = !busqueda || nombre.includes(busqueda);
+      const matchPlan = !plan || row.dataset.plan === plan;
+      const matchProvincia = !provincia || row.dataset.provincia === provincia;
+      const mostrar = matchEstado && matchNombre && matchPlan && matchProvincia;
+      row.style.display = mostrar ? '' : 'none';
+      if (mostrar) visibles++;
     });
+    document.getElementById('sin-resultados-hosp').style.display = visibles === 0 ? 'block' : 'none';
+    const pi = document.getElementById('pag-info-hosp');
+    if (pi) pi.textContent = 'Mostrando ' + visibles + ' de 28 hospitales';
   }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');

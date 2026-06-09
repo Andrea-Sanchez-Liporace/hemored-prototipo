@@ -108,10 +108,10 @@
     <div class="filtros">
       <div class="search-wrap">
         <i class="ti ti-search search-icon"></i>
-        <input class="search-input" type="text" placeholder="Buscar campaña...">
+        <input class="search-input" type="text" placeholder="Buscar campaña..." oninput="aplicarFiltrosCampanas()">
       </div>
-      <select class="filter-select">
-        <option>Todos los tipos de sangre</option>
+      <select class="filter-select" onchange="aplicarFiltrosCampanas()">
+        <option value="">Todos los tipos de sangre</option>
         <option>A+</option><option>A-</option>
         <option>B+</option><option>B-</option>
         <option>0+</option><option>0-</option>
@@ -138,7 +138,7 @@
       </div>
 
       <!-- ACTIVA URGENTE -->
-      <div class="table-row">
+      <div class="table-row" data-nombre="campaña paciente pediátrico" data-sangre="0- 0+">
         <div>
           <div class="camp-name">Campaña paciente pediátrico <span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span></div>
           <div class="camp-sub">Paciente: Juan Pérez · Creada hace 2 días</div>
@@ -159,7 +159,7 @@
       </div>
 
       <!-- ACTIVA -->
-      <div class="table-row">
+      <div class="table-row" data-nombre="banco de sangre tipo a" data-sangre="A+ A-">
         <div>
           <div class="camp-name">Banco de sangre tipo A</div>
           <div class="camp-sub">Campaña genérica · Creada hace 5 días</div>
@@ -180,7 +180,7 @@
       </div>
 
       <!-- ACTIVA -->
-      <div class="table-row">
+      <div class="table-row" data-nombre="reserva general mayo" data-sangre="todos">
         <div>
           <div class="camp-name">Reserva general mayo</div>
           <div class="camp-sub">Campaña genérica · Creada hace 1 semana</div>
@@ -201,7 +201,7 @@
       </div>
 
       <!-- PROGRAMADA -->
-      <div class="table-row">
+      <div class="table-row" data-nombre="campaña junio tipo b" data-sangre="B+ B-">
         <div>
           <div class="camp-name">Campaña junio — tipo B</div>
           <div class="camp-sub">Se publica el 1 jun 2026 a las 08:00hs</div>
@@ -222,7 +222,7 @@
       </div>
 
       <!-- PAUSADA -->
-      <div class="table-row">
+      <div class="table-row" data-nombre="campaña banco ab" data-sangre="AB+ AB-">
         <div>
           <div class="camp-name">Campaña banco AB</div>
           <div class="camp-sub">Pausada hace 3 días</div>
@@ -243,7 +243,7 @@
       </div>
 
       <!-- BORRADOR -->
-      <div class="table-row" data-estado="borrador">
+      <div class="table-row" data-estado="borrador" data-nombre="banco de sangre tipo o junio" data-sangre="0+">
         <div>
           <div class="camp-name">Banco de sangre tipo O — junio</div>
           <div class="camp-sub">Borrador · Última edición hace 1 día</div>
@@ -264,7 +264,7 @@
       </div>
 
       <!-- CERRADA -->
-      <div class="table-row">
+      <div class="table-row" data-nombre="campaña abril tipo o" data-sangre="0+ 0-">
         <div>
           <div class="camp-name">Campaña abril — tipo O</div>
           <div class="camp-sub">Cerrada el 30 abr 2026 · Cupo completo</div>
@@ -284,7 +284,7 @@
       </div>
 
       <!-- CERRADA -->
-      <div class="table-row">
+      <div class="table-row" data-nombre="campaña marzo general" data-sangre="todos">
         <div>
           <div class="camp-name">Campaña marzo — general</div>
           <div class="camp-sub">Cerrada el 31 mar 2026 · Fecha vencida</div>
@@ -303,11 +303,12 @@
         </div>
       </div>
 
+      <div id="sin-resultados-camp" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
     </div>
 
     <!-- PAGINACIÓN -->
     <div class="pagination">
-      <div class="pag-info">Mostrando 8 de 8 campañas</div>
+      <div class="pag-info" id="pag-info-camp">Mostrando 8 de 8 campañas</div>
       <div class="pag-btns">
         <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
         <div class="pag-btn active">1</div>
@@ -320,22 +321,43 @@
 </div>
 
 <script>
+  var _filtroEstadoCamp = 'todas';
+
   function filtrarEstado(estado, el) {
     document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active-filter'));
     el.classList.add('active-filter');
+    _filtroEstadoCamp = estado;
+    aplicarFiltrosCampanas();
+  }
+
+  function aplicarFiltrosCampanas() {
+    const busqueda = document.querySelector('.search-input').value.toLowerCase();
+    const selects = document.querySelectorAll('.filter-select');
+    const sangre = selects[0].value;
     const rows = document.querySelectorAll('.table-row');
+    let visibles = 0;
     rows.forEach(row => {
-      if (estado === 'todas') { row.style.display = ''; return; }
       const badge = row.querySelector('.estado-badge');
       const texto = badge ? badge.textContent.toLowerCase() : '';
-      const match =
-        (estado === 'activa' && (texto.includes('activa'))) ||
-        (estado === 'programada' && texto.includes('programada')) ||
-        (estado === 'pausada' && texto.includes('pausada')) ||
-        (estado === 'cerrada' && texto.includes('cerrada')) ||
-        (estado === 'borrador' && texto.includes('borrador'));
-      row.style.display = match ? '' : 'none';
+      const nombre = (row.dataset.nombre || '').toLowerCase();
+      const sangreRow = (row.dataset.sangre || '').toLowerCase();
+      const matchEstado =
+        _filtroEstadoCamp === 'todas' ||
+        (_filtroEstadoCamp === 'activa' && texto.includes('activa')) ||
+        (_filtroEstadoCamp === 'programada' && texto.includes('programada')) ||
+        (_filtroEstadoCamp === 'pausada' && texto.includes('pausada')) ||
+        (_filtroEstadoCamp === 'cerrada' && texto.includes('cerrada')) ||
+        (_filtroEstadoCamp === 'borrador' && texto.includes('borrador'));
+      const matchBusqueda = !busqueda || nombre.includes(busqueda);
+      const matchSangre = !sangre || sangreRow.includes(sangre.toLowerCase()) || sangreRow === 'todos';
+      const mostrar = matchEstado && matchBusqueda && matchSangre;
+      row.style.display = mostrar ? '' : 'none';
+      if (mostrar) visibles++;
     });
+    const sr = document.getElementById('sin-resultados-camp');
+    if (sr) sr.style.display = visibles === 0 ? 'block' : 'none';
+    const pi = document.getElementById('pag-info-camp');
+    if (pi) pi.textContent = 'Mostrando ' + visibles + ' de 8 campañas';
   }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
