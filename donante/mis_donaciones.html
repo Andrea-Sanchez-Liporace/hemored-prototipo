@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Mis donaciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/donante.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="../index.html">Hemo<span>red</span></a>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">SP</div>
+    <div class="sidebar-user-info">
+      <div class="sidebar-user-name"><span data-sesion-nombre>Sofía Páez</span></div>
+      <div class="sidebar-user-role">Donante</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="../donante/dashboard.html"><i class="ti ti-search" aria-hidden="true"></i>Buscar campañas</a>
+    <a class="nav-item" href="../donante/mis_turnos.html"><i class="ti ti-calendar" aria-hidden="true"></i>Mis turnos</a>
+    <a class="nav-item active" href="../donante/mis_donaciones.html"><i class="ti ti-heart" aria-hidden="true"></i>Mis donaciones</a>
+    <a class="nav-item" href="../donante/mis_documentos.html"><i class="ti ti-file-text" aria-hidden="true"></i>Mis documentos</a>
+    <div class="nav-section-label">Cuenta</div>
+    <a class="nav-item" href="../donante/perfil.html"><i class="ti ti-user" aria-hidden="true"></i>Mi perfil</a>
+    <a class="nav-item" href="../donante/notificaciones.html"><i class="ti ti-bell" aria-hidden="true"></i>Notificaciones</a>
+    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión</a>
+  </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title">Mis donaciones</div>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div class="topbar-btn">
+        <i class="ti ti-bell" style="font-size:18px;" aria-hidden="true"></i>
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- RESUMEN -->
+    <div class="quick-stats" style="margin-bottom:28px;">
+      <div class="qstat">
+        <div class="qstat-icon" style="background:#fdf0f3;">
+          <i class="ti ti-heart-filled" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="qstat-num">7</div>
+          <div class="qstat-label">Donaciones totales</div>
+        </div>
+      </div>
+      <div class="qstat">
+        <div class="qstat-icon" style="background:#e1f5ee;">
+          <i class="ti ti-droplet" style="color:#27ae60;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="qstat-num">3.150 ml</div>
+          <div class="qstat-label">Total de sangre donada</div>
+        </div>
+      </div>
+      <div class="qstat">
+        <div class="qstat-icon" style="background:#fdf0f3;">
+          <i class="ti ti-calendar" style="color:#5a1e37;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="qstat-num">12 mar 2026</div>
+          <div class="qstat-label">Última donación</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRÓXIMA FECHA HABILITADA -->
+    <div class="proximo-banner" style="margin-bottom:28px;">
+      <div class="pb-left">
+        <div class="pb-icon">
+          <i class="ti ti-calendar-check" style="color:white;font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="pb-label">Próxima fecha habilitada para donar</div>
+          <div class="pb-value">12 de junio de 2026 · Faltan 4 días</div>
+        </div>
+      </div>
+      <button class="pb-btn" onclick="window.location='../donante/dashboard.html'">Buscar campaña</button>
+    </div>
+
+    <!-- FILTROS + HISTORIAL -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="section-title" style="margin-bottom:0;">Historial de donaciones</div>
+      <div class="filtros" id="filtros-donaciones">
+        <select class="filter-select" id="f-anio" onchange="filtrarDonaciones()">
+          <option value="">Todos los años</option>
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+        </select>
+        <select class="filter-select" id="f-resultado" onchange="filtrarDonaciones()">
+          <option value="">Todos los resultados</option>
+          <option value="apto">Apto</option>
+          <option value="no-apto">No apto</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="lista-donaciones">
+
+      <div class="turno-card" data-anio="2026" data-resultado="apto">
+        <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
+          <div class="turno-date-day" style="color:#1a6b3a;">12</div>
+          <div class="turno-date-month" style="color:#27ae60;">mar</div>
+        </div>
+        <div class="turno-info">
+          <div class="turno-hospital">Hospital San Martín</div>
+          <div class="turno-meta">
+            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · 450 ml</div>
+            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>La Plata</div>
+            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20260312-0007</div>
+          </div>
+        </div>
+        <div class="turno-right">
+          <span class="turno-badge confirmado">Apto</span>
+          <div class="turno-actions">
+            <button class="btn-sm btn-sm-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
+            <button class="btn-sm btn-sm-outline">Comprobante</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="turno-card" data-anio="2025" data-resultado="apto">
+        <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
+          <div class="turno-date-day" style="color:#1a6b3a;">18</div>
+          <div class="turno-date-month" style="color:#27ae60;">nov</div>
+        </div>
+        <div class="turno-info">
+          <div class="turno-hospital">Hospital Italiano</div>
+          <div class="turno-meta">
+            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · 450 ml</div>
+            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
+            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20251118-0006</div>
+          </div>
+        </div>
+        <div class="turno-right">
+          <span class="turno-badge confirmado">Apto</span>
+          <div class="turno-actions">
+            <button class="btn-sm btn-sm-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
+            <button class="btn-sm btn-sm-outline">Comprobante</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="turno-card" data-anio="2025" data-resultado="no-apto">
+        <div class="turno-date" style="background:#fde8e8;border-color:#e74c3c;">
+          <div class="turno-date-day" style="color:#922b21;">03</div>
+          <div class="turno-date-month" style="color:#c0392b;">ago</div>
+        </div>
+        <div class="turno-info">
+          <div class="turno-hospital">Hospital Garrahan</div>
+          <div class="turno-meta">
+            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · evaluación diferida</div>
+            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
+            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20250803-0005</div>
+          </div>
+        </div>
+        <div class="turno-right">
+          <span class="turno-badge cancelado">No apta</span>
+          <div class="turno-actions">
+            <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_documentos.html'">Ver motivo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="turno-card" data-anio="2025" data-resultado="apto">
+        <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
+          <div class="turno-date-day" style="color:#1a6b3a;">21</div>
+          <div class="turno-date-month" style="color:#27ae60;">abr</div>
+        </div>
+        <div class="turno-info">
+          <div class="turno-hospital">Hospital Ramos Mejía</div>
+          <div class="turno-meta">
+            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · 450 ml</div>
+            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
+            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20250421-0004</div>
+          </div>
+        </div>
+        <div class="turno-right">
+          <span class="turno-badge confirmado">Apto</span>
+          <div class="turno-actions">
+            <button class="btn-sm btn-sm-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
+            <button class="btn-sm btn-sm-outline">Comprobante</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="sin-resultados" style="display:none;" class="empty-state">
+      <div class="empty-icon"><i class="ti ti-heart-off" style="color:#ef647c;font-size:28px;"></i></div>
+      <div class="empty-title">Sin donaciones para este filtro</div>
+      <div class="empty-text">Probá con otro año o resultado.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function filtrarDonaciones() {
+    const anio      = document.getElementById('f-anio').value;
+    const resultado = document.getElementById('f-resultado').value;
+    const cards     = document.querySelectorAll('#lista-donaciones .turno-card');
+    let visibles    = 0;
+    cards.forEach(c => {
+      const ok = (!anio || c.dataset.anio === anio) && (!resultado || c.dataset.resultado === resultado);
+      c.style.display = ok ? '' : 'none';
+      if (ok) visibles++;
+    });
+    document.getElementById('sin-resultados').style.display = visibles === 0 ? '' : 'none';
+  }
+
+  function abrirSidebar()  { document.getElementById('sidebar').classList.add('open');    document.getElementById('sidebar-overlay').classList.add('open'); }
+  function cerrarSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+</script>
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    HemoRed.sesion.requerirLogin('donante');
+    HemoRed.sesion.inyectarPerfil();
+  });
+</script>
+</body>
+</html>
