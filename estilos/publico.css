@@ -464,3 +464,10 @@ main.contacto .form-card { max-width: none; }
   .historia-stats { grid-template-columns: 1fr; }
   .rol-grid { grid-template-columns: 1fr; }
 }
+
+/* === MISSING STYLES RECOVERED FROM ORIGINALS === */
+.contact-item-body {  }
+.contact-item-value a { color: #ef647c; text-decoration: none; }
+.stat-num { font-size: 42px; font-weight: 500; color: #ef647c; }
+.stat-label { font-size: 14px; color: #f28b98; margin-top: 6px; line-height: 1.4; }
+.stat-source { font-size: 10px; color: rgba(242,139,152,0.6); margin-top: 6px; }
