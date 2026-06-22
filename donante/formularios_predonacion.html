@@ -17,15 +17,11 @@
 </head>
 <body>
 
-<nav>
+<div class="form-topbar">
   <a class="nav-logo" href="../donante/dashboard.html">Hemo<span>red</span></a>
-  <div class="nav-right">
-    <span class="nav-user">Sofía Páez</span>
-    <a class="nav-back" href="../donante/mis_turnos.html">
-      <i class="ti ti-arrow-left" style="font-size:14px;"></i>Mis turnos
-    </a>
-  </div>
-</nav>
+  <span class="nav-user">Sofía Páez</span>
+  <a class="nav-back" href="../donante/mis_turnos.html"><i class="ti ti-arrow-left" style="font-size:13px;"></i>Mis turnos</a>
+</div>
 
 <main>
 
@@ -105,18 +101,18 @@
         <span>Si alguna de las situaciones descriptas le aplica, <strong>no continúe con la donación</strong>. Puede comunicárselo al profesional de forma privada. Su decisión es confidencial y no será comunicada a terceros.</span>
       </div>
 
-      <div class="confirm-check" id="check1-wrap" onclick="toggleCheck('check1','check1-wrap')">
-        <input type="checkbox" id="check1" onchange="actualizarBoton()">
+      <div class="confirm-check" id="check1-wrap">
+        <input type="checkbox" id="check1" onchange="document.getElementById('check1-wrap').classList.toggle('checked', this.checked); actualizarBoton()">
         <label for="check1">He leído y comprendido la información sobre las situaciones que me excluyen de la donación de sangre.</label>
       </div>
 
-      <div class="confirm-check" id="check2-wrap" onclick="toggleCheck('check2','check2-wrap')">
-        <input type="checkbox" id="check2" onchange="actualizarBoton()">
+      <div class="confirm-check" id="check2-wrap">
+        <input type="checkbox" id="check2" onchange="document.getElementById('check2-wrap').classList.toggle('checked', this.checked); actualizarBoton()">
         <label for="check2">Confirmo que ninguna de las situaciones descriptas me aplica y deseo continuar con la donación.</label>
       </div>
 
-      <div class="confirm-check" id="check3-wrap" onclick="toggleCheck('check3','check3-wrap')">
-        <input type="checkbox" id="check3" onchange="actualizarBoton()">
+      <div class="confirm-check" id="check3-wrap">
+        <input type="checkbox" id="check3" onchange="document.getElementById('check3-wrap').classList.toggle('checked', this.checked); actualizarBoton()">
         <label for="check3">Entiendo que si durante el proceso recuerdo alguna situación de riesgo, puedo comunicársela al profesional o completar el formulario post-donación de forma anónima.</label>
       </div>
 

@@ -192,7 +192,7 @@
           </div>
 
           <div class="info-card">
-            <button class="btn-reservar" onclick="irPaso(2)">
+            <button class="btn-reservar" id="btn-reservar" onclick="irPaso(2)">
               <i class="ti ti-calendar-plus" aria-hidden="true"></i>
               Reservar turno
             </button>
@@ -233,7 +233,7 @@
               <div class="turno-hora">09:30</div>
               <div class="turno-estado libre">Disponible</div>
             </div>
-            <div class="turno-opt ocupado">
+            <div class="turno-opt ocupado" id="slot-1000">
               <div class="turno-hora">10:00</div>
               <div class="turno-estado ocupado">Ocupado</div>
             </div>
@@ -472,6 +472,28 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('modo') !== 'modificar') return;
+
+    const btnReservar = document.getElementById('btn-reservar');
+    if (btnReservar) {
+      btnReservar.innerHTML = '<i class="ti ti-edit" aria-hidden="true"></i> Modificar turno';
+    }
+
+    const hora = params.get('hora') || '10:00';
+    const slotId = 'slot-' + hora.replace(':', '');
+    const slot = document.getElementById(slotId);
+    if (slot) {
+      slot.classList.remove('ocupado');
+      slot.querySelector('.turno-estado').className = 'turno-estado';
+      slot.querySelector('.turno-estado').textContent = 'Tu turno actual';
+      slot.querySelector('.turno-estado').style.cssText = 'color:#ef647c;font-weight:500;';
+      slot.setAttribute('onclick', "seleccionarTurno(this, '" + hora + "')");
+      seleccionarTurno(slot, hora);
+    }
+  });
 </script>
 
   <script src="../js/db.js"></script>

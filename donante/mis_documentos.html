@@ -191,8 +191,8 @@
               </div>
             </div>
             <div class="doc-right">
-              <button class="btn-sm btn-sm-outline">Ver</button>
-              <button class="btn-sm btn-sm-outline">
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verConsentimiento()">Ver</button>
+              <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()">
                 <i class="ti ti-download" aria-hidden="true"></i>
               </button>
             </div>
@@ -464,6 +464,74 @@
       </div>
     </div>
 
+    <!-- VISTA CONSENTIMIENTO -->
+    <div class="view" id="view-consentimiento">
+      <button class="back-btn" onclick="volverLista()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Mis documentos
+      </button>
+      <div class="certificado-layout">
+        <div>
+          <div class="cert-preview">
+            <div class="cert-preview-header">
+              <div class="cert-logo">Hemo<span>red</span></div>
+              <div class="cert-preview-title">Formulario de consentimiento informado</div>
+            </div>
+            <div class="cert-body">
+              <p>Yo, <strong>Sofía Páez</strong>, DNI <strong>12.345.678</strong>, declaro haber sido informada en forma clara y comprensible sobre el procedimiento de donación voluntaria de sangre a realizarse en <strong>Hospital San Martín</strong>, La Plata, Provincia de Buenos Aires.</p>
+              <div class="cert-datos">
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Fecha de firma</div>
+                  <div class="cert-dato-value">12 de marzo de 2026</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Profesional a cargo</div>
+                  <div class="cert-dato-value">Dr. Carlos Méndez</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Estado</div>
+                  <div class="cert-dato-value" style="color:#27ae60;font-weight:500;">Firmado</div>
+                </div>
+                <div class="cert-dato">
+                  <div class="cert-dato-label">Nro. de formulario</div>
+                  <div class="cert-dato-value">#CONS-20260312-0007</div>
+                </div>
+              </div>
+              <p>Confirmo que comprendo los posibles riesgos y beneficios del proceso, que la donación es voluntaria y gratuita, y que puedo retirar mi consentimiento en cualquier momento antes del procedimiento sin que esto implique consecuencia alguna.</p>
+              <div class="cert-firma">
+                <div class="firma-item">
+                  <div class="firma-linea"></div>
+                  <div class="firma-label">Sofía Páez<br>Donante</div>
+                </div>
+                <div class="firma-item">
+                  <div class="firma-linea"></div>
+                  <div class="firma-label">Dr. Carlos Méndez<br>Profesional a cargo</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="sidebar-card" style="margin-bottom:14px;">
+            <div class="sidebar-card-title">Descargar formulario</div>
+            <button class="btn-download">
+              <i class="ti ti-download" aria-hidden="true"></i>
+              Descargar PDF
+            </button>
+          </div>
+          <div class="observaciones-form">
+            <div class="obs-label">¿Hay algún dato incorrecto?</div>
+            <div class="obs-hint">Envianos una observación y lo revisamos a la brevedad.</div>
+            <textarea class="obs-textarea" placeholder="Describí el dato que necesitás corregir..."></textarea>
+            <button class="btn-obs" style="margin-top:10px;">
+              <i class="ti ti-send" aria-hidden="true"></i>
+              Enviar observación
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -492,6 +560,12 @@
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('view-certificado').classList.add('active');
     document.getElementById('topbar-title').textContent = 'Certificado de donación';
+    window.scrollTo(0, 0);
+  }
+  function verConsentimiento() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-consentimiento').classList.add('active');
+    document.getElementById('topbar-title').textContent = 'Formulario de consentimiento';
     window.scrollTo(0, 0);
   }
   function volverLista() {

@@ -311,6 +311,8 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .btn-calendario { background: #5a1e37; color: white; border: none; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-volver-buscar { background: white; color: #5a1e37; border: 1.5px solid #5a1e37; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
 nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: #5a1e37; position: sticky; top: 0; z-index: 50; }
+.nav-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.form-topbar { background: #5a1e37; padding: 12px 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; position: sticky; top: 0; z-index: 50; }
 .nav-logo { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
 .nav-logo span { color: #f28b98; }
 .nav-right { display: flex; align-items: center; gap: 12px; }
