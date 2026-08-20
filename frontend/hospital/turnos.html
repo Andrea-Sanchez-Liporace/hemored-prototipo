@@ -63,35 +63,35 @@
     <!-- STATS CLICKEABLES -->
     <div class="stats-row">
       <div class="stat-card active-filter" onclick="filtrarEstado('todos', this)">
-        <div class="stat-num">28</div>
-        <div class="stat-label">Todos los turnos</div>
+        <div class="stat-num" id="stat-todos">—</div>
+        <div class="stat-label">Todos los turnos de hoy</div>
       </div>
       <div class="stat-card" onclick="filtrarEstado('pendiente', this)">
-        <div class="stat-num" style="color:#e67e22;">8</div>
+        <div class="stat-num" id="stat-pendientes" style="color:#e67e22;">—</div>
         <div class="stat-label"><div class="estado-dot" style="background:#e67e22;"></div>Pendientes</div>
       </div>
       <div class="stat-card" onclick="filtrarEstado('confirmado', this)">
-        <div class="stat-num" style="color:#27ae60;">12</div>
+        <div class="stat-num" id="stat-confirmados" style="color:#27ae60;">—</div>
         <div class="stat-label"><div class="estado-dot" style="background:#27ae60;"></div>Confirmados</div>
       </div>
       <div class="stat-card" onclick="filtrarEstado('completado', this)">
-        <div class="stat-num" style="color:#782b46;">8</div>
+        <div class="stat-num" id="stat-completados" style="color:#782b46;">—</div>
         <div class="stat-label"><div class="estado-dot" style="background:#ef647c;"></div>Completados</div>
       </div>
     </div>
 
     <!-- BANNER PENDIENTES -->
-    <div class="pendientes-banner">
+    <div class="pendientes-banner" id="pendientes-banner" style="display:none;">
       <div class="pb-left">
         <div class="pb-icon">
           <i class="ti ti-clock" style="color:white;font-size:20px;"></i>
         </div>
         <div>
-          <div class="pb-title">8 turnos pendientes de confirmación</div>
-          <div class="pb-sub">El más antiguo fue solicitado hace 3 horas · Hoy tenés 4 turnos</div>
+          <div class="pb-title" id="pb-title">—</div>
+          <div class="pb-sub">Confirmalos o rechazalos desde la lista de abajo</div>
         </div>
       </div>
-      <button class="btn-confirmar-todos">
+      <button class="btn-confirmar-todos" onclick="confirmarTodosPendientes()">
         <i class="ti ti-check-all"></i>
         Confirmar todos
       </button>
@@ -139,122 +139,15 @@
           <div class="th"></div>
         </div>
 
-        <!-- PENDIENTES -->
-        <div class="turno-row" data-nombre="maría lópez" data-campana="pediátrica">
-          <div class="turno-donante">
-            <div class="turno-avatar">ML</div>
-            <div><div class="turno-nombre">María López</div><div class="turno-sub">DNI 28.456.789</div></div>
-          </div>
-          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
-          <div class="td hide-md">Hoy · 10:00hs</div>
-          <div class="td hide-md"><span class="turno-badge tb-pendiente">Pendiente</span></div>
-          <div class="td hide-md">hace 1h</div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-ok">Confirmar</button>
-            <button class="btn-xs btn-xs-no">Rechazar</button>
-          </div>
-        </div>
-
-        <div class="turno-row" data-nombre="juan garcía" data-campana="pediátrica">
-          <div class="turno-donante">
-            <div class="turno-avatar">JG</div>
-            <div><div class="turno-nombre">Juan García</div><div class="turno-sub">DNI 32.123.456</div></div>
-          </div>
-          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
-          <div class="td hide-md">Hoy · 11:30hs</div>
-          <div class="td hide-md"><span class="turno-badge tb-pendiente">Pendiente</span></div>
-          <div class="td hide-md">hace 3h</div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-ok">Confirmar</button>
-            <button class="btn-xs btn-xs-no">Rechazar</button>
-          </div>
-        </div>
-
-        <div class="turno-row" data-nombre="roberto martínez" data-campana="tipo a">
-          <div class="turno-donante">
-            <div class="turno-avatar">RM</div>
-            <div><div class="turno-nombre">Roberto Martínez</div><div class="turno-sub">DNI 25.789.012</div></div>
-          </div>
-          <div class="td"><span class="campana-chip">Banco tipo A</span></div>
-          <div class="td hide-md">Hoy · 14:00hs</div>
-          <div class="td hide-md"><span class="turno-badge tb-pendiente">Pendiente</span></div>
-          <div class="td hide-md">hace 5h</div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-ok">Confirmar</button>
-            <button class="btn-xs btn-xs-no">Rechazar</button>
-          </div>
-        </div>
-
-        <!-- CONFIRMADOS -->
-        <div class="turno-row" data-nombre="sofía páez" data-campana="pediátrica">
-          <div class="turno-donante">
-            <div class="turno-avatar">SP</div>
-            <div><div class="turno-nombre">Sofía Páez</div><div class="turno-sub">DNI 12.345.678</div></div>
-          </div>
-          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
-          <div class="td hide-md">Mañana · 08:00hs</div>
-          <div class="td hide-md"><span class="turno-badge tb-confirmado">Confirmado</span></div>
-          <div class="td hide-md">ayer</div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-outline">Ver perfil</button>
-          </div>
-        </div>
-
-        <div class="turno-row" data-nombre="ana rodríguez" data-campana="pediátrica">
-          <div class="turno-donante">
-            <div class="turno-avatar">AR</div>
-            <div><div class="turno-nombre">Ana Rodríguez</div><div class="turno-sub">DNI 35.789.012</div></div>
-          </div>
-          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
-          <div class="td hide-md">Mañana · 09:30hs</div>
-          <div class="td hide-md"><span class="turno-badge tb-confirmado">Confirmado</span></div>
-          <div class="td hide-md">hace 2 días</div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-outline">Ver perfil</button>
-          </div>
-        </div>
-
-        <!-- COMPLETADOS -->
-        <div class="turno-row" data-nombre="carlos méndez" data-campana="pediátrica">
-          <div class="turno-donante">
-            <div class="turno-avatar">CM</div>
-            <div><div class="turno-nombre">Carlos Méndez</div><div class="turno-sub">DNI 29.654.321</div></div>
-          </div>
-          <div class="td"><span class="campana-chip"><i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>Campaña pediátrica</span></div>
-          <div class="td hide-md">19 may · 14:00hs</div>
-          <div class="td hide-md"><span class="turno-badge tb-completado">Donación realizada</span></div>
-          <div class="td hide-md">hace 3 días</div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-outline" onclick="abrirModalDonacion()">Registrar donación</button>
-          </div>
-        </div>
-
-        <div class="turno-row" data-nombre="laura pérez" data-campana="tipo a">
-          <div class="turno-donante">
-            <div class="turno-avatar">LP</div>
-            <div><div class="turno-nombre">Laura Pérez</div><div class="turno-sub">DNI 41.234.567</div></div>
-          </div>
-          <div class="td"><span class="campana-chip">Banco tipo A</span></div>
-          <div class="td hide-md">18 may · 10:00hs</div>
-          <div class="td hide-md"><span class="turno-badge tb-cancelado">Cancelado</span></div>
-          <div class="td hide-md">hace 4 días</div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-outline">Ver motivo</button>
-          </div>
+        <div id="turnos-rows">
+          <!-- Se renderiza dinámicamente vía cargarTurnosHoy() + renderTurnosLista() -->
         </div>
 
         <div id="sin-resultados-turnos" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
       </div>
 
       <div class="pagination">
-        <div class="pag-info" id="pag-info-turnos">Mostrando 7 de 28 turnos</div>
-        <div class="pag-btns">
-          <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
-          <div class="pag-btn active">1</div>
-          <div class="pag-btn">2</div>
-          <div class="pag-btn">3</div>
-          <div class="pag-btn"><i class="ti ti-chevron-right" style="font-size:14px;"></i></div>
-        </div>
+        <div class="pag-info" id="pag-info-turnos">Cargando...</div>
       </div>
     </div>
 
@@ -326,6 +219,98 @@
 
 <script>
   var _filtroEstadoTurno = 'todos';
+  var _totalTurnosHoy = 0;
+
+  const BADGE_INFO = {
+    pendiente:  { clase: 'tb-pendiente',  texto: 'Pendiente' },
+    confirmado: { clase: 'tb-confirmado', texto: 'Confirmado' },
+    en_curso:   { clase: 'tb-confirmado', texto: 'En curso' },
+    completado: { clase: 'tb-completado', texto: 'Donación realizada' },
+    cancelado:  { clase: 'tb-cancelado',  texto: 'Cancelado' },
+    no_apto:    { clase: 'tb-cancelado',  texto: 'No apto' },
+  };
+
+  function iniciales(nombre, apellido) {
+    return ((nombre?.[0] || '') + (apellido?.[0] || '')).toUpperCase() || '—';
+  }
+
+  async function renderTurnosLista() {
+    const turnos = await HemoRed.data.cargarTurnosHoy();
+    _totalTurnosHoy = turnos.length;
+
+    const pendientes = turnos.filter(t => t.estado === 'pendiente');
+    document.getElementById('stat-todos').textContent = turnos.length;
+    document.getElementById('stat-pendientes').textContent = pendientes.length;
+    document.getElementById('stat-confirmados').textContent = turnos.filter(t => t.estado === 'confirmado').length;
+    document.getElementById('stat-completados').textContent = turnos.filter(t => t.estado === 'completado').length;
+
+    const banner = document.getElementById('pendientes-banner');
+    if (pendientes.length > 0) {
+      banner.style.display = '';
+      document.getElementById('pb-title').textContent =
+        `${pendientes.length} turno${pendientes.length !== 1 ? 's' : ''} pendiente${pendientes.length !== 1 ? 's' : ''} de confirmación`;
+    } else {
+      banner.style.display = 'none';
+    }
+
+    const cont = document.getElementById('turnos-rows');
+    cont.innerHTML = turnos.map(t => {
+      const badge = BADGE_INFO[t.estado] || { clase: '', texto: t.estado };
+      const nombreCompleto = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+      const dni = t.donante?.numero_documento ? `DNI ${t.donante.numero_documento}` : '';
+      const esUrgente = !!t.campana?.urgente;
+
+      let acciones = '';
+      if (t.estado === 'pendiente') {
+        acciones = `<button class="btn-xs btn-xs-ok" onclick="confirmarTurnoUI(${t.id})">Confirmar</button>
+                     <button class="btn-xs btn-xs-no" onclick="rechazarTurnoUI(${t.id})">Rechazar</button>`;
+      } else if (t.estado === 'completado') {
+        acciones = `<button class="btn-xs btn-xs-outline" onclick="abrirModalDonacion()">Registrar donación</button>`;
+      } else if (t.estado === 'cancelado') {
+        acciones = `<button class="btn-xs btn-xs-outline" onclick="verMotivo(${t.id})">Ver motivo</button>`;
+      }
+
+      return `
+        <div class="turno-row" data-nombre="${nombreCompleto.toLowerCase()}" data-campana="${(t.campana?.titulo || '').toLowerCase()}">
+          <div class="turno-donante">
+            <div class="turno-avatar">${iniciales(t.donante?.nombre, t.donante?.apellido)}</div>
+            <div><div class="turno-nombre">${nombreCompleto}</div><div class="turno-sub">${dni}</div></div>
+          </div>
+          <div class="td"><span class="campana-chip">${esUrgente ? '<i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>' : ''}${t.campana?.titulo || '—'}</span></div>
+          <div class="td hide-md">${t.hora}hs</div>
+          <div class="td hide-md"><span class="turno-badge ${badge.clase}">${badge.texto}</span></div>
+          <div class="td hide-md">${t.creado_en ? new Date(t.creado_en).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : '—'}</div>
+          <div class="turno-actions">${acciones}</div>
+        </div>`;
+    }).join('');
+
+    aplicarFiltrosTurnos();
+  }
+
+  async function confirmarTurnoUI(turnoId) {
+    HemoRed.data.confirmarTurno(turnoId);
+    HemoRed.ui.toast('Turno confirmado');
+    await renderTurnosLista();
+  }
+
+  async function rechazarTurnoUI(turnoId) {
+    const motivo = prompt('Motivo del rechazo (opcional):') || '';
+    HemoRed.data.rechazarTurno(turnoId, motivo);
+    HemoRed.ui.toast('Turno rechazado', 'error');
+    await renderTurnosLista();
+  }
+
+  async function confirmarTodosPendientes() {
+    const turnos = await HemoRed.data.cargarTurnosHoy();
+    turnos.filter(t => t.estado === 'pendiente').forEach(t => HemoRed.data.confirmarTurno(t.id));
+    HemoRed.ui.toast('Turnos confirmados');
+    await renderTurnosLista();
+  }
+
+  function verMotivo(turnoId) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    alert(turno?.motivo_rechazo ? `Motivo: ${turno.motivo_rechazo}` : 'No se especificó un motivo.');
+  }
 
   function filtrarEstado(estado, el) {
     document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
@@ -359,7 +344,7 @@
     const sr = document.getElementById('sin-resultados-turnos');
     if (sr) sr.style.display = visibles === 0 ? 'block' : 'none';
     const pi = document.getElementById('pag-info-turnos');
-    if (pi) pi.textContent = 'Mostrando ' + visibles + ' de 28 turnos';
+    if (pi) pi.textContent = 'Mostrando ' + visibles + ' de ' + _totalTurnosHoy + ' turnos de hoy';
   }
 
   function cambiarVista(vista, el) {
@@ -385,6 +370,12 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('hospital');
+    await HemoRed.db.init();
+    await renderTurnosLista();
+  });
 </script>
 
 

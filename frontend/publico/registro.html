@@ -103,7 +103,9 @@
         <input class="form-input" id="d-pass2" type="password" placeholder="••••••••">
       </div>
 
-      <button class="form-btn">Crear cuenta</button>
+      <div id="donante-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-top:12px;font-size:13px;color:#c0392b;text-align:center;"></div>
+
+      <button class="form-btn" id="btn-crear-cuenta-donante" onclick="registrarCuentaDonante()">Crear cuenta</button>
       <p class="form-login">¿Ya tenés cuenta? <a href="../publico/login.html">Iniciá sesión</a></p>
     </div>
   </div>
@@ -249,8 +251,48 @@
     window.scrollTo(0, 0);
   }
 
-  function crearCuenta() {
-    window.location = '../donante/dashboard.html';
+  async function registrarCuentaDonante() {
+    const nombre = document.getElementById('d-nombre').value.trim();
+    const apellido = document.getElementById('d-apellido').value.trim();
+    const email = document.getElementById('d-email').value.trim();
+    const telefono = document.getElementById('d-tel').value.trim();
+    const pass = document.getElementById('d-pass').value;
+    const pass2 = document.getElementById('d-pass2').value;
+    const errorEl = document.getElementById('donante-error');
+
+    function mostrarError(msg) {
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+    }
+    errorEl.style.display = 'none';
+
+    if (!nombre || !apellido || !email) {
+      mostrarError('Completá nombre, apellido y email.');
+      return;
+    }
+    if (pass.length < 8) {
+      mostrarError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (pass !== pass2) {
+      mostrarError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-crear-cuenta-donante');
+    btn.disabled = true;
+    btn.textContent = 'Creando cuenta...';
+
+    await HemoRed.db.init();
+    const resultado = HemoRed.sesion.registrarDonante({ nombre, apellido, email, telefono, password: pass });
+
+    if (!resultado.ok) {
+      mostrarError(resultado.error);
+      btn.disabled = false;
+      btn.textContent = 'Crear cuenta';
+      return;
+    }
+    window.location = resultado.dest;
   }
 </script>
 

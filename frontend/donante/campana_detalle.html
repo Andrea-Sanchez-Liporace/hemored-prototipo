@@ -22,9 +22,9 @@
     <a href="../index.html">Hemo<span>red</span></a>
   </div>
   <div class="sidebar-user">
-    <div class="sidebar-avatar">SP</div>
+    <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
     <div>
-      <div class="sidebar-user-name">Sofía Páez</div>
+      <div class="sidebar-user-name"><span data-sesion-nombre>Sofía Páez</span></div>
       <div class="sidebar-user-role">Donante</div>
     </div>
   </div>
@@ -99,41 +99,41 @@
           <div class="campaign-hero">
             <div class="campaign-top">
               <div>
-                <div class="campaign-hospital-name">Hospital Ramos Mejía</div>
+                <div class="campaign-hospital-name" id="d-hospital-nombre">—</div>
                 <div class="campaign-hospital-dir">
                   <i class="ti ti-map-pin" style="color:#a9435d;font-size:14px;" aria-hidden="true"></i>
-                  Av. General Urquiza 609, CABA
+                  <span id="d-hospital-dir">—</span>
                 </div>
               </div>
-              <span class="badge-urgente">Urgente</span>
+              <span class="badge-urgente" id="d-badge-urgencia" style="display:none;">Urgente</span>
             </div>
             <div class="campaign-meta">
               <div class="meta-item">
                 <div class="meta-label">Tipo de sangre necesaria</div>
-                <div class="meta-value">0- / 0+</div>
+                <div class="meta-value" id="d-tipo-sangre">—</div>
               </div>
               <div class="meta-item">
                 <div class="meta-label">Fecha límite</div>
-                <div class="meta-value">20 de mayo 2026</div>
+                <div class="meta-value" id="d-fecha-limite">—</div>
               </div>
               <div class="meta-item">
                 <div class="meta-label">Donantes necesarios</div>
-                <div class="meta-value">10 donantes</div>
+                <div class="meta-value" id="d-donantes-necesarios">—</div>
               </div>
               <div class="meta-item">
                 <div class="meta-label">Publicada</div>
-                <div class="meta-value">hace 2 días</div>
+                <div class="meta-value" id="d-publicada">—</div>
               </div>
             </div>
             <div class="campaign-desc-title">Descripción de la campaña</div>
-            <div class="campaign-desc-text">Paciente pediátrico de 8 años requiere transfusiones de sangre para cirugía cardíaca programada para el 22 de mayo. El banco de sangre del hospital necesita cubrir la reserva mínima para la operación. Cualquier persona en buenas condiciones de salud puede presentarse a donar.</div>
+            <div class="campaign-desc-text" id="d-descripcion">—</div>
             <div class="progress-section">
               <div class="progress-header">
                 <span class="progress-label">Cupos cubiertos</span>
-                <span class="progress-count">7 de 10</span>
+                <span class="progress-count" id="d-progress-count">—</span>
               </div>
               <div class="progress-bar">
-                <div class="progress-fill" style="width:70%;"></div>
+                <div class="progress-fill" id="d-progress-fill" style="width:0%;"></div>
               </div>
             </div>
           </div>
@@ -172,7 +172,7 @@
               <div class="info-icon"><i class="ti ti-phone" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
               <div class="info-body">
                 <div class="info-body-label">Teléfono</div>
-                <div class="info-body-value">011 4127-0200</div>
+                <div class="info-body-value" id="d-hospital-tel">—</div>
               </div>
             </div>
             <div class="info-row">
@@ -180,13 +180,6 @@
               <div class="info-body">
                 <div class="info-body-label">Horario de donación</div>
                 <div class="info-body-value">Lun a Vie · 8:00 a 16:00hs</div>
-              </div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"><i class="ti ti-map-pin" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
-              <div class="info-body">
-                <div class="info-body-label">Cómo llegar</div>
-                <div class="info-body-value">Líneas 4, 36, 55 — Subte B Medrano</div>
               </div>
             </div>
           </div>
@@ -209,50 +202,12 @@
           <div class="turnos-title">Elegí tu turno</div>
           <div class="turnos-subtitle">Seleccioná el día y horario que mejor te quede</div>
 
-          <div class="fecha-tabs">
-            <button class="fecha-tab active" onclick="seleccionarFecha(this, 'Lunes 19 may')">Lun 19 may</button>
-            <button class="fecha-tab" onclick="seleccionarFecha(this, 'Martes 20 may')">Mar 20 may</button>
-            <button class="fecha-tab" onclick="seleccionarFecha(this, 'Miércoles 21 may')">Mié 21 may</button>
-            <button class="fecha-tab" onclick="seleccionarFecha(this, 'Jueves 22 may')">Jue 22 may</button>
+          <div class="fecha-tabs" id="fecha-tabs">
+            <!-- Se generan dinámicamente desde HOY -->
           </div>
 
           <div class="turnos-grid" id="turnos-grid">
-            <div class="turno-opt" onclick="seleccionarTurno(this, '08:00')">
-              <div class="turno-hora">08:00</div>
-              <div class="turno-estado libre">Disponible</div>
-            </div>
-            <div class="turno-opt" onclick="seleccionarTurno(this, '08:30')">
-              <div class="turno-hora">08:30</div>
-              <div class="turno-estado libre">Disponible</div>
-            </div>
-            <div class="turno-opt ocupado">
-              <div class="turno-hora">09:00</div>
-              <div class="turno-estado ocupado">Ocupado</div>
-            </div>
-            <div class="turno-opt" onclick="seleccionarTurno(this, '09:30')">
-              <div class="turno-hora">09:30</div>
-              <div class="turno-estado libre">Disponible</div>
-            </div>
-            <div class="turno-opt ocupado" id="slot-1000">
-              <div class="turno-hora">10:00</div>
-              <div class="turno-estado ocupado">Ocupado</div>
-            </div>
-            <div class="turno-opt" onclick="seleccionarTurno(this, '10:30')">
-              <div class="turno-hora">10:30</div>
-              <div class="turno-estado libre">Disponible</div>
-            </div>
-            <div class="turno-opt" onclick="seleccionarTurno(this, '11:00')">
-              <div class="turno-hora">11:00</div>
-              <div class="turno-estado libre">Disponible</div>
-            </div>
-            <div class="turno-opt ocupado">
-              <div class="turno-hora">11:30</div>
-              <div class="turno-estado ocupado">Ocupado</div>
-            </div>
-            <div class="turno-opt" onclick="seleccionarTurno(this, '12:00')">
-              <div class="turno-hora">12:00</div>
-              <div class="turno-estado libre">Disponible</div>
-            </div>
+            <!-- Se generan dinámicamente según ocupación real de turnos.json -->
           </div>
         </div>
 
@@ -304,38 +259,40 @@
             <div class="conf-icon"><i class="ti ti-building-hospital" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
             <div>
               <div class="conf-label">Hospital</div>
-              <div class="conf-value">Hospital Ramos Mejía</div>
+              <div class="conf-value" id="conf-hospital">—</div>
             </div>
           </div>
           <div class="confirmacion-item">
             <div class="conf-icon"><i class="ti ti-map-pin" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
             <div>
               <div class="conf-label">Dirección</div>
-              <div class="conf-value">Av. General Urquiza 609, CABA</div>
+              <div class="conf-value" id="conf-direccion">—</div>
             </div>
           </div>
           <div class="confirmacion-item">
             <div class="conf-icon"><i class="ti ti-calendar" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
             <div>
               <div class="conf-label">Fecha</div>
-              <div class="conf-value" id="conf-fecha">Lunes 19 de mayo 2026</div>
+              <div class="conf-value" id="conf-fecha">—</div>
             </div>
           </div>
           <div class="confirmacion-item">
             <div class="conf-icon"><i class="ti ti-clock" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
             <div>
               <div class="conf-label">Hora</div>
-              <div class="conf-value" id="conf-hora">08:00hs</div>
+              <div class="conf-value" id="conf-hora">—</div>
             </div>
           </div>
           <div class="confirmacion-item">
             <div class="conf-icon"><i class="ti ti-user" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i></div>
             <div>
               <div class="conf-label">Donante</div>
-              <div class="conf-value">Sofía Páez · DNI 12.345.678</div>
+              <div class="conf-value" id="conf-donante">—</div>
             </div>
           </div>
         </div>
+
+        <div id="reserva-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#c0392b;text-align:center;"></div>
 
         <div class="aviso-card">
           <i class="ti ti-info-circle" style="color:#e67e22;font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
@@ -344,7 +301,7 @@
           </div>
         </div>
 
-        <button class="btn-confirmar" onclick="irPaso(4)">
+        <button class="btn-confirmar" id="btn-confirmar-reserva" onclick="confirmarReserva()">
           <i class="ti ti-check" aria-hidden="true"></i>
           Confirmar reserva
         </button>
@@ -367,28 +324,28 @@
             <div class="exito-row-icon"><i class="ti ti-building-hospital" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
             <div>
               <div class="exito-row-label">Hospital</div>
-              <div class="exito-row-value">Hospital Ramos Mejía</div>
+              <div class="exito-row-value" id="exito-hospital">—</div>
             </div>
           </div>
           <div class="exito-row">
             <div class="exito-row-icon"><i class="ti ti-map-pin" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
             <div>
               <div class="exito-row-label">Dirección</div>
-              <div class="exito-row-value">Av. General Urquiza 609, CABA</div>
+              <div class="exito-row-value" id="exito-direccion">—</div>
             </div>
           </div>
           <div class="exito-row">
             <div class="exito-row-icon"><i class="ti ti-calendar" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
             <div>
               <div class="exito-row-label">Fecha y hora</div>
-              <div class="exito-row-value" id="exito-fecha">Lunes 19 de mayo · 08:00hs</div>
+              <div class="exito-row-value" id="exito-fecha">—</div>
             </div>
           </div>
           <div class="exito-row">
             <div class="exito-row-icon"><i class="ti ti-hash" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
             <div>
               <div class="exito-row-label">Número de reserva</div>
-              <div class="exito-row-value">#TRN-20240519-0042</div>
+              <div class="exito-row-value" id="exito-numero">—</div>
             </div>
           </div>
         </div>
@@ -414,6 +371,128 @@
 <script>
   let fechaSeleccionada = 'Lunes 19 may';
   let horaSeleccionada = null;
+  let campanaActual = null;
+  let hospitalActual = null;
+
+  // El dataset de demo vive fijo en mayo 2026 (mismo criterio que data.js
+  // usa en cargarDashboardHospital/cargarTurnosHoy) — se usa para calcular
+  // fechas relativas ("publicada hace X días") de forma consistente.
+  const HOY = '2026-05-17';
+  const TIME_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'];
+
+  function sumarDias(fechaISO, n) {
+    const d = new Date(fechaISO + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function formatearFecha(fechaISO) {
+    return new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  // Genera las 4 pestañas de fecha arrancando en HOY, para que el turno
+  // reservado hoy aparezca de una en "Turnos del día" del lado hospital.
+  function renderFechaTabs() {
+    const cont = document.getElementById('fecha-tabs');
+    cont.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const fechaISO = sumarDias(HOY, i);
+      const label = new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+      const btn = document.createElement('button');
+      btn.className = 'fecha-tab' + (i === 0 ? ' active' : '');
+      btn.textContent = label;
+      btn.onclick = () => seleccionarFecha(btn, fechaISO);
+      cont.appendChild(btn);
+      if (i === 0) fechaSeleccionada = fechaISO;
+    }
+    renderTurnosGrid();
+  }
+
+  // Pinta la grilla de horarios chequeando ocupación real contra turnos.json
+  // para el hospital y la fecha seleccionados (no otro hospital/fecha).
+  function renderTurnosGrid() {
+    const cont = document.getElementById('turnos-grid');
+    const ocupados = new Set(
+      HemoRed.db.all('turnos')
+        .filter(t => t.hospital_id === campanaActual.hospital_id && t.fecha === fechaSeleccionada && t.estado !== 'cancelado')
+        .map(t => t.hora)
+    );
+    cont.innerHTML = TIME_SLOTS.map(hora => {
+      const ocupado = ocupados.has(hora);
+      if (ocupado) {
+        return `<div class="turno-opt ocupado"><div class="turno-hora">${hora}</div><div class="turno-estado ocupado">Ocupado</div></div>`;
+      }
+      return `<div class="turno-opt" data-hora="${hora}"><div class="turno-hora">${hora}</div><div class="turno-estado libre">Disponible</div></div>`;
+    }).join('');
+    cont.querySelectorAll('.turno-opt[data-hora]').forEach(el => {
+      el.addEventListener('click', () => seleccionarTurno(el, el.dataset.hora));
+    });
+
+    horaSeleccionada = null;
+    document.getElementById('resumen-vacio').style.display = 'block';
+    document.getElementById('resumen-datos').style.display = 'none';
+    document.getElementById('btn-continuar').disabled = true;
+  }
+
+  function cargarDetalleCampana() {
+    const hospital = hospitalActual;
+    const c = campanaActual;
+    document.getElementById('d-hospital-nombre').textContent = hospital?.nombre || 'Hospital';
+    document.getElementById('d-hospital-dir').textContent = hospital ? `${hospital.direccion}, ${hospital.ciudad}` : '—';
+    document.getElementById('d-hospital-tel').textContent = hospital?.telefono || '—';
+
+    const badge = document.getElementById('d-badge-urgencia');
+    if (c.urgente) { badge.style.display = ''; badge.textContent = 'Urgente'; }
+
+    document.getElementById('d-tipo-sangre').textContent = c.tipo_sangre_requerida || 'Cualquier tipo';
+    document.getElementById('d-fecha-limite').textContent = new Date(c.fecha_cierre + 'T00:00:00')
+      .toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('d-donantes-necesarios').textContent = `${c.unidades_requeridas} donantes`;
+    const diasPublicada = Math.floor((new Date(HOY) - new Date(c.fecha_publicacion.slice(0, 10))) / 86400000);
+    document.getElementById('d-publicada').textContent = diasPublicada <= 0 ? 'hoy' : `hace ${diasPublicada} día${diasPublicada !== 1 ? 's' : ''}`;
+    document.getElementById('d-descripcion').textContent = c.descripcion || '';
+    const pct = c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0;
+    document.getElementById('d-progress-count').textContent = `${c.unidades_obtenidas} de ${c.unidades_requeridas}`;
+    document.getElementById('d-progress-fill').style.width = pct + '%';
+
+    const direccion = hospital ? `${hospital.direccion}, ${hospital.ciudad}` : '—';
+    document.getElementById('conf-hospital').textContent = hospital?.nombre || '—';
+    document.getElementById('conf-direccion').textContent = direccion;
+    document.getElementById('exito-hospital').textContent = hospital?.nombre || '—';
+    document.getElementById('exito-direccion').textContent = direccion;
+
+    const sesion = HemoRed.sesion.get();
+    document.getElementById('conf-donante').textContent = sesion?.nombre || '—';
+  }
+
+  async function confirmarReserva() {
+    const errorEl = document.getElementById('reserva-error');
+    errorEl.style.display = 'none';
+
+    const sesion = HemoRed.sesion.get();
+    if (!sesion || !campanaActual || !horaSeleccionada) return;
+
+    const btn = document.getElementById('btn-confirmar-reserva');
+    btn.disabled = true;
+
+    const resultado = HemoRed.data.crearTurno({
+      usuario_id: sesion.usuario_id,
+      campana_id: campanaActual.id,
+      hospital_id: campanaActual.hospital_id,
+      fecha: fechaSeleccionada,
+      hora: horaSeleccionada,
+    });
+
+    if (!resultado.ok) {
+      errorEl.textContent = resultado.error;
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+      return;
+    }
+
+    document.getElementById('exito-numero').textContent = '#TRN-' + resultado.turno.id;
+    irPaso(4);
+  }
 
   function irPaso(n) {
     document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
@@ -439,29 +518,26 @@
     window.scrollTo(0, 0);
   }
 
-  function seleccionarFecha(el, fecha) {
+  function seleccionarFecha(el, fechaISO) {
     document.querySelectorAll('.fecha-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    fechaSeleccionada = fecha;
-    horaSeleccionada = null;
-    document.querySelectorAll('.turno-opt:not(.ocupado)').forEach(t => t.classList.remove('selected'));
-    document.getElementById('resumen-vacio').style.display = 'block';
-    document.getElementById('resumen-datos').style.display = 'none';
-    document.getElementById('btn-continuar').disabled = true;
+    fechaSeleccionada = fechaISO;
+    renderTurnosGrid();
   }
 
   function seleccionarTurno(el, hora) {
     document.querySelectorAll('.turno-opt:not(.ocupado)').forEach(t => t.classList.remove('selected'));
     el.classList.add('selected');
     horaSeleccionada = hora;
-    document.getElementById('res-fecha').textContent = fechaSeleccionada;
+    const fechaLabel = formatearFecha(fechaSeleccionada);
+    document.getElementById('res-fecha').textContent = fechaLabel;
     document.getElementById('res-hora').textContent = hora + 'hs';
     document.getElementById('resumen-vacio').style.display = 'none';
     document.getElementById('resumen-datos').style.display = 'block';
     document.getElementById('btn-continuar').disabled = false;
-    document.getElementById('conf-fecha').textContent = fechaSeleccionada + ' 2026';
+    document.getElementById('conf-fecha').textContent = fechaLabel;
     document.getElementById('conf-hora').textContent = hora + 'hs';
-    document.getElementById('exito-fecha').textContent = fechaSeleccionada + ' · ' + hora + 'hs';
+    document.getElementById('exito-fecha').textContent = fechaLabel + ' · ' + hora + 'hs';
   }
 
   function abrirSidebar() {
@@ -473,25 +549,21 @@
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('donante');
+    await HemoRed.db.init();
+
     const params = new URLSearchParams(window.location.search);
-    if (params.get('modo') !== 'modificar') return;
+    const idParam = Number(params.get('id'));
+    campanaActual = HemoRed.db.find('campanas', idParam)
+      || HemoRed.db.all('campanas').find(c => c.estado === 'activa');
+    hospitalActual = HemoRed.db.find('hospitales', campanaActual.hospital_id);
+    cargarDetalleCampana();
+    renderFechaTabs();
 
-    const btnReservar = document.getElementById('btn-reservar');
-    if (btnReservar) {
-      btnReservar.innerHTML = '<i class="ti ti-edit" aria-hidden="true"></i> Modificar turno';
-    }
-
-    const hora = params.get('hora') || '10:00';
-    const slotId = 'slot-' + hora.replace(':', '');
-    const slot = document.getElementById(slotId);
-    if (slot) {
-      slot.classList.remove('ocupado');
-      slot.querySelector('.turno-estado').className = 'turno-estado';
-      slot.querySelector('.turno-estado').textContent = 'Tu turno actual';
-      slot.querySelector('.turno-estado').style.cssText = 'color:#ef647c;font-weight:500;';
-      slot.setAttribute('onclick', "seleccionarTurno(this, '" + hora + "')");
-      seleccionarTurno(slot, hora);
+    if (params.get('modo') === 'modificar') {
+      const btnReservar = document.getElementById('btn-reservar');
+      if (btnReservar) btnReservar.innerHTML = '<i class="ti ti-edit" aria-hidden="true"></i> Modificar turno';
     }
   });
 </script>

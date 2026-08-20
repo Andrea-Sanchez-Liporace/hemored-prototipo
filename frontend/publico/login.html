@@ -105,11 +105,11 @@
     document.getElementById('password').focus();
   })();
 
-  function login() {
+  async function login() {
     const email = document.getElementById('email').value.trim().toLowerCase();
     const pass  = document.getElementById('password').value;
     const error = document.getElementById('login-error');
-    const result = HemoRed.sesion.login(email, pass);
+    const result = await HemoRed.sesion.login(email, pass);
     if (result.ok) {
       error.style.display = 'none';
       window.location.href = result.dest;

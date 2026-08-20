@@ -1,0 +1,15 @@
+{
+  "name": "hemored-frontend-tests",
+  "private": true,
+  "description": "Test end-to-end (Playwright) del prototipo frontend de HemoRed. No es parte del sitio en si, es tooling de QA.",
+  "scripts": {
+    "install-browsers": "playwright install chromium",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

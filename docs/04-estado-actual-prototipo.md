@@ -5,6 +5,8 @@
 
 Este documento es el mapa de "dónde estamos parados" del prototipo. Se actualiza a medida que se cierren gaps — cuando un flujo pase de 🔴/🟡 a 🟢, actualizá su fila acá mismo.
 
+**Actualización 2026-08-19:** se cerró el primer bloque del camino feliz (registro de donante → reserva de turno → confirmación por el hospital → visualización del turno confirmado). Ese recorrido específico pasó de 🔴/🟡 a 🟢 y ahora tiene un test automatizado que lo revalida en un navegador real — ver [`/tests`](../tests). Las tablas de abajo quedan como estaban al momento de la auditoría original; para saber exactamente qué se conectó, ver el historial de commits.
+
 ---
 
 ## Cómo leer este documento

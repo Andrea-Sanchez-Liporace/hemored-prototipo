@@ -121,7 +121,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .search-input:focus { border-color: #ef647c; }
 .filter-select { padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
 .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
-.table-header { display: grid; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
+.table-header { display: grid; grid-template-columns: 2fr 1.4fr 0.9fr 1fr 0.8fr 170px; gap: 12px; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
 .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
 .table-row { display: grid; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; cursor: pointer; transition: background 0.1s; }
 .table-row:last-child { border-bottom: none; }
@@ -160,7 +160,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .tab:hover:not(.active) { background: #fdf0f3; }
 .panel-count { font-size: 12px; color: #a9435d; }
 .turnos-table-header { display: grid; padding: 10px 20px; background: #fdf0f3; border-bottom: 0.5px solid #e8d0d8; }
-.turno-row { display: grid; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; }
+.turno-row { display: grid; grid-template-columns: 2fr 1.4fr 0.9fr 1fr 0.8fr 170px; gap: 12px; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; }
 .turno-row:last-child { border-bottom: none; }
 .turno-row:hover { background: #fdf0f3; }
 .turno-donante { display: flex; align-items: center; gap: 10px; }

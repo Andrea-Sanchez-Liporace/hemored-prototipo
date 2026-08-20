@@ -27,6 +27,46 @@ HemoRed.data = (function() {
     return { donante, turnos, donaciones, campanas };
   }
 
+  // Pinta las tarjetas de campaña reales en el grid de búsqueda del donante.
+  // Mantiene los mismos data-attributes (sangre/provincia/urgencia) que
+  // usa filtrarCampanas() en donante/dashboard.html para que el filtro
+  // client-side siga funcionando sobre contenido real.
+  function renderCampanas(campanas, hospitales, gridSelector = '.campaigns-grid') {
+    const grid = document.querySelector(gridSelector);
+    if (!grid) return;
+
+    grid.innerHTML = campanas.map(c => {
+      const hospital = hospitales.find(h => h.id === c.hospital_id);
+      const pct = c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0;
+      const tipos = c.tipo_sangre_requerida ? [c.tipo_sangre_requerida] : ['Cualquier tipo'];
+      const fechaCierre = new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+
+      return `
+        <div class="campaign-card" data-sangre="${c.tipo_sangre_requerida || ''}" data-provincia="${hospital?.provincia || ''}" data-urgencia="${c.urgente ? 'urgente' : 'activa'}">
+          <div class="campaign-header">
+            <div class="campaign-hospital">${hospital?.nombre || 'Hospital'}</div>
+            <span class="campaign-badge ${c.urgente ? 'urgente' : 'activa'}">${c.urgente ? 'Urgente' : 'Activa'}</span>
+          </div>
+          <div class="campaign-tipo">
+            ${tipos.map(t => `<span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>${t}</span>`).join('')}
+          </div>
+          <div class="campaign-info">
+            <div class="campaign-info-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>${hospital?.ciudad || '—'}</div>
+            <div class="campaign-info-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>Vence ${fechaCierre}</div>
+          </div>
+          <div class="campaign-desc">${c.descripcion || ''}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;"></div></div>
+          <div class="campaign-footer">
+            <div class="campaign-spots">${c.unidades_obtenidas} de ${c.unidades_requeridas} turnos cubiertos</div>
+            <button class="campaign-btn" onclick="window.location='../donante/campana_detalle.html?id=${c.id}'">Reservar turno</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    const countEl = document.querySelector('.campaigns-count');
+    if (countEl) countEl.textContent = `${campanas.length} campaña${campanas.length !== 1 ? 's' : ''} encontrada${campanas.length !== 1 ? 's' : ''}`;
+  }
+
   async function cargarMisTurnos() {
     const db = await HemoRed.db.init();
     const s = HemoRed.sesion.get();
@@ -41,6 +81,55 @@ HemoRed.data = (function() {
       hospital: hospitales.find(h => h.id === t.hospital_id),
       campana: campanas.find(c => c.id === t.campana_id),
     }));
+  }
+
+  // Reserva un turno real. Valida: no duplicar turno para la misma campaña,
+  // que el horario no esté ya tomado en ese hospital, y la regla de 90 días
+  // desde la última donación (citada en docs/03-documentacion-tecnica-consolidada.md).
+  function crearTurno({ usuario_id, campana_id, hospital_id, fecha, hora }) {
+    const yaTiene = HemoRed.db.where('turnos', 'usuario_id', usuario_id)
+      .some(t => t.campana_id === campana_id && ['confirmado', 'en_curso', 'completado'].includes(t.estado));
+    if (yaTiene) return { ok: false, error: 'Ya tenés un turno para esta campaña.' };
+
+    const ocupado = HemoRed.db.all('turnos')
+      .some(t => t.hospital_id === hospital_id && t.fecha === fecha && t.hora === hora && t.estado !== 'cancelado');
+    if (ocupado) return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
+
+    const fechasDonaciones = HemoRed.db.where('donaciones', 'usuario_id', usuario_id)
+      .map(d => d.registrado_en).filter(Boolean).sort();
+    const ultimaDonacion = fechasDonaciones[fechasDonaciones.length - 1];
+    if (ultimaDonacion) {
+      const dias = Math.floor((new Date(fecha) - new Date(ultimaDonacion)) / 86400000);
+      if (dias < 90) {
+        const habilitado = new Date(new Date(ultimaDonacion).getTime() + 90 * 86400000)
+          .toLocaleDateString('es-AR');
+        return { ok: false, error: `Todavía no podés donar: tu última donación fue hace menos de 90 días. Vas a poder reservar turno a partir del ${habilitado}.` };
+      }
+    }
+
+    const turno = HemoRed.db.crear('turnos', {
+      campana_id, usuario_id, hospital_id, fecha, hora,
+      // Arranca pendiente: el hospital lo confirma o rechaza (RF3).
+      estado: 'pendiente',
+      formulario_autoexclusion_completado: false,
+      formulario_autoexclusion_completado_en: null,
+      autoexclusion_completado_por: null,
+      formulario_cuestionario_completado: false,
+      formulario_cuestionario_completado_en: null,
+      cuestionario_completado_por: null,
+      creado_en: new Date().toISOString(),
+    });
+    return { ok: true, turno };
+  }
+
+  // El hospital acepta la solicitud de turno (RF3).
+  function confirmarTurno(turnoId) {
+    return HemoRed.db.actualizar('turnos', turnoId, { estado: 'confirmado' });
+  }
+
+  // El hospital rechaza la solicitud de turno (RF3).
+  function rechazarTurno(turnoId, motivo) {
+    return HemoRed.db.actualizar('turnos', turnoId, { estado: 'cancelado', motivo_rechazo: motivo || null });
   }
 
   async function cargarMisDocumentos() {
@@ -140,6 +229,10 @@ HemoRed.data = (function() {
 
   return {
     cargarDashboardDonante,
+    renderCampanas,
+    crearTurno,
+    confirmarTurno,
+    rechazarTurno,
     cargarMisTurnos,
     cargarMisDocumentos,
     cargarDashboardHospital,

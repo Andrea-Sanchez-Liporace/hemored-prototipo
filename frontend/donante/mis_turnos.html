@@ -22,9 +22,9 @@
     <a href="../index.html">Hemo<span>red</span></a>
   </div>
   <div class="sidebar-user">
-    <div class="sidebar-avatar">SP</div>
+    <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
     <div>
-      <div class="sidebar-user-name">Sofía Páez</div>
+      <div class="sidebar-user-name"><span data-sesion-nombre>Sofía Páez</span></div>
       <div class="sidebar-user-role">Donante</div>
     </div>
   </div>
@@ -62,14 +62,14 @@
   <div class="content">
 
     <!-- PRÓXIMO TURNO -->
-    <div class="proximo-banner">
+    <div class="proximo-banner" id="proximo-banner" style="display:none;">
       <div class="pb-left">
         <div class="pb-icon">
           <i class="ti ti-calendar-check" style="color:white;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div>
-          <div class="pb-label">Próximo turno confirmado</div>
-          <div class="pb-value">Martes 20 de mayo · 10:00hs · Hospital Ramos Mejía</div>
+          <div class="pb-label">Próximo turno</div>
+          <div class="pb-value" id="proximo-banner-valor">—</div>
         </div>
       </div>
       <button class="pb-btn" onclick="verDetalle()">Ver detalles</button>
@@ -85,170 +85,35 @@
     <!-- PRÓXIMOS -->
     <div id="tab-proximos">
       <div class="section-title">Turnos confirmados y pendientes</div>
-      <div class="turnos-list">
-
-        <div class="turno-card" style="flex-direction:column;align-items:stretch;gap:12px;">
-          <div style="display:flex;align-items:center;gap:16px;">
-            <div class="turno-date">
-              <div class="turno-date-day">20</div>
-              <div class="turno-date-month">may</div>
-            </div>
-            <div class="turno-info">
-              <div class="turno-hospital">Hospital Ramos Mejía</div>
-              <div class="turno-meta">
-                <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>10:00hs</div>
-                <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-                <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20240520-0042</div>
-              </div>
-            </div>
-            <div class="turno-right">
-              <span class="turno-badge confirmado">Confirmado</span>
-              <div class="turno-actions">
-                <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/campana_detalle.html?modo=modificar&hora=10:00'">Ver campaña</button>
-                <button class="btn-sm btn-sm-outline" onclick="abrirModal()">Modificar</button>
-              </div>
-            </div>
-          </div>
-          <!-- FORMULARIOS PRE-DONACIÓN -->
-          <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #f28b98;">
-            <div style="font-size:12px;font-weight:500;color:#5a1e37;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="ti ti-clipboard-list" style="font-size:13px;color:#ef647c;"></i>Formularios pre-donación</div>
-            <div class="forms-row" style="border:none;padding:0;margin:0;">
-              <span class="form-badge fb-completado"><i class="ti ti-check" style="font-size:10px;"></i>Autoexclusión completado</span>
-              <span class="form-badge fb-disponible"><i class="ti ti-pencil" style="font-size:10px;"></i>Cuestionario pendiente</span>
-              <span class="form-badge" style="background:#f5f5f5;color:#888;"><i class="ti ti-lock" style="font-size:10px;"></i>Evaluación clínica — lo carga el profesional</span>
-            </div>
-            <button onclick="window.location='../donante/formularios_predonacion.html'" style="margin-top:10px;background:#ef647c;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;">
-              <i class="ti ti-arrow-right" style="font-size:12px;"></i>Completar cuestionario
-            </button>
-          </div>
-        </div>
-
-        <div class="turno-card" style="flex-direction:column;align-items:stretch;gap:12px;">
-          <div style="display:flex;align-items:center;gap:16px;">
-            <div class="turno-date">
-              <div class="turno-date-day">28</div>
-              <div class="turno-date-month">may</div>
-            </div>
-            <div class="turno-info">
-              <div class="turno-hospital">Hospital Garrahan</div>
-              <div class="turno-meta">
-                <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>09:30hs</div>
-                <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-                <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20240528-0015</div>
-              </div>
-            </div>
-            <div class="turno-right">
-              <span class="turno-badge pendiente">Pendiente</span>
-              <div class="turno-actions">
-                <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/campana_detalle.html?modo=modificar&hora=10:00'">Ver campaña</button>
-                <button class="btn-sm btn-sm-outline" onclick="abrirModal()">Modificar</button>
-              </div>
-            </div>
-          </div>
-          <div style="background:#f7f0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #e8d0d8;display:flex;align-items:center;gap:8px;">
-            <i class="ti ti-clock" style="color:#a9435d;font-size:14px;flex-shrink:0;"></i>
-            <span style="font-size:12px;color:#a9435d;">Los formularios pre-donación se habilitarán 2 horas antes del turno · 27 may a las 07:30hs</span>
-          </div>
-        </div>
-
+      <div class="turnos-list" id="lista-proximos">
+        <!-- Se renderiza dinámicamente vía cargarMisTurnos() -->
+      </div>
+      <div class="empty-state" id="empty-proximos" style="display:none;">
+        <div class="empty-icon"><i class="ti ti-calendar-off" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i></div>
+        <div class="empty-title">No tenés turnos próximos</div>
+        <div class="empty-text">Buscá una campaña activa y reservá tu turno.</div>
+        <a href="../donante/dashboard.html"><button class="btn-buscar"><i class="ti ti-search" aria-hidden="true"></i>Buscar campañas</button></a>
       </div>
     </div>
 
     <!-- HISTORIAL -->
     <div id="tab-historial" style="display:none;">
       <div class="section-title">Turnos anteriores</div>
-      <div class="turnos-list">
-
-        <div class="turno-card">
-          <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
-            <div class="turno-date-day" style="color:#1a6b3a;">12</div>
-            <div class="turno-date-month" style="color:#27ae60;">mar</div>
-          </div>
-          <div class="turno-info">
-            <div class="turno-hospital">Hospital San Martín</div>
-            <div class="turno-meta">
-              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>08:00hs</div>
-              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>La Plata</div>
-              <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20260312-0042</div>
-            </div>
-          </div>
-          <div class="turno-right">
-            <span class="turno-badge completado">Asistido</span>
-            <div class="turno-actions">
-              <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_donaciones.html'">Ver donación</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="turno-card">
-          <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
-            <div class="turno-date-day" style="color:#1a6b3a;">18</div>
-            <div class="turno-date-month" style="color:#27ae60;">nov</div>
-          </div>
-          <div class="turno-info">
-            <div class="turno-hospital">Hospital Italiano</div>
-            <div class="turno-meta">
-              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>11:00hs</div>
-              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-              <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20251118-0015</div>
-            </div>
-          </div>
-          <div class="turno-right">
-            <span class="turno-badge completado">Asistido</span>
-            <div class="turno-actions">
-              <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_donaciones.html'">Ver donación</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="turno-card">
-          <div class="turno-date" style="background:#fde8e8;border-color:#e74c3c;">
-            <div class="turno-date-day" style="color:#922b21;">03</div>
-            <div class="turno-date-month" style="color:#c0392b;">ago</div>
-          </div>
-          <div class="turno-info">
-            <div class="turno-hospital">Hospital Garrahan</div>
-            <div class="turno-meta">
-              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>09:00hs</div>
-              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-              <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20250803-0008</div>
-            </div>
-          </div>
-          <div class="turno-right">
-            <span class="turno-badge cancelado">No apta</span>
-            <div class="turno-actions">
-              <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_donaciones.html'">Ver motivo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="turno-card">
-          <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
-            <div class="turno-date-day" style="color:#1a6b3a;">21</div>
-            <div class="turno-date-month" style="color:#27ae60;">abr</div>
-          </div>
-          <div class="turno-info">
-            <div class="turno-hospital">Hospital Ramos Mejía</div>
-            <div class="turno-meta">
-              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>10:00hs</div>
-              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-              <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-20250421-0031</div>
-            </div>
-          </div>
-          <div class="turno-right">
-            <span class="turno-badge completado">Asistido</span>
-            <div class="turno-actions">
-              <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_donaciones.html'">Ver donación</button>
-            </div>
-          </div>
-        </div>
-
+      <div class="turnos-list" id="lista-historial">
+        <!-- Se renderiza dinámicamente vía cargarMisTurnos() -->
+      </div>
+      <div class="empty-state" id="empty-historial" style="display:none;">
+        <div class="empty-icon"><i class="ti ti-calendar-off" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i></div>
+        <div class="empty-title">Todavía no tenés turnos anteriores</div>
       </div>
     </div>
 
     <!-- CANCELADOS -->
     <div id="tab-cancelados" style="display:none;">
-      <div class="empty-state">
+      <div class="turnos-list" id="lista-cancelados">
+        <!-- Se renderiza dinámicamente vía cargarMisTurnos() -->
+      </div>
+      <div class="empty-state" id="empty-cancelados" style="display:none;">
         <div class="empty-icon">
           <i class="ti ti-calendar-off" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i>
         </div>
@@ -334,6 +199,98 @@
   function verDetalle() {
     window.location.href = '../donante/campana_detalle.html';
   }
+
+  const BADGE_TURNO = {
+    pendiente:  { clase: 'pendiente',  texto: 'Pendiente' },
+    confirmado: { clase: 'confirmado', texto: 'Confirmado' },
+    en_curso:   { clase: 'confirmado', texto: 'En curso' },
+    completado: { clase: 'completado', texto: 'Asistido' },
+    no_apto:    { clase: 'cancelado',  texto: 'No apta' },
+    cancelado:  { clase: 'cancelado',  texto: 'Cancelado' },
+  };
+
+  function turnoCardHTML(t) {
+    const hospital = t.hospital;
+    const campana = t.campana;
+    const fecha = new Date(t.fecha + 'T00:00:00');
+    const dia = fecha.getDate();
+    const mes = fecha.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '');
+    const badge = BADGE_TURNO[t.estado] || { clase: '', texto: t.estado };
+    const esPasado = ['completado', 'no_apto', 'cancelado'].includes(t.estado);
+    const dateStyle = t.estado === 'completado' ? 'background:#f0f8f4;border-color:#27ae60;'
+      : (t.estado === 'no_apto' || t.estado === 'cancelado') ? 'background:#fde8e8;border-color:#e74c3c;' : '';
+
+    const acciones = esPasado
+      ? `<button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_donaciones.html'">${t.estado === 'completado' ? 'Ver donación' : 'Ver motivo'}</button>`
+      : `<button class="btn-sm btn-sm-outline" onclick="window.location='../donante/campana_detalle.html?id=${campana?.id || ''}'">Ver campaña</button>
+         <button class="btn-sm btn-sm-outline" onclick="abrirModal()">Modificar</button>`;
+
+    const formularios = !esPasado ? `
+      <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #f28b98;">
+        <div style="font-size:12px;font-weight:500;color:#5a1e37;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="ti ti-clipboard-list" style="font-size:13px;color:#ef647c;"></i>Formularios pre-donación</div>
+        <div class="forms-row" style="border:none;padding:0;margin:0;">
+          <span class="form-badge ${t.formulario_autoexclusion_completado ? 'fb-completado' : 'fb-disponible'}"><i class="ti ti-${t.formulario_autoexclusion_completado ? 'check' : 'pencil'}" style="font-size:10px;"></i>Autoexclusión ${t.formulario_autoexclusion_completado ? 'completado' : 'pendiente'}</span>
+          <span class="form-badge ${t.formulario_cuestionario_completado ? 'fb-completado' : 'fb-disponible'}"><i class="ti ti-${t.formulario_cuestionario_completado ? 'check' : 'pencil'}" style="font-size:10px;"></i>Cuestionario ${t.formulario_cuestionario_completado ? 'completado' : 'pendiente'}</span>
+        </div>
+        <button onclick="window.location='../donante/formularios_predonacion.html'" style="margin-top:10px;background:#ef647c;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;">
+          <i class="ti ti-arrow-right" style="font-size:12px;"></i>Completar formularios
+        </button>
+      </div>` : '';
+
+    return `
+      <div class="turno-card" style="flex-direction:column;align-items:stretch;gap:12px;">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="turno-date" style="${dateStyle}">
+            <div class="turno-date-day">${dia}</div>
+            <div class="turno-date-month">${mes}</div>
+          </div>
+          <div class="turno-info">
+            <div class="turno-hospital">${hospital?.nombre || '—'}</div>
+            <div class="turno-meta">
+              <div class="turno-meta-item"><i class="ti ti-clock" style="color:#a9435d;" aria-hidden="true"></i>${t.hora}hs</div>
+              <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>${hospital?.ciudad || '—'}</div>
+              <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#TRN-${t.id}</div>
+            </div>
+          </div>
+          <div class="turno-right">
+            <span class="turno-badge ${badge.clase}">${badge.texto}</span>
+            <div class="turno-actions">${acciones}</div>
+          </div>
+        </div>
+        ${formularios}
+      </div>`;
+  }
+
+  async function renderMisTurnos() {
+    const turnos = await HemoRed.data.cargarMisTurnos();
+
+    const proximos = turnos.filter(t => ['pendiente', 'confirmado', 'en_curso'].includes(t.estado))
+      .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+    const historial = turnos.filter(t => ['completado', 'no_apto'].includes(t.estado))
+      .sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+    const cancelados = turnos.filter(t => t.estado === 'cancelado');
+
+    document.getElementById('lista-proximos').innerHTML = proximos.map(turnoCardHTML).join('');
+    document.getElementById('empty-proximos').style.display = proximos.length ? 'none' : '';
+    document.getElementById('lista-historial').innerHTML = historial.map(turnoCardHTML).join('');
+    document.getElementById('empty-historial').style.display = historial.length ? 'none' : '';
+    document.getElementById('lista-cancelados').innerHTML = cancelados.map(turnoCardHTML).join('');
+    document.getElementById('empty-cancelados').style.display = cancelados.length ? 'none' : '';
+
+    // Banner de próximo turno = el primero de la lista ya ordenada
+    const banner = document.getElementById('proximo-banner');
+    if (proximos.length) {
+      const t = proximos[0];
+      const fechaLabel = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('proximo-banner-valor').textContent = `${fechaLabel} · ${t.hora}hs · ${t.hospital?.nombre || ''}`;
+      banner.style.display = '';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('donante');
+    await renderMisTurnos();
+  });
 </script>
 
 

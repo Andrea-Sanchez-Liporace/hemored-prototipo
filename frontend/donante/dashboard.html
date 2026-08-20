@@ -23,7 +23,7 @@
   </div>
 
   <div class="sidebar-user">
-    <div class="sidebar-avatar">SP</div>
+    <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
     <div class="sidebar-user-info">
       <div class="sidebar-user-name"><span data-sesion-nombre>Sofía Páez</span></div>
       <div class="sidebar-user-role">Donante</div>
@@ -103,7 +103,7 @@
 
     <!-- BIENVENIDA -->
     <div class="welcome">
-      <h1>¡Hola, Sofía! 👋</h1>
+      <h1>¡Hola, <span id="donante-primer-nombre">donante</span>! 👋</h1>
       <p>Encontrá una campaña activa y reservá tu turno.</p>
     </div>
 
@@ -114,7 +114,7 @@
           <i class="ti ti-heart" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div class="qstat-body">
-          <div class="qstat-num">3</div>
+          <div class="qstat-num" id="total-donaciones">—</div>
           <div class="qstat-label">Donaciones realizadas</div>
         </div>
       </div>
@@ -123,7 +123,7 @@
           <i class="ti ti-calendar-check" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div class="qstat-body">
-          <div class="qstat-num">1</div>
+          <div class="qstat-num" id="proximos-turnos">—</div>
           <div class="qstat-label">Turno próximo</div>
         </div>
       </div>
@@ -132,21 +132,21 @@
           <i class="ti ti-users" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div class="qstat-body">
-          <div class="qstat-num">12</div>
+          <div class="qstat-num" id="vidas-ayudadas">—</div>
           <div class="qstat-label">Vidas ayudadas</div>
         </div>
       </div>
     </div>
 
     <!-- PRÓXIMO TURNO -->
-    <div class="proximo-turno">
+    <div class="proximo-turno" id="proximo-turno-banner" style="display:none;">
       <div class="pt-left">
         <div class="pt-icon">
           <i class="ti ti-calendar" style="color:white;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div>
           <div class="pt-title">Próximo turno confirmado</div>
-          <div class="pt-value">Martes 20 de mayo · 10:00hs · Hospital Ramos Mejía</div>
+          <div class="pt-value" id="proximo-turno-valor">—</div>
         </div>
       </div>
       <button class="pt-btn" onclick="abrirModalTurno()">Ver detalles</button>
@@ -198,117 +198,10 @@
     <!-- RESULTADOS -->
     <div class="campaigns-header">
       <div class="campaigns-title">Resultados</div>
-      <div class="campaigns-count">4 campañas encontradas</div>
+      <div class="campaigns-count">Cargando campañas...</div>
     </div>
     <div class="campaigns-grid">
-
-      <div class="campaign-card" data-sangre="0-,0+" data-provincia="CABA" data-urgencia="urgente">
-        <div class="campaign-header">
-          <div class="campaign-hospital">Hospital Ramos Mejía</div>
-          <span class="campaign-badge urgente">Urgente</span>
-        </div>
-        <div class="campaign-tipo">
-          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>0-</span>
-          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>0+</span>
-        </div>
-        <div class="campaign-info">
-          <div class="campaign-info-item">
-            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
-            CABA
-          </div>
-          <div class="campaign-info-item">
-            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
-            Vence 20 may
-          </div>
-        </div>
-        <div class="campaign-desc">Paciente pediátrico requiere donaciones urgentes de sangre tipo 0 para cirugía programada.</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
-        <div class="campaign-footer">
-          <div class="campaign-spots">7 de 10 turnos cubiertos</div>
-          <button class="campaign-btn" onclick="window.location='../donante/campana_detalle.html'">Reservar turno</button>
-        </div>
-      </div>
-
-      <div class="campaign-card" data-sangre="A+,A-" data-provincia="CABA" data-urgencia="activa">
-        <div class="campaign-header">
-          <div class="campaign-hospital">Hospital Garrahan</div>
-          <span class="campaign-badge activa">Activa</span>
-        </div>
-        <div class="campaign-tipo">
-          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>A+</span>
-          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>A-</span>
-        </div>
-        <div class="campaign-info">
-          <div class="campaign-info-item">
-            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
-            CABA
-          </div>
-          <div class="campaign-info-item">
-            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
-            Vence 30 may
-          </div>
-        </div>
-        <div class="campaign-desc">Campaña de banco de sangre general. Se necesitan donantes de tipo A para reserva hospitalaria.</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:40%;"></div></div>
-        <div class="campaign-footer">
-          <div class="campaign-spots">4 de 10 turnos cubiertos</div>
-          <button class="campaign-btn" onclick="window.location='../donante/campana_detalle.html'">Reservar turno</button>
-        </div>
-      </div>
-
-      <div class="campaign-card" data-sangre="B+" data-provincia="Buenos Aires" data-urgencia="activa">
-        <div class="campaign-header">
-          <div class="campaign-hospital">Hospital San Martín</div>
-          <span class="campaign-badge activa">Activa</span>
-        </div>
-        <div class="campaign-tipo">
-          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>B+</span>
-        </div>
-        <div class="campaign-info">
-          <div class="campaign-info-item">
-            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
-            La Plata
-          </div>
-          <div class="campaign-info-item">
-            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
-            Vence 25 may
-          </div>
-        </div>
-        <div class="campaign-desc">Paciente adulto con anemia severa. Se solicitan donantes de tipo B positivo con urgencia moderada.</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:20%;"></div></div>
-        <div class="campaign-footer">
-          <div class="campaign-spots">2 de 8 turnos cubiertos</div>
-          <button class="campaign-btn" onclick="window.location='../donante/campana_detalle.html'">Reservar turno</button>
-        </div>
-      </div>
-
-      <div class="campaign-card" data-sangre="AB+,AB-" data-provincia="CABA" data-urgencia="activa">
-        <div class="campaign-header">
-          <div class="campaign-hospital">Hospital Italiano</div>
-          <span class="campaign-badge activa">Activa</span>
-        </div>
-        <div class="campaign-tipo">
-          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>AB+</span>
-          <span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>AB-</span>
-        </div>
-        <div class="campaign-info">
-          <div class="campaign-info-item">
-            <i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>
-            CABA
-          </div>
-          <div class="campaign-info-item">
-            <i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>
-            Vence 1 jun
-          </div>
-        </div>
-        <div class="campaign-desc">Campaña de banco de sangre para tipo AB. Donantes de cualquier subtipo bienvenidos.</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:55%;"></div></div>
-        <div class="campaign-footer">
-          <div class="campaign-spots">6 de 12 turnos cubiertos</div>
-          <button class="campaign-btn" onclick="window.location='../donante/campana_detalle.html'">Reservar turno</button>
-        </div>
-      </div>
-
+      <!-- Se renderiza dinámicamente en runtime vía HemoRed.data.renderCampanas() -->
     </div>
   </div>
 </div>
@@ -426,7 +319,28 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('donante');
-    await HemoRed.data.cargarDashboardDonante();
+    const { donante, turnos, donaciones, campanas } = await HemoRed.data.cargarDashboardDonante();
+
+    const elNombre = document.getElementById('donante-primer-nombre');
+    if (elNombre) elNombre.textContent = (donante?.nombre || '').split(' ')[0] || 'donante';
+
+    const elVidas = document.getElementById('vidas-ayudadas');
+    if (elVidas) elVidas.textContent = donaciones.length * 3;
+
+    // Próximo turno confirmado (el más cercano en el futuro)
+    const hospitales = HemoRed.db.all('hospitales');
+    const proximo = turnos
+      .filter(t => t.estado === 'confirmado')
+      .sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
+    const banner = document.getElementById('proximo-turno-banner');
+    if (proximo && banner) {
+      const hospital = hospitales.find(h => h.id === proximo.hospital_id);
+      const fecha = new Date(proximo.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('proximo-turno-valor').textContent = `${fecha} · ${proximo.hora}hs · ${hospital?.nombre || ''}`;
+      banner.style.display = '';
+    }
+
+    HemoRed.data.renderCampanas(campanas, hospitales);
   });
 </script>
 </body>

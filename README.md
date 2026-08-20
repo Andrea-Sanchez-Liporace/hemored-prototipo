@@ -41,10 +41,22 @@ Detalle completo de requisitos, API, modelo de base de datos (20 tablas) y manua
 ## Estructura del repositorio
 
 ```
-/frontend   — prototipo navegable actual (HTML/CSS/JS + BD simulada en JSON)
+/frontend   — prototipo navegable actual (HTML/CSS/JS + BD simulada en JSON) — esto es lo único que se publica en GitHub Pages
 /backend    — reservado para la implementación Django + DRF + PostgreSQL (aún sin código)
 /docs       — documentación viva del proyecto: requisitos, arquitectura, BD, manual de uso
+/tests      — test automatizado (Playwright) del camino feliz del frontend — deliberadamente fuera de /frontend
 ```
+
+## Tecnologías de desarrollo y testing local
+
+Estas herramientas **no son parte de la aplicación** (que sigue siendo HTML/CSS/JS plano, sin build ni runtime propio) — son solo lo que se usa en la máquina de cada una para levantarlo y probarlo mientras se desarrolla:
+
+| Para qué | Tecnología | Ya instalada / hace falta instalar |
+|---|---|---|
+| Servir el prototipo localmente | Servidor HTTP estático — `http.server`, módulo incluido con **Python** (no hay que instalar nada aparte) | Viene con Python. Alternativa sin Python: `npx serve` (usa **Node.js**, que además hace falta si vas a correr los tests) |
+| Test automatizado end-to-end | **Playwright** (librería de Node.js que controla un navegador Chromium real y simula clicks/formularios) | Requiere **Node.js** + `npm install` dentro de `/tests` — ver detalle abajo |
+
+No hay que instalar nada de esto para que la app funcione en producción — son solo herramientas de desarrollo/QA local, separadas del stack de producción real (ver "Arquitectura objetivo" arriba: ese sí es Python/Django/PostgreSQL, pero para el *backend*, no para correr este prototipo).
 
 ## Cómo correr el prototipo frontend
 
@@ -52,9 +64,13 @@ El prototipo usa `fetch` para cargar los JSON de `frontend/db`, por lo que hay q
 
 ```bash
 cd frontend
-npx serve .
-# o
 python -m http.server 8000
+# o, si no tenés Python instalado pero sí Node.js:
+npx serve .
 ```
 
 Luego abrir `http://localhost:<puerto>/index.html`. Usuarios de prueba disponibles en [`frontend/db/demo_acceso.json`](./frontend/db/demo_acceso.json).
+
+## Tests
+
+Hay un test automatizado con **Playwright** que abre el prototipo en un Chromium real y recorre el camino feliz principal (registro de donante → reserva de turno → confirmación por el hospital) — ver [`/tests`](./tests) para instalación, cómo correrlo, qué cubre y qué falta. Vive en la raíz del repo (no adentro de `frontend/`) a propósito, para quedar afuera de lo que se publica en GitHub Pages.
