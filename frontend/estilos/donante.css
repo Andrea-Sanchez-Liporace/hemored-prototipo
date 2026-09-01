@@ -532,6 +532,10 @@ select.form-input { cursor: pointer; }
 .sangre-opt { border: 1.5px solid #e8d0d8; border-radius: 9px; padding: 12px 8px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 500; color: #5a3040; transition: all 0.15s; }
 .sangre-opt:hover { border-color: #ef647c; color: #5a1e37; }
 .sangre-opt.selected { border-color: #ef647c; background: #fdf0f3; color: #782b46; }
+.sangre-grid.bloqueado .sangre-opt { cursor: not-allowed; }
+.sangre-grid.bloqueado .sangre-opt:hover { border-color: #e8d0d8; color: #5a3040; }
+.sangre-grid.bloqueado .sangre-opt.selected:hover { border-color: #ef647c; color: #782b46; }
+.sangre-grid.bloqueado .sangre-opt:not(.selected) { opacity: 0.45; }
 .security-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
 .security-item:last-child { border-bottom: none; }
 .security-item-left { display: flex; align-items: center; gap: 12px; }

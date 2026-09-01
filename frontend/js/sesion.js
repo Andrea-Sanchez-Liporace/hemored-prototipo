@@ -72,6 +72,16 @@ HemoRed.sesion = (function() {
       tipo_sangre: null,
       peso_kg: null,
       empleadores_frecuentes: [],
+      experiencia_donante: null,
+      condiciones_medicas: null,
+      ultima_donacion_fecha: null,
+      ultima_donacion_fecha_aproximada: null,
+      ultima_donacion_lugar: null,
+      // Recordatorio y resultado de análisis activados por default (son avisos
+      // que el donante espera recibir); urgentes queda opt-in para no spamear.
+      notif_recordatorio_turno: true,
+      notif_resultado_analisis: true,
+      notif_campanas_urgentes: false,
       activo: true,
       fecha_registro: new Date().toISOString().slice(0, 10),
       avatar_iniciales: iniciales,
@@ -110,5 +120,15 @@ HemoRed.sesion = (function() {
     document.querySelectorAll('[data-sesion-rol]').forEach(el => el.textContent = s.rol);
   }
 
-  return { login, logout, get, requerirLogin, inyectarPerfil, registrarDonante };
+  // Sincroniza el nombre cacheado en sessionStorage cuando el usuario edita
+  // su perfil (sin esto, el sidebar mostraría el nombre viejo hasta relogin).
+  function actualizarNombreSesion(nombreCompleto, iniciales) {
+    const s = get();
+    if (!s) return;
+    s.nombre = nombreCompleto;
+    if (iniciales) s.iniciales = iniciales;
+    sessionStorage.setItem('hemored_sesion', JSON.stringify(s));
+  }
+
+  return { login, logout, get, requerirLogin, inyectarPerfil, registrarDonante, actualizarNombreSesion };
 })();

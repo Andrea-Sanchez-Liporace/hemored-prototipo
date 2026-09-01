@@ -191,6 +191,48 @@ HemoRed.data = (function() {
     return docs;
   }
 
+  // Actualiza cualquier subconjunto de campos del perfil del donante
+  // (Datos personales y Datos médicos son la misma tabla `usuarios`,
+  // así que una sola función genérica cubre los dos "Guardar cambios").
+  function actualizarPerfilDonante(usuarioId, cambios) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, cambios) };
+  }
+
+  // Wrapper semántico sobre actualizarPerfilDonante() para el botón
+  // "Guardar preferencias" — mismos campos (notif_*), misma tabla.
+  function actualizarPreferenciasNotificacion(usuarioId, prefs) {
+    return actualizarPerfilDonante(usuarioId, prefs);
+  }
+
+  function agregarEmpleador(usuarioId, nombre) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+    const lista = [...(usuario.empleadores_frecuentes || []), nombre];
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, { empleadores_frecuentes: lista }) };
+  }
+
+  function eliminarEmpleador(usuarioId, nombre) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+    const lista = (usuario.empleadores_frecuentes || []).filter(e => e !== nombre);
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, { empleadores_frecuentes: lista }) };
+  }
+
+  function editarEmpleador(usuarioId, nombreViejo, nombreNuevo) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+    const lista = usuario.empleadores_frecuentes || [];
+    if (!lista.includes(nombreViejo)) return { ok: false, error: 'Ese empleador ya no está en tu lista.' };
+    if (!nombreNuevo) return { ok: false, error: 'El nombre no puede quedar vacío.' };
+    if (nombreNuevo !== nombreViejo && lista.includes(nombreNuevo)) {
+      return { ok: false, error: 'Ya tenés un empleador guardado con ese nombre.' };
+    }
+    const listaNueva = lista.map(e => (e === nombreViejo ? nombreNuevo : e));
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, { empleadores_frecuentes: listaNueva }) };
+  }
+
   // ===== HOSPITAL =====
   async function cargarDashboardHospital() {
     const db = await HemoRed.db.init();
@@ -287,6 +329,11 @@ HemoRed.data = (function() {
     rechazarTurno,
     cargarMisTurnos,
     cargarMisDocumentos,
+    actualizarPerfilDonante,
+    actualizarPreferenciasNotificacion,
+    agregarEmpleador,
+    editarEmpleador,
+    eliminarEmpleador,
     cargarDashboardHospital,
     cargarTurnosHoy,
     cargarTurnosProfesional,

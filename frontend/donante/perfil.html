@@ -80,19 +80,19 @@
     <!-- HEADER PERFIL -->
     <div class="perfil-header">
       <div class="perfil-avatar">
-        SP
+        <span id="perfil-avatar-iniciales">—</span>
         <div class="perfil-avatar-edit">
           <i class="ti ti-camera" style="color:white;font-size:11px;" aria-hidden="true"></i>
         </div>
       </div>
       <div class="perfil-info">
-        <div class="perfil-name">Sofía Páez</div>
-        <div class="perfil-email">sofia@email.com</div>
+        <div class="perfil-name" id="perfil-nombre-completo">—</div>
+        <div class="perfil-email" id="perfil-email">—</div>
         <div class="perfil-badges">
           <span class="perfil-badge donante">
             <i class="ti ti-heart" style="font-size:11px;" aria-hidden="true"></i>Donante
           </span>
-          <span class="perfil-badge incompleto">
+          <span class="perfil-badge incompleto" id="perfil-badge-sangre" style="display:none;">
             <i class="ti ti-alert-circle" style="font-size:11px;" aria-hidden="true"></i>Tipo de sangre pendiente
           </span>
         </div>
@@ -100,9 +100,9 @@
       <div class="perfil-completitud">
         <div class="completitud-label">Perfil completado</div>
         <div class="completitud-bar">
-          <div class="completitud-fill"></div>
+          <div class="completitud-fill" id="completitud-fill" style="width:0%;"></div>
         </div>
-        <div class="completitud-pct">60%</div>
+        <div class="completitud-pct" id="completitud-pct">0%</div>
       </div>
     </div>
 
@@ -125,39 +125,39 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Nombre</label>
-              <input class="form-input" type="text" value="Sofía">
+              <input class="form-input" type="text" id="input-nombre">
             </div>
             <div class="form-group">
               <label class="form-label">Apellido</label>
-              <input class="form-input" type="text" value="Páez">
+              <input class="form-input" type="text" id="input-apellido">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Email</label>
-              <input class="form-input" type="email" value="sofia@email.com" disabled>
+              <input class="form-input" type="email" id="input-email" disabled>
               <p class="form-hint">El email no se puede modificar.</p>
             </div>
             <div class="form-group">
               <label class="form-label">Teléfono</label>
-              <input class="form-input" type="tel" value="+54 11 1234 5678">
+              <input class="form-input" type="tel" id="input-telefono">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Fecha de nacimiento</label>
-              <input class="form-input" type="date" value="1995-03-15">
+              <input class="form-input" type="date" id="input-fecha-nacimiento">
             </div>
             <div class="form-group">
               <label class="form-label">DNI</label>
-              <input class="form-input" type="text" placeholder="12.345.678">
+              <input class="form-input" type="text" id="input-dni" placeholder="12.345.678">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Provincia</label>
-              <select class="form-input">
-                <option selected>Buenos Aires</option>
+              <select class="form-input" id="input-provincia">
+                <option>Buenos Aires</option>
                 <option>CABA</option>
                 <option>Córdoba</option>
                 <option>Santa Fe</option>
@@ -165,12 +165,13 @@
             </div>
             <div class="form-group">
               <label class="form-label">Ciudad</label>
-              <input class="form-input" type="text" value="La Plata">
+              <input class="form-input" type="text" id="input-ciudad">
             </div>
           </div>
+          <div id="error-datos-personales" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
           <div class="form-actions">
-            <button class="btn-cancel">Cancelar</button>
-            <button class="btn-save">Guardar cambios</button>
+            <button class="btn-cancel" onclick="cargarPerfil()">Cancelar</button>
+            <button class="btn-save" onclick="guardarDatosPersonales()">Guardar cambios</button>
           </div>
         </div>
       </div>
@@ -194,42 +195,75 @@
         <div class="seccion-body-inner">
           <div class="form-group">
             <label class="form-label">Tipo de sangre</label>
-            <div class="sangre-grid">
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">A+</div>
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">A-</div>
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">B+</div>
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">B-</div>
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">AB+</div>
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">AB-</div>
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">0+</div>
-              <div class="sangre-opt" onclick="seleccionarSangre(this)">0-</div>
+            <div class="sangre-grid" id="sangre-grid">
+              <div class="sangre-opt" data-tipo="A+" onclick="seleccionarSangre(this)">A+</div>
+              <div class="sangre-opt" data-tipo="A-" onclick="seleccionarSangre(this)">A-</div>
+              <div class="sangre-opt" data-tipo="B+" onclick="seleccionarSangre(this)">B+</div>
+              <div class="sangre-opt" data-tipo="B-" onclick="seleccionarSangre(this)">B-</div>
+              <div class="sangre-opt" data-tipo="AB+" onclick="seleccionarSangre(this)">AB+</div>
+              <div class="sangre-opt" data-tipo="AB-" onclick="seleccionarSangre(this)">AB-</div>
+              <div class="sangre-opt" data-tipo="0+" onclick="seleccionarSangre(this)">0+</div>
+              <div class="sangre-opt" data-tipo="0-" onclick="seleccionarSangre(this)">0-</div>
             </div>
-            <p class="form-hint">Seleccioná tu tipo de sangre para ver campañas compatibles.</p>
+            <p class="form-hint" id="hint-sangre-normal">Seleccioná tu tipo de sangre para ver campañas compatibles.</p>
+            <p class="form-hint" id="hint-sangre-bloqueada" style="display:none;">Este dato es autoreportado. Se verificará con un análisis de sangre real recién en tu primera donación a través de HemoRed — hasta entonces queda guardado, pero no se puede volver a editar desde acá.</p>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Peso (kg)</label>
-              <input class="form-input" type="number" placeholder="Ej: 70">
+              <input class="form-input" type="number" id="input-peso" placeholder="Ej: 70">
               <p class="form-hint">Requerido mínimo 50kg para donar.</p>
             </div>
             <div class="form-group">
               <label class="form-label">¿Donaste antes?</label>
-              <select class="form-input">
-                <option value="" disabled selected>Seleccioná</option>
-                <option>Sí, soy donante habitual</option>
-                <option>Sí, alguna vez</option>
-                <option>No, es mi primera vez</option>
+              <select class="form-input" id="input-experiencia" onchange="actualizarVisibilidadUltimaDonacion()">
+                <option value="" disabled>Seleccioná</option>
+                <option value="habitual">Sí, soy donante habitual</option>
+                <option value="ocasional">Sí, alguna vez</option>
+                <option value="primera_vez">No, es mi primera vez</option>
               </select>
+              <p class="form-hint" id="hint-experiencia-normal">Se refiere a donaciones previas a registrarte en HemoRed.</p>
+              <p class="form-hint" id="hint-experiencia-bloqueada" style="display:none;">Es un dato histórico: una vez guardado no se puede volver a editar (igual que el email).</p>
             </div>
           </div>
+
+          <!-- Solo se muestra si "¿Donaste antes?" es afirmativo (habitual u ocasional).
+               Ver actualizarVisibilidadUltimaDonacion() en el script de esta página. -->
+          <div id="bloque-ultima-donacion" style="display:none;background:#fdf0f3;border-radius:12px;border:1px solid #f28b98;padding:16px;margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:12px;">Sobre tu última donación</div>
+            <div class="form-row">
+              <div class="form-group" id="grupo-ultima-fecha">
+                <label class="form-label">Fecha de la última donación</label>
+                <input class="form-input" type="date" id="input-ultima-fecha">
+                <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#5a3040;cursor:pointer;">
+                  <input type="checkbox" id="chk-no-recuerdo-fecha" onchange="toggleNoRecuerdoFecha()" style="accent-color:#ef647c;">
+                  No recuerdo la fecha exacta
+                </label>
+              </div>
+              <div class="form-group" id="grupo-ultima-fecha-aprox" style="display:none;">
+                <label class="form-label">Aproximadamente, ¿cuándo fue?</label>
+                <select class="form-input" id="input-ultima-fecha-aprox">
+                  <option value="" disabled selected>Seleccioná</option>
+                  <option value="ultimo_mes">En el último mes</option>
+                  <option value="ultimos_3_meses">En los últimos 3 meses</option>
+                  <option value="mas_de_6_meses">Hace más de 6 meses</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:14px;margin-bottom:0;">
+              <label class="form-label">¿Dónde fue esa donación? <span style="color:#a9435d;font-weight:400;">(opcional)</span></label>
+              <input class="form-input" type="text" id="input-ultima-lugar" placeholder="Ej: Hospital Ramos Mejía">
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="form-label">Condiciones médicas relevantes <span style="color:#a9435d;font-weight:400;">(opcional)</span></label>
-            <input class="form-input" type="text" placeholder="Ej: hipertensión controlada, diabetes tipo 2...">
+            <input class="form-input" type="text" id="input-condiciones" placeholder="Ej: hipertensión controlada, diabetes tipo 2...">
             <p class="form-hint">Esta información es confidencial y solo la ve el personal médico al momento de la donación.</p>
           </div>
           <div class="form-actions">
-            <button class="btn-cancel">Cancelar</button>
-            <button class="btn-save">Guardar cambios</button>
+            <button class="btn-cancel" onclick="cargarPerfil()">Cancelar</button>
+            <button class="btn-save" onclick="guardarDatosMedicos()">Guardar cambios</button>
           </div>
         </div>
       </div>
@@ -257,25 +291,25 @@
                 <div style="font-size:14px;font-weight:500;color:#5a1e37;">Recordatorio de turno</div>
                 <div style="font-size:12px;color:#5a3040;">Recordatorio 24hs antes de mi turno confirmado</div>
               </div>
-              <input type="checkbox" checked style="accent-color:#ef647c;width:16px;height:16px;">
+              <input type="checkbox" id="notif-recordatorio" style="accent-color:#ef647c;width:16px;height:16px;">
             </label>
             <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
               <div>
                 <div style="font-size:14px;font-weight:500;color:#5a1e37;">Resultado de análisis disponible</div>
                 <div style="font-size:12px;color:#5a3040;">Notificame cuando el hospital suba el resultado de mi donación</div>
               </div>
-              <input type="checkbox" checked style="accent-color:#ef647c;width:16px;height:16px;">
+              <input type="checkbox" id="notif-resultado" style="accent-color:#ef647c;width:16px;height:16px;">
             </label>
             <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
               <div>
                 <div style="font-size:14px;font-weight:500;color:#5a1e37;">Campañas urgentes</div>
                 <div style="font-size:12px;color:#5a3040;">Alertas de campañas marcadas como urgentes en mi zona</div>
               </div>
-              <input type="checkbox" style="accent-color:#ef647c;width:16px;height:16px;">
+              <input type="checkbox" id="notif-urgentes" style="accent-color:#ef647c;width:16px;height:16px;">
             </label>
           </div>
           <div class="form-actions" style="margin-top:20px;">
-            <button class="btn-save">Guardar preferencias</button>
+            <button class="btn-save" onclick="guardarPreferencias()">Guardar preferencias</button>
           </div>
         </div>
       </div>
@@ -303,34 +337,7 @@
 
           <!-- Lista de empleadores guardados -->
           <div id="empleadores-lista" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-            <div class="empleador-item" id="emp-0">
-              <div style="display:flex;align-items:center;gap:10px;flex:1;">
-                <div style="width:36px;height:36px;border-radius:9px;background:#fdf0f3;border:0.5px solid #f28b98;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <i class="ti ti-building" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i>
-                </div>
-                <div>
-                  <div style="font-size:14px;font-weight:500;color:#5a1e37;">Aysa SA</div>
-                  <div style="font-size:11px;color:#a9435d;">Empleador guardado</div>
-                </div>
-              </div>
-              <button onclick="eliminarEmpleador(0)" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;" title="Eliminar">
-                <i class="ti ti-trash" style="font-size:16px;" aria-hidden="true"></i>
-              </button>
-            </div>
-            <div class="empleador-item" id="emp-1">
-              <div style="display:flex;align-items:center;gap:10px;flex:1;">
-                <div style="width:36px;height:36px;border-radius:9px;background:#fdf0f3;border:0.5px solid #f28b98;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <i class="ti ti-building" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i>
-                </div>
-                <div>
-                  <div style="font-size:14px;font-weight:500;color:#5a1e37;">Ministerio de Salud CABA</div>
-                  <div style="font-size:11px;color:#a9435d;">Empleador guardado</div>
-                </div>
-              </div>
-              <button onclick="eliminarEmpleador(1)" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;" title="Eliminar">
-                <i class="ti ti-trash" style="font-size:16px;" aria-hidden="true"></i>
-              </button>
-            </div>
+            <!-- Se renderiza dinámicamente desde usuarios.empleadores_frecuentes -->
           </div>
 
           <!-- Agregar nuevo empleador -->
@@ -415,6 +422,164 @@
 </div>
 
 <script>
+  // Usuario cargado desde la BD simulada (frontend/db/usuarios.json + overrides
+  // en localStorage) — se refresca después de cada guardado exitoso.
+  let usuarioActual = null;
+  let tipoSangreSeleccionado = null;
+
+  async function cargarPerfil() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.requerirLogin('donante');
+    if (!s) return;
+    usuarioActual = HemoRed.db.find('usuarios', s.usuario_id);
+    if (!usuarioActual) return;
+
+    // Header
+    document.getElementById('perfil-avatar-iniciales').textContent = usuarioActual.avatar_iniciales || '?';
+    document.getElementById('perfil-nombre-completo').textContent = `${usuarioActual.nombre} ${usuarioActual.apellido}`.trim();
+    document.getElementById('perfil-email').textContent = usuarioActual.email || '';
+    document.getElementById('perfil-badge-sangre').style.display = usuarioActual.tipo_sangre ? 'none' : '';
+    actualizarCompletitud();
+
+    // Sección 1 — Datos personales
+    document.getElementById('input-nombre').value = usuarioActual.nombre || '';
+    document.getElementById('input-apellido').value = usuarioActual.apellido || '';
+    document.getElementById('input-email').value = usuarioActual.email || '';
+    document.getElementById('input-telefono').value = usuarioActual.telefono || '';
+    document.getElementById('input-fecha-nacimiento').value = usuarioActual.fecha_nacimiento || '';
+    document.getElementById('input-dni').value = usuarioActual.numero_documento || '';
+    document.getElementById('input-provincia').value = usuarioActual.provincia || '';
+    document.getElementById('input-ciudad').value = usuarioActual.ciudad || '';
+    document.getElementById('error-datos-personales').style.display = 'none';
+
+    // Sección 2 — Datos médicos
+    tipoSangreSeleccionado = usuarioActual.tipo_sangre || null;
+    document.querySelectorAll('.sangre-opt').forEach(o => {
+      o.classList.toggle('selected', o.dataset.tipo === tipoSangreSeleccionado);
+    });
+    document.getElementById('input-peso').value = usuarioActual.peso_kg || '';
+    document.getElementById('input-experiencia').value = usuarioActual.experiencia_donante || '';
+    document.getElementById('input-condiciones').value = usuarioActual.condiciones_medicas || '';
+
+    document.getElementById('input-ultima-fecha').value = usuarioActual.ultima_donacion_fecha || '';
+    document.getElementById('input-ultima-fecha-aprox').value = usuarioActual.ultima_donacion_fecha_aproximada || '';
+    document.getElementById('input-ultima-lugar').value = usuarioActual.ultima_donacion_lugar || '';
+    // Si hay una fecha aproximada guardada pero no una fecha exacta, el checkbox
+    // "no recuerdo" tiene que arrancar tildado para mostrar el campo correcto.
+    document.getElementById('chk-no-recuerdo-fecha').checked = !!usuarioActual.ultima_donacion_fecha_aproximada && !usuarioActual.ultima_donacion_fecha;
+    toggleNoRecuerdoFecha();
+    actualizarVisibilidadUltimaDonacion();
+
+    // "¿Donaste antes?" es un dato histórico (no una preferencia): una vez que el
+    // donante lo contesta, queda fijo — no tiene sentido de negocio que alguien
+    // "deje de haber donado antes". Se bloquea igual que el email. La única forma
+    // de que vuelva a estar en blanco es un reset completo de los datos de demo
+    // (localStorage), no una edición normal desde acá.
+    const experienciaBloqueada = !!usuarioActual.experiencia_donante;
+    document.getElementById('input-experiencia').disabled = experienciaBloqueada;
+    document.getElementById('chk-no-recuerdo-fecha').disabled = experienciaBloqueada;
+    document.getElementById('input-ultima-fecha-aprox').disabled = experienciaBloqueada;
+    document.getElementById('input-ultima-lugar').disabled = experienciaBloqueada;
+    if (experienciaBloqueada) document.getElementById('input-ultima-fecha').disabled = true;
+    // El hint normal ("se refiere a donaciones previas a registrarte") queda
+    // siempre visible, aunque esté bloqueado — si no, se pierde la aclaración
+    // de qué pregunta esta respondiendo y queda ambigua para quien lo lee después.
+    document.getElementById('hint-experiencia-bloqueada').style.display = experienciaBloqueada ? '' : 'none';
+
+    // Tipo de sangre: autoreportado por el donante, también de escritura única.
+    // Se verifica recién con la primera donación real (análisis del profesional
+    // de salud) o cuando el hospital carga el resultado — hasta ese momento no
+    // hay forma confiable de contradecir lo que el donante declaró, pero tampoco
+    // tiene sentido dejarlo "editable para siempre" como si fuera una preferencia.
+    // PENDIENTE (fuera de esta vuelta): el mecanismo real de verificación/corrección
+    // todavía no existe — ver docs/04, filas "Atención clínica" (profesional) y
+    // "Cargar resultado de análisis" (hospital).
+    const sangreBloqueada = !!usuarioActual.tipo_sangre;
+    document.getElementById('sangre-grid').classList.toggle('bloqueado', sangreBloqueada);
+    document.getElementById('hint-sangre-normal').style.display = sangreBloqueada ? 'none' : '';
+    document.getElementById('hint-sangre-bloqueada').style.display = sangreBloqueada ? '' : 'none';
+
+    // Sección 3 — Preferencias de notificación
+    document.getElementById('notif-recordatorio').checked = !!usuarioActual.notif_recordatorio_turno;
+    document.getElementById('notif-resultado').checked = !!usuarioActual.notif_resultado_analisis;
+    document.getElementById('notif-urgentes').checked = !!usuarioActual.notif_campanas_urgentes;
+
+    // Sección 4 — Empleadores frecuentes
+    renderEmpleadores(usuarioActual.empleadores_frecuentes || []);
+  }
+
+  // % de completitud simple: cuántos de los campos "opcionales pero recomendados" están cargados.
+  function actualizarCompletitud() {
+    const campos = ['telefono', 'fecha_nacimiento', 'numero_documento', 'provincia', 'ciudad', 'tipo_sangre', 'peso_kg'];
+    const completos = campos.filter(c => usuarioActual[c] !== null && usuarioActual[c] !== undefined && usuarioActual[c] !== '').length;
+    const pct = Math.round((completos / campos.length) * 100);
+    document.getElementById('completitud-fill').style.width = pct + '%';
+    document.getElementById('completitud-pct').textContent = pct + '%';
+  }
+
+  function renderEmpleadores(lista) {
+    const cont = document.getElementById('empleadores-lista');
+    if (lista.length === 0) {
+      cont.innerHTML = '<p style="font-size:13px;color:#a9435d;padding:8px 0;">Todavía no agregaste ningún empleador.</p>';
+      return;
+    }
+    cont.innerHTML = lista.map(nombre => `
+      <div class="empleador-item" data-nombre="${nombre.replace(/"/g, '&quot;')}">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;">
+          <div style="width:36px;height:36px;border-radius:9px;background:#fdf0f3;border:0.5px solid #f28b98;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ti ti-building" style="color:#ef647c;font-size:16px;"></i>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#5a1e37;">${nombre}</div>
+            <div style="font-size:11px;color:#a9435d;">Empleador guardado</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:2px;flex-shrink:0;">
+          <button onclick="mostrarEditarEmpleador('${nombre.replace(/'/g, "\\'")}')" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;" title="Editar">
+            <i class="ti ti-pencil" style="font-size:16px;"></i>
+          </button>
+          <button onclick="eliminarEmpleadorUI('${nombre.replace(/'/g, "\\'")}')" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;" title="Eliminar">
+            <i class="ti ti-trash" style="font-size:16px;"></i>
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Reemplaza un item puntual de la lista por un mini-form inline, en vez de
+  // reusar el form de "agregar" — así el donante ve el nombre actual mientras
+  // lo corrige, en el mismo lugar de la lista donde está ese empleador.
+  function mostrarEditarEmpleador(nombre) {
+    const item = document.querySelector(`.empleador-item[data-nombre="${CSS.escape(nombre)}"]`);
+    if (!item) return;
+    // .empleador-item es "display:flex" en fila (icono + texto + botones), pero
+    // acá necesitamos que el input quede arriba y los botones abajo — mismo
+    // layout que el form de "Agregar empleador" — así que pasa a "block" solo
+    // mientras dura la edición de este item puntual.
+    item.style.display = 'block';
+    item.innerHTML = `
+      <input class="form-input" id="input-editar-emp" style="margin-bottom:10px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="confirmarEditarEmpleador('${nombre.replace(/'/g, "\\'")}')" class="btn-save" style="flex:1;">Guardar</button>
+        <button onclick="renderEmpleadores(usuarioActual.empleadores_frecuentes)" class="btn-cancel" style="flex:1;">Cancelar</button>
+      </div>`;
+    const input = document.getElementById('input-editar-emp');
+    input.value = nombre;
+    input.focus();
+  }
+
+  function confirmarEditarEmpleador(nombreViejo) {
+    const nuevo = document.getElementById('input-editar-emp').value.trim();
+    if (!nuevo) return;
+    const resultado = HemoRed.data.editarEmpleador(usuarioActual.id, nombreViejo, nuevo);
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+    usuarioActual = resultado.usuario;
+    renderEmpleadores(usuarioActual.empleadores_frecuentes);
+    HemoRed.ui.toast('Empleador actualizado');
+  }
+
   function mostrarFormEmp() {
     document.getElementById('form-nuevo-emp').style.display = 'block';
     document.getElementById('btn-agregar-emp').style.display = 'none';
@@ -428,37 +593,31 @@
   function confirmarNuevoEmp() {
     const val = document.getElementById('input-nuevo-emp').value.trim();
     if (!val) return;
-    const lista = document.getElementById('empleadores-lista');
-    const id = Date.now();
-    const div = document.createElement('div');
-    div.className = 'empleador-item';
-    div.id = 'emp-' + id;
-    div.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;flex:1;">
-        <div style="width:36px;height:36px;border-radius:9px;background:#fdf0f3;border:0.5px solid #f28b98;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <i class="ti ti-building" style="color:#ef647c;font-size:16px;"></i>
-        </div>
-        <div>
-          <div style="font-size:14px;font-weight:500;color:#5a1e37;">${val}</div>
-          <div style="font-size:11px;color:#a9435d;">Empleador guardado</div>
-        </div>
-      </div>
-      <button onclick="document.getElementById('emp-${id}').remove()" style="background:none;border:none;cursor:pointer;color:#a9435d;padding:6px;border-radius:7px;">
-        <i class="ti ti-trash" style="font-size:16px;"></i>
-      </button>`;
-    lista.appendChild(div);
+    const resultado = HemoRed.data.agregarEmpleador(usuarioActual.id, val);
+    if (resultado.ok) {
+      usuarioActual = resultado.usuario;
+      renderEmpleadores(usuarioActual.empleadores_frecuentes);
+      HemoRed.ui.toast('Empleador agregado');
+    }
     cancelarNuevoEmp();
   }
-  function eliminarEmpleador(id) {
-    document.getElementById('emp-' + id).remove();
+  function eliminarEmpleadorUI(nombre) {
+    const resultado = HemoRed.data.eliminarEmpleador(usuarioActual.id, nombre);
+    if (resultado.ok) {
+      usuarioActual = resultado.usuario;
+      renderEmpleadores(usuarioActual.empleadores_frecuentes);
+      HemoRed.ui.toast('Empleador eliminado');
+    }
   }
 
   function toggleSeccion(id) {
     document.getElementById(id).classList.toggle('open');
   }
   function seleccionarSangre(el) {
+    if (document.getElementById('sangre-grid').classList.contains('bloqueado')) return;
     document.querySelectorAll('.sangre-opt').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
+    tipoSangreSeleccionado = el.dataset.tipo;
   }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
@@ -468,6 +627,108 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
+
+  function guardarDatosPersonales() {
+    const nombre = document.getElementById('input-nombre').value.trim();
+    const apellido = document.getElementById('input-apellido').value.trim();
+    const errorEl = document.getElementById('error-datos-personales');
+    if (!nombre || !apellido) {
+      errorEl.textContent = 'Nombre y apellido son obligatorios.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    errorEl.style.display = 'none';
+
+    const iniciales = (nombre[0] || '').toUpperCase() + (apellido[0] || '').toUpperCase();
+    const cambios = {
+      nombre,
+      apellido,
+      telefono: document.getElementById('input-telefono').value.trim() || null,
+      fecha_nacimiento: document.getElementById('input-fecha-nacimiento').value || null,
+      numero_documento: document.getElementById('input-dni').value.trim() || null,
+      provincia: document.getElementById('input-provincia').value || null,
+      ciudad: document.getElementById('input-ciudad').value.trim() || null,
+      avatar_iniciales: iniciales,
+    };
+    const resultado = HemoRed.data.actualizarPerfilDonante(usuarioActual.id, cambios);
+    if (!resultado.ok) {
+      errorEl.textContent = resultado.error || 'No se pudieron guardar los cambios.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    usuarioActual = resultado.usuario;
+    // Sin esto, el sidebar seguiría mostrando el nombre viejo hasta el próximo login.
+    HemoRed.sesion.actualizarNombreSesion(`${nombre} ${apellido}`.trim(), iniciales);
+    HemoRed.sesion.inyectarPerfil();
+    cargarPerfil();
+    HemoRed.ui.toast('Datos personales guardados');
+  }
+
+  // Muestra el bloque "Sobre tu última donación" solo si el donante contestó
+  // que sí donó antes (habitual u ocasional) — no tiene sentido si es primera vez.
+  function actualizarVisibilidadUltimaDonacion() {
+    const exp = document.getElementById('input-experiencia').value;
+    const mostrar = exp === 'habitual' || exp === 'ocasional';
+    document.getElementById('bloque-ultima-donacion').style.display = mostrar ? 'block' : 'none';
+  }
+
+  // Fecha exacta y fecha aproximada son mutuamente excluyentes: se guarda una
+  // u otra, nunca las dos (evita ambigüedad sobre cuál vale si difieren).
+  function toggleNoRecuerdoFecha() {
+    const noRecuerda = document.getElementById('chk-no-recuerdo-fecha').checked;
+    document.getElementById('grupo-ultima-fecha-aprox').style.display = noRecuerda ? 'block' : 'none';
+    document.getElementById('input-ultima-fecha').disabled = noRecuerda;
+    if (noRecuerda) document.getElementById('input-ultima-fecha').value = '';
+    else document.getElementById('input-ultima-fecha-aprox').value = '';
+  }
+
+  function guardarDatosMedicos() {
+    const cambios = {
+      peso_kg: document.getElementById('input-peso').value ? Number(document.getElementById('input-peso').value) : null,
+      condiciones_medicas: document.getElementById('input-condiciones').value.trim() || null,
+    };
+
+    // Tipo de sangre: mismo criterio de escritura única que "¿donaste antes?"
+    // (ver comentario abajo) — si ya está guardado, no se vuelve a mandar.
+    if (!usuarioActual.tipo_sangre) {
+      cambios.tipo_sangre = tipoSangreSeleccionado;
+    }
+
+    // "¿Donaste antes?" y los datos de última donación son de escritura única:
+    // si `usuarioActual.experiencia_donante` (el valor YA guardado, no lo que
+    // haya en el <select> deshabilitado) ya tiene una respuesta, no se tocan
+    // acá — así nos aseguramos de no persistir nada aunque alguien fuerce el
+    // formulario deshabilitado desde las devtools del navegador.
+    if (!usuarioActual.experiencia_donante) {
+      const experiencia = document.getElementById('input-experiencia').value || null;
+      const tieneExperienciaPrevia = experiencia === 'habitual' || experiencia === 'ocasional';
+      const noRecuerdaFecha = tieneExperienciaPrevia && document.getElementById('chk-no-recuerdo-fecha').checked;
+      cambios.experiencia_donante = experiencia;
+      cambios.ultima_donacion_fecha = (tieneExperienciaPrevia && !noRecuerdaFecha) ? (document.getElementById('input-ultima-fecha').value || null) : null;
+      cambios.ultima_donacion_fecha_aproximada = noRecuerdaFecha ? (document.getElementById('input-ultima-fecha-aprox').value || null) : null;
+      cambios.ultima_donacion_lugar = tieneExperienciaPrevia ? (document.getElementById('input-ultima-lugar').value.trim() || null) : null;
+    }
+
+    const resultado = HemoRed.data.actualizarPerfilDonante(usuarioActual.id, cambios);
+    if (!resultado.ok) return;
+    usuarioActual = resultado.usuario;
+    cargarPerfil();
+    HemoRed.ui.toast('Datos médicos guardados');
+  }
+
+  function guardarPreferencias() {
+    const prefs = {
+      notif_recordatorio_turno: document.getElementById('notif-recordatorio').checked,
+      notif_resultado_analisis: document.getElementById('notif-resultado').checked,
+      notif_campanas_urgentes: document.getElementById('notif-urgentes').checked,
+    };
+    const resultado = HemoRed.data.actualizarPreferenciasNotificacion(usuarioActual.id, prefs);
+    if (!resultado.ok) return;
+    usuarioActual = resultado.usuario;
+    HemoRed.ui.toast('Preferencias guardadas');
+  }
+
+  document.addEventListener('DOMContentLoaded', cargarPerfil);
 </script>
 
   <script src="../js/db.js"></script>

@@ -305,6 +305,20 @@ Ejemplo de respuesta de error:
 **`usuarios`** — `id (PK)`, `nombre`, `email`, `password_hash`, `tipo_sangre`, `rol (enum)`, `fecha_nacimiento`, `telefono`, `activo (bool)`.
 > Unifica donante, admin hospital y super admin en una sola tabla usando el campo `rol`. Evita duplicar lógica de autenticación.
 
+`tipo_sangre` es autoreportado por el donante en su perfil y, al igual que `experiencia_donante` (ver abajo), es de **escritura única**: una vez guardado, el perfil lo bloquea (no se puede volver a editar desde la UI). Motivo: es un dato médico que en algún momento necesita verificación real, no una preferencia que el donante deba poder corregir libremente. **Pendiente de diseño (anotado para no perderlo, no implementado todavía):** el mecanismo real de verificación/corrección de este dato — la idea es que se confirme (o corrija, si el donante se equivocó) recién en la primera donación real a través de HemoRed, por un profesional de salud durante la atención clínica (`profesional/dashboard.html`, ver `docs/04`), o alternativamente por el hospital al cargar el resultado del análisis (`hospital/documentacion.html`, `cargarResultadoAnalisis()`). Ninguno de esos dos flujos toca hoy `usuarios.tipo_sangre` — hay que decidir cuál es la fuente de verdad definitiva cuando se aborde esa parte.
+
+Campos adicionales específicos del rol donante (agregados 2026-09-01, ver `docs/04-estado-actual-prototipo.md` para el detalle de implementación):
+- `experiencia_donante (enum: primera_vez | ocasional | habitual)` — autoreporte general en el perfil, capturado/editable como una foto en el tiempo, **no** atado a una donación puntual. Aclarar siempre en el copy de UI que se refiere a donaciones **previas al registro en HemoRed** (por eso vive en el perfil y no se recalcula desde la tabla `donaciones` — el sistema no puede saber de donaciones hechas en otro lado antes de unirse a la plataforma).
+- `ultima_donacion_fecha (fecha, opcional)`, `ultima_donacion_fecha_aproximada (enum: ultimo_mes | ultimos_3_meses | mas_de_6_meses, opcional)`, `ultima_donacion_lugar (texto, opcional)` — solo tienen sentido si `experiencia_donante` es `habitual` u `ocasional`; en la UI del perfil se muestran/ocultan según esa respuesta. `fecha` y `fecha_aproximada` son mutuamente excluyentes (si el donante no recuerda la fecha exacta, se guarda la aproximada y la exacta queda en null, nunca las dos a la vez).
+- **Escritura única:** `experiencia_donante` y los 3 campos de última donación son un dato histórico, no una preferencia editable — una vez que el donante los guarda (con cualquier respuesta, incluida "primera vez"), el perfil los bloquea permanentemente (mismo tratamiento que el email: se puede ver pero no volver a tocar desde la UI). Motivo de negocio: no tiene sentido que alguien "deje de haber donado antes"; permitir editarlo libremente habilitaría datos contradictorios sin ningún control. La única forma de que quede en blanco de nuevo en este prototipo es un reset completo de los datos de demo (`localStorage`) — no hay una función de "corregir" este dato desde el perfil.
+- `condiciones_medicas (texto, opcional)` — información confidencial visible solo para el personal médico al momento de la donación.
+- `notif_recordatorio_turno`, `notif_resultado_analisis`, `notif_campanas_urgentes` (booleanos) — preferencias de notificación del donante.
+
+**Importante — esto NO es lo mismo que los campos homónimos de `formulario_consentimiento` (F2, más abajo):** son dos preguntas distintas que capturan información parecida en dos momentos distintos, a propósito, no por descuido:
+- Los campos de `usuarios` (esta tabla) son la respuesta del donante en su **perfil general**, capturada/editable en cualquier momento, no atada a ningún turno puntual.
+- Los campos de `formulario_consentimiento` se vuelven a preguntar en **cada proceso de donación** (F2, cuestionario médico previo a esa donación específica), porque la vigencia médica de esa información se degrada con el tiempo y es distinta en cada turno.
+- No hay sincronización automática entre ambos: completar uno no completa el otro. Si en el futuro se decide autocompletar el F2 con el valor más reciente del perfil como sugerencia, dejarlo anotado ahí, pero hoy son independientes.
+
 **`hospitales`** — `id (PK)`, `nombre`, `direccion`, `telefono`, `email`, `estado (enum)`, `usuario_id (FK)`.
 > El campo `estado` (pendiente/aprobado/suspendido) permite al super admin controlar qué hospitales pueden operar.
 
@@ -358,6 +372,13 @@ Ejemplo de respuesta de error:
 
 **`formulario_consentimiento`** *(v2, campos completos)* — `id (PK)`, `donacion_id (FK único)`, `autoexclusion_completado_por (enum)`, `cuestionario_completado_por (enum)`, `firma_donante_url`, `firma_profesional_perfil_url`, `firma_profesional_manual_url`, `fecha_completado`.
 > Concentra F1 (autoexclusión), F2 (cuestionario médico) y F3 (evaluación clínica) de cada donación. Los campos `_completado_por` son marcas de seguimiento para métricas de flujo. Doble firma del profesional permite auditoría de identidad.
+
+Campos adicionales de F2, agregados 2026-09-01 (todavía sin implementar — quedan documentados acá para cuando se aborde el flujo de formularios pre-donación, ver "Próximos pasos — Donante" en `docs/04-estado-actual-prototipo.md`):
+- `ultima_donacion_fecha (fecha, opcional)` — si el donante recuerda la fecha exacta de su última donación.
+- `ultima_donacion_fecha_aproximada (enum: ultimo_mes | ultimos_3_meses | mas_de_6_meses, opcional)` — se completa solo si no marcó la fecha exacta.
+- `ultima_donacion_lugar (texto, opcional)` — dónde fue esa última donación.
+
+Esta es la versión de "¿donaste antes?" atada a un proceso de donación puntual — se vuelve a preguntar en cada turno porque es información médicamente relevante (define si puede donar de nuevo) y se desactualiza con el tiempo. Es un conjunto de campos distinto de `usuarios.experiencia_donante`/`usuarios.ultima_donacion_*` (foto general del perfil, editable en cualquier momento, no atada a un turno) — ver la nota completa en la definición de `usuarios` más arriba. No duplicar la lógica entre ambos ni sincronizarlos automáticamente.
 
 **`formulario_postdonacion`** *(v2)* — `id (PK)`, `numero_bolsa (único)`, `token (único)`, `token_expira_en`, `token_usado (bool)`, `usar_para_transfusion (null?)`, `completado_en (null?)`.
 > Formulario F4 — autoexclusión post-donación anónima. Se vincula al `numero_bolsa`, nunca al `usuario_id`, garantizando el anonimato. `usar_para_transfusion` NULL hasta completarse. Token de un solo uso, válido 24 horas.

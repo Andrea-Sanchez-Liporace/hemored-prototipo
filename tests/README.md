@@ -62,6 +62,15 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 1. Un turno reservado con más de 24hs de anticipación se puede reprogramar (nueva fecha/horario) y después cancelar sin problema.
 2. Un turno para el que ya venció la ventana de tiempo (2hs para cancelar, 24hs para reprogramar) se rechaza con el motivo de negocio explicado y el contacto del hospital — no con un error genérico.
 
+**`perfil.spec.js`** — "Mi perfil" del donante, agregado 2026-09-01:
+
+1. Un donante recién registrado (perfil vacío) edita Datos personales, Datos médicos (tipo de sangre, peso, "¿donaste antes?", condiciones médicas), Preferencias de notificaciones y agrega/elimina un empleador frecuente.
+2. Todo lo guardado persiste después de recargar la página (leído de vuelta desde `localStorage`, no solo del estado en memoria de la página).
+3. El nombre que se ve en el sidebar se actualiza al instante al cambiar el nombre en el perfil, sin necesidad de volver a loguearse (ver `HemoRed.sesion.actualizarNombreSesion()`).
+4. El bloque "Sobre tu última donación" (fecha, fecha aproximada, lugar) solo aparece si "¿Donaste antes?" es `habitual` u `ocasional`. Antes de guardar por primera vez se puede alternar libremente entre fecha exacta y "no recuerdo la fecha exacta" (mutuamente excluyentes). Una vez guardado, "¿Donaste antes?" y sus 3 campos asociados quedan bloqueados de forma permanente (es un dato histórico, no una preferencia — mismo tratamiento que el email) — se prueba que los 5 controles queden `disabled` y que un segundo guardado (ej. de otro campo médico) no los toque. El hint que aclara qué pregunta "¿Donaste antes?" (donaciones previas al registro en HemoRed) se prueba que siga visible incluso bloqueado.
+5. Tipo de sangre sigue el mismo criterio de escritura única: se puede elegir libremente hasta el primer guardado, y después la grilla queda bloqueada (clickear otra opción no cambia nada) — se prueba con la cuenta demo (que ya tiene tipo de sangre cargado) y con un registro nuevo.
+6. Empleadores frecuentes: además de agregar/eliminar, se puede **editar** el nombre de uno ya guardado (ícono lápiz, mini-form inline con el nombre actual precargado). Se prueba que el cambio persista tras recargar, que "Cancelar" no guarde nada, y que intentar renombrar a un nombre que ya usa otro empleador se rechace (el form queda abierto con lo escrito, no se pierde ni se cierra solo).
+
 ## Qué NO cubre todavía
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
