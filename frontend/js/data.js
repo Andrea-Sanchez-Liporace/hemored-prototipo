@@ -122,6 +122,56 @@ HemoRed.data = (function() {
     return { ok: true, turno };
   }
 
+  // Referencia fija de "ahora" para las ventanas de 2h/24h de abajo — el
+  // dataset de demo vive fijo en mayo 2026 (mismo criterio que HOY en
+  // cargarTurnosHoy()/campana_detalle.html), así que no podemos comparar
+  // contra la hora real del sistema (siempre sería "ya pasó hace meses").
+  const AHORA_DEMO = new Date('2026-05-17T09:00:00');
+
+  function horasHastaElTurno(turno) {
+    const fechaTurno = new Date(`${turno.fecha}T${turno.hora}:00`);
+    return (fechaTurno - AHORA_DEMO) / 3600000;
+  }
+
+  function datosContactoHospital(hospitalId) {
+    const h = HemoRed.db.find('hospitales', hospitalId);
+    if (!h) return '';
+    return ` Contactá al hospital directamente: ${h.telefono || h.contacto_telefono || h.email}.`;
+  }
+
+  // El donante reprograma su turno (mismo turno_id, nueva fecha/hora).
+  // Aplica la misma ventana de 24hs sin importar si el turno está
+  // pendiente o confirmado (ver nota en docs/03-documentacion-tecnica-consolidada.md,
+  // sección "Mis turnos": el motivo es darle margen de reacción al hospital,
+  // y ese motivo aplica igual en ambos estados).
+  function actualizarTurno(turnoId, { fecha, hora }) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+
+    if (horasHastaElTurno(turno) < 24) {
+      return { ok: false, error: 'No podés modificar el turno a menos de 24hs de la fecha pactada.' + datosContactoHospital(turno.hospital_id) };
+    }
+
+    const ocupado = HemoRed.db.all('turnos')
+      .some(t => t.id !== turnoId && t.hospital_id === turno.hospital_id && t.fecha === fecha && t.hora === hora && t.estado !== 'cancelado');
+    if (ocupado) return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
+
+    return { ok: true, turno: HemoRed.db.actualizar('turnos', turnoId, { fecha, hora }) };
+  }
+
+  // El donante cancela su turno. Ventana de 2hs, misma lógica que arriba
+  // respecto de aplicar igual sobre pendiente o confirmado.
+  function cancelarTurno(turnoId) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+
+    if (horasHastaElTurno(turno) < 2) {
+      return { ok: false, error: 'No podés cancelar el turno a menos de 2hs de la fecha pactada.' + datosContactoHospital(turno.hospital_id) };
+    }
+
+    return { ok: true, turno: HemoRed.db.actualizar('turnos', turnoId, { estado: 'cancelado' }) };
+  }
+
   // El hospital acepta la solicitud de turno (RF3).
   function confirmarTurno(turnoId) {
     return HemoRed.db.actualizar('turnos', turnoId, { estado: 'confirmado' });
@@ -231,6 +281,8 @@ HemoRed.data = (function() {
     cargarDashboardDonante,
     renderCampanas,
     crearTurno,
+    actualizarTurno,
+    cancelarTurno,
     confirmarTurno,
     rechazarTurno,
     cargarMisTurnos,

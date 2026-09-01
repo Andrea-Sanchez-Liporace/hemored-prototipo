@@ -383,10 +383,14 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .form-row { grid-template-columns: 1fr; }
   .accesos-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
-  .td.hide-sm { display: none; }
+  .td.hide-sm, .th.hide-sm { display: none; }
 }
 @media (max-width: 1024px) {
-  .td.hide-md { display: none; }
+  .td.hide-md, .th.hide-md { display: none; }
+  /* Sin esto, ocultar 3 de las 6 columnas del grid (fecha/estado/solicitado)
+     deja sus fracciones (fr) de ancho reservadas como espacio vacío, aunque
+     no haya nada dentro — el grid solo queda con Donante/Campaña/Acciones. */
+  .table-header, .turno-row { grid-template-columns: 2fr 1.4fr 170px; }
 }
 
 /* === MISSING STYLES RECOVERED FROM ORIGINALS === */

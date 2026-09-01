@@ -92,7 +92,7 @@ Cada gap "🔴 Roto" de las tablas siguientes se resuelve construyendo una funci
 | Reservar turno | `donante/campana_detalle.html` | 🟢 | `crearTurno()` valida turno duplicado, horario ocupado y regla de 90 días, y crea el turno real (`estado: pendiente`). Wizard con fechas/horarios generados dinámicamente. | — |
 | Completar formularios pre-donación (F1/F2) | `donante/formularios_predonacion.html` | 🔴 | La firma digital (canvas) sí funciona y gatea el botón. Pero "Confirmar y enviar" no llama a `db.js` — nada se guarda en `formulario_consentimiento`. | `guardarFormularioConsentimiento(turno_id, {firma_donante_url, respuestas, ...})`, usando el dataURL de la firma ya capturada. |
 | Mis turnos — ver (próximos/historial/cancelados) | `donante/mis_turnos.html` | 🟢 | `cargarMisTurnos()` cableado, las 3 pestañas y el banner de próximo turno muestran datos reales. | — |
-| Mis turnos — cancelar / reprogramar | `donante/mis_turnos.html` (modal) | 🔴 | El modal de modificar turno y el de cancelar solo hacen `alert()` — no persisten nada. | `actualizarTurno(turno_id, {fecha, hora})` (ventana de 24hs) y `cancelarTurno(turno_id)` (ventana de 2hs), según reglas ya documentadas. |
+| Mis turnos — cancelar / reprogramar | `donante/mis_turnos.html` (modal) | 🟢 | `actualizarTurno()` (ventana 24hs) y `cancelarTurno()` (ventana 2hs) reales, con fechas/horarios generados dinámicamente igual que en `campana_detalle.html`. Aplica la misma ventana sin diferenciar `pendiente`/`confirmado` (ver nota en docs/03). Si la ventana venció, el mensaje de error incluye el contacto del hospital. | — |
 | Mis documentos | `donante/mis_documentos.html` | 🔴 | `cargarMisDocumentos()` **ya existe y funciona**, pero nunca se invoca acá — las 4 pestañas son datos fijos. "Enviar observación" no tiene `onclick`. | Cablear la función existente + joins con `resultado_analisis`/`certificado_donacion`/`formulario_consentimiento`. `solicitarCertificado()`, agregar el `onclick` faltante. |
 | Mis donaciones | `donante/mis_donaciones.html` | 🔴 | 100% estático, no existe ninguna función de lectura para esta vista todavía. | `cargarMisDonaciones()` nueva en `data.js` (solo lectura, no requiere escritura). |
 | Formulario post-donación anónimo (F4) | `donante/postdonacion_anonimo.html` | 🔴 | Lee el `token` de la URL pero **nunca lo valida** contra `formulario_postdonacion.json` (ni expiración ni uso previo). "Enviar" no persiste la respuesta. | `validarTokenPostdonacion(token)` + `guardarRespuestaPostdonacion()`. Única función de escritura del rol que debe funcionar **sin sesión** (por diseño de anonimato). |
@@ -101,17 +101,18 @@ Cada gap "🔴 Roto" de las tablas siguientes se resuelve construyendo una funci
 
 **Estado 2026-08-19:** el camino núcleo del rol donante (buscar campaña → reservar turno → ver el turno en "Mis turnos") ya funciona de punta a punta y tiene test automatizado (ver [`/tests`](../tests)).
 
+**Estado 2026-09-01:** se cerró también "Mis turnos — cancelar/reprogramar" (`actualizarTurno()`, `cancelarTurno()`), con su propio test (`tests/modificar-cancelar-turno.spec.js`). Se resolvió la pregunta abierta que había quedado pendiente: la ventana de 24h/2h aplica igual sobre un turno `pendiente` que sobre uno `confirmado` (mismo motivo de negocio en ambos casos — ver nota en "Mis turnos" de `docs/03`).
+
 ### Próximos pasos — Donante (orden sugerido)
 
-Quedan 5 flujos del rol donante sin conectar. Este es el orden sugerido para retomar, y por qué:
+Quedan 4 flujos del rol donante sin conectar. Este es el orden sugerido para retomar, y por qué:
 
-1. **Mis turnos — cancelar / reprogramar** (`actualizarTurno()`, `cancelarTurno()`). Chico y aislado, mismo patrón ya usado en `crearTurno()`/`confirmarTurno()`. Antes de codear, definir: ¿se puede modificar/cancelar un turno todavía `pendiente`, o solo uno ya `confirmado`? (ver nota en la sección "Mis turnos" arriba).
-2. **Completar formularios pre-donación (F1/F2)** (`guardarFormularioConsentimiento()`). Es la continuación natural del turno que ya se reserva hoy — la firma digital (canvas) ya funciona, solo falta persistirla.
-3. **Mis donaciones** (`cargarMisDonaciones()`). Solo lectura, sin escritura — el de menor riesgo de los que quedan.
-4. **Mis documentos** (cablear `cargarMisDocumentos()` que ya existe y funciona + `solicitarCertificado()`).
-5. **Formulario post-donación anónimo F4** (`validarTokenPostdonacion()`, `guardarRespuestaPostdonacion()`). Particular: tiene que funcionar sin sesión, por el anonimato.
-6. **Notificaciones**. El más grande: `mensajes.json` no contempla notificaciones de donante hoy (solo hospital↔admin), hay que decidir el modelo de datos antes de codear.
-7. **Editar perfil** (`actualizarPerfilDonante()`, `actualizarPreferenciasNotificacion()`, `agregarEmpleador()`/`eliminarEmpleador()`). Varios sub-formularios, esfuerzo medio-alto.
+1. **Completar formularios pre-donación (F1/F2)** (`guardarFormularioConsentimiento()`). Es la continuación natural del turno que ya se reserva hoy — la firma digital (canvas) ya funciona, solo falta persistirla.
+2. **Mis donaciones** (`cargarMisDonaciones()`). Solo lectura, sin escritura — el de menor riesgo de los que quedan.
+3. **Mis documentos** (cablear `cargarMisDocumentos()` que ya existe y funciona + `solicitarCertificado()`).
+4. **Formulario post-donación anónimo F4** (`validarTokenPostdonacion()`, `guardarRespuestaPostdonacion()`). Particular: tiene que funcionar sin sesión, por el anonimato.
+5. **Notificaciones**. El más grande: `mensajes.json` no contempla notificaciones de donante hoy (solo hospital↔admin), hay que decidir el modelo de datos antes de codear.
+6. **Editar perfil** (`actualizarPerfilDonante()`, `actualizarPreferenciasNotificacion()`, `agregarEmpleador()`/`eliminarEmpleador()`). Varios sub-formularios, esfuerzo medio-alto.
 
 Después de Donante, los otros roles con flujos sin conectar son Hospital, Super Admin y Profesional de salud (v2) — ver sus tablas más abajo en este mismo documento.
 

@@ -132,10 +132,37 @@
 </div>
 
 <script>
-  let fechaModal = 'Lun 19 may';
+  // Mismo día de referencia que usa el resto del prototipo (campana_detalle.html,
+  // cargarTurnosHoy()) — el dataset de demo vive fijo en mayo 2026.
+  const HOY = '2026-05-17';
+  const TIME_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'];
+
+  let turnoModal = null; // el turno que se está modificando/cancelando
+  let fechaModal = null; // ISO
   let horaModal = null;
 
-  function abrirModal() {
+  function sumarDias(fechaISO, n) {
+    const d = new Date(fechaISO + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function formatearFecha(fechaISO) {
+    return new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  function abrirModal(turnoId) {
+    turnoModal = HemoRed.db.find('turnos', turnoId);
+    if (!turnoModal) return;
+
+    const hospital = HemoRed.db.find('hospitales', turnoModal.hospital_id);
+    document.getElementById('modal-turno-hospital').textContent = hospital?.nombre || '—';
+    document.getElementById('modal-turno-fecha').textContent =
+      `${formatearFecha(turnoModal.fecha)} · ${turnoModal.hora}hs`;
+    document.getElementById('modal-error').style.display = 'none';
+
+    renderFechaTabsModal();
+
     document.getElementById('modal-modificar').style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
@@ -143,41 +170,100 @@
     document.getElementById('modal-modificar').style.display = 'none';
     document.body.style.overflow = '';
   }
-  function selFechaM(el) {
-    document.querySelectorAll('.fecha-tab-m').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    fechaModal = el.textContent;
+
+  function renderFechaTabsModal() {
+    const cont = document.getElementById('fecha-tabs-modal');
+    cont.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const fechaISO = sumarDias(HOY, i);
+      const label = new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+      const btn = document.createElement('button');
+      btn.className = 'fecha-tab-m' + (i === 0 ? ' active' : '');
+      btn.textContent = label;
+      btn.onclick = () => selFechaM(btn, fechaISO);
+      cont.appendChild(btn);
+      if (i === 0) fechaModal = fechaISO;
+    }
+    renderTurnosGridModal();
+  }
+
+  function renderTurnosGridModal() {
+    const cont = document.getElementById('turnos-grid-modal');
+    const ocupados = new Set(
+      HemoRed.db.all('turnos')
+        .filter(t => t.id !== turnoModal.id && t.hospital_id === turnoModal.hospital_id && t.fecha === fechaModal && t.estado !== 'cancelado')
+        .map(t => t.hora)
+    );
+    cont.innerHTML = TIME_SLOTS.map(hora => {
+      if (ocupados.has(hora)) {
+        return `<div class="turno-m ocp"><div class="th">${hora}</div><div class="ts ocp">Ocupado</div></div>`;
+      }
+      return `<div class="turno-m" data-hora="${hora}"><div class="th">${hora}</div><div class="ts libre">Disponible</div></div>`;
+    }).join('');
+    cont.querySelectorAll('.turno-m[data-hora]').forEach(el => {
+      el.addEventListener('click', () => selTurnoM(el, el.dataset.hora));
+    });
+
     horaModal = null;
-    document.querySelectorAll('.turno-m:not(.ocp)').forEach(t => t.classList.remove('selected'));
     document.getElementById('modal-sel').style.display = 'none';
     document.getElementById('btn-confirmar-cambio').disabled = true;
     document.getElementById('btn-confirmar-cambio').style.opacity = '0.5';
+  }
+
+  function selFechaM(el, fechaISO) {
+    document.querySelectorAll('.fecha-tab-m').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    fechaModal = fechaISO;
+    renderTurnosGridModal();
   }
   function selTurnoM(el, hora) {
     document.querySelectorAll('.turno-m:not(.ocp)').forEach(t => t.classList.remove('selected'));
     el.classList.add('selected');
     horaModal = hora;
     document.getElementById('modal-sel').style.display = 'block';
-    document.getElementById('modal-sel-text').textContent = fechaModal + ' · ' + hora + 'hs';
+    document.getElementById('modal-sel-text').textContent = formatearFecha(fechaModal) + ' · ' + hora + 'hs';
     document.getElementById('btn-confirmar-cambio').disabled = false;
     document.getElementById('btn-confirmar-cambio').style.opacity = '1';
   }
-  function confirmarCambio() {
-    cerrarModal();
-    alert('Turno modificado: ' + fechaModal + ' · ' + horaModal + 'hs');
+
+  function mostrarErrorModal(msg) {
+    const el = document.getElementById('modal-error');
+    el.textContent = msg;
+    el.style.display = 'block';
   }
+
+  async function confirmarCambio() {
+    const resultado = HemoRed.data.actualizarTurno(turnoModal.id, { fecha: fechaModal, hora: horaModal });
+    if (!resultado.ok) {
+      mostrarErrorModal(resultado.error);
+      return;
+    }
+    cerrarModal();
+    HemoRed.ui.toast('Turno modificado correctamente');
+    await renderMisTurnos();
+  }
+
   function cancelarTurno() {
     cerrarModal();
+    document.getElementById('modal-cancelar-error').style.display = 'none';
     document.getElementById('modal-cancelar').style.display = 'flex';
   }
   function cerrarModalCancelar() {
     document.getElementById('modal-cancelar').style.display = 'none';
     document.body.style.overflow = '';
   }
-  function confirmarCancelacion() {
+  async function confirmarCancelacion() {
+    const resultado = HemoRed.data.cancelarTurno(turnoModal.id);
+    if (!resultado.ok) {
+      const el = document.getElementById('modal-cancelar-error');
+      el.textContent = resultado.error;
+      el.style.display = 'block';
+      return;
+    }
     document.getElementById('modal-cancelar').style.display = 'none';
     document.body.style.overflow = '';
-    alert('Turno cancelado correctamente.');
+    HemoRed.ui.toast('Turno cancelado correctamente');
+    await renderMisTurnos();
   }
 
   function cambiarTab(tab, el) {
@@ -223,7 +309,7 @@
     const acciones = esPasado
       ? `<button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_donaciones.html'">${t.estado === 'completado' ? 'Ver donación' : 'Ver motivo'}</button>`
       : `<button class="btn-sm btn-sm-outline" onclick="window.location='../donante/campana_detalle.html?id=${campana?.id || ''}'">Ver campaña</button>
-         <button class="btn-sm btn-sm-outline" onclick="abrirModal()">Modificar</button>`;
+         <button class="btn-sm btn-sm-outline" onclick="abrirModal(${t.id})">Modificar</button>`;
 
     const formularios = !esPasado ? `
       <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #f28b98;">
@@ -306,34 +392,28 @@
       <!-- Info turno actual -->
       <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
         <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO ACTUAL</div>
-        <div style="font-size:14px;font-weight:500;color:#5a1e37;">Hospital Ramos Mejía</div>
-        <div style="font-size:13px;color:#5a3040;margin-top:3px;">Martes 20 de mayo · 10:00hs</div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;" id="modal-turno-hospital">—</div>
+        <div style="font-size:13px;color:#5a3040;margin-top:3px;" id="modal-turno-fecha">—</div>
       </div>
 
       <!-- Selección nueva fecha -->
       <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:10px;">Elegí una nueva fecha</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-        <button class="fecha-tab-m active" onclick="selFechaM(this)">Lun 19 may</button>
-        <button class="fecha-tab-m" onclick="selFechaM(this)">Mar 20 may</button>
-        <button class="fecha-tab-m" onclick="selFechaM(this)">Mié 21 may</button>
-        <button class="fecha-tab-m" onclick="selFechaM(this)">Jue 22 may</button>
+      <div id="fecha-tabs-modal" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <!-- Se generan dinámicamente desde HOY -->
       </div>
 
       <!-- Grilla de horarios -->
       <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:10px;">Elegí un horario</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
-        <div class="turno-m" onclick="selTurnoM(this,'08:00')"><div class="th">08:00</div><div class="ts libre">Disponible</div></div>
-        <div class="turno-m" onclick="selTurnoM(this,'08:30')"><div class="th">08:30</div><div class="ts libre">Disponible</div></div>
-        <div class="turno-m ocp"><div class="th">09:00</div><div class="ts ocp">Ocupado</div></div>
-        <div class="turno-m" onclick="selTurnoM(this,'09:30')"><div class="th">09:30</div><div class="ts libre">Disponible</div></div>
-        <div class="turno-m" onclick="selTurnoM(this,'10:00')"><div class="th">10:00</div><div class="ts libre">Disponible</div></div>
-        <div class="turno-m ocp"><div class="th">10:30</div><div class="ts ocp">Ocupado</div></div>
+      <div id="turnos-grid-modal" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
+        <!-- Se generan dinámicamente según ocupación real -->
       </div>
 
       <!-- Selección actual -->
       <div id="modal-sel" style="display:none;background:#fdf0f3;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#5a1e37;">
         <strong>Nueva selección:</strong> <span id="modal-sel-text"></span>
       </div>
+
+      <div id="modal-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
 
       <!-- Botones -->
       <button id="btn-confirmar-cambio" onclick="confirmarCambio()" disabled style="width:100%;background:#ef647c;color:white;border:none;padding:13px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px;opacity:0.5;">
@@ -356,6 +436,7 @@
       <div style="font-size:18px;font-weight:500;color:#5a1e37;margin-bottom:8px;">¿Cancelar el turno?</div>
       <div style="font-size:13px;color:#5a3040;line-height:1.6;">Esta acción libera el cupo para otro donante. Si cambiás de idea podés reservar un nuevo turno.</div>
     </div>
+    <div id="modal-cancelar-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
     <button onclick="confirmarCancelacion()" style="width:100%;background:#c0392b;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;">Sí, cancelar turno</button>
     <button onclick="cerrarModalCancelar()" style="width:100%;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:11px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Volver</button>
   </div>

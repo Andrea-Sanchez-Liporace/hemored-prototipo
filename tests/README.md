@@ -46,9 +46,9 @@ npm run report        # abre un reporte HTML navegable de la última corrida (co
 
 Playwright guarda automáticamente una captura de pantalla y un video del momento exacto en que falló (configurado en `playwright.config.js`). Corré `npm run report` después de una corrida fallida — vas a ver visualmente en qué pantalla se rompió, no solo un mensaje de error en texto.
 
-## Qué cubre hoy (`golden-path.spec.js`)
+## Qué cubre hoy
 
-El "camino feliz" completo entre 3 roles:
+**`golden-path.spec.js`** — el "camino feliz" completo entre 3 roles:
 
 1. Un donante nuevo se registra (`publico/registro.html`)
 2. Ve campañas reales en su dashboard (`donante/dashboard.html`)
@@ -57,9 +57,14 @@ El "camino feliz" completo entre 3 roles:
 5. El hospital lo confirma
 6. El donante, al volver a loguearse, ve el turno "Confirmado" (`donante/mis_turnos.html`)
 
+**`modificar-cancelar-turno.spec.js`** — el segundo bloque de Donante, agregado 2026-09-01:
+
+1. Un turno reservado con más de 24hs de anticipación se puede reprogramar (nueva fecha/horario) y después cancelar sin problema.
+2. Un turno para el que ya venció la ventana de tiempo (2hs para cancelar, 24hs para reprogramar) se rechaza con el motivo de negocio explicado y el contacto del hospital — no con un error genérico.
+
 ## Qué NO cubre todavía
 
-Este test prueba únicamente el camino que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
+Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 
 Flujos que sabemos que faltan probar (porque todavía no están conectados a datos reales, no porque nos olvidamos):
 - Rechazo de turno por parte del hospital (el botón "Rechazar" existe pero no tiene test)
