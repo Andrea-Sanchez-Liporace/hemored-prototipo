@@ -89,7 +89,7 @@ Cada gap "🔴 Roto" de las tablas siguientes se resuelve construyendo una funci
 | Flujo | Vistas | Estado | Qué hace hoy | Qué falta |
 |---|---|---|---|---|
 | Explorar campañas | `donante/dashboard.html` | 🟢 | `renderCampanas()` pinta las tarjetas reales desde `campanas.json`/`hospitales.json`, stats y "próximo turno" con datos reales. | — |
-| Reservar turno | `donante/campana_detalle.html` | 🟢 | `crearTurno()` valida turno duplicado, horario ocupado y regla de 90 días, y crea el turno real (`estado: pendiente`). Wizard con fechas/horarios generados dinámicamente. | — |
+| Reservar turno | `donante/campana_detalle.html` | 🟢 | `crearTurno()` valida turno duplicado (misma campaña), horario ocupado y regla de 90 días desde la última donación, y crea el turno real (`estado: pendiente`). Wizard con fechas/horarios generados dinámicamente. | Validación de elegibilidad incompleta — ver "Pendiente de diseño: restricciones de elegibilidad para reservar turno" más abajo (anotado 2026-09-01, no implementado todavía). |
 | Completar formularios pre-donación (F1/F2) | `donante/formularios_predonacion.html` | 🔴 | La firma digital (canvas) sí funciona y gatea el botón. Pero "Confirmar y enviar" no llama a `db.js` — nada se guarda en `formulario_consentimiento`. | `guardarFormularioConsentimiento(turno_id, {firma_donante_url, respuestas, ...})`, usando el dataURL de la firma ya capturada. |
 | Mis turnos — ver (próximos/historial/cancelados) | `donante/mis_turnos.html` | 🟢 | `cargarMisTurnos()` cableado, las 3 pestañas y el banner de próximo turno muestran datos reales. | — |
 | Mis turnos — cancelar / reprogramar | `donante/mis_turnos.html` (modal) | 🟢 | `actualizarTurno()` (ventana 24hs) y `cancelarTurno()` (ventana 2hs) reales, con fechas/horarios generados dinámicamente igual que en `campana_detalle.html`. Aplica la misma ventana sin diferenciar `pendiente`/`confirmado` (ver nota en docs/03). Si la ventana venció, el mensaje de error incluye el contacto del hospital. | — |
@@ -104,6 +104,24 @@ Cada gap "🔴 Roto" de las tablas siguientes se resuelve construyendo una funci
 **Estado 2026-09-01:** se cerró también "Mis turnos — cancelar/reprogramar" (`actualizarTurno()`, `cancelarTurno()`), con su propio test (`tests/modificar-cancelar-turno.spec.js`). Se resolvió la pregunta abierta que había quedado pendiente: la ventana de 24h/2h aplica igual sobre un turno `pendiente` que sobre uno `confirmado` (mismo motivo de negocio en ambos casos — ver nota en "Mis turnos" de `docs/03`).
 
 **Estado 2026-09-01 (2):** se cerró también "Editar perfil" (`actualizarPerfilDonante()`, `actualizarPreferenciasNotificacion()`, `agregarEmpleador()`/`eliminarEmpleador()`), con su propio test (`tests/perfil.spec.js`). Se resolvió el modelo de datos para "¿donaste antes?": el perfil (`usuarios`) tiene su propia foto general — `experiencia_donante` más, si contestó que sí donó antes, `ultima_donacion_fecha`/`ultima_donacion_fecha_aproximada`/`ultima_donacion_lugar` — editable en cualquier momento y sin relación con los campos homónimos del formulario de pre-donación, que se vuelven a preguntar en cada proceso de donación puntual y todavía no están implementados. Ver el detalle completo y el porqué de mantenerlos separados en `docs/01`.
+
+### Pendiente de diseño: restricciones de elegibilidad para reservar turno (anotado 2026-09-01, no implementado)
+
+Hoy `crearTurno()` solo valida 3 cosas (ver fila de arriba). La usuaria pidió dejar anotado — **sin codear todavía** — un conjunto más amplio de restricciones para habilitar/deshabilitar el botón "Reservar turno", con una leyenda visible explicando el motivo exacto (mismo patrón que ya usan `actualizarTurno()`/`cancelarTurno()` cuando rechazan por la ventana de tiempo, incluyendo el contacto del hospital).
+
+**Casos pedidos explícitamente:**
+1. El donante tiene una donación registrada en los últimos **85 días** en la plataforma. *(Ojo: `crearTurno()` ya tiene hoy una regla parecida pero con **90 días**, ver línea de arriba — hay que decidir si son la misma regla con un número a corregir, o si son dos cosas distintas antes de tocar el código.)*
+2. El donante ya tiene un turno reservado en la plataforma. *(Hoy `crearTurno()` solo chequea duplicado para la **misma campaña** — no bloquea reservar un segundo turno en una campaña distinta mientras el primero sigue pendiente/confirmado. Definir si el límite es "un turno activo por vez" en toda la plataforma.)*
+3. El donante tiene una condición médica que le impide donar, detectada en el análisis de una donación anterior. *(Hoy no hay dónde guardar esto: `resultado_analisis` solo guarda un PDF adjunto, sin campos estructurados — los campos tipo "enfermedades detectadas" están anotados como pendientes de v2 en `docs/01`. `donaciones.apto` existe pero es por-donación puntual, no está claro si alcanza para una inhabilitación permanente o si hace falta un campo nuevo en `usuarios`.)*
+4. El donante no cumple la edad (18-65) o el peso mínimo (50kg) cargados en su perfil. *(Hoy estos dos requisitos solo se **muestran como texto** en "Requisitos para donar" — `crearTurno()` no los valida contra `usuarios.fecha_nacimiento`/`usuarios.peso_kg` en ningún lado.)*
+
+**Otros casos que se me ocurren y conviene evaluar antes de definir el alcance final:**
+- Cuenta de donante suspendida por administración (`usuarios.activo:false`, o la acción "Suspender" de `admin/donantes.html`, que tampoco está cableada hoy — ver rol Super Admin).
+- La campaña ya no admite más turnos: cupo cubierto (`cantidad_donantes` alcanzada), `fecha_limite` vencida, o `estado` distinto de activa (pausada/cerrada). Hoy `crearTurno()` tampoco valida nada de esto del lado de la campaña.
+- Ausencias repetidas sin aviso (no-shows) — es más una decisión de producto (¿penalizar? ¿desde cuántas?) que una validación técnica; dejarla marcada como "a evaluar si se quiere", no asumida.
+- **Aclaración importante para no confundir con lo de arriba:** el **tipo de sangre NO es una restricción** para reservar turno — se corrigió recién esta misma sesión el copy que decía lo contrario en `campana_detalle.html` (x2) y `nueva_campana.html`, porque no es una restricción real en Argentina. Cualquier donante puede anotarse a cualquier campaña independientemente de su tipo de sangre.
+
+**Sobre la leyenda pedida:** cuando el botón esté deshabilitado por cualquiera de estos motivos, mostrar el motivo específico (no un mensaje genérico tipo "no disponible") — de la misma forma que ya lo hacen los mensajes de error de `actualizarTurno()`/`cancelarTurno()` hoy.
 
 ### Próximos pasos — Donante (orden sugerido)
 
