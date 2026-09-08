@@ -10,16 +10,21 @@
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/donante.css">
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
-
-
-
+  <style>
+    /* donante.css define "body { display:flex }" para el layout con sidebar
+       de las otras pantallas de donante (aside + .main como hijos en fila).
+       Esta pantalla no tiene sidebar — usa .form-topbar (una barra superior)
+       + <main> + <footer>, que necesitan apilarse verticalmente, no ir en fila.
+       Se pisa acá, en vez de tocar donante.css, para no afectar al resto de
+       las páginas que sí dependen del layout con sidebar. */
+    body { display: block; }
+  </style>
 </head>
 <body>
 
 <div class="form-topbar">
   <a class="nav-logo" href="../donante/dashboard.html">Hemo<span>red</span></a>
-  <span class="nav-user">Sofía Páez</span>
+  <span class="nav-user" data-sesion-nombre>—</span>
   <a class="nav-back" href="../donante/mis_turnos.html"><i class="ti ti-arrow-left" style="font-size:13px;"></i>Mis turnos</a>
 </div>
 
@@ -28,8 +33,8 @@
   <div class="turno-banner">
     <div class="turno-icon"><i class="ti ti-building-hospital" style="color:white;font-size:20px;"></i></div>
     <div>
-      <div class="turno-hosp">Hospital Ramos Mejía</div>
-      <div class="turno-meta-text">Mañana · martes 20 de mayo · 10:00hs · Campaña pediátrica</div>
+      <div class="turno-hosp" id="banner-hospital">—</div>
+      <div class="turno-meta-text" id="banner-meta">—</div>
     </div>
   </div>
 
@@ -143,164 +148,164 @@
       <div class="card-desc">Responda con veracidad sobre su estado de salud actual y reciente. Esta información es confidencial y se utiliza para evaluar si puede donar de forma segura.</div>
 
       <div class="sec-header"><div class="sec-title">Comprensión de la información</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="info_escrita_autoexclusion">
         <div class="excl-text">¿Se le ha proporcionado información escrita para su autoexclusión predonación?</div>
         <div class="excl-sino"><div class="excl-btn sel-no" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="comprendio_autoexclusion">
         <div class="excl-text">¿Ha comprendido las situaciones descriptas en el formulario de autoexclusión? (en caso de dudas, consulte con el profesional que lo atenderá)</div>
         <div class="excl-sino"><div class="excl-btn sel-no" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">Precaución en las próximas 12 horas</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="actividad_riesgo_12h">
         <div class="excl-text">¿Debe realizar alguna actividad laboral o deportiva de riesgo (trabajo en altura, escalada, etc.) o conducir un vehículo de transporte público?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">Medicación</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="medicacion_actual">
         <div class="excl-text">¿Está tomando o ha tomado en los últimos días algún medicamento?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="etretinato_psoriasis">
         <div class="excl-text">¿Ha tomado alguna vez Etretinato o alguna otra droga para psoriasis?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="medicacion_prostata">
         <div class="excl-text">¿Está tomando medicación para la próstata?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="aspirina_3dias">
         <div class="excl-text">¿Tomó aspirina o analgésicos en los últimos 3 días?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">En las últimas 2 semanas</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="fiebre_2sem">
         <div class="excl-text">¿Ha presentado fiebre, acompañada de dolor de cabeza y malestar general?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="dentista_2sem">
         <div class="excl-text">¿Ha visitado al dentista?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">En el último mes</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="vacuna_1mes">
         <div class="excl-text">¿Ha recibido alguna vacuna?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="contacto_enfermo_1mes">
         <div class="excl-text">¿Ha estado en contacto con alguna persona que padeciera una enfermedad?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">En los últimos 3 meses</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="tatuaje_piercing_3m">
         <div class="excl-text">¿Se realizó tatuajes, colocación de piercing, implantes dentales o acupuntura?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="endoscopia_3m">
         <div class="excl-text">¿Ha sido sometido a endoscopía (gastroscopía / colonoscopía)?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">En los últimos 6 meses</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="consulta_hospitalizacion_6m">
         <div class="excl-text">¿Ha asistido a la consulta de algún médico o ha estado hospitalizado?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="cirugia_6m">
         <div class="excl-text">¿Ha sido sometido a algún tipo de cirugía?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">En los últimos 12 meses</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="practica_riesgo_12m">
         <div class="excl-text">¿Tuvo alguna de las relaciones y/o prácticas sexuales de riesgo incrementado descriptas en el documento de autoexclusión?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="contacto_sangre_fluidos_12m">
         <div class="excl-text">¿Estuvo en contacto con sangre o fluidos corporales a través de piel o mucosas lesionadas?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="recibio_sangre_trasplante_12m">
         <div class="excl-text">¿Recibió sangre, componentes o algún trasplante?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="convivio_hepatitis_ictericia">
         <div class="excl-text">¿Convive o ha convivido con alguien que padeciera hepatitis o ictericia?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">En alguna ocasión en el transcurso de su vida</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="enfermedad_grave_control">
         <div class="excl-text">¿Ha padecido alguna enfermedad grave que exigió control médico periódico?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="hepatitis_higado">
         <div class="excl-text">¿Ha padecido hepatitis, ictericia o problemas de hígado?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="enfermedad_pulmon_cerebro_rinon">
         <div class="excl-text">¿Ha sufrido alguna enfermedad grave de pulmón, cerebro, riñón, tiroides, aparato digestivo u otras localizaciones?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="corazon_presion">
         <div class="excl-text">¿Ha padecido problemas de corazón o de la presión sanguínea?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="diabetes_insulina_animal">
         <div class="excl-text">¿Padece diabetes tratada con insulina de origen animal?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="cancer">
         <div class="excl-text">¿Ha padecido algún tipo de cáncer?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="hemorragia_anemia_leucemia">
         <div class="excl-text">¿Ha tenido hemorragias o alguna afección de la sangre como anemia o leucemia?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="drogas_iv_cocaina">
         <div class="excl-text">¿Se inyectó o se inyecta drogas intravenosas ilegales o aspiró cocaína regularmente?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="hormona_crecimiento_humano">
         <div class="excl-text">¿Ha recibido hormona de crecimiento de origen humano (antes de 1987)?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="tejido_trasplante">
         <div class="excl-text">¿Ha recibido tejido procedente de otra persona (duramadre, córnea u otros)?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="creutzfeldt_jakob">
         <div class="excl-text">¿Usted o algún familiar sufre o ha sufrido la enfermedad de Creutzfeldt-Jakob?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="paludismo">
         <div class="excl-text">¿Tuvo paludismo en los últimos 3 años o estuvo en el último año en áreas endémicas de la enfermedad?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="analisis_positivo_previo">
         <div class="excl-text">¿Le han dicho que tiene análisis positivos para VIH/SIDA, Hepatitis B o C, virus HTLV I-II, Chagas, brucelosis o sífilis?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">Estancias en el extranjero</div></div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="reino_unido_80_96">
         <div class="excl-text">¿Ha estado durante más de un año (sumando los períodos de permanencia) en el Reino Unido entre 1980 y 1996?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item">
+      <div class="excl-item" data-key="residio_extranjero">
         <div class="excl-text">¿Ha residido en algún otro país extranjero?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
       </div>
 
       <div class="sec-header"><div class="sec-title">Observaciones adicionales</div></div>
       <div class="form-group">
-        <textarea class="form-input" style="resize:vertical;min-height:70px;" placeholder="¿Desea informar algo más al profesional que lo atenderá?"></textarea>
+        <textarea class="form-input" id="input-observaciones" style="resize:vertical;min-height:70px;" placeholder="¿Desea informar algo más al profesional que lo atenderá?"></textarea>
       </div>
     </div>
 
@@ -324,7 +329,7 @@
       </div>
     </div>
 
-    <button class="btn-primary" onclick="irPaso(3)">
+    <button class="btn-primary" onclick="confirmarYEnviar()">
       <i class="ti ti-check"></i>Confirmar y enviar formularios
     </button>
     <button class="btn-outline" onclick="irPaso(1)">
@@ -368,10 +373,79 @@
 
 <script>
   const pads = {};
+  let turnoActual = null;
+
+  // Respuestas del cuestionario médico (paso 2), una clave corta por pregunta
+  // (ver los data-key en cada .excl-item). Arranca con los valores que ya
+  // están pre-seleccionados visualmente en el HTML (botón con clase "sel-no"
+  // por default en cada pregunta) para que ambos queden sincronizados.
+  const respuestas = {
+    info_escrita_autoexclusion: 'si',
+    comprendio_autoexclusion: 'si',
+    actividad_riesgo_12h: 'no',
+    medicacion_actual: 'no',
+    etretinato_psoriasis: 'no',
+    medicacion_prostata: 'no',
+    aspirina_3dias: 'no',
+    fiebre_2sem: 'no',
+    dentista_2sem: 'no',
+    vacuna_1mes: 'no',
+    contacto_enfermo_1mes: 'no',
+    tatuaje_piercing_3m: 'no',
+    endoscopia_3m: 'no',
+    consulta_hospitalizacion_6m: 'no',
+    cirugia_6m: 'no',
+    practica_riesgo_12m: 'no',
+    contacto_sangre_fluidos_12m: 'no',
+    recibio_sangre_trasplante_12m: 'no',
+    convivio_hepatitis_ictericia: 'no',
+    enfermedad_grave_control: 'no',
+    hepatitis_higado: 'no',
+    enfermedad_pulmon_cerebro_rinon: 'no',
+    corazon_presion: 'no',
+    diabetes_insulina_animal: 'no',
+    cancer: 'no',
+    hemorragia_anemia_leucemia: 'no',
+    drogas_iv_cocaina: 'no',
+    hormona_crecimiento_humano: 'no',
+    tejido_trasplante: 'no',
+    creutzfeldt_jakob: 'no',
+    paludismo: 'no',
+    analisis_positivo_previo: 'no',
+    reino_unido_80_96: 'no',
+    residio_extranjero: 'no',
+  };
 
   window.addEventListener('load', () => {
     setTimeout(() => initPad('sig-f1', 'f1-sig-st'), 150);
   });
+
+  document.addEventListener('DOMContentLoaded', cargarFormulario);
+
+  // Carga el turno real desde la URL (?turno_id=) y muestra sus datos reales
+  // en el banner de arriba, en vez del texto fijo que tenía esta pantalla.
+  async function cargarFormulario() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.requerirLogin('donante');
+    if (!s) return;
+
+    const turnoId = Number(new URLSearchParams(window.location.search).get('turno_id'));
+    turnoActual = HemoRed.db.find('turnos', turnoId);
+    // Si no vino un turno_id válido o pertenece a otro donante, no hay nada
+    // que completar acá — mandamos de vuelta a la lista de turnos reales.
+    if (!turnoActual || turnoActual.usuario_id !== s.usuario_id) {
+      window.location = '../donante/mis_turnos.html';
+      return;
+    }
+
+    const hospital = HemoRed.db.find('hospitales', turnoActual.hospital_id);
+    const campana = HemoRed.db.find('campanas', turnoActual.campana_id);
+    const fechaTexto = new Date(`${turnoActual.fecha}T00:00:00`)
+      .toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    document.getElementById('banner-hospital').textContent = hospital?.nombre || 'Hospital';
+    document.getElementById('banner-meta').textContent = `${fechaTexto} · ${turnoActual.hora}hs · ${campana?.titulo || 'Campaña'}`;
+  }
 
   function initPad(id, stId) {
     if (pads[id]) return;
@@ -423,6 +497,31 @@
   function excl(btn, val) {
     btn.parentElement.querySelectorAll('.excl-btn').forEach(b => b.className = 'excl-btn');
     btn.className = 'excl-btn ' + (val === 'si' ? 'sel-si' : 'sel-no');
+    const item = btn.closest('.excl-item');
+    if (item?.dataset.key) respuestas[item.dataset.key] = val;
+  }
+
+  // Guarda F1+F2 (ambas firmas, las ~34 respuestas y las observaciones) y
+  // recién si se guardó bien avanza a la pantalla de éxito — si algo falla
+  // (ej. faltó firmar el cuestionario), el donante se queda en el paso 2
+  // en vez de ver un "listo" falso.
+  function confirmarYEnviar() {
+    const padF2 = pads['sig-f2'];
+    if (!padF2 || padF2.isEmpty()) {
+      HemoRed.ui.toast('Falta firmar el cuestionario médico.', 'error');
+      return;
+    }
+    const resultado = HemoRed.data.guardarFormularioConsentimiento(turnoActual.id, {
+      firmaAutoexclusionUrl: pads['sig-f1'].toDataURL(),
+      firmaCuestionarioUrl: padF2.toDataURL(),
+      respuestas,
+      observaciones: document.getElementById('input-observaciones').value.trim(),
+    });
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+    irPaso(3);
   }
 
   function irPaso(n) {

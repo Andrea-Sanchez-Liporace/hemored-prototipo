@@ -71,6 +71,16 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. Tipo de sangre sigue el mismo criterio de escritura única: se puede elegir libremente hasta el primer guardado, y después la grilla queda bloqueada (clickear otra opción no cambia nada) — se prueba con la cuenta demo (que ya tiene tipo de sangre cargado) y con un registro nuevo.
 6. Empleadores frecuentes: además de agregar/eliminar, se puede **editar** el nombre de uno ya guardado (ícono lápiz, mini-form inline con el nombre actual precargado). Se prueba que el cambio persista tras recargar, que "Cancelar" no guarde nada, y que intentar renombrar a un nombre que ya usa otro empleador se rechace (el form queda abierto con lo escrito, no se pierde ni se cierra solo).
 
+**`formularios-predonacion.spec.js`** — Formularios pre-donación (F1 autoexclusión + F2 cuestionario médico), agregado 2026-09-08:
+
+1. El turno real se carga desde la URL (`?turno_id=`) y el banner muestra sus datos reales, no el texto fijo que tenía antes esta pantalla.
+2. El botón del paso 1 sigue bloqueado hasta tildar los 3 checkboxes **y** firmar — se prueban los estados intermedios, no solo el final.
+3. Confirmar sin haber firmado el cuestionario médico (paso 2) se rechaza con un toast, sin avanzar a la pantalla de éxito.
+4. Al guardar, se verifica directamente contra `localStorage` que se persistieron: las dos firmas (F1 y F2 son firmas distintas, en momentos distintos), las 34 respuestas del cuestionario —incluidas las que quedaron en su valor por default, no solo la que se cambió a propósito—, las observaciones, y que `donacion_id` quedó en `null` (la donación todavía no existe en este punto del flujo, la crea el profesional más adelante).
+5. "Mis turnos" refleja el estado completado en sus badges después de guardar.
+
+Nota: si el donante vuelve a entrar a un turno ya completado, el formulario aparece en blanco (no restaura respuestas/firmas guardadas) — es una limitación conocida, ver `docs/04`.
+
 ## Qué NO cubre todavía
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.

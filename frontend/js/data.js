@@ -182,6 +182,67 @@ HemoRed.data = (function() {
     return HemoRed.db.actualizar('turnos', turnoId, { estado: 'cancelado', motivo_rechazo: motivo || null });
   }
 
+  // Guarda F1 (autoexclusión) + F2 (cuestionario médico) para un turno puntual.
+  // F1/F2 es el formulario estándar que usan todos los hemocentros del país —
+  // acá NO se agrega ningún campo propio de HemoRed (ver nota en docs/01):
+  // "última donación" es un dato del perfil, no de este formulario.
+  //
+  // Se ancla a turno_id (no a donacion_id): al completar F1/F2 la donación
+  // todavía no existe como registro — la crea el profesional más adelante,
+  // en registrarDonacion(). Si ya había un registro para este turno (ej. el
+  // profesional lo completó o corrigió primero), lo actualiza en vez de
+  // duplicarlo, preservando lo que el profesional ya haya cargado.
+  function guardarFormularioConsentimiento(turnoId, { firmaAutoexclusionUrl, firmaCuestionarioUrl, respuestas, observaciones }) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+    if (!firmaAutoexclusionUrl || !firmaCuestionarioUrl) {
+      return { ok: false, error: 'Faltan una o ambas firmas.' };
+    }
+
+    const ahora = new Date().toISOString();
+    const existente = HemoRed.db.where('formulario_consentimiento', 'turno_id', turnoId)[0];
+
+    const datos = {
+      turno_id: turnoId,
+      donacion_id: existente?.donacion_id ?? null,
+      usuario_id: turno.usuario_id,
+      autoexclusion_completado_por: 'donante',
+      autoexclusion_fecha: ahora,
+      autoexclusion_modificado_por_profesional: existente?.autoexclusion_modificado_por_profesional ?? false,
+      autoexclusion_modificacion_fecha: existente?.autoexclusion_modificacion_fecha ?? null,
+      cuestionario_completado_por: 'donante',
+      cuestionario_fecha: ahora,
+      cuestionario_modificado_por_profesional: existente?.cuestionario_modificado_por_profesional ?? false,
+      cuestionario_modificacion_fecha: existente?.cuestionario_modificacion_fecha ?? null,
+      firma_donante_autoexclusion_url: firmaAutoexclusionUrl,
+      firma_donante_cuestionario_url: firmaCuestionarioUrl,
+      firma_profesional_perfil_url: existente?.firma_profesional_perfil_url ?? null,
+      firma_profesional_manual_url: existente?.firma_profesional_manual_url ?? null,
+      profesional_asistio_f1: existente?.profesional_asistio_f1 ?? false,
+      profesional_asistio_f2: existente?.profesional_asistio_f2 ?? false,
+      // Campos agregados 2026-09-08 (no estaban en el fixture original): sin
+      // esto no hay dónde guardar las ~34 respuestas Sí/No del cuestionario.
+      respuestas_cuestionario: respuestas,
+      observaciones: observaciones || null,
+      creado_en: existente?.creado_en ?? ahora,
+    };
+
+    const formulario = existente
+      ? HemoRed.db.actualizar('formulario_consentimiento', existente.id, datos)
+      : HemoRed.db.crear('formulario_consentimiento', datos);
+
+    HemoRed.db.actualizar('turnos', turnoId, {
+      formulario_autoexclusion_completado: true,
+      formulario_autoexclusion_completado_en: ahora,
+      autoexclusion_completado_por: 'donante',
+      formulario_cuestionario_completado: true,
+      formulario_cuestionario_completado_en: ahora,
+      cuestionario_completado_por: 'donante',
+    });
+
+    return { ok: true, formulario };
+  }
+
   async function cargarMisDocumentos() {
     const db = await HemoRed.db.init();
     const s = HemoRed.sesion.get();
@@ -327,6 +388,7 @@ HemoRed.data = (function() {
     cancelarTurno,
     confirmarTurno,
     rechazarTurno,
+    guardarFormularioConsentimiento,
     cargarMisTurnos,
     cargarMisDocumentos,
     actualizarPerfilDonante,

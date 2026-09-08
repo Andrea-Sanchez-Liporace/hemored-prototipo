@@ -318,7 +318,7 @@
           <span class="form-badge ${t.formulario_autoexclusion_completado ? 'fb-completado' : 'fb-disponible'}"><i class="ti ti-${t.formulario_autoexclusion_completado ? 'check' : 'pencil'}" style="font-size:10px;"></i>Autoexclusión ${t.formulario_autoexclusion_completado ? 'completado' : 'pendiente'}</span>
           <span class="form-badge ${t.formulario_cuestionario_completado ? 'fb-completado' : 'fb-disponible'}"><i class="ti ti-${t.formulario_cuestionario_completado ? 'check' : 'pencil'}" style="font-size:10px;"></i>Cuestionario ${t.formulario_cuestionario_completado ? 'completado' : 'pendiente'}</span>
         </div>
-        <button onclick="window.location='../donante/formularios_predonacion.html'" style="margin-top:10px;background:#ef647c;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;">
+        <button onclick="window.location='../donante/formularios_predonacion.html?turno_id=${t.id}'" style="margin-top:10px;background:#ef647c;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;">
           <i class="ti ti-arrow-right" style="font-size:12px;"></i>Completar formularios
         </button>
       </div>` : '';
