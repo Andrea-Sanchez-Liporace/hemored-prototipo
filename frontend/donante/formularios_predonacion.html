@@ -416,14 +416,18 @@
     residio_extranjero: 'no',
   };
 
-  window.addEventListener('load', () => {
-    setTimeout(() => initPad('sig-f1', 'f1-sig-st'), 150);
-  });
-
   document.addEventListener('DOMContentLoaded', cargarFormulario);
+
+  // Si ya existe un formulario guardado para este turno (ej. el donante lo
+  // completó antes y volvió a entrar), se guarda acá para restaurarlo.
+  let formularioExistente = null;
 
   // Carga el turno real desde la URL (?turno_id=) y muestra sus datos reales
   // en el banner de arriba, en vez del texto fijo que tenía esta pantalla.
+  // También inicializa el canvas de la firma 1 acá (antes se hacía en un
+  // listener de "load" aparte con un setTimeout arbitrario) — esperar a que
+  // termine db.init() ya garantiza que el layout está listo, y de paso nos
+  // deja un solo lugar desde donde restaurar la firma si hace falta.
   async function cargarFormulario() {
     await HemoRed.db.init();
     const s = HemoRed.sesion.requerirLogin('donante');
@@ -445,6 +449,56 @@
 
     document.getElementById('banner-hospital').textContent = hospital?.nombre || 'Hospital';
     document.getElementById('banner-meta').textContent = `${fechaTexto} · ${turnoActual.hora}hs · ${campana?.titulo || 'Campaña'}`;
+
+    initPad('sig-f1', 'f1-sig-st');
+
+    formularioExistente = HemoRed.db.where('formulario_consentimiento', 'turno_id', turnoId)[0] || null;
+    if (formularioExistente) restaurarFormularioExistente(formularioExistente);
+  }
+
+  // Repone en pantalla lo que el donante ya había completado antes: las
+  // respuestas del cuestionario (incluidas las que quedaron en su default),
+  // las observaciones, los 3 checks de F1 (si llegó a firmar, los 3 estaban
+  // tildados) y ambas firmas. La firma de F2 se restaura en irPaso(2), no
+  // acá, porque su canvas está oculto (display:none) hasta ese paso y
+  // dimensionarlo mientras está oculto lo dejaría con ancho 0.
+  function restaurarFormularioExistente(formulario) {
+    document.getElementById('input-observaciones').value = formulario.observaciones || '';
+
+    Object.entries(formulario.respuestas_cuestionario || {}).forEach(([key, val]) => {
+      seleccionarRespuesta(key, val);
+    });
+
+    ['check1', 'check2', 'check3'].forEach(id => {
+      document.getElementById(id).checked = true;
+      document.getElementById(id + '-wrap').classList.add('checked');
+    });
+
+    if (formulario.firma_donante_autoexclusion_url) {
+      restaurarFirma('sig-f1', 'f1-sig-st', formulario.firma_donante_autoexclusion_url);
+    }
+
+    actualizarBoton();
+  }
+
+  // Aplica una respuesta guardada a una pregunta del cuestionario sin
+  // necesidad de simular un click — mismo resultado visual que excl(),
+  // pero a partir de una clave y un valor en vez de un elemento clickeado.
+  function seleccionarRespuesta(key, val) {
+    const item = document.querySelector(`.excl-item[data-key="${CSS.escape(key)}"]`);
+    if (!item) return;
+    const botones = Array.from(item.querySelectorAll('.excl-btn'));
+    botones.forEach(b => b.className = 'excl-btn');
+    const objetivo = botones.find(b => b.textContent.trim() === (val === 'si' ? 'Sí' : 'No'));
+    if (objetivo) objetivo.className = 'excl-btn ' + (val === 'si' ? 'sel-si' : 'sel-no');
+    respuestas[key] = val;
+  }
+
+  function restaurarFirma(padId, stId, dataUrl) {
+    pads[padId].fromDataURL(dataUrl);
+    const el = document.getElementById(stId);
+    el.textContent = '✓ Firmado';
+    el.className = 'sig-badge firmado';
   }
 
   function initPad(id, stId) {
@@ -535,7 +589,14 @@
       pl.className = 'progress-label' + (i < n ? ' done' : i === n ? ' current' : '');
     });
     window.scrollTo(0, 0);
-    if (n === 2) setTimeout(() => initPad('sig-f2', 'f2-sig-st'), 150);
+    if (n === 2) {
+      setTimeout(() => {
+        initPad('sig-f2', 'f2-sig-st');
+        if (formularioExistente?.firma_donante_cuestionario_url) {
+          restaurarFirma('sig-f2', 'f2-sig-st', formularioExistente.firma_donante_cuestionario_url);
+        }
+      }, 150);
+    }
   }
 </script>
   <script src="../js/db.js"></script>

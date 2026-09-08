@@ -46,6 +46,7 @@ async function firmar(page, canvasSelector) {
 test.describe('Formularios pre-donación (F1 + F2)', () => {
 
   test('completar F1 y F2 persiste ambas firmas, las respuestas y actualiza el turno', async ({ page }) => {
+    let urlFormulario;
 
     await test.step('registrar un donante y reservar un turno', async () => {
       await page.goto('/publico/registro.html');
@@ -74,6 +75,7 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       await page.goto('/donante/mis_turnos.html');
       await page.click('button:has-text("Completar formularios")');
       await page.waitForURL('**/formularios_predonacion.html?turno_id=**');
+      urlFormulario = page.url();
 
       // El banner ya no debe mostrar el texto fijo viejo — tiene que reflejar
       // el turno real que se acaba de reservar.
@@ -149,6 +151,38 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       const turno = (overrides.turnos || []).find(t => t.id === formulario.turno_id);
       expect(turno.formulario_autoexclusion_completado).toBe(true);
       expect(turno.formulario_cuestionario_completado).toBe(true);
+    });
+
+    await test.step('volver a entrar al mismo turno restaura lo ya completado (no aparece en blanco)', async () => {
+      await page.goto(urlFormulario);
+      await page.waitForTimeout(300);
+
+      await expect(page.locator('#input-observaciones')).toHaveValue('Nota de prueba E2E.');
+      await expect(page.locator('#check1')).toBeChecked();
+      await expect(page.locator('#check2')).toBeChecked();
+      await expect(page.locator('#check3')).toBeChecked();
+      await expect(page.locator('.excl-item[data-key="fiebre_2sem"] .excl-btn.sel-si')).toHaveText('Sí');
+      await expect(page.locator('.excl-item[data-key="cancer"] .excl-btn.sel-no')).toHaveText('No');
+      await expect(page.locator('#f1-sig-st')).toHaveText('✓ Firmado');
+      // El botón solo se habilita si pads['sig-f1'].isEmpty() da false — confirma
+      // que fromDataURL() no solo dibujó la imagen sino que actualizó el estado
+      // interno del SignaturePad, no únicamente la apariencia visual.
+      await expect(page.locator('#btn-paso1')).toBeEnabled();
+
+      await page.click('#btn-paso1');
+      await expect(page.locator('#f2-sig-st')).toHaveText('✓ Firmado');
+
+      // Reenviar sin cambiar nada actualiza el mismo registro, no crea uno nuevo.
+      await page.click('button:has-text("Confirmar y enviar formularios")');
+      await expect(page.locator('#step-3')).toHaveClass(/active/);
+
+      // La tabla completa incluye los 2 registros semilla + el nuestro — lo
+      // que importa es que siga habiendo uno solo para ESTE turno (se
+      // actualizó el existente, no se duplicó).
+      const overridesTrasReenvio = await page.evaluate(() => JSON.parse(localStorage.getItem('hemored_overrides') || '{}'));
+      const turnoId = Number(new URL(page.url()).searchParams.get('turno_id'));
+      const paraEsteTurno = overridesTrasReenvio.formulario_consentimiento.filter(f => f.turno_id === turnoId);
+      expect(paraEsteTurno.length).toBe(1);
     });
   });
 

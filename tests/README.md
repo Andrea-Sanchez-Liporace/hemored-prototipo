@@ -78,8 +78,7 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 3. Confirmar sin haber firmado el cuestionario médico (paso 2) se rechaza con un toast, sin avanzar a la pantalla de éxito.
 4. Al guardar, se verifica directamente contra `localStorage` que se persistieron: las dos firmas (F1 y F2 son firmas distintas, en momentos distintos), las 34 respuestas del cuestionario —incluidas las que quedaron en su valor por default, no solo la que se cambió a propósito—, las observaciones, y que `donacion_id` quedó en `null` (la donación todavía no existe en este punto del flujo, la crea el profesional más adelante).
 5. "Mis turnos" refleja el estado completado en sus badges después de guardar.
-
-Nota: si el donante vuelve a entrar a un turno ya completado, el formulario aparece en blanco (no restaura respuestas/firmas guardadas) — es una limitación conocida, ver `docs/04`.
+6. Volver a entrar al mismo turno restaura todo lo ya completado (respuestas, observaciones, checks y ambas firmas — no aparece en blanco), y reenviar sin cambios actualiza el mismo registro en vez de duplicarlo.
 
 ## Qué NO cubre todavía
 
