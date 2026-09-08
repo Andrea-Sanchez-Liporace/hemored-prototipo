@@ -448,6 +448,14 @@ footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
 .btn-download { width: 100%; background: #ef647c; color: white; border: none; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
 .btn-download:hover { background: #d4537e; }
 .certificado-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+@media (max-width: 1024px) {
+  /* Van DESPUÉS de las reglas base de arriba a propósito: un @media puesto
+     antes de la regla base pierde contra ella (misma especificidad, gana la
+     que está más abajo en el archivo) — ya pasó dos veces en este mismo
+     archivo (.quick-stats). */
+  .resultado-layout { grid-template-columns: 1fr; }
+  .certificado-layout { grid-template-columns: 1fr; }
+}
 .cert-preview { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
 .cert-preview-header { background: #5a1e37; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; }
 .cert-logo { font-family: 'Lobster', cursive; font-size: 22px; color: white; }

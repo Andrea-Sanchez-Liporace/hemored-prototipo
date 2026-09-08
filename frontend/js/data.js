@@ -274,13 +274,81 @@ HemoRed.data = (function() {
     return { donante, donaciones, proximaFechaHabilitada, diasHastaHabilitado };
   }
 
+  // Trae los 4 tipos de documento del donante con sus datos completos ya
+  // resueltos (join), agrupados por pestaña. `documentos` es solo un índice
+  // (tipo + referencia_id) — acá se resuelve contra la tabla real que
+  // corresponda en cada caso. `formulario_consentimiento` no pasa por
+  // `documentos` (el donante ya lo tiene por su propio usuario_id, desde que
+  // se conectó el flujo F1/F2), así que se arma aparte.
   async function cargarMisDocumentos() {
-    const db = await HemoRed.db.init();
+    await HemoRed.db.init();
     const s = HemoRed.sesion.get();
-    if (!s) return;
+    if (!s) return { resultados: [], evaluaciones: [], certificados: [], consentimientos: [], donacionesSinCertificado: [] };
 
-    const docs = HemoRed.db.where('documentos', 'usuario_id', s.usuario_id);
-    return docs;
+    const hospitales = HemoRed.db.all('hospitales');
+    const turnos = HemoRed.db.all('turnos');
+    const docs = HemoRed.db.where('documentos', 'usuario_id', s.usuario_id).filter(d => d.visible);
+    const donaciones = HemoRed.db.where('donaciones', 'usuario_id', s.usuario_id);
+
+    const resultados = docs
+      .filter(d => d.tipo === 'resultado_analisis')
+      .map(d => ({ ...d, hospital: hospitales.find(h => h.id === d.hospital_id), analisis: HemoRed.db.find('resultado_analisis', d.referencia_id) }))
+      .filter(d => d.analisis?.visible_para_donante !== false);
+
+    const profesionales = HemoRed.db.all('profesionales');
+    const evaluaciones = docs
+      .filter(d => d.tipo === 'evaluacion_clinica')
+      .map(d => {
+        const donacion = donaciones.find(don => don.id === d.donacion_id);
+        const profesional = donacion ? profesionales.find(p => p.id === donacion.profesional_id) : null;
+        return { ...d, hospital: hospitales.find(h => h.id === d.hospital_id), donacion, profesional };
+      });
+
+    const certificados = docs
+      .filter(d => d.tipo === 'certificado')
+      .map(d => ({ ...d, hospital: hospitales.find(h => h.id === d.hospital_id), certificado: HemoRed.db.find('certificado_donacion', d.referencia_id) }));
+
+    // Donaciones que todavía no tienen ni un documento "certificado" (ni
+    // emitido ni pedido) — son las candidatas a mostrar el botón "Solicitar
+    // certificado". Con los 2 datos semilla no hay ningún caso así hoy (las
+    // dos ya tienen certificado emitido) — queda listo para cuando sí lo haya.
+    const donacionesSinCertificado = donaciones.filter(don => !docs.some(d => d.tipo === 'certificado' && d.donacion_id === don.id))
+      .map(don => ({ ...don, hospital: hospitales.find(h => h.id === don.hospital_id) }));
+
+    // formulario_consentimiento no pasa por `documentos` — el donante ya lo
+    // tiene indexado por su propio usuario_id desde que se conectó F1/F2.
+    const consentimientos = HemoRed.db.where('formulario_consentimiento', 'usuario_id', s.usuario_id).map(f => {
+      const turno = turnos.find(t => t.id === f.turno_id);
+      return { ...f, hospital: turno ? hospitales.find(h => h.id === turno.hospital_id) : null };
+    });
+
+    return { resultados, evaluaciones, certificados, consentimientos, donacionesSinCertificado };
+  }
+
+  // El donante pide el certificado de una donación que todavía no lo tiene.
+  // Crea el "documento" en estado pendiente (sin certificado_donacion
+  // todavía) — el hospital es quien más adelante lo emite de verdad
+  // (emitirCertificado(), ver docs/04, todavía sin conectar). No duplica el
+  // pedido si ya existe uno.
+  function solicitarCertificado(donacionId) {
+    const donacion = HemoRed.db.find('donaciones', donacionId);
+    if (!donacion) return { ok: false, error: 'Donación no encontrada.' };
+
+    const yaExiste = HemoRed.db.where('documentos', 'donacion_id', donacionId).some(d => d.tipo === 'certificado');
+    if (yaExiste) return { ok: false, error: 'Ya existe una solicitud o certificado para esta donación.' };
+
+    const hospital = HemoRed.db.find('hospitales', donacion.hospital_id);
+    const documento = HemoRed.db.crear('documentos', {
+      usuario_id: donacion.usuario_id,
+      hospital_id: donacion.hospital_id,
+      donacion_id: donacionId,
+      tipo: 'certificado',
+      referencia_id: null, // se completa cuando el hospital emite el certificado real
+      titulo: `Certificado de donación — ${hospital?.nombre || 'Hospital'}`,
+      fecha: donacion.registrado_en?.slice(0, 10) || null,
+      visible: true,
+    });
+    return { ok: true, documento };
   }
 
   // Actualiza cualquier subconjunto de campos del perfil del donante
@@ -423,6 +491,7 @@ HemoRed.data = (function() {
     cargarMisTurnos,
     cargarMisDonaciones,
     cargarMisDocumentos,
+    solicitarCertificado,
     actualizarPerfilDonante,
     actualizarPreferenciasNotificacion,
     agregarEmpleador,

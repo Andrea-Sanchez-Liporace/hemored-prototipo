@@ -87,6 +87,13 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 3. Los filtros de año/resultado, que ya eran funcionales antes sobre contenido fijo, siguen funcionando sobre las tarjetas reales.
 4. Un donante recién registrado (sin ninguna donación) ve el estado vacío correctamente, sin errores ni datos de otro donante.
 
+**`mis-documentos.spec.js`** — "Mis documentos" del donante (4 pestañas: Resultados, Evaluaciones clínicas, Certificados, Consentimientos), agregado 2026-09-08:
+
+1. Cada pestaña muestra datos reales de la cuenta demo — `documentos` es solo un índice, así que se prueba que el detalle traiga bien el join contra `resultado_analisis`/`certificado_donacion`/`donaciones`/`formulario_consentimiento`.
+2. **"Evaluaciones clínicas" estaba rota antes de este cambio** (tiraba un error de JS al clickear la pestaña) — el test explícitamente escucha errores de página y falla si aparece alguno, para no volver a dejarla rota sin darse cuenta.
+3. "Enviar observación" no tenía ningún `onclick` — se prueba que ahora valide el texto y confirme, y que rechace un envío vacío.
+4. Solicitar un certificado nuevo (caso que no existe en los datos semilla — ambas donaciones demo ya tienen certificado, así que el test lo fuerza borrando el documento existente vía `localStorage`) lo deja "Pendiente", y pedirlo dos veces se rechaza.
+
 ## Qué NO cubre todavía
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.

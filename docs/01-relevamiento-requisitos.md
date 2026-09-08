@@ -337,17 +337,14 @@ Campos adicionales específicos del rol donante (agregados 2026-09-01, ver `docs
 **`tipo_documento`** — `id (PK)`, `nombre`, `descripcion`, `activo (bool)`.
 > Catálogo administrado por el super admin. Permite agregar tipos de documento sin tocar código ni estructura de BD.
 
-**`documentos`** — `id (PK)`, `tipo_documento_id (FK)`, `donacion_id (FK)`, `donante_id (FK)`, `solicitud_id (FK?)`, `profesional_id (FK?)`, `fecha_carga`, `version`.
-> Nodo central. Concentra todas las relaciones. Patrón Table Inheritance.
+**`documentos`** *(corregido 2026-09-08 contra el fixture real de `frontend/db/documentos.json` — la versión anterior de esta fila no coincidía con los campos reales)* — `id (PK)`, `usuario_id (FK)`, `hospital_id (FK)`, `donacion_id (FK)`, `tipo (enum: resultado_analisis | certificado | evaluacion_clinica)`, `referencia_id`, `titulo`, `fecha`, `visible (bool)`.
+> Es un índice/puntero, no un "nodo central" con Table Inheritance real: cada fila apunta a un registro de la tabla que corresponda según `tipo` — `referencia_id` es el `id` en `resultado_analisis` o `certificado_donacion` (para `tipo: 'evaluacion_clinica'` no hay tabla hija propia: los signos vitales de esa evaluación viven directamente en `donaciones`, y `referencia_id` coincide con `donacion_id`). Solo el donante consulta esta tabla hoy (`cargarMisDocumentos()`); `formulario_consentimiento` NO pasa por acá — el donante la consulta directo por su propio `usuario_id` (ver más abajo).
 
-**`formulario_consentimiento`** (tabla hija docs) — `id (PK)`, `documento_id (FK único)`, `archivo_url`, `fecha_carga`.
-> Hoy guarda el PDF firmado por el donante. En v2 se agregan campos estructurados sin tocar la tabla padre.
+**`resultado_analisis`** *(corregido 2026-09-08, mucho más rico que lo documentado antes — no es un simple PDF)* — `id (PK)`, `donacion_id (FK)`, `hospital_id (FK)`, `usuario_id (FK)`, `numero_bolsa`, `vih`, `hepatitis_b`, `hepatitis_c`, `chagas`, `brucelosis`, `htlv`, `sifilis` (todos: resultado de cada estudio de infecciones transmisibles), `resultado_general`, `hemoglobina`, `hematocrito`, `grupo_sanguineo`, `factor_rh`, `procesado_en`, `laboratorio`, `visible_para_donante (bool)`.
+> El hospital carga estos valores estructurados directamente (no un PDF que hay que parsear). `visible_para_donante` permite ocultar un resultado del donante mientras se revisa antes de publicarlo — hoy siempre está en `true` en los datos semilla.
 
-**`certificado_donacion`** — `id (PK)`, `documento_id (FK único)`, `archivo_url`, `fecha_carga`.
-> Comprobante descargable por el donante. Prueba legal de que donó. En v2: número de certificado, volumen, tipo de donación.
-
-**`resultado_analisis`** — `id (PK)`, `documento_id (FK único)`, `archivo_url`, `fecha_carga`.
-> El hospital sube el PDF del análisis. En v2 se agregan campos como hemoglobina, hematocrito, enfermedades detectadas.
+**`certificado_donacion`** *(corregido 2026-09-08, ídem)* — `id (PK)`, `donacion_id (FK)`, `usuario_id (FK)`, `hospital_id (FK)`, `numero_certificado`, `fecha_donacion`, `volumen_ml`, `hospital_nombre`, `profesional_nombre`, `profesional_matricula`, `emitido_en`, `url_pdf (null hasta generar el PDF real)`.
+> El campo "emitido para" (a qué empresa/organismo se dirige el certificado) que se ve en la UI del donante **no se persiste** — es una edición solo-de-vista sobre la plantilla, igual que en la versión estática original; no hay campo en esta tabla para guardarlo (queda anotado como posible mejora futura, no implementada).
 
 **`turnos`** — `id (PK)`, `usuario_id (FK)`, `campana_id (FK)`, `fecha_turno`, `estado (enum)`.
 > Resuelve N:M entre donantes y campañas. Un donante puede anotarse a muchas campañas, una campaña puede tener muchos donantes.
