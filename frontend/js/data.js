@@ -243,6 +243,37 @@ HemoRed.data = (function() {
     return { ok: true, formulario };
   }
 
+  // Solo lectura: historial de donaciones reales del donante, con el
+  // hospital ya resuelto (mismo patrón de join que cargarMisTurnos()).
+  async function cargarMisDonaciones() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    if (!s) return { donante: null, donaciones: [], proximaFechaHabilitada: null, diasHastaHabilitado: 0 };
+
+    const donante = HemoRed.db.find('usuarios', s.usuario_id);
+    const hospitales = HemoRed.db.all('hospitales');
+    const donaciones = HemoRed.db.where('donaciones', 'usuario_id', s.usuario_id)
+      .map(d => ({ ...d, hospital: hospitales.find(h => h.id === d.hospital_id) }))
+      .sort((a, b) => new Date(b.registrado_en) - new Date(a.registrado_en));
+
+    // Misma ventana de 90 días que usa crearTurno() para habilitar la
+    // próxima reserva (AHORA_DEMO está declarado más arriba en este mismo
+    // archivo) — se calcula acá para no duplicar el número mágico en dos
+    // lugares. Si ya pasaron los 90 días, no hay nada que esperar.
+    let proximaFechaHabilitada = null;
+    let diasHastaHabilitado = 0;
+    if (donaciones[0]) {
+      const candidata = new Date(new Date(donaciones[0].registrado_en).getTime() + 90 * 86400000);
+      const dias = Math.ceil((candidata - AHORA_DEMO) / 86400000);
+      if (dias > 0) {
+        proximaFechaHabilitada = candidata;
+        diasHastaHabilitado = dias;
+      }
+    }
+
+    return { donante, donaciones, proximaFechaHabilitada, diasHastaHabilitado };
+  }
+
   async function cargarMisDocumentos() {
     const db = await HemoRed.db.init();
     const s = HemoRed.sesion.get();
@@ -390,6 +421,7 @@ HemoRed.data = (function() {
     rechazarTurno,
     guardarFormularioConsentimiento,
     cargarMisTurnos,
+    cargarMisDonaciones,
     cargarMisDocumentos,
     actualizarPerfilDonante,
     actualizarPreferenciasNotificacion,

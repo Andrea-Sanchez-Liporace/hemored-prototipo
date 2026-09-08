@@ -331,8 +331,8 @@ Campos adicionales específicos del rol donante (agregados 2026-09-01, ver `docs
 **`campanas`** — `id (PK)`, `hospital_id (FK)`, `paciente_id (FK?)`, `tipo_sangre`, `cantidad_donantes`, `fecha_limite`, `estado (enum)`, `descripcion`.
 > `paciente_id` es nullable: una campaña puede ser genérica (banco de sangre) o específica para un paciente identificado.
 
-**`donaciones`** — `id (PK)`, `turno_id (FK)`, `profesional_id (FK)`, `fecha_donacion`, `apto (bool)`, `notificado (bool)`.
-> Separa el turno (intención) de la donación (hecho real). Un turno puede cancelarse — solo existe donación cuando el donante se presentó efectivamente.
+**`donaciones`** — `id (PK)`, `turno_id (FK)`, `campana_id (FK)`, `usuario_id (FK)`, `hospital_id (FK)`, `profesional_id (FK)`, `numero_bolsa`, `volumen_ml`, `hora_inicio`, `hora_fin`, `tipo_bolsa`, `presion_arterial`, `frecuencia_cardiaca`, `temperatura`, `glucosa`, `peso_kg`, `hemoglobina`, `resultado_apto (bool)`, `reacciones`, `observaciones`, `registrado_en`. *(corregido 2026-09-08 contra el fixture real de `frontend/db/donaciones.json` — la versión anterior de esta fila tenía `apto`/`fecha_donacion`/`notificado`, que no coinciden con los nombres reales de los campos ni reflejaban los signos vitales que sí se registran.)*
+> Separa el turno (intención) de la donación (hecho real). Un turno puede cancelarse — solo existe donación cuando el donante se presentó efectivamente. El campo es `resultado_apto`, no `apto` — si en algún momento se conecta el flujo de "Atención clínica" del profesional (`docs/04`), usar ese nombre.
 
 **`tipo_documento`** — `id (PK)`, `nombre`, `descripcion`, `activo (bool)`.
 > Catálogo administrado por el super admin. Permite agregar tipos de documento sin tocar código ni estructura de BD.

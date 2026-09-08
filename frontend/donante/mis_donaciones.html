@@ -63,7 +63,7 @@
           <i class="ti ti-heart-filled" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div>
-          <div class="qstat-num">3</div>
+          <div class="qstat-num" id="stat-total-donaciones">—</div>
           <div class="qstat-label">Donaciones totales</div>
         </div>
       </div>
@@ -72,7 +72,7 @@
           <i class="ti ti-droplet" style="color:#27ae60;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div>
-          <div class="qstat-num">1.350 ml</div>
+          <div class="qstat-num" id="stat-total-ml">—</div>
           <div class="qstat-label">Total de sangre donada</div>
         </div>
       </div>
@@ -81,28 +81,28 @@
           <i class="ti ti-calendar" style="color:#5a1e37;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div>
-          <div class="qstat-num">12 mar 2026</div>
+          <div class="qstat-num" id="stat-ultima-donacion">—</div>
           <div class="qstat-label">Última donación</div>
         </div>
       </div>
     </div>
 
-    <!-- PRÓXIMA FECHA HABILITADA -->
-    <div class="proximo-banner" style="margin-bottom:28px;">
+    <!-- PRÓXIMA FECHA HABILITADA (solo si todavía no pasaron los 90 días) -->
+    <div class="proximo-banner" id="proximo-banner" style="margin-bottom:28px;display:none;">
       <div class="pb-left">
         <div class="pb-icon">
           <i class="ti ti-calendar-check" style="color:white;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div>
           <div class="pb-label">Próxima fecha habilitada para donar</div>
-          <div class="pb-value">12 de junio de 2026 · Faltan 4 días</div>
+          <div class="pb-value" id="proximo-banner-valor">—</div>
         </div>
       </div>
       <button class="pb-btn" onclick="window.location='../donante/dashboard.html'">Buscar campaña</button>
     </div>
 
     <!-- FILTROS + HISTORIAL -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <div class="section-title" style="margin-bottom:0;">Historial de donaciones</div>
       <div class="filtros" id="filtros-donaciones">
         <select class="filter-select" id="f-anio" onchange="filtrarDonaciones()">
@@ -120,94 +120,7 @@
     </div>
 
     <div id="lista-donaciones" class="turnos-list">
-
-      <div class="turno-card" data-anio="2026" data-resultado="apto">
-        <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
-          <div class="turno-date-day" style="color:#1a6b3a;">12</div>
-          <div class="turno-date-month" style="color:#27ae60;">mar</div>
-        </div>
-        <div class="turno-info">
-          <div class="turno-hospital">Hospital San Martín</div>
-          <div class="turno-meta">
-            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · 450 ml</div>
-            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>La Plata</div>
-            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20260312-0007</div>
-          </div>
-        </div>
-        <div class="turno-right">
-          <span class="turno-badge confirmado">Apto</span>
-          <div class="turno-actions">
-            <button class="btn-sm btn-sm-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
-            <button class="btn-sm btn-sm-outline">Comprobante</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="turno-card" data-anio="2025" data-resultado="apto">
-        <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
-          <div class="turno-date-day" style="color:#1a6b3a;">18</div>
-          <div class="turno-date-month" style="color:#27ae60;">nov</div>
-        </div>
-        <div class="turno-info">
-          <div class="turno-hospital">Hospital Italiano</div>
-          <div class="turno-meta">
-            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · 450 ml</div>
-            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20251118-0006</div>
-          </div>
-        </div>
-        <div class="turno-right">
-          <span class="turno-badge confirmado">Apto</span>
-          <div class="turno-actions">
-            <button class="btn-sm btn-sm-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
-            <button class="btn-sm btn-sm-outline">Comprobante</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="turno-card" data-anio="2025" data-resultado="no-apto">
-        <div class="turno-date" style="background:#fde8e8;border-color:#e74c3c;">
-          <div class="turno-date-day" style="color:#922b21;">03</div>
-          <div class="turno-date-month" style="color:#c0392b;">ago</div>
-        </div>
-        <div class="turno-info">
-          <div class="turno-hospital">Hospital Garrahan</div>
-          <div class="turno-meta">
-            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · evaluación diferida</div>
-            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20250803-0005</div>
-          </div>
-        </div>
-        <div class="turno-right">
-          <span class="turno-badge cancelado">No apta</span>
-          <div class="turno-actions">
-            <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_documentos.html'">Ver motivo</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="turno-card" data-anio="2025" data-resultado="apto">
-        <div class="turno-date" style="background:#f0f8f4;border-color:#27ae60;">
-          <div class="turno-date-day" style="color:#1a6b3a;">21</div>
-          <div class="turno-date-month" style="color:#27ae60;">abr</div>
-        </div>
-        <div class="turno-info">
-          <div class="turno-hospital">Hospital Ramos Mejía</div>
-          <div class="turno-meta">
-            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>0− · 450 ml</div>
-            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>CABA</div>
-            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#DON-20250421-0004</div>
-          </div>
-        </div>
-        <div class="turno-right">
-          <span class="turno-badge confirmado">Apto</span>
-          <div class="turno-actions">
-            <button class="btn-sm btn-sm-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
-            <button class="btn-sm btn-sm-outline">Comprobante</button>
-          </div>
-        </div>
-      </div>
-
+      <!-- Se renderiza dinámicamente vía HemoRed.data.cargarMisDonaciones() -->
     </div>
 
     <div id="sin-resultados" style="display:none;" class="empty-state">
@@ -241,9 +154,81 @@
 <script src="../js/ui.js"></script>
 <script src="../js/data.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  // El tipo de sangre no es un dato por-donación (no vive en `donaciones`),
+  // es del perfil del donante — se resuelve una sola vez y se reusa en
+  // todas las tarjetas.
+  function donacionCardHTML(d, tipoSangre) {
+    const fecha = new Date(d.registrado_en);
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = fecha.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '');
+    const anio = fecha.getFullYear();
+
+    // resultado_apto puede ser true/false/null (evaluación todavía no
+    // cargada) — hoy el fixture solo tiene casos true, pero el fallback
+    // "pendiente" evita que la tarjeta rompa si algún día hay uno sin definir.
+    const apto = d.resultado_apto;
+    const resultadoKey = apto === true ? 'apto' : apto === false ? 'no-apto' : 'pendiente';
+    const esNoApto = apto === false;
+    const dateStyle = esNoApto ? 'background:#fde8e8;border-color:#e74c3c;' : 'background:#f0f8f4;border-color:#27ae60;';
+    const dayColor = esNoApto ? 'color:#922b21;' : 'color:#1a6b3a;';
+    const monthColor = esNoApto ? 'color:#c0392b;' : 'color:#27ae60;';
+    const badgeClase = esNoApto ? 'cancelado' : 'confirmado';
+    const badgeTexto = apto === true ? 'Apto' : apto === false ? 'No apta' : 'Pendiente';
+    const volumen = d.volumen_ml ? `${d.volumen_ml} ml` : 'evaluación diferida';
+
+    const acciones = esNoApto
+      ? `<button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_documentos.html'">Ver motivo</button>`
+      : `<button class="btn-sm btn-sm-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
+         <button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_documentos.html'">Comprobante</button>`;
+
+    return `
+      <div class="turno-card" data-anio="${anio}" data-resultado="${resultadoKey}">
+        <div class="turno-date" style="${dateStyle}">
+          <div class="turno-date-day" style="${dayColor}">${dia}</div>
+          <div class="turno-date-month" style="${monthColor}">${mes}</div>
+        </div>
+        <div class="turno-info">
+          <div class="turno-hospital">${d.hospital?.nombre || '—'}</div>
+          <div class="turno-meta">
+            <div class="turno-meta-item"><i class="ti ti-droplet" style="color:#a9435d;" aria-hidden="true"></i>${tipoSangre || '—'} · ${volumen}</div>
+            <div class="turno-meta-item"><i class="ti ti-map-pin" style="color:#a9435d;" aria-hidden="true"></i>${d.hospital?.ciudad || '—'}</div>
+            <div class="turno-meta-item"><i class="ti ti-hash" style="color:#a9435d;" aria-hidden="true"></i>#${d.numero_bolsa || ('DON-' + d.id)}</div>
+          </div>
+        </div>
+        <div class="turno-right">
+          <span class="turno-badge ${badgeClase}">${badgeTexto}</span>
+          <div class="turno-actions">${acciones}</div>
+        </div>
+      </div>`;
+  }
+
+  async function renderMisDonaciones() {
+    const { donante, donaciones, proximaFechaHabilitada, diasHastaHabilitado } = await HemoRed.data.cargarMisDonaciones();
+
+    document.getElementById('lista-donaciones').innerHTML = donaciones.map(d => donacionCardHTML(d, donante?.tipo_sangre)).join('');
+    document.getElementById('sin-resultados').style.display = donaciones.length ? 'none' : '';
+
+    document.getElementById('stat-total-donaciones').textContent = donaciones.length;
+    const totalMl = donaciones.reduce((sum, d) => sum + (d.volumen_ml || 0), 0);
+    document.getElementById('stat-total-ml').textContent = totalMl ? `${totalMl.toLocaleString('es-AR')} ml` : '—';
+    document.getElementById('stat-ultima-donacion').textContent = donaciones[0]
+      ? new Date(donaciones[0].registrado_en).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—';
+
+    const banner = document.getElementById('proximo-banner');
+    if (proximaFechaHabilitada) {
+      const fechaLabel = new Date(proximaFechaHabilitada).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('proximo-banner-valor').textContent = `${fechaLabel} · Faltan ${diasHastaHabilitado} día${diasHastaHabilitado === 1 ? '' : 's'}`;
+      banner.style.display = '';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('donante');
     HemoRed.sesion.inyectarPerfil();
+    await renderMisDonaciones();
   });
 </script>
 </body>

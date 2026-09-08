@@ -80,6 +80,13 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. "Mis turnos" refleja el estado completado en sus badges después de guardar.
 6. Volver a entrar al mismo turno restaura todo lo ya completado (respuestas, observaciones, checks y ambas firmas — no aparece en blanco), y reenviar sin cambios actualiza el mismo registro en vez de duplicarlo.
 
+**`mis-donaciones.spec.js`** — "Mis donaciones" del donante (solo lectura), agregado 2026-09-08:
+
+1. Con la cuenta demo (que tiene una donación real en los datos semilla), las estadísticas, el banner de "próxima fecha habilitada" y la tarjeta del historial muestran datos reales, no el contenido fijo que tenía antes esta pantalla.
+2. La "próxima fecha habilitada" usa la misma ventana de 90 días que ya usa `crearTurno()` para bloquear una reserva — se prueba el número exacto para no perder de vista si en algún momento se resuelve el pendiente de "85 vs. 90 días" (ver `docs/04`).
+3. Los filtros de año/resultado, que ya eran funcionales antes sobre contenido fijo, siguen funcionando sobre las tarjetas reales.
+4. Un donante recién registrado (sin ninguna donación) ve el estado vacío correctamente, sin errores ni datos de otro donante.
+
 ## Qué NO cubre todavía
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.

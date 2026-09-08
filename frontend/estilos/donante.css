@@ -220,6 +220,23 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
   .quick-stats { grid-template-columns: 1fr; }
   .qstat:last-child { grid-column: span 1; }
 }
+@media (max-width: 640px) {
+  /* .turno-card es "display:flex;align-items:center" en una sola fila
+     (fecha + info + badge/acciones) — a este ancho no entran los 3 bloques
+     lado a lado sin amontonarse (usado en mis_turnos.html y
+     mis_donaciones.html). Se apila verticalmente; .turno-right pasa a fila
+     horizontal (badge a la izquierda, botones a la derecha) en vez de
+     columna, porque en una columna angosta se ve mejor así. */
+  .turno-card { flex-direction: column; align-items: stretch; }
+  .turno-right { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+@media (max-width: 480px) {
+  /* .proximo-banner (usado en mis_turnos.html y mis_donaciones.html) tiene
+     el mismo problema: fila con "white-space:nowrap" en el botón, que le
+     deja muy poco ancho al texto y lo apila en 3-4 líneas angostas. */
+  .proximo-banner { flex-direction: column; align-items: stretch; }
+  .pb-btn { width: 100%; }
+}
 
 /* === MISSING STYLES RECOVERED FROM ORIGINALS === */
 /* From donante/dashboard.html */
@@ -249,7 +266,14 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .pt-value { font-size: 15px; font-weight: 500; color: white; }
 .pt-btn { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: Inter, sans-serif; white-space: nowrap; }
 .qstat-icon { width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-@media (max-width: 1024px) { .campaigns-grid { grid-template-columns: 1fr; } .quick-stats { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1024px) { .campaigns-grid { grid-template-columns: 1fr; } }
+/* Nota: acá NO se toca .quick-stats — ya tiene su propia responsividad más
+   abajo (768px → 2 columnas, 480px → 1 columna). Redeclararlo acá con
+   "repeat(3, 1fr)" (idéntico al valor base de la línea de arriba, así que
+   no cambiaba nada en tablet) pisaba esas reglas más específicas en mobile,
+   porque en CSS todos los @media que matchean aplican y, a igual
+   especificidad, gana el que está más abajo en el archivo — no "el más
+   específico". Bug real, afectaba a toda página que use .quick-stats. */
 @media (max-width: 768px) { .campaigns-grid { grid-template-columns: 1fr; } }
 /* === ADDITIONAL MISSING STYLES FROM DONANTE PAGES === */
 .topbar-back:hover { color: #5a1e37; }

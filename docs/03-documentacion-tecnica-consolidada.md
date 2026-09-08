@@ -297,7 +297,7 @@ HemoRed es una plataforma web de acceso libre desde cualquier navegador, sin ins
 
 **Registrar evaluación clínica (F3)**
 - *Usuario:* registrás signos vitales (presión, frecuencia cardíaca, temperatura, glucosa, peso, hemoglobina) con rangos de referencia visibles. "Apto para donar" requiere firma manual en pantalla (distinta de la firma de perfil, verifica presencia física). "No apto" requiere motivo y firma; el turno se cierra.
-- *Técnico:* persiste signos vitales y decisión en `donaciones`. Firma manual en `firma_profesional_manual_url` (diferenciada de `firma_profesional_perfil_url`, permite auditoría de identidad por comparación). `no_apto` → `apto: false` en `donaciones`, `estado: no_apto` en `turnos`, fin del flujo. La firma manual es obligatoria, no puede omitirse ni reemplazarse por la de perfil.
+- *Técnico:* persiste signos vitales y decisión en `donaciones`. Firma manual en `firma_profesional_manual_url` (diferenciada de `firma_profesional_perfil_url`, permite auditoría de identidad por comparación). `no_apto` → `resultado_apto: false` en `donaciones` (campo corregido 2026-09-08, ver `docs/01`), `estado: no_apto` en `turnos`, fin del flujo. La firma manual es obligatoria, no puede omitirse ni reemplazarse por la de perfil.
 
 **Registrar extracción y generar QR post-donación**
 - *Usuario:* si el donante fue apto, registrás la extracción: número de bolsa, volumen (ml), tipo de bolsa, horarios de inicio/fin, reacciones. Al confirmar se genera un QR (formulario F4 anónimo, sobre uso para transfusión) que se muestra antes de que el donante se retire; también podés enviar un link de respaldo a su casilla interna.
