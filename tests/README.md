@@ -91,8 +91,22 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 
 1. Cada pestaña muestra datos reales de la cuenta demo — `documentos` es solo un índice, así que se prueba que el detalle traiga bien el join contra `resultado_analisis`/`certificado_donacion`/`donaciones`/`formulario_consentimiento`.
 2. **"Evaluaciones clínicas" estaba rota antes de este cambio** (tiraba un error de JS al clickear la pestaña) — el test explícitamente escucha errores de página y falla si aparece alguno, para no volver a dejarla rota sin darse cuenta.
-3. "Enviar observación" no tenía ningún `onclick` — se prueba que ahora valide el texto y confirme, y que rechace un envío vacío.
+3. "Reportar dato incorrecto" (reemplazó al viejo "Enviar observación", que no persistía nada) abre el modal de solicitud de corrección — el flujo completo de aprobación/rechazo se prueba en `solicitudes-correccion.spec.js`, acá solo se confirma que el botón abra el modal correcto.
 4. Solicitar un certificado nuevo (caso que no existe en los datos semilla — ambas donaciones demo ya tienen certificado, así que el test lo fuerza borrando el documento existente vía `localStorage`) lo deja "Pendiente", y pedirlo dos veces se rechaza.
+
+**`solicitudes-correccion.spec.js`** — flujo completo de "Solicitudes de corrección" sobre **certificados de donación** (donante + hospital), agregado 2026-09-08. **Es exclusivo de certificados** — el formulario de consentimiento no tiene este flujo (son documentos de otra naturaleza, se firman antes de donar, no se "solicitan" para un tercero):
+
+1. El donante marca un campo del certificado como incorrecto (ej. "Apellido"), escribe la corrección propuesta y la envía — se prueba que mandarla sin completar el valor propuesto se rechace, que "Volumen donado"/"Profesional a cargo"/"Hospital" no aparezcan como opciones reportables (son datos que carga el sistema, no algo que el donante controle), y que mientras quede "pendiente" no se pueda mandar una segunda solicitud para el mismo certificado (`crearSolicitudCorreccion()` la rechaza).
+2. **Estado visible del certificado** (badge en la lista + detalle, calculado contra la última solicitud, no un campo nuevo): al enviar la solicitud pasa a "En revisión"; si el hospital aprueba, a "Emitido con corrección" (y se verifica el dato real cambiado en `certificado_donacion`); si rechaza, vuelve a "Emitido" sin marca (y se verifica que el DNI original NO cambió). En cualquier estado, el detalle sigue mostrando el desglose completo de la solicitud (no se pierde el historial del pedido).
+3. El hospital ve la solicitud en la 3ª pestaña de `hospital/documentacion.html` ("Solicitudes de corrección"), con el badge de pendientes actualizado, revisa el modal (dato actual tachado vs. corrección propuesta) y aprueba o rechaza (exige motivo para rechazar).
+4. Al rechazar, se prueba que se genere una **notificación real** (no solo un aviso en el certificado): el botón "Ver notificaciones" del certificado lleva a `notificaciones.html` y ahí aparece la notificación sin leer con el motivo exacto que escribió el hospital.
+5. Caso aparte, explícito: la vista de "Consentimientos" no tiene ningún botón "Reportar dato incorrecto" — confirma que el flujo no se filtró ahí por error.
+
+**`notificaciones.spec.js`** — "Notificaciones" del donante, agregado 2026-09-08 (pasó de ser 100% estática a leer datos reales, adelantada junto con "Solicitudes de corrección" porque el aviso de rechazo la necesitaba):
+
+1. Los 6 ejemplos que antes eran HTML fijo ahora son datos semilla reales (`frontend/db/notificaciones_donante.json`), agrupados en "Hoy"/"Ayer"/"Esta semana" contra la misma fecha fija de demo que usa el resto del sitio.
+2. Los filtros por tipo ("Documentos", etc.) y "No leídas" — que ya eran funcionales sobre contenido fijo — ahora filtran datos reales.
+3. Clickear una notificación la marca como leída de verdad (persiste tras recargar la página); "Marcar todas como leídas" hace lo mismo para todas.
 
 ## Qué NO cubre todavía
 

@@ -64,6 +64,10 @@
         <i class="ti ti-certificate" style="font-size:14px;"></i>Certificados
         <span class="tab-badge">2</span>
       </button>
+      <button class="tab" onclick="cambiarTab('solicitudes', this)">
+        <i class="ti ti-flag" style="font-size:14px;"></i>Solicitudes de corrección
+        <span class="tab-badge" id="badge-solicitudes">0</span>
+      </button>
     </div>
 
     <!-- TAB RESULTADOS -->
@@ -248,6 +252,49 @@
       </div>
     </div>
 
+    <!-- TAB SOLICITUDES DE CORRECCIÓN -->
+    <div id="tab-solicitudes" style="display:none;">
+      <div class="pendientes-banner">
+        <div class="pb-left">
+          <div class="pb-icon"><i class="ti ti-flag" style="color:white;font-size:20px;"></i></div>
+          <div>
+            <div class="pb-title" id="solicitudes-pendientes-titulo">No hay solicitudes pendientes</div>
+            <div class="pb-sub">Correcciones de datos reportadas por donantes sobre sus certificados de donación</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="tabla-solicitudes-wrap">
+        <div class="table-header" style="grid-template-columns:2fr 1fr 1fr 120px;">
+          <div class="th">Donante</div>
+          <div class="th hide-md">Fecha del reclamo</div>
+          <div class="th">Estado</div>
+          <div class="th"></div>
+        </div>
+        <div id="lista-solicitudes"><!-- renderizado dinámico vía HemoRed.data.cargarSolicitudesCorreccion() --></div>
+      </div>
+      <div class="empty-state" id="sin-solicitudes" style="display:none;">
+        <div class="empty-title">No hay solicitudes de corrección</div>
+        <div class="empty-text">Cuando un donante reporte un dato incorrecto en su certificado de donación, va a aparecer acá.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL REVISAR SOLICITUD DE CORRECCIÓN -->
+<div class="modal-overlay" id="modal-solicitud">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Revisar solicitud de corrección</div>
+      <button class="modal-close" onclick="cerrarModal('modal-solicitud')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="modal-solicitud-body">
+      <!-- renderizado dinámico vía abrirRevisionSolicitud() -->
+    </div>
+    <div class="modal-actions" id="modal-solicitud-acciones">
+      <!-- renderizado dinámico vía abrirRevisionSolicitud() -->
+    </div>
   </div>
 </div>
 
@@ -363,6 +410,7 @@
     el.classList.add('active');
     document.getElementById('tab-resultados').style.display = tab === 'resultados' ? 'block' : 'none';
     document.getElementById('tab-certificados').style.display = tab === 'certificados' ? 'block' : 'none';
+    document.getElementById('tab-solicitudes').style.display = tab === 'solicitudes' ? 'block' : 'none';
   }
   function abrirModalResultado() {
     document.getElementById('modal-resultado').classList.add('active');
@@ -372,10 +420,142 @@
     document.getElementById('modal-certificado').classList.add('active');
     document.body.style.overflow = 'hidden';
   }
+  function abrirModal(id) {
+    document.getElementById(id).classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
   function cerrarModal(id) {
     document.getElementById(id).classList.remove('active');
     document.body.style.overflow = '';
   }
+
+  // ===== SOLICITUDES DE CORRECCIÓN =====
+  let solicitudesActuales = [];
+  let solicitudEnRevision = null;
+
+  function fechaCorta(fechaStr) {
+    if (!fechaStr) return '—';
+    return new Date(fechaStr).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+  }
+  function fechaHoraCorta(fechaStr) {
+    if (!fechaStr) return '—';
+    const d = new Date(fechaStr);
+    return fechaCorta(fechaStr) + ' · ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) + 'hs';
+  }
+  function labelCampo(campo) {
+    return HemoRed.data.CAMPOS_CORREGIBLES[campo]?.label || campo;
+  }
+  function badgeClaseSolicitud(estado) {
+    if (estado === 'aprobada') return 'badge-cargado';
+    if (estado === 'rechazada') return 'badge-vencida';
+    return 'badge-pendiente';
+  }
+  function estadoLabelSolicitud(estado) {
+    if (estado === 'aprobada') return 'Aprobada';
+    if (estado === 'rechazada') return 'Rechazada';
+    return 'Pendiente';
+  }
+
+  async function cargarSolicitudes() {
+    solicitudesActuales = await HemoRed.data.cargarSolicitudesCorreccion();
+    renderSolicitudes();
+  }
+
+  function renderSolicitudes() {
+    document.getElementById('lista-solicitudes').innerHTML = solicitudesActuales.map(s => `
+      <div class="doc-row" style="grid-template-columns:2fr 1fr 1fr 120px;">
+        <div class="donante-info">
+          <div class="donante-avatar">${s.donante?.avatar_iniciales || '?'}</div>
+          <div>
+            <div class="donante-nombre">${s.donante?.nombre || ''} ${s.donante?.apellido || ''}</div>
+            <div class="donante-sub">${s.campos.length} dato${s.campos.length === 1 ? '' : 's'} reportado${s.campos.length === 1 ? '' : 's'} del certificado</div>
+          </div>
+        </div>
+        <div class="td hide-md">${fechaCorta(s.fecha_solicitud)}</div>
+        <div class="td"><span class="doc-badge ${badgeClaseSolicitud(s.estado)}">${estadoLabelSolicitud(s.estado)}</span></div>
+        <div class="row-actions">
+          <button class="btn-xs ${s.estado === 'pendiente' ? 'btn-xs-primary' : 'btn-xs-outline'}" onclick="abrirRevisionSolicitud(${s.id})">
+            <i class="ti ti-eye" style="font-size:11px;"></i>${s.estado === 'pendiente' ? 'Revisar' : 'Ver'}
+          </button>
+        </div>
+      </div>`).join('');
+
+    const hayAlguna = solicitudesActuales.length > 0;
+    document.getElementById('sin-solicitudes').style.display = hayAlguna ? 'none' : '';
+    document.getElementById('tabla-solicitudes-wrap').style.display = hayAlguna ? '' : 'none';
+
+    const pendientes = solicitudesActuales.filter(s => s.estado === 'pendiente').length;
+    document.getElementById('badge-solicitudes').textContent = pendientes;
+    document.getElementById('solicitudes-pendientes-titulo').textContent = pendientes === 0
+      ? 'No hay solicitudes pendientes'
+      : `${pendientes} solicitud${pendientes === 1 ? '' : 'es'} pendiente${pendientes === 1 ? '' : 's'} de revisión`;
+  }
+
+  function abrirRevisionSolicitud(id) {
+    const s = solicitudesActuales.find(x => x.id === id);
+    if (!s) return;
+    solicitudEnRevision = s;
+
+    const filasCampos = s.campos.map(c => `
+      <div style="border:0.5px solid #e8d0d8;border-radius:10px;padding:12px 14px;margin-top:12px;">
+        <div style="font-size:11px;color:#a9435d;text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:6px;">${labelCampo(c.campo)}</div>
+        <div style="display:flex;gap:14px;align-items:center;">
+          <div style="flex:1;">
+            <div style="font-size:10px;color:#a9435d;">Dato actual</div>
+            <div style="font-size:13px;color:#5a1e37;text-decoration:line-through;opacity:0.7;">${c.valor_actual || '—'}</div>
+          </div>
+          <i class="ti ti-arrow-right" style="color:#ef647c;"></i>
+          <div style="flex:1;">
+            <div style="font-size:10px;color:#a9435d;">Corrección propuesta</div>
+            <div style="font-size:13px;color:#5a1e37;font-weight:500;">${c.valor_propuesto}</div>
+          </div>
+        </div>
+      </div>`).join('');
+
+    const bloqueResuelto = s.estado !== 'pendiente' ? `
+      <div style="margin-top:14px;padding:10px 14px;border-radius:10px;background:${s.estado === 'aprobada' ? '#e1f5ee' : '#fde8e8'};font-size:12px;color:${s.estado === 'aprobada' ? '#04342c' : '#c0392b'};">
+        Solicitud ${s.estado === 'aprobada' ? 'aprobada' : 'rechazada'} el ${fechaHoraCorta(s.fecha_resolucion)}${s.motivo_rechazo ? ': ' + s.motivo_rechazo : '.'}
+      </div>` : `
+      <div class="form-group" style="margin-top:14px;">
+        <label class="form-label">Motivo del rechazo <span style="font-weight:400;color:#a9435d;">(obligatorio solo si rechazás)</span></label>
+        <textarea class="form-input" id="motivo-rechazo" style="resize:vertical;min-height:60px;" placeholder="Por qué no corresponde esta corrección..."></textarea>
+      </div>`;
+
+    document.getElementById('modal-solicitud-body').innerHTML = `
+      <div class="donante-card">
+        <div class="donante-avatar">${s.donante?.avatar_iniciales || '?'}</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">${s.donante?.nombre || ''} ${s.donante?.apellido || ''}</div>
+          <div style="font-size:12px;color:#a9435d;">Certificado de donación · Reportado el ${fechaHoraCorta(s.fecha_solicitud)}</div>
+        </div>
+      </div>
+      ${filasCampos}
+      ${bloqueResuelto}`;
+
+    document.getElementById('modal-solicitud-acciones').innerHTML = s.estado === 'pendiente' ? `
+      <button class="btn-cancel" onclick="resolverSolicitudUI(false)"><i class="ti ti-x" style="font-size:12px;"></i> Rechazar</button>
+      <button class="btn-save" onclick="resolverSolicitudUI(true)"><i class="ti ti-check" style="font-size:12px;"></i> Aprobar y aplicar</button>
+    ` : `<button class="btn-cancel" onclick="cerrarModal('modal-solicitud')">Cerrar</button>`;
+
+    abrirModal('modal-solicitud');
+  }
+
+  function resolverSolicitudUI(aprobar) {
+    const motivo = document.getElementById('motivo-rechazo')?.value.trim() || '';
+    if (!aprobar && !motivo) {
+      HemoRed.ui.toast('Contale al donante por qué se rechaza.', 'error');
+      return;
+    }
+    const resultado = HemoRed.data.resolverSolicitudCorreccion(solicitudEnRevision.id, { aprobar, motivoRechazo: motivo });
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+    HemoRed.ui.toast(aprobar ? 'Corrección aplicada' : 'Solicitud rechazada');
+    cerrarModal('modal-solicitud');
+    cargarSolicitudes();
+  }
+
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('sidebar-overlay').classList.add('open');
@@ -384,6 +564,12 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('hospital');
+    await HemoRed.db.init();
+    await cargarSolicitudes();
+  });
 </script>
 
   <script src="../js/db.js"></script>

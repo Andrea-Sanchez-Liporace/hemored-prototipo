@@ -351,6 +351,166 @@ HemoRed.data = (function() {
     return { ok: true, documento };
   }
 
+  // ===== SOLICITUDES DE CORRECCIÓN =====
+  // Solo existe para certificados de donación (los que el donante pide para
+  // presentar en una empresa) — NO para formularios de consentimiento, que
+  // son otra cosa. Campos "reportables" y a qué tabla/campo real corresponde
+  // cada uno, así resolverSolicitudCorreccion() sabe qué actualizar cuando
+  // el hospital aprueba, sin tener que hardcodear un switch en la UI.
+  //
+  // Volumen donado, profesional a cargo y hospital quedan afuera a propósito:
+  // son datos que carga el sistema/hospital en el momento de la donación, el
+  // donante no los controla ni puede saber si están "mal" desde su lugar —
+  // no son reportables acá.
+  const CAMPOS_CORREGIBLES = {
+    nombre:         { label: 'Nombre',           tabla: 'usuarios',            campo: 'nombre' },
+    apellido:       { label: 'Apellido',          tabla: 'usuarios',            campo: 'apellido' },
+    dni:            { label: 'DNI',               tabla: 'usuarios',            campo: 'numero_documento' },
+    fecha_donacion: { label: 'Fecha de donación', tabla: 'certificado_donacion', campo: 'fecha_donacion' },
+  };
+
+  // El donante reporta uno o más campos incorrectos de un certificado.
+  // `campos` es un array de { campo, valorActual, valorPropuesto }. No
+  // duplica: si ya hay una solicitud pendiente para el mismo certificado,
+  // la rechaza en vez de crear otra.
+  function crearSolicitudCorreccion(usuarioId, certificadoId, campos) {
+    if (!campos || campos.length === 0) return { ok: false, error: 'Marcá al menos un campo para reportar.' };
+
+    for (const c of campos) {
+      if (!CAMPOS_CORREGIBLES[c.campo]) return { ok: false, error: `Campo no reportable: ${c.campo}.` };
+      if (!c.valorPropuesto || !c.valorPropuesto.trim()) return { ok: false, error: 'Completá la corrección para cada campo marcado.' };
+    }
+
+    const cert = HemoRed.db.find('certificado_donacion', certificadoId);
+    if (!cert) return { ok: false, error: 'Certificado no encontrado.' };
+
+    const yaExiste = HemoRed.db.all('solicitudes_correccion')
+      .some(s => s.certificado_id === certificadoId && s.estado === 'pendiente');
+    if (yaExiste) return { ok: false, error: 'Ya tenés una solicitud pendiente para este certificado.' };
+
+    const solicitud = HemoRed.db.crear('solicitudes_correccion', {
+      usuario_id: usuarioId,
+      hospital_id: cert.hospital_id,
+      certificado_id: certificadoId,
+      campos: campos.map(c => ({ campo: c.campo, valor_actual: c.valorActual, valor_propuesto: c.valorPropuesto.trim() })),
+      estado: 'pendiente',
+      fecha_solicitud: new Date().toISOString(),
+      resuelto_por: null,
+      fecha_resolucion: null,
+      motivo_rechazo: null,
+    });
+    return { ok: true, solicitud };
+  }
+
+  // Solicitudes del hospital logueado, con el donante ya resuelto.
+  function cargarSolicitudesCorreccion() {
+    const s = HemoRed.sesion.get();
+    if (!s) return [];
+    const usuarioHospital = HemoRed.db.find('usuarios', s.usuario_id);
+    const hospitalId = usuarioHospital?.hospital_id;
+    if (!hospitalId) return [];
+
+    const usuarios = HemoRed.db.all('usuarios');
+    return HemoRed.db.where('solicitudes_correccion', 'hospital_id', hospitalId)
+      .map(sol => ({ ...sol, donante: usuarios.find(u => u.id === sol.usuario_id) }))
+      .sort((a, b) => new Date(b.fecha_solicitud) - new Date(a.fecha_solicitud));
+  }
+
+  // El hospital aprueba o rechaza una solicitud. Al aprobar, aplica cada
+  // campo corregido sobre la tabla/campo real que le corresponda (según
+  // CAMPOS_CORREGIBLES) — no alcanza con marcar la solicitud como
+  // aprobada, el dato tiene que cambiar de verdad.
+  function resolverSolicitudCorreccion(solicitudId, { aprobar, motivoRechazo }) {
+    const solicitud = HemoRed.db.find('solicitudes_correccion', solicitudId);
+    if (!solicitud) return { ok: false, error: 'Solicitud no encontrada.' };
+    if (solicitud.estado !== 'pendiente') return { ok: false, error: 'Esta solicitud ya fue resuelta.' };
+
+    const s = HemoRed.sesion.get();
+
+    if (aprobar) {
+      const cambiosPorTabla = {};
+      solicitud.campos.forEach(c => {
+        const def = CAMPOS_CORREGIBLES[c.campo];
+        if (!def) return;
+        if (!cambiosPorTabla[def.tabla]) cambiosPorTabla[def.tabla] = {};
+        cambiosPorTabla[def.tabla][def.campo] = c.valor_propuesto;
+      });
+
+      if (cambiosPorTabla.usuarios) HemoRed.db.actualizar('usuarios', solicitud.usuario_id, cambiosPorTabla.usuarios);
+      if (cambiosPorTabla.certificado_donacion) HemoRed.db.actualizar('certificado_donacion', solicitud.certificado_id, cambiosPorTabla.certificado_donacion);
+    }
+
+    HemoRed.db.actualizar('solicitudes_correccion', solicitudId, {
+      estado: aprobar ? 'aprobada' : 'rechazada',
+      resuelto_por: s?.usuario_id || null,
+      fecha_resolucion: new Date().toISOString(),
+      motivo_rechazo: aprobar ? null : (motivoRechazo || null),
+    });
+
+    // Al rechazar, el certificado vuelve a la normalidad sin marca visible
+    // en "Mis documentos" — el aviso con el motivo le llega al donante acá,
+    // en Notificaciones (no se inventa un mecanismo de aviso aparte).
+    if (!aprobar) {
+      crearNotificacionDonante(solicitud.usuario_id, {
+        tipo: 'documentos',
+        icono: 'ti-certificate-off',
+        tono: 'naranja',
+        titulo: 'Tu solicitud de corrección fue rechazada',
+        descripcion: motivoRechazo || 'El hospital revisó tu solicitud y no pudo aplicar la corrección.',
+        accionTexto: 'Ver certificado',
+        accionUrl: '../donante/mis_documentos.html',
+      });
+    }
+
+    return { ok: true };
+  }
+
+  // ===== NOTIFICACIONES (DONANTE) =====
+  // Agrupa cada notificación en 'hoy'/'ayer'/'semana'/'antes' contra la
+  // misma fecha fija de demo que usa el resto del sitio (AHORA_DEMO, arriba
+  // en este archivo) — así la agrupación no depende de la fecha real del
+  // navegador que corre la demo.
+  function cargarNotificacionesDonante() {
+    const s = HemoRed.sesion.get();
+    if (!s) return [];
+    const hoy = AHORA_DEMO.toISOString().slice(0, 10);
+    const ayer = new Date(AHORA_DEMO.getTime() - 86400000).toISOString().slice(0, 10);
+    return HemoRed.db.where('notificaciones_donante', 'usuario_id', s.usuario_id)
+      .map(n => {
+        const dia = n.fecha.slice(0, 10);
+        let grupo = 'antes';
+        if (dia === hoy) grupo = 'hoy';
+        else if (dia === ayer) grupo = 'ayer';
+        else if ((AHORA_DEMO - new Date(dia)) <= 7 * 86400000) grupo = 'semana';
+        return { ...n, grupo };
+      })
+      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  }
+
+  function marcarNotificacionLeida(id) {
+    return HemoRed.db.actualizar('notificaciones_donante', id, { leido: true });
+  }
+
+  function marcarTodasNotificacionesLeidas(usuarioId) {
+    HemoRed.db.where('notificaciones_donante', 'usuario_id', usuarioId)
+      .filter(n => !n.leido)
+      .forEach(n => HemoRed.db.actualizar('notificaciones_donante', n.id, { leido: true }));
+    return { ok: true };
+  }
+
+  // Uso interno (ej. resolverSolicitudCorreccion() al rechazar) para avisarle
+  // algo al donante sin depender de que entre a mirar un documento puntual.
+  function crearNotificacionDonante(usuarioId, { tipo, icono, tono, titulo, descripcion, accionTexto, accionUrl }) {
+    return HemoRed.db.crear('notificaciones_donante', {
+      usuario_id: usuarioId,
+      tipo, icono, tono, titulo, descripcion,
+      fecha: new Date().toISOString(),
+      leido: false,
+      accion_texto: accionTexto || null,
+      accion_url: accionUrl || null,
+    });
+  }
+
   // Actualiza cualquier subconjunto de campos del perfil del donante
   // (Datos personales y Datos médicos son la misma tabla `usuarios`,
   // así que una sola función genérica cubre los dos "Guardar cambios").
@@ -492,6 +652,13 @@ HemoRed.data = (function() {
     cargarMisDonaciones,
     cargarMisDocumentos,
     solicitarCertificado,
+    CAMPOS_CORREGIBLES,
+    crearSolicitudCorreccion,
+    cargarSolicitudesCorreccion,
+    resolverSolicitudCorreccion,
+    cargarNotificacionesDonante,
+    marcarNotificacionLeida,
+    marcarTodasNotificacionesLeidas,
     actualizarPerfilDonante,
     actualizarPreferenciasNotificacion,
     agregarEmpleador,

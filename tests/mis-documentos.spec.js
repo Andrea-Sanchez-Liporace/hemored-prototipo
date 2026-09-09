@@ -64,20 +64,14 @@ test.describe('Mis documentos (donante)', () => {
       await expect(card.locator('.doc-badge')).toHaveText('Emitido');
       await card.click();
       await expect(page.locator('#certificado-contenido')).toContainText('CERT-2026-RM-0834');
-      await expect(page.locator('#certificado-contenido')).toContainText('450 ml');
       await expect(page.locator('#certificado-contenido')).toContainText('Dr. Carlos Méndez');
     });
 
-    await test.step('"Enviar observación" ahora tiene un onclick real (antes no tenía ninguno)', async () => {
-      await page.fill('#obs-certificado', 'El nombre del hospital está mal escrito.');
-      await page.click('button:has-text("Enviar observación")');
-      await expect(page.locator('.toast')).toContainText('la vamos a revisar');
-      await expect(page.locator('#obs-certificado')).toHaveValue('');
-    });
-
-    await test.step('enviar una observación vacía se rechaza', async () => {
-      await page.click('button:has-text("Enviar observación")');
-      await expect(page.locator('.toast')).toContainText('Escribí la observación');
+    await test.step('"Reportar dato incorrecto" abre el modal de solicitud de corrección (flujo completo probado en solicitudes-correccion.spec.js)', async () => {
+      await page.click('button:has-text("Reportar dato incorrecto")');
+      await expect(page.locator('#modal-solicitud-correccion')).toHaveClass(/active/);
+      await expect(page.locator('#solicitud-campos-lista')).toContainText('Nombre');
+      await page.click('#modal-solicitud-correccion button:has-text("Cancelar")');
     });
 
     await test.step('Consentimientos: la tarjeta y el detalle muestran el formulario F1/F2 real', async () => {

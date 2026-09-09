@@ -161,6 +161,24 @@
   </div>
 </div>
 
+<!-- MODAL SOLICITUD DE CORRECCIÓN -->
+<div class="modal-overlay" id="modal-solicitud-correccion">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Reportar datos incorrectos</div>
+      <button class="modal-close" onclick="HemoRed.ui.cerrarModal('modal-solicitud-correccion')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#a9435d;line-height:1.5;margin-bottom:14px;">Marcá los datos que están mal y escribí el valor correcto. Un miembro del hospital lo revisa antes de aplicar el cambio.</p>
+      <div id="solicitud-campos-lista"><!-- checkboxes dinámicos --></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="HemoRed.ui.cerrarModal('modal-solicitud-correccion')">Cancelar</button>
+      <button class="btn-save" onclick="confirmarSolicitudCorreccion()">Enviar solicitud</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/db.js"></script>
 <script src="../js/sesion.js"></script>
 <script src="../js/ui.js"></script>
@@ -193,6 +211,12 @@
   function fechaCorta(fechaStr) {
     if (!fechaStr) return '—';
     return new Date(fechaStr).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+  }
+  function fechaHoraLarga(fechaStr) {
+    if (!fechaStr) return '—';
+    const d = new Date(fechaStr);
+    return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
+      + ', ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) + 'hs';
   }
   function mostrarVista(id, titulo) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -371,20 +395,21 @@
   // (ni siquiera hay documento). Con los 2 datos semilla de hoy no hay ningún
   // caso "pendiente"/"sin solicitar" — ambas donaciones ya tienen certificado
   // emitido — pero el código contempla los 3 igual.
+  // Estado visible del certificado según su última solicitud de corrección
+  // (si nunca se reportó nada, o la última fue rechazada, es "Emitido" a
+  // secas — rechazar NO deja marca visible en el badge, el certificado
+  // vuelve a la normalidad; el detalle del rechazo vive en el detalle del
+  // certificado y en Notificaciones).
+  function estadoCertificadoBadge(certificadoId) {
+    const s = ultimaSolicitudCertificado(certificadoId);
+    if (s && s.estado === 'pendiente') return { texto: 'En revisión', clase: 'revision' };
+    if (s && s.estado === 'aprobada') return { texto: 'Emitido con corrección', clase: 'visto' };
+    return { texto: 'Emitido', clase: 'visto' };
+  }
+
   function renderCertificados() {
-    const emitidosPendientes = misDocumentos.certificados.map(d => d.certificado ? `
-      <div class="doc-card" onclick="verCertificado(${d.id})">
-        <div class="doc-icon certificado"><i class="ti ti-certificate" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i></div>
-        <div class="doc-info">
-          <div class="doc-title">${d.titulo}</div>
-          <div class="doc-meta"><div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>${fechaLarga(d.fecha)}</div></div>
-        </div>
-        <div class="doc-right">
-          <span class="doc-badge visto">Emitido</span>
-          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verCertificado(${d.id})">Ver</button>
-          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()"><i class="ti ti-download" aria-hidden="true"></i></button>
-        </div>
-      </div>` : `
+    const emitidosPendientes = misDocumentos.certificados.map(d => {
+      if (!d.certificado) return `
       <div class="doc-card" style="opacity:0.85;">
         <div class="doc-icon" style="background:#faeeda;"><i class="ti ti-certificate" style="color:#e67e22;font-size:22px;" aria-hidden="true"></i></div>
         <div class="doc-info">
@@ -394,7 +419,22 @@
         <div class="doc-right">
           <span style="background:#faeeda;color:#412402;border:0.5px solid #e67e22;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Pendiente</span>
         </div>
-      </div>`).join('');
+      </div>`;
+      const badge = estadoCertificadoBadge(d.certificado.id);
+      return `
+      <div class="doc-card" onclick="verCertificado(${d.id})">
+        <div class="doc-icon certificado"><i class="ti ti-certificate" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i></div>
+        <div class="doc-info">
+          <div class="doc-title">${d.titulo}</div>
+          <div class="doc-meta"><div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>${fechaLarga(d.fecha)}</div></div>
+        </div>
+        <div class="doc-right">
+          <span class="doc-badge ${badge.clase}">${badge.texto}</span>
+          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verCertificado(${d.id})">Ver</button>
+          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()"><i class="ti ti-download" aria-hidden="true"></i></button>
+        </div>
+      </div>`;
+    }).join('');
 
     const sinSolicitar = misDocumentos.donacionesSinCertificado.map(don => `
       <div class="doc-card">
@@ -440,7 +480,6 @@
             <p>Por medio del presente se certifica que <strong>${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}</strong>, DNI <strong>${donanteActual?.numero_documento || '—'}</strong>, realizó una donación voluntaria de sangre en las instalaciones del <strong>${c.hospital_nombre}</strong>.</p>
             <div class="cert-datos">
               <div class="cert-dato"><div class="cert-dato-label">Fecha de donación</div><div class="cert-dato-value">${fechaLarga(c.fecha_donacion)}</div></div>
-              <div class="cert-dato"><div class="cert-dato-label">Volumen donado</div><div class="cert-dato-value">${c.volumen_ml} ml</div></div>
               <div class="cert-dato"><div class="cert-dato-label">Profesional a cargo</div><div class="cert-dato-value">${c.profesional_nombre} · Mat. ${c.profesional_matricula}</div></div>
               <div class="cert-dato"><div class="cert-dato-label">Emitido para</div><div class="cert-dato-value" id="cert-emitido-para">${sugerencias[0] || '—'}</div></div>
               <div class="cert-dato"><div class="cert-dato-label">Nro. de certificado</div><div class="cert-dato-value">#${c.numero_certificado}</div></div>
@@ -466,12 +505,7 @@
           <button class="btn-download"><i class="ti ti-download" aria-hidden="true"></i>Descargar PDF</button>
           <p style="font-size:11px;color:#a9435d;text-align:center;line-height:1.5;margin-top:8px;">Podés generar un certificado distinto para cada empleador.</p>
         </div>
-        <div class="observaciones-form">
-          <div class="obs-label">¿Hay algún dato incorrecto?</div>
-          <div class="obs-hint">Envianos una observación y lo revisamos a la brevedad.</div>
-          <textarea class="obs-textarea" id="obs-certificado" placeholder="Describí el dato que necesitás corregir..."></textarea>
-          <button class="btn-obs" style="margin-top:10px;" onclick="enviarObservacion('obs-certificado')"><i class="ti ti-send" aria-hidden="true"></i>Enviar observación</button>
-        </div>
+        ${bloqueCorreccion(c.id)}
       </div>`;
     mostrarVista('view-certificado', 'Certificado de donación');
   }
@@ -540,12 +574,6 @@
           <div class="sidebar-card-title">Descargar formulario</div>
           <button class="btn-download"><i class="ti ti-download" aria-hidden="true"></i>Descargar PDF</button>
         </div>
-        <div class="observaciones-form">
-          <div class="obs-label">¿Hay algún dato incorrecto?</div>
-          <div class="obs-hint">Envianos una observación y lo revisamos a la brevedad.</div>
-          <textarea class="obs-textarea" id="obs-consentimiento" placeholder="Describí el dato que necesitás corregir..."></textarea>
-          <button class="btn-obs" style="margin-top:10px;" onclick="enviarObservacion('obs-consentimiento')"><i class="ti ti-send" aria-hidden="true"></i>Enviar observación</button>
-        </div>
       </div>`;
     mostrarVista('view-consentimiento', 'Formulario de consentimiento');
   }
@@ -554,18 +582,138 @@
     mostrarVista('view-lista', 'Mis documentos');
   }
 
-  // Todavía no existe ninguna tabla para guardar observaciones sobre un
-  // documento — se valida y confirma del lado del donante, pero no se
-  // persiste nada. Pendiente de diseño (ver docs/04): decidir dónde vive
-  // esto antes de inventar una tabla nueva sin acordarlo primero.
-  function enviarObservacion(textareaId) {
-    const texto = document.getElementById(textareaId).value.trim();
-    if (!texto) {
-      HemoRed.ui.toast('Escribí la observación antes de enviarla.', 'error');
+  // ===== SOLICITUDES DE CORRECCIÓN =====
+  // Solo aplica a certificados de donación (los que se piden para presentar
+  // en una empresa) — el formulario de consentimiento no tiene este flujo.
+  //
+  // Reconstruye los valores actuales del certificado para mostrarlos en el
+  // modal (tachados, al lado de donde el donante escribe la corrección).
+  function valoresActualesCertificado(certificadoId) {
+    const d = misDocumentos.certificados.find(x => x.certificado?.id === certificadoId);
+    const c = d?.certificado;
+    if (!c) return {};
+    return {
+      nombre: donanteActual?.nombre || '',
+      apellido: donanteActual?.apellido || '',
+      dni: donanteActual?.numero_documento || '',
+      fecha_donacion: fechaLarga(c.fecha_donacion),
+    };
+  }
+
+  // La solicitud pendiente/resuelta más reciente para este certificado (o
+  // null si el donante nunca reportó nada acá) — determina qué mostrar.
+  function ultimaSolicitudCertificado(certificadoId) {
+    const lista = HemoRed.db.all('solicitudes_correccion')
+      .filter(s => s.usuario_id === donanteActual.id && s.certificado_id === certificadoId)
+      .sort((a, b) => new Date(b.fecha_solicitud) - new Date(a.fecha_solicitud));
+    return lista[0] || null;
+  }
+
+  // No perdemos el historial: si ya se reportó algo alguna vez sobre este
+  // certificado (esté pendiente, aprobada o rechazada), siempre se muestra
+  // el detalle de esa solicitud (qué se reportó, valor actual vs. propuesto)
+  // más un mensaje según el estado en que quedó.
+  function bloqueCorreccion(certificadoId) {
+    const s = ultimaSolicitudCertificado(certificadoId);
+
+    if (!s) {
+      return `
+        <div class="observaciones-form">
+          <div class="obs-label">¿Hay algún dato incorrecto?</div>
+          <div class="obs-hint">Marcá los campos que están mal y te los revisamos antes de corregirlos.</div>
+          <button class="btn-obs" style="margin-top:10px;" onclick="abrirSolicitudCorreccion(${certificadoId})"><i class="ti ti-flag" aria-hidden="true"></i>Reportar dato incorrecto</button>
+        </div>`;
+    }
+
+    const detalle = s.campos.map(c => `
+      <div style="border:0.5px solid #e8d0d8;border-radius:10px;padding:10px 12px;margin-top:8px;">
+        <div style="font-size:10px;color:#a9435d;text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:5px;">${HemoRed.data.CAMPOS_CORREGIBLES[c.campo]?.label || c.campo}</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="flex:1;font-size:12px;color:#a9435d;text-decoration:line-through;opacity:0.7;">${c.valor_actual || '—'}</div>
+          <i class="ti ti-arrow-right" style="color:#ef647c;font-size:14px;" aria-hidden="true"></i>
+          <div style="flex:1;font-size:12px;color:#5a1e37;font-weight:500;">${c.valor_propuesto}</div>
+        </div>
+      </div>`).join('');
+
+    let mensaje;
+    if (s.estado === 'pendiente') {
+      mensaje = `
+        <div class="observaciones-form" style="margin-top:12px;">
+          <div class="obs-label">Solicitud en revisión</div>
+          <div class="obs-hint">Le pediste al hospital que revise ${s.campos.length} dato${s.campos.length === 1 ? '' : 's'} de este certificado. Te avisamos cuando responda.</div>
+        </div>`;
+    } else if (s.estado === 'aprobada') {
+      mensaje = `
+        <div class="observaciones-form" style="margin-top:12px;">
+          <div class="obs-label" style="color:#04342c;">Corrección aplicada</div>
+          <div class="obs-hint">El hospital revisó tu solicitud y aplicó la corrección con éxito, el ${fechaHoraLarga(s.fecha_resolucion)}.</div>
+        </div>`;
+    } else {
+      mensaje = `
+        <div class="observaciones-form" style="margin-top:12px;">
+          <div class="obs-label" style="color:#c0392b;">Corrección no aplicada</div>
+          <div class="obs-hint">El hospital revisó tu solicitud el ${fechaHoraLarga(s.fecha_resolucion)} y no pudo aplicar esta corrección. Tu certificado sigue disponible para descargar tal como está. Para más detalle, revisá tus notificaciones.</div>
+          <button class="btn-obs" style="margin-top:10px;" onclick="window.location='../donante/notificaciones.html'"><i class="ti ti-bell" aria-hidden="true"></i>Ver notificaciones</button>
+        </div>`;
+    }
+
+    return `
+      <div class="observaciones-form">
+        <div class="obs-label">Detalle de tu solicitud de corrección</div>
+        <div class="obs-hint">Solicitada el ${fechaHoraLarga(s.fecha_solicitud)}</div>
+        ${detalle}
+      </div>
+      ${mensaje}`;
+  }
+
+  let solicitudCertificadoId = null;
+  let solicitudValoresActuales = null;
+
+  function abrirSolicitudCorreccion(certificadoId) {
+    solicitudCertificadoId = certificadoId;
+    solicitudValoresActuales = valoresActualesCertificado(certificadoId);
+    const definiciones = HemoRed.data.CAMPOS_CORREGIBLES;
+    document.getElementById('solicitud-campos-lista').innerHTML = Object.entries(definiciones).map(([campo, def]) => `
+      <div style="border:0.5px solid #e8d0d8;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#5a1e37;cursor:pointer;">
+          <input type="checkbox" id="campo-correccion-check-${campo}" onchange="toggleCampoCorreccion('${campo}', this.checked)">
+          ${def.label}
+        </label>
+        <div style="margin-top:8px;display:none;" id="campo-correccion-detalle-${campo}">
+          <div style="font-size:11px;color:#a9435d;margin-bottom:4px;">Dato actual: <strong>${solicitudValoresActuales[campo] || '—'}</strong></div>
+          <input class="form-input" type="text" id="campo-correccion-valor-${campo}" placeholder="¿Cuál es el dato correcto?">
+        </div>
+      </div>`).join('');
+    HemoRed.ui.abrirModal('modal-solicitud-correccion');
+  }
+
+  function toggleCampoCorreccion(campo, marcado) {
+    document.getElementById('campo-correccion-detalle-' + campo).style.display = marcado ? 'block' : 'none';
+  }
+
+  function confirmarSolicitudCorreccion() {
+    if (!solicitudCertificadoId) return;
+    const definiciones = HemoRed.data.CAMPOS_CORREGIBLES;
+    const campos = [];
+    Object.keys(definiciones).forEach(campo => {
+      const marcado = document.getElementById('campo-correccion-check-' + campo)?.checked;
+      if (!marcado) return;
+      const valorPropuesto = document.getElementById('campo-correccion-valor-' + campo)?.value || '';
+      campos.push({ campo, valorActual: solicitudValoresActuales[campo] || '', valorPropuesto });
+    });
+
+    const resultado = HemoRed.data.crearSolicitudCorreccion(donanteActual.id, solicitudCertificadoId, campos);
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
       return;
     }
-    document.getElementById(textareaId).value = '';
-    HemoRed.ui.toast('Observación enviada, la vamos a revisar');
+    HemoRed.ui.cerrarModal('modal-solicitud-correccion');
+    HemoRed.ui.toast('Solicitud enviada, el hospital la va a revisar');
+    const docId = misDocumentos.certificados.find(x => x.certificado?.id === solicitudCertificadoId)?.id;
+    solicitudCertificadoId = null;
+    solicitudValoresActuales = null;
+    renderCertificados(); // el badge de la lista (ej. "En revisión") se recalcula para cuando el donante vuelva
+    verCertificado(docId); // re-renderiza la vista para reflejar el nuevo estado "pendiente"
   }
 
   function abrirSidebar() {

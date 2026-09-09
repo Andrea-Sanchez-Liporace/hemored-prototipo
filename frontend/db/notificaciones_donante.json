@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "usuario_id": 1,
+    "tipo": "documentos",
+    "icono": "ti-certificate",
+    "tono": "rosa",
+    "titulo": "Tu certificado está listo",
+    "descripcion": "Hospital Ramos Mejía emitió el certificado de tu donación del 20 de mayo para Ministerio de Salud CABA.",
+    "fecha": "2026-05-17T07:00:00",
+    "leido": false,
+    "accion_texto": "Ver documento",
+    "accion_url": "../donante/mis_documentos.html"
+  },
+  {
+    "id": 2,
+    "usuario_id": 1,
+    "tipo": "documentos",
+    "icono": "ti-test-pipe",
+    "tono": "rojo",
+    "titulo": "Resultado de análisis disponible",
+    "descripcion": "Hospital Ramos Mejía cargó el resultado de tu donación del 20 de mayo. Podés verlo desde Mis documentos.",
+    "fecha": "2026-05-17T06:00:00",
+    "leido": false,
+    "accion_texto": "Ver resultado",
+    "accion_url": "../donante/mis_documentos.html"
+  },
+  {
+    "id": 3,
+    "usuario_id": 1,
+    "tipo": "turnos",
+    "icono": "ti-calendar-check",
+    "tono": "verde",
+    "titulo": "Turno confirmado",
+    "descripcion": "Hospital Ramos Mejía confirmó tu turno del martes 20 de mayo a las 10:00hs para la campaña pediátrica.",
+    "fecha": "2026-05-17T04:00:00",
+    "leido": false,
+    "accion_texto": "Ver turno",
+    "accion_url": "../donante/mis_turnos.html"
+  },
+  {
+    "id": 4,
+    "usuario_id": 1,
+    "tipo": "turnos",
+    "icono": "ti-clock",
+    "tono": "naranja",
+    "titulo": "Recordatorio de turno",
+    "descripcion": "Mañana tenés un turno de donación a las 10:00hs en Hospital Ramos Mejía. Recordá llevar tu DNI.",
+    "fecha": "2026-05-16T10:00:00",
+    "leido": true,
+    "accion_texto": "Ver turno",
+    "accion_url": "../donante/mis_turnos.html"
+  },
+  {
+    "id": 5,
+    "usuario_id": 1,
+    "tipo": "campanas",
+    "icono": "ti-speakerphone",
+    "tono": "rosa",
+    "titulo": "Nueva campaña urgente",
+    "descripcion": "Hospital Garrahan publicó una campaña urgente que puede ser compatible con tu tipo de sangre.",
+    "fecha": "2026-05-16T08:45:00",
+    "leido": true,
+    "accion_texto": "Ver campaña",
+    "accion_url": "../donante/dashboard.html"
+  },
+  {
+    "id": 6,
+    "usuario_id": 1,
+    "tipo": "campanas",
+    "icono": "ti-heart",
+    "tono": "rosa",
+    "titulo": "¡Gracias por tu donación!",
+    "descripcion": "Tu donación en Hospital Ramos Mejía fue registrada exitosamente. El resultado del análisis estará disponible en los próximos días.",
+    "fecha": "2026-05-15T15:30:00",
+    "leido": true,
+    "accion_texto": null,
+    "accion_url": null
+  }
+]

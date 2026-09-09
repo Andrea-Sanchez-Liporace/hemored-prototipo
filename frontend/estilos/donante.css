@@ -425,6 +425,7 @@ footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
 .doc-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
 .doc-badge.nuevo { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
 .doc-badge.visto { background: #f7f0f3; color: #a9435d; }
+.doc-badge.revision { background: #faeeda; color: #412402; border: 0.5px solid #e67e22; }
 .resultado-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
 .back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; background: none; border: none; font-family: 'Inter', sans-serif; margin-bottom: 20px; }
 .back-btn:hover { color: #5a1e37; }

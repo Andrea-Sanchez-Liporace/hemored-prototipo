@@ -46,7 +46,7 @@
       <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
       <div class="topbar-title">Notificaciones</div>
     </div>
-    <button class="btn-marcar">Marcar todas como leídas</button>
+    <button class="btn-marcar" onclick="marcarTodasLeidasUI()">Marcar todas como leídas</button>
   </div>
 
   <div class="content">
@@ -61,132 +61,107 @@
 
     <div id="sin-resultados-notif" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
 
-    <!-- HOY -->
-    <div class="notif-group" id="group-hoy">
-      <div class="notif-group-title">Hoy</div>
-      <div class="notif-list">
-
-        <div class="notif-item unread" data-tipo="documentos">
-          <div class="notif-icon" style="background:#fdf0f3;border:0.5px solid #f28b98;">
-            <i class="ti ti-certificate" style="color:#ef647c;font-size:20px;"></i>
-          </div>
-          <div class="notif-body">
-            <div class="notif-title">Tu certificado está listo</div>
-            <div class="notif-desc">Hospital Ramos Mejía emitió el certificado de tu donación del 20 de mayo para <strong>Ministerio de Salud CABA</strong>.</div>
-            <div class="notif-doc">
-              <i class="ti ti-file-type-pdf" style="color:#ef647c;font-size:16px;"></i>
-              <span class="notif-doc-name">certificado_donacion_20may2026.pdf</span>
-              <button class="notif-doc-btn"><i class="ti ti-download"></i></button>
-            </div>
-            <div class="notif-time">hace 2 horas</div>
-          </div>
-          <div class="notif-right">
-            <div class="unread-dot"></div>
-            <button class="notif-action notif-action-primary" onclick="window.location='../donante/mis_documentos.html'">Ver documento</button>
-          </div>
-        </div>
-
-        <div class="notif-item unread" data-tipo="documentos">
-          <div class="notif-icon" style="background:#fde8e8;">
-            <i class="ti ti-test-pipe" style="color:#c0392b;font-size:20px;"></i>
-          </div>
-          <div class="notif-body">
-            <div class="notif-title">Resultado de análisis disponible</div>
-            <div class="notif-desc">Hospital Ramos Mejía cargó el resultado de tu donación del 20 de mayo. Podés verlo desde Mis documentos.</div>
-            <div class="notif-time">hace 3 horas</div>
-          </div>
-          <div class="notif-right">
-            <div class="unread-dot"></div>
-            <button class="notif-action notif-action-primary" onclick="window.location='../donante/mis_documentos.html'">Ver resultado</button>
-          </div>
-        </div>
-
-        <div class="notif-item unread" data-tipo="turnos">
-          <div class="notif-icon" style="background:#e1f5ee;">
-            <i class="ti ti-calendar-check" style="color:#27ae60;font-size:20px;"></i>
-          </div>
-          <div class="notif-body">
-            <div class="notif-title">Turno confirmado</div>
-            <div class="notif-desc">Hospital Ramos Mejía confirmó tu turno del <strong>martes 20 de mayo a las 10:00hs</strong> para la campaña pediátrica.</div>
-            <div class="notif-time">hace 5 horas</div>
-          </div>
-          <div class="notif-right">
-            <div class="unread-dot"></div>
-            <button class="notif-action notif-action-outline" onclick="window.location='../donante/mis_turnos.html'">Ver turno</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- AYER -->
-    <div class="notif-group" id="group-ayer">
-      <div class="notif-group-title">Ayer</div>
-      <div class="notif-list">
-
-        <div class="notif-item" data-tipo="turnos">
-          <div class="notif-icon" style="background:#faeeda;">
-            <i class="ti ti-clock" style="color:#e67e22;font-size:20px;"></i>
-          </div>
-          <div class="notif-body">
-            <div class="notif-title">Recordatorio de turno</div>
-            <div class="notif-desc">Mañana tenés un turno de donación a las 10:00hs en Hospital Ramos Mejía. Recordá llevar tu DNI.</div>
-            <div class="notif-time">ayer a las 10:00hs</div>
-          </div>
-          <div class="notif-right">
-            <button class="notif-action notif-action-outline">Ver turno</button>
-          </div>
-        </div>
-
-        <div class="notif-item" data-tipo="campanas">
-          <div class="notif-icon" style="background:#fdf0f3;">
-            <i class="ti ti-speakerphone" style="color:#ef647c;font-size:20px;"></i>
-          </div>
-          <div class="notif-body">
-            <div class="notif-title">Nueva campaña urgente</div>
-            <div class="notif-desc">Hospital Garrahan publicó una campaña urgente que puede ser compatible con tu tipo de sangre.</div>
-            <div class="notif-time">ayer a las 08:45hs</div>
-          </div>
-          <div class="notif-right">
-            <button class="notif-action notif-action-primary" onclick="window.location='../donante/dashboard.html'">Ver campaña</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ESTA SEMANA -->
-    <div class="notif-group" id="group-semana">
-      <div class="notif-group-title">Esta semana</div>
-      <div class="notif-list">
-
-        <div class="notif-item" data-tipo="campanas">
-          <div class="notif-icon" style="background:#fdf0f3;">
-            <i class="ti ti-heart" style="color:#ef647c;font-size:20px;"></i>
-          </div>
-          <div class="notif-body">
-            <div class="notif-title">¡Gracias por tu donación!</div>
-            <div class="notif-desc">Tu donación en Hospital Ramos Mejía fue registrada exitosamente. El resultado del análisis estará disponible en los próximos días.</div>
-            <div class="notif-time">19 may · 15:30hs</div>
-          </div>
-          <div class="notif-right"></div>
-        </div>
-
-      </div>
-    </div>
+    <div id="lista-notificaciones"><!-- renderizado dinámico vía HemoRed.data.cargarNotificacionesDonante() --></div>
 
   </div>
 </div>
 
 <script>
+  let notificacionesActuales = [];
+  let filtroActual = 'todas';
+
+  // Colores por "tono" (definido en cada notificación, ej. rosa/verde/
+  // naranja/rojo) — así una notificación creada dinámicamente (ej. al
+  // rechazar una solicitud de corrección, ver data.js) se ve consistente
+  // con las que vienen de datos semilla, sin tener que repetir el estilo
+  // completo en cada lugar que crea una.
+  const TONOS_NOTIF = {
+    rosa:    { bg: '#fdf0f3', border: '0.5px solid #f28b98', color: '#ef647c' },
+    verde:   { bg: '#e1f5ee', border: 'none', color: '#27ae60' },
+    naranja: { bg: '#faeeda', border: 'none', color: '#e67e22' },
+    rojo:    { bg: '#fde8e8', border: 'none', color: '#c0392b' },
+  };
+  const TITULOS_GRUPO = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', antes: 'Más antiguas' };
+
+  async function cargarYRenderizarNotif() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.requerirLogin('donante');
+    if (!s) return;
+    notificacionesActuales = await HemoRed.data.cargarNotificacionesDonante();
+    renderNotificaciones();
+  }
+
+  function horaCorta(fechaISO) {
+    return new Date(fechaISO).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+  function tiempoRelativo(n) {
+    if (n.grupo === 'hoy') return horaCorta(n.fecha) + 'hs';
+    if (n.grupo === 'ayer') return 'ayer a las ' + horaCorta(n.fecha) + 'hs';
+    return new Date(n.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) + ' · ' + horaCorta(n.fecha) + 'hs';
+  }
+
+  function notifItemHTML(n) {
+    const tono = TONOS_NOTIF[n.tono] || TONOS_NOTIF.rosa;
+    return `
+      <div class="notif-item ${n.leido ? '' : 'unread'}" data-tipo="${n.tipo}" onclick="marcarLeidaUI(${n.id})">
+        <div class="notif-icon" style="background:${tono.bg};border:${tono.border};">
+          <i class="ti ${n.icono}" style="color:${tono.color};font-size:20px;" aria-hidden="true"></i>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title">${n.titulo}</div>
+          <div class="notif-desc">${n.descripcion}</div>
+          <div class="notif-time">${tiempoRelativo(n)}</div>
+        </div>
+        <div class="notif-right">
+          ${n.leido ? '' : '<div class="unread-dot"></div>'}
+          ${n.accion_texto ? `<button class="notif-action notif-action-primary" onclick="event.stopPropagation();window.location='${n.accion_url}'">${n.accion_texto}</button>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function renderNotificaciones() {
+    const grupos = ['hoy', 'ayer', 'semana', 'antes'];
+    document.getElementById('lista-notificaciones').innerHTML = grupos.map(g => {
+      const items = notificacionesActuales.filter(n => n.grupo === g);
+      if (!items.length) return '';
+      return `
+        <div class="notif-group">
+          <div class="notif-group-title">${TITULOS_GRUPO[g]}</div>
+          <div class="notif-list">${items.map(notifItemHTML).join('')}</div>
+        </div>`;
+    }).join('');
+    aplicarFiltro();
+  }
+
+  function marcarLeidaUI(id) {
+    const n = notificacionesActuales.find(x => x.id === id);
+    if (!n || n.leido) return;
+    HemoRed.data.marcarNotificacionLeida(id);
+    n.leido = true;
+    renderNotificaciones();
+  }
+
+  function marcarTodasLeidasUI() {
+    const s = HemoRed.sesion.get();
+    HemoRed.data.marcarTodasNotificacionesLeidas(s.usuario_id);
+    notificacionesActuales.forEach(n => n.leido = true);
+    renderNotificaciones();
+    HemoRed.ui.toast('Todas marcadas como leídas');
+  }
+
   function filtrarNotif(tipo, el) {
+    filtroActual = tipo;
     document.querySelectorAll('.filtro-chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
+    aplicarFiltro();
+  }
+
+  function aplicarFiltro() {
     const items = document.querySelectorAll('.notif-item');
     items.forEach(item => {
-      if (tipo === 'todas') { item.style.display = ''; return; }
-      if (tipo === 'noleidas') { item.style.display = item.classList.contains('unread') ? '' : 'none'; return; }
-      item.style.display = item.dataset.tipo === tipo ? '' : 'none';
+      if (filtroActual === 'todas') { item.style.display = ''; return; }
+      if (filtroActual === 'noleidas') { item.style.display = item.classList.contains('unread') ? '' : 'none'; return; }
+      item.style.display = item.dataset.tipo === filtroActual ? '' : 'none';
     });
     document.querySelectorAll('.notif-group').forEach(group => {
       const visibles = group.querySelectorAll('.notif-item:not([style*="display: none"])');
@@ -195,6 +170,9 @@
     const totalVisibles = document.querySelectorAll('.notif-item:not([style*="display: none"])').length;
     document.getElementById('sin-resultados-notif').style.display = totalVisibles === 0 ? 'block' : 'none';
   }
+
+  document.addEventListener('DOMContentLoaded', cargarYRenderizarNotif);
+
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('sidebar-overlay').classList.add('open');
