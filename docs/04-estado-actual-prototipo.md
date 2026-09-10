@@ -177,18 +177,11 @@ Test: `tests/solicitudes-correccion.spec.js` (aprobación de principio a fin ver
 
 No implementar nada de esto sin retomar el diseño primero — queda anotado como idea, no como especificación.
 
-### Pendiente de diseño: validación de email y DNI del donante (anotado 2026-09-08, sin investigar todavía)
+### Validación de email y DNI del donante (investigado 2026-09-10 — SE IMPLEMENTA al arrancar el backend)
 
 **Qué falta resolver:** hoy el registro de un donante acepta cualquier email y cualquier DNI sin ninguna verificación real — no se confirma que el email sea válido/propio (no hay verificación por link ni por código), y el DNI no se valida más allá de lo que ya pide el formulario como texto.
 
-**Estado: email investigado (2026-09-10, ver más abajo); DNI todavía sin investigar.** La usuaria pidió explícitamente dejarlo anotado como un hito más para cerrar el perfil del donante, pero aclaró que antes de proponer cualquier diseño hace falta investigar qué herramientas/servicios existen para esto — no armar una solución de una. **Aclaración importante: esto queda documentado para cuando exista el backend real — no se implementa nada de esto en el prototipo actual**, mismo criterio que se usó con la evaluación de FHIR (ver `docs/01`).
-
-Preguntas que esa investigación tiene que responder:
-- **Email — investigado, ver subsección de abajo.**
-- **DNI:** ¿alcanza con validar el formato, o se busca integrar algo como RENAPER (el padrón nacional en Argentina) para confirmar identidad de verdad? Esto último implica costo, cuestiones de privacidad y disponibilidad de API que hay que investigar antes de decidir si es viable para este proyecto. **Sigue sin investigar — no confundir con el bloque de email, que ya está resuelto.**
-- **Alcance para el prototipo actual:** confirmado — no hay backend real, así que esto no se implementa ahora. Queda documentado el cómo, para cuando exista.
-
-Es el último hito que le falta al perfil del donante para considerarlo completamente cerrado — queda bloqueado hasta que haya una investigación concreta sobre DNI para discutir, no se avanza en código mientras tanto (tampoco en la parte de email, aunque ya esté investigada: falta el backend real para poder implementarla).
+**Estado: las dos mitades (email y DNI) ya están investigadas y documentadas más abajo.** No se implementa en el prototipo actual (no hay backend todavía — no hay dónde). **Decisión firme de la usuaria (2026-09-10): esto se implementa cuando arranque el desarrollo del backend, junto con FHIR y Master Patient Index (ver `docs/01`) — no queda como "a ver si se hace", es trabajo real del roadmap.**
 
 #### Investigación: cómo validar el email del donante (investigado 2026-09-10, sin implementar)
 
@@ -214,12 +207,25 @@ Es el último hito que le falta al perfil del donante para considerarlo completa
 - Nuevo servicio o extensión de `/api/auth` (ver "Servicios v1 (MVP)" más abajo): un endpoint para reenviar el mail de verificación y otro para confirmar el token.
 - El link del mail apuntaría a una pantalla nueva del frontend (`publico/verificar_email.html`), con el mismo patrón que ya usa `postdonacion_anonimo.html`: leer `?token=` de la URL y llamar al backend — la diferencia es que acá si hace falta sesión (es sobre la cuenta ya logueada), a diferencia de F4 que es anónimo a propósito.
 
-**DNI queda explícitamente afuera de esta investigación** — es un problema distinto (confirmar identidad real, no solo que una casilla de correo responda), con sus propias preguntas sin resolver (RENAPER, costo, privacidad). No se investigó todavía.
+#### Investigación: cómo validar el DNI del donante (investigado 2026-09-10, sin implementar)
+
+**RENAPER (Registro Nacional de las Personas) tiene un servicio real: el Sistema de Identidad Digital (SID).** Permite validar identidad contra el padrón nacional vía API REST (confronte de datos + biometría facial contra la foto del DNI). No es de acceso libre/self-service: cualquier entidad, pública o privada, que quiera usarlo tiene que tramitar el **Convenio Único de Confronte de Datos** (vía TAD, Trámites a Distancia), demostrar "interés legítimo" (lo evalúa RENAPER) y cumplir la Ley 25.326 de Protección de Datos Personales. Aparte existe **Mi Argentina / ValidAR**, la app donde el ciudadano valida su propia identidad (foto del DNI + selfie con prueba de vida) para trámites y credenciales digitales del Estado — es un frontend para la persona, no un servicio que una app de terceros pueda invocar directo sin convenio.
+
+**Proveedores privados que ya resolvieron ese convenio y lo revenden como servicio (identity verification / KYC-as-a-service):**
+- **Didit** — integración documentada con RENAPER: valida DNI + biometría facial contra el padrón oficial, devuelve `Full_Match`/`Partial_Match`/`No_Match`. Cobra por verificación (aprox. USD 0,20 el confronte de datos, desde USD 0,30 con selfie/prueba de vida).
+- **MetaMap** — verificación oficial de DNI para Argentina, con cruce contra AFIP y facematch, dentro de su plataforma para LATAM.
+- Modelo de costo general de estos proveedores: **pago por verificación** (o planes por volumen), vía API REST/SDK, sin que HemoRed tenga que tramitar el convenio directo con RENAPER — el proveedor ya lo tiene y lo revende.
+
+**¿Qué nivel de validación amerita HemoRed?** Recomendación: **alcanza y sobra con validar formato** (7-8 dígitos numéricos), sin verificación contra padrón, por dos razones concretas — (1) en la donación real, el control de identidad fuerte YA ocurre presencialmente en el centro de donación (piden el DNI físico antes de la extracción), así que una verificación digital fuerte en el registro online sería redundante con un control que de todos modos existe en persona; (2) verificación real contra RENAPER o un proveedor tipo Didit implica costo por transacción, convenio institucional (o depender de un tercero que ya lo tenga) y carga de cumplimiento de protección de datos — desproporcionado para un prototipo académico sin usuarios reales.
+
+**Conclusión: se implementa al arrancar el backend, con validación de formato como alcance recomendado** (no integración con RENAPER/Didit/MetaMap desde el día uno) — el nivel de esfuerzo/costo de una verificación real no se justifica todavía porque el control de identidad fuerte sigue pasando presencialmente en el centro de donación. Si el proyecto escala a producción con volumen real de donantes, ahí sí vale la pena reevaluar subir a un proveedor tipo Didit/MetaMap.
+
+**No confundir esto con Master Patient Index (MPI)** — son problemas distintos: esto valida que el DNI sea real y pertenezca a la persona (contra una fuente externa, RENAPER); el MPI resuelve algo completamente distinto (detectar que dos registros *internos* de HemoRed son la misma persona) y no confirma identidad contra nada externo. **Los dos se implementan al arrancar el backend** (decisión firme de la usuaria) — ver la comparación completa en `docs/01`, sección "Master Patient Index / EMPI".
 
 ### Rol Donante: completo (salvo 2 pendientes de diseño)
 
 **Estado 2026-09-10:** no queda ningún flujo del rol Donante sin conectar. Lo único pendiente son los 3 ítems ya documentados más arriba:
-- **Validación de email y DNI** — la parte de email ya está investigada y documentada (ver subsección de arriba), pero no implementada: falta el backend real. La parte de DNI sigue bloqueada hasta que la usuaria traiga esa investigación. No avanzar en código de ninguna de las dos mientras tanto.
+- **Validación de email y DNI** — ambas mitades ya están investigadas y documentadas (ver subsecciones de arriba). **Se implementan cuando arranque el backend real** (decisión firme de la usuaria, no condicional) — para DNI, con validación de formato como alcance recomendado (no RENAPER/proveedor privado desde el día uno). No avanzar en código de ninguna de las dos mientras el backend no exista — pero ya no son "a evaluar", son tarea confirmada del roadmap.
 - **Restricciones de elegibilidad para reservar turno** — pendiente de diseño, sin bloqueo — se puede retomar cuando se quiera.
 - **Recordatorio de F4 si el donante no responde en 2hs** (anotado 2026-09-10) — pendiente de diseño, sin bloqueo.
 

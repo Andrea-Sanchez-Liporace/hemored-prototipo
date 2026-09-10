@@ -192,9 +192,9 @@ Se opta por **monolítico** por:
 
 **Beneficios:** separación clara de responsabilidades, facilita mantenimiento y testing, permite escalar por módulos.
 
-### Consideración de interoperabilidad: HL7 FHIR (evaluado 2026-09-10, no adoptado)
+### Consideración de interoperabilidad: HL7 FHIR (evaluado 2026-09-10 — SE IMPLEMENTA al arrancar el backend)
 
-Se evaluó si conviene modelar la base de datos usando **HL7 FHIR** (Fast Healthcare Interoperability Resources) — el estándar internacional para intercambio de información clínica entre sistemas de salud — en vez del modelo relacional propio descrito en este documento. **Conclusión: no se adopta por ahora**, queda documentado acá para retomar la discusión con el profesor y para revisarlo cuando arranque el desarrollo real del backend (Django+DRF+PostgreSQL), no antes.
+Se evaluó si conviene modelar la base de datos usando **HL7 FHIR** (Fast Healthcare Interoperability Resources) — el estándar internacional para intercambio de información clínica entre sistemas de salud — en vez del modelo relacional propio descrito en este documento. **No se implementa en el prototipo actual** (no hay backend todavía — no hay dónde). **Decisión firme de la usuaria (2026-09-10): esto se implementa ni bien arranque el desarrollo del backend (Django+DRF+PostgreSQL), como parte planificada de esa etapa — no es un "a evaluar si conviene", es una tarea del roadmap.** No está condicionado a que aparezca primero una integración externa concreta: se construye como un diferencial de diseño del proyecto en sí mismo.
 
 **Qué es FHIR y para qué sirve, en criollo:** es un catálogo estandarizado de "recursos" (`Patient`, `Observation`, `Appointment`, etc.) pensado para que sistemas de salud que nunca se pusieron de acuerdo entre sí (distintos hospitales, laboratorios, historia clínica electrónica) puedan intercambiar datos sin que cada integración sea una traducción manual a medida. Su valor real aparece cuando hay un tercero externo con el que interoperar — hoy HemoRed no tiene ninguno (la integración con un sistema hospitalario real, tipo HIS/INCUCAI, está fuera de alcance del prototipo actual).
 
@@ -219,12 +219,38 @@ Se evaluó si conviene modelar la base de datos usando **HL7 FHIR** (Fast Health
 
 **Qué cambiaría en la estructura de datos si se adoptara:** no es "renombrar tablas" — son cambios de fondo. Los `id` autoincrementales pasarían a ser objetos `Identifier` (`{system, value}`); las FK se reemplazan por `Reference` (más verboso, pero autodescriptivo, permite referenciar un recurso en otro servidor FHIR); los valores hoy libres (`"hepatitis_b": "negativo"`) se codificarían con `CodeableConcept` usando sistemas de códigos estándar como LOINC (qué estudio es) y SNOMED CT (el hallazgo); y cada recurso pasa a ser un JSON con una envoltura fija (`resourceType`, `id`, `meta`) en vez de una fila relacional plana — cualquier campo propio sin equivalente estándar (`experiencia_donante`, el `tono` de una notificación) necesitaría salir como `extension` con su propia URL canónica.
 
-**Por qué no se adopta ahora:**
-1. El backend todavía no tiene una sola línea de código — adoptar FHIR es una decisión arquitectónica de peso sobre algo que ni arrancó.
-2. El valor real de FHIR es interoperar con un tercero externo, y hoy no hay ninguno — se pagaría el costo (codificación LOINC/SNOMED, `Reference`, extensiones custom) sin cobrar el beneficio.
-3. Buena parte del corazón real del sistema (campañas, turnos, facturación SaaS, mensajería) está directamente fuera del dominio de FHIR, que fue pensado para atención clínica, no para gestión operativa.
+**Por qué no se adopta en el prototipo actual (sin backend):**
+1. El backend todavía no tiene una sola línea de código — no hay dónde modelar esto todavía.
+2. Buena parte del corazón real del sistema (campañas, turnos, facturación SaaS, mensajería) está directamente fuera del dominio de FHIR, que fue pensado para atención clínica, no para gestión operativa — no correspondería modelar TODO el sistema con FHIR, solo la porción clínica.
 
-**Nota a favor de retomarlo más adelante:** el diseño actual (`documentos` como índice + `resultado_analisis`/`certificado_donacion` como tablas hijas separadas) ya es, en espíritu, el mismo patrón de indirección que facilitaría exponer una fachada FHIR el día de mañana sin reescribir el modelo interno — si en algún momento HemoRed se conecta con un sistema hospitalario real, vale la pena evaluar exponer `resultado_analisis`/`formulario_consentimiento`/`formulario_postdonacion` como `Observation`/`DiagnosticReport`/`Consent`/`QuestionnaireResponse` vía una capa de traducción, sin migrar el modelo interno.
+**Decisión explícita de la usuaria (2026-09-10): esto se implementa, no queda como "a ver si se hace".** El análisis técnico original de este documento pesaba la adopción contra "¿hay algún tercero externo con quien interoperar hoy?" y, al no haberlo, recomendaba posponerlo indefinidamente. La usuaria corrigió ese criterio dos veces en la misma conversación: primero aclaró que no quiere esperar a que aparezca una integración externa concreta, y después fue más allá — el arranque del backend es precisamente el momento en que TODO lo que dependía de "tener backend" (FHIR, MPI, validación de DNI — ver más abajo) deja de ser una nota pendiente y pasa a ser trabajo real a hacer. Es un diferencial de diseño del proyecto, no una posibilidad condicional.
+
+**Alcance concreto a implementar en ese momento** (a definir en detalle junto con el profesor cuando se llegue, pero el compromiso de hacerlo ya está tomado): las entidades clínicas que tienen mapeo limpio a FHIR — `resultado_analisis` → `Observation`/`DiagnosticReport`, `formulario_consentimiento` → `Consent`/`QuestionnaireResponse`, `formulario_postdonacion` → `QuestionnaireResponse` — dejando el resto del sistema (campañas, turnos, facturación, mensajería) en el modelo relacional propio, ya que ahí FHIR no aporta nada real (no se fuerza el mapeo donde no corresponde). El diseño actual (`documentos` como índice + `resultado_analisis`/`certificado_donacion` como tablas hijas separadas) ya es, en espíritu, el mismo patrón de indirección que facilita esa adopción parcial sin reescribir el resto del modelo.
+
+### Consideración relacionada: Master Patient Index / EMPI (evaluado 2026-09-10 — SE IMPLEMENTA al arrancar el backend)
+
+Mencionado por el profesor de la materia — confirmado que el término correcto es **Master Patient Index (MPI)**, a veces **Enterprise Master Patient Index (EMPI)** cuando cruza varias instituciones (no es "master page index").
+
+**Qué problema resuelve:** cuando la misma persona pasa por distintos sistemas de salud que no comparten una base de datos única (distintos hospitales, laboratorios, centros de donación), cada sistema suele generar su propio registro de esa persona — el resultado típico son duplicados (la misma persona con dos historiales distintos) o falsos matches (dos personas distintas mezcladas por compartir nombre y apellido). El MPI mantiene **un identificador único por persona** ("Enterprise ID" o "golden record") que permite linkear todos sus registros dispersos sin fusionar por error a gente distinta.
+
+**Cómo funciona, a alto nivel:** el corazón es el motor de matching, que compara registros por datos demográficos (nombre, apellido, fecha de nacimiento, documento, a veces biometría). Dos enfoques: **matching determinístico** (reglas exactas, ej. "mismo DNI = misma persona") y **matching probabilístico** (calcula una probabilidad de que dos registros sean la misma persona aunque no coincidan en todos los campos, ej. error de tipeo en el nombre pero DNI y fecha de nacimiento iguales).
+
+**Relación real con FHIR (no es una casualidad que el profesor lo mencione junto a esto):** FHIR define la operación **`Patient/$match`**, que permite mandarle a un servicio de MPI/EMPI un `Patient` parcialmente completo y recibir los candidatos que probablemente sean la misma persona — hay implementaciones reales de esto (ej. HAPI FHIR EMPI). Si HemoRed en algún momento avanza con FHIR, un MPI encajaría naturalmente usando ese mismo estándar, no sería una pieza aparte.
+
+**Importante — MPI NO es lo mismo que validar el DNI, no lo resuelve:** son dos problemas distintos y no hay que confundirlos (surgió como duda al presentar esto, queda aclarado acá para no repetirla).
+
+| | Validación de DNI (RENAPER/Didit/MetaMap) | Master Patient Index |
+|---|---|---|
+| Pregunta que responde | "¿Este DNI es real, y es de esta persona?" | "¿Estos 2 registros que ya tengo son la misma persona?" |
+| Contra qué compara | Una fuente externa autorizada (el padrón nacional) | Los propios registros internos de HemoRed entre sí |
+| Cuándo actúa | Una vez, al registrarse (o al donar) | Cada vez que aparece un registro que podría ser un duplicado |
+| Qué evita | Que alguien se registre con un DNI falso o ajeno | Que la misma persona real quede como "dos donantes distintos" |
+
+El MPI **da por sentado** que el DNI cargado en cada registro ya es válido — lo usa como uno de los campos para decidir si dos registros son la misma persona, pero nunca confirma si ese DNI existe de verdad o pertenece a quien dice ser. Si alguien carga un DNI trucho en dos hospitales, un MPI los matchea igual como "la misma persona" — el problema de identidad falsa le pasa por al lado. Para eso hace falta el servicio de validación de DNI (ver `docs/04`), no un MPI.
+
+**Decisión explícita de la usuaria (2026-09-10): también se implementa al arrancar el backend, junto con FHIR y la validación de DNI — no queda como "a evaluar si aplica".** El caso de uso "de manual" del MPI es reconciliar sistemas externos separados (ej. un donante que dona en el Hospital A y el Hospital B, cada uno con su propia base) — y es cierto que, con el diseño actual de HemoRed (una sola tabla `usuarios` compartida entre todos los hospitales), ese escenario todavía no existe. Pero hay un uso real y presente desde el día uno, que no depende de tener sistemas externos: **el mismo motor de matching que usa un MPI (determinístico/probabilístico sobre nombre, DNI, fecha de nacimiento) sirve para detectar cuentas duplicadas dentro de la propia tabla `usuarios`** — alguien que se registra dos veces por error, o con datos ligeramente distintos (typo en el nombre, con/sin segundo apellido) pero el mismo DNI de fondo. Eso sí es un problema real de un sistema con usuarios reales, sin necesitar ningún hospital externo.
+
+**Alcance a implementar cuando arranque el backend:** una capa de resolución de identidad/matching de donantes sobre `usuarios`, pensada desde el diseño para poder extenderse el día de mañana a reconciliar sistemas externos (otro hospital con base propia preexistente, u otro registro externo) sin rediseñar — mismo espíritu que ya se aplicó con la evaluación de FHIR: construir la base ahora, para no tener que rehacerla cuando aparezca la necesidad de interoperabilidad real. Si en algún momento se adopta FHIR (ver arriba), la operación `Patient/$match` es el lugar natural donde este matching se expondría.
 
 ---
 
