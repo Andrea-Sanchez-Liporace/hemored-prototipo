@@ -111,7 +111,7 @@ HemoRed.db = (function() {
     localStorage.removeItem(STORAGE_KEY);
   }
 
-  return { init, find, where, all, crear, actualizar, reset, data };
+  return { init, find, where, all, crear, actualizar, reset, nextId, data };
 })();
 
 window.HemoRed = HemoRed;

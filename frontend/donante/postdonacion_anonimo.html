@@ -111,7 +111,7 @@
     </div>
 
     <!-- SUCCESS -->
-    <div class="success-view" id="success-view">
+    <div class="success-view" id="success-view" style="display:none;">
       <div class="success-icon">
         <i class="ti ti-check" style="color:white;font-size:32px;"></i>
       </div>
@@ -128,6 +128,15 @@
       </div>
     </div>
 
+    <!-- ERROR: token inválido, vencido o ya usado -->
+    <div class="card-body" id="error-view" style="display:none;text-align:center;padding:40px 24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:#fde8e8;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <i class="ti ti-alert-triangle" style="color:#c0392b;font-size:28px;" aria-hidden="true"></i>
+      </div>
+      <div style="font-size:15px;font-weight:500;color:#5a1e37;margin-bottom:8px;">No pudimos abrir este formulario</div>
+      <div style="font-size:13px;color:#5a3040;line-height:1.5;" id="error-mensaje">—</div>
+    </div>
+
   </div>
 
   <div class="page-footer">
@@ -139,14 +148,7 @@
 
 <script>
   let respuesta = null;
-
-  // Leer token de URL
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
-  if (token) {
-    const formatted = token.replace(/(.{2})(.{2})(.{2})/,'$1 · $2 · $3');
-    document.getElementById('token-display').textContent = formatted.toUpperCase() || 'A7 · 4K · 9M';
-  }
+  let token = null;
 
   function seleccion(val) {
     respuesta = val;
@@ -157,6 +159,19 @@
   }
 
   function enviar() {
+    if (!respuesta) return;
+    const motivoInput = document.querySelector('input[name="motivo"]:checked');
+    const resultado = HemoRed.data.guardarRespuestaPostdonacion(token, {
+      usarParaTransfusion: respuesta === 'si',
+      motivoDescarte: motivoInput ? motivoInput.value : null,
+    });
+
+    if (!resultado.ok) {
+      // Puede pasar si el link se usó en otra pestaña mientras tanto, o venció justo ahora
+      mostrarError(resultado.error);
+      return;
+    }
+
     const body = document.getElementById('form-body');
     const success = document.getElementById('success-view');
     const msg = document.getElementById('success-msg');
@@ -170,6 +185,29 @@
     body.style.display = 'none';
     success.style.display = 'block';
   }
+
+  function mostrarError(mensaje) {
+    document.getElementById('form-body').style.display = 'none';
+    document.getElementById('success-view').style.display = 'none';
+    document.getElementById('error-mensaje').textContent = mensaje;
+    document.getElementById('error-view').style.display = 'block';
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await HemoRed.db.init(); // sin requerirLogin: F4 funciona SIN sesión, a propósito (anonimato)
+
+    const params = new URLSearchParams(window.location.search);
+    token = (params.get('token') || '').toUpperCase();
+
+    const validacion = HemoRed.data.validarTokenPostdonacion(token);
+    if (!validacion.ok) {
+      mostrarError(validacion.error);
+      return;
+    }
+
+    const formatted = token.replace(/(.{2})(.{2})(.{2})/, '$1 · $2 · $3');
+    document.getElementById('token-display').textContent = formatted || token;
+  });
 </script>
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>

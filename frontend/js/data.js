@@ -583,12 +583,153 @@ HemoRed.data = (function() {
     const turnos = HemoRed.db.all('turnos').filter(t => t.hospital_id === hospital?.id && t.fecha === hoy);
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
+    const donaciones = HemoRed.db.all('donaciones');
 
     return turnos.map(t => ({
       ...t,
       donante: usuarios.find(u => u.id === t.usuario_id),
       campana: campanas.find(c => c.id === t.campana_id),
+      // Un turno puede estar "confirmado" con ambos formularios ya
+      // completados (listo para registrar la donación) — pero si ya existe
+      // un registro en `donaciones` para este turno, no hay que ofrecer
+      // registrarla de nuevo (ver registrarDonacion() más abajo).
+      tieneDonacionRegistrada: donaciones.some(d => d.turno_id === t.id),
     }));
+  }
+
+  // Profesionales activos vinculados al hospital logueado — para el select
+  // de "Registrar donación" (antes tenía 4 nombres hardcodeados, 3 de los
+  // cuales ni siquiera existían en `profesionales.json`).
+  async function cargarProfesionalesHospital() {
+    const db = await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
+    const hospitalId = usuario?.hospital_id;
+    const vinculos = HemoRed.db.all('profesional_hospital').filter(ph => ph.hospital_id === hospitalId && ph.activo);
+    const profesionales = HemoRed.db.all('profesionales');
+    return vinculos.map(v => profesionales.find(p => p.id === v.profesional_id)).filter(Boolean);
+  }
+
+  // Token de 6 caracteres para el formulario post-donación (F4) — sin
+  // caracteres ambiguos (0/O, 1/I). No hace falta que sea criptográfico:
+  // es solo un código corto que el donante lee/escanea, la seguridad real
+  // la da que es de un solo uso y expira a las 24hs.
+  function generarTokenPostdonacion() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let token;
+    do {
+      token = '';
+      for (let i = 0; i < 6; i++) token += chars[Math.floor(Math.random() * chars.length)];
+    } while (HemoRed.db.all('formulario_postdonacion').some(f => f.token === token));
+    return token;
+  }
+
+  // El profesional registra que la donación se completó de verdad: crea el
+  // registro real en `donaciones` (hasta acá, el turno solo reflejaba una
+  // intención) y genera el token de un solo uso para el formulario F4
+  // (autoexclusión post-donación anónima) — ver validarTokenPostdonacion()/
+  // guardarRespuestaPostdonacion() más abajo. También le avisa al donante
+  // por notificación in-app (con el link directo, no un QR: ver docs/04
+  // para por qué QR solo tiene sentido del lado del profesional).
+  function registrarDonacion(turnoId, { profesionalId, volumenMl, resultadoApto, observaciones }) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+    if (turno.estado !== 'confirmado') return { ok: false, error: 'Este turno no está en condiciones de registrar una donación.' };
+    if (!turno.formulario_autoexclusion_completado || !turno.formulario_cuestionario_completado) {
+      return { ok: false, error: 'El donante todavía no completó los formularios pre-donación (F1/F2).' };
+    }
+    if (HemoRed.db.all('donaciones').some(d => d.turno_id === turnoId)) {
+      return { ok: false, error: 'Ya existe una donación registrada para este turno.' };
+    }
+    if (!profesionalId) return { ok: false, error: 'Seleccioná el profesional que atendió la donación.' };
+
+    const numeroBolsa = 'BLS-2026-' + String(HemoRed.db.nextId('donaciones')).padStart(4, '0');
+    const [hh, mm] = turno.hora.split(':').map(Number);
+    const finMin = mm + 20;
+    const horaFin = `${String(hh + Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;
+
+    const donacion = HemoRed.db.crear('donaciones', {
+      turno_id: turnoId,
+      campana_id: turno.campana_id,
+      usuario_id: turno.usuario_id,
+      hospital_id: turno.hospital_id,
+      profesional_id: profesionalId,
+      numero_bolsa: numeroBolsa,
+      volumen_ml: volumenMl || 450,
+      hora_inicio: turno.hora,
+      hora_fin: horaFin,
+      tipo_bolsa: 'Fresenius Kabi 450ml',
+      // Signos vitales: quedan sin cargar acá — es responsabilidad de la
+      // evaluación clínica (F3), un flujo propio del Profesional de salud
+      // que todavía no está conectado (ver docs/04). Este modal es el lado
+      // administrativo (Hospital) de registrar que la donación ocurrió.
+      presion_arterial: null,
+      frecuencia_cardiaca: null,
+      temperatura: null,
+      glucosa: null,
+      peso_kg: null,
+      hemoglobina: null,
+      resultado_apto: resultadoApto !== false,
+      reacciones: null,
+      observaciones: observaciones || null,
+      registrado_en: AHORA_DEMO.toISOString(),
+    });
+
+    HemoRed.db.actualizar('turnos', turnoId, { estado: 'completado' });
+
+    // El token y su expiración usan la hora real (no AHORA_DEMO): tienen que
+    // seguir siendo válidos/inválidos de verdad cuando alguien prueba el
+    // link más tarde, sin importar qué día diga la demo.
+    const token = generarTokenPostdonacion();
+    const formularioPostdonacion = HemoRed.db.crear('formulario_postdonacion', {
+      numero_bolsa: numeroBolsa,
+      token,
+      token_expira_en: new Date(Date.now() + 24 * 3600000).toISOString(),
+      token_usado: false,
+      usar_para_transfusion: null,
+      motivo_descarte: null,
+      completado_en: null,
+    });
+
+    crearNotificacionDonante(turno.usuario_id, {
+      tipo: 'documentos',
+      icono: 'ti-heart-check',
+      tono: 'rosa',
+      titulo: 'Completá tu formulario post-donación',
+      descripcion: 'Antes de irte, contanos de forma anónima si tu sangre puede transfundirse. Es privado — nadie en la sala va a saber tu respuesta.',
+      accionTexto: 'Completar formulario',
+      accionUrl: '../donante/postdonacion_anonimo.html?token=' + token,
+    });
+
+    return { ok: true, donacion, token };
+  }
+
+  // ===== FORMULARIO POST-DONACIÓN (F4, anónimo) =====
+  // Ninguna de las 2 funciones de acá abajo debe depender de sesión: el
+  // donante completa esto sin loguearse, identificado únicamente por el
+  // token de la URL. `formulario_postdonacion` no tiene `usuario_id` — se
+  // ancla a `numero_bolsa`, nunca a la identidad del donante (ver docs/01).
+  function validarTokenPostdonacion(token) {
+    if (!token) return { ok: false, error: 'Falta el código del formulario en el link.' };
+    const formulario = HemoRed.db.all('formulario_postdonacion').find(f => f.token === token.toUpperCase());
+    if (!formulario) return { ok: false, error: 'Este link no es válido.' };
+    if (formulario.token_usado) return { ok: false, error: 'Este formulario ya fue completado. Gracias por tu respuesta.' };
+    if (new Date(formulario.token_expira_en) < new Date()) return { ok: false, error: 'Este link venció (es válido por 24hs desde tu donación). Si todavía necesitás reportar algo, hablá con el personal del banco de sangre.' };
+    return { ok: true, token: formulario.token };
+  }
+
+  function guardarRespuestaPostdonacion(token, { usarParaTransfusion, motivoDescarte }) {
+    const validacion = validarTokenPostdonacion(token);
+    if (!validacion.ok) return validacion;
+
+    const formulario = HemoRed.db.all('formulario_postdonacion').find(f => f.token === token.toUpperCase());
+    HemoRed.db.actualizar('formulario_postdonacion', formulario.id, {
+      usar_para_transfusion: usarParaTransfusion,
+      motivo_descarte: usarParaTransfusion ? null : (motivoDescarte || null),
+      token_usado: true,
+      completado_en: new Date().toISOString(),
+    });
+    return { ok: true };
   }
 
   // ===== PROFESIONAL =====
@@ -666,6 +807,10 @@ HemoRed.data = (function() {
     eliminarEmpleador,
     cargarDashboardHospital,
     cargarTurnosHoy,
+    cargarProfesionalesHospital,
+    registrarDonacion,
+    validarTokenPostdonacion,
+    guardarRespuestaPostdonacion,
     cargarTurnosProfesional,
     cargarDashboardAdmin,
   };

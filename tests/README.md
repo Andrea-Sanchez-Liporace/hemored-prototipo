@@ -108,6 +108,15 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 2. Los filtros por tipo ("Documentos", etc.) y "No leídas" — que ya eran funcionales sobre contenido fijo — ahora filtran datos reales.
 3. Clickear una notificación la marca como leída de verdad (persiste tras recargar la página); "Marcar todas como leídas" hace lo mismo para todas.
 
+**`registrar-donacion.spec.js`** — "Registrar donación" (Hospital) + formulario post-donación anónimo F4 (Donante), agregado 2026-09-10. **Cierra el rol Donante** (era el único flujo que quedaba sin conectar) — y de paso conecta "Registrar donación" en Hospital, que hasta esa fecha era un modal 100% de mentira (el botón "Confirmar donación" llamaba a la misma función que "Cancelar", y ningún flujo del prototipo creaba una donación real):
+
+1. Camino completo de punta a punta: un donante se registra, reserva un turno para HOY (necesario para que aparezca en "Gestión de turnos"), el hospital lo confirma, el donante completa F1/F2 — recién ahí aparece "Registrar donación" del lado del hospital (antes de eso, ni con el turno confirmado). El select de profesionales trae datos reales de `profesionales.json` (antes tenía 4 nombres hardcodeados, 3 de los cuales no existían).
+2. Registrar la donación crea el registro real en `donaciones`, pasa el turno a `completado`, y muestra un QR (generado client-side con `qrcode-generator`) para que el donante lo escanee — se verifica que el `<img>` del QR se renderiza, y que los datos de la donación quedaron bien guardados.
+3. El donante recibe una **notificación in-app real** (no un QR — ver la nota sobre por qué cada canal es para un dispositivo distinto) con el link directo al formulario F4; se extrae el token real desde ahí.
+4. **F4 se completa sin sesión de verdad:** se limpia `sessionStorage` (simulando un visitante anónimo, sin perder el `localStorage` que hace falta para verificar la persistencia después) y se confirma que la página igual valida el token y guarda la respuesta.
+5. El token es de un solo uso: se prueba que reusarlo después de completado se rechace.
+6. Casos aparte, sin necesitar todo el flujo previo (se arman directo contra la tabla): token inexistente, token ya usado y token vencido — cada uno muestra su propio mensaje de error, sin excepciones de JS.
+
 ## Qué NO cubre todavía
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.

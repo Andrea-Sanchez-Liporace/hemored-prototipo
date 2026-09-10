@@ -220,6 +220,7 @@
 <script>
   var _filtroEstadoTurno = 'todos';
   var _totalTurnosHoy = 0;
+  var _turnosHoy = [];
 
   const BADGE_INFO = {
     pendiente:  { clase: 'tb-pendiente',  texto: 'Pendiente' },
@@ -236,6 +237,7 @@
 
   async function renderTurnosLista() {
     const turnos = await HemoRed.data.cargarTurnosHoy();
+    _turnosHoy = turnos;
     _totalTurnosHoy = turnos.length;
 
     const pendientes = turnos.filter(t => t.estado === 'pendiente');
@@ -260,12 +262,17 @@
       const dni = t.donante?.numero_documento ? `DNI ${t.donante.numero_documento}` : '';
       const esUrgente = !!t.campana?.urgente;
 
+      // "Registrar donación" solo tiene sentido si el donante ya confirmó
+      // Y completó los 2 formularios pre-donación (F1/F2) Y todavía no hay
+      // un registro en `donaciones` para este turno — antes este botón
+      // aparecía (mal) cuando el turno ya estaba "completado", que es
+      // justamente el estado AL QUE se llega después de registrar.
       let acciones = '';
       if (t.estado === 'pendiente') {
         acciones = `<button class="btn-xs btn-xs-ok" onclick="confirmarTurnoUI(${t.id})">Confirmar</button>
                      <button class="btn-xs btn-xs-no" onclick="rechazarTurnoUI(${t.id})">Rechazar</button>`;
-      } else if (t.estado === 'completado') {
-        acciones = `<button class="btn-xs btn-xs-outline" onclick="abrirModalDonacion()">Registrar donación</button>`;
+      } else if (t.estado === 'confirmado' && t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado && !t.tieneDonacionRegistrada) {
+        acciones = `<button class="btn-xs btn-xs-outline" onclick="abrirModalDonacion(${t.id})">Registrar donación</button>`;
       } else if (t.estado === 'cancelado') {
         acciones = `<button class="btn-xs btn-xs-outline" onclick="verMotivo(${t.id})">Ver motivo</button>`;
       }
@@ -354,13 +361,64 @@
     document.getElementById('vista-calendario').style.display = vista === 'calendario' ? 'block' : 'none';
   }
 
-  function abrirModalDonacion() {
+  var _turnoDonacionId = null;
+
+  async function abrirModalDonacion(turnoId) {
+    _turnoDonacionId = turnoId;
+    const t = _turnosHoy.find(x => x.id === turnoId);
+    if (!t) return;
+
+    const nombreCompleto = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+    document.getElementById('modal-donacion-info-turno').innerHTML = `
+      <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO</div>
+      <div style="font-size:14px;font-weight:500;color:#5a1e37;">${nombreCompleto}</div>
+      <div style="font-size:13px;color:#5a3040;margin-top:3px;">${t.fecha} · ${t.hora}hs · ${t.campana?.titulo || '—'}</div>`;
+
+    const profesionales = await HemoRed.data.cargarProfesionalesHospital();
+    const select = document.getElementById('donacion-profesional');
+    select.innerHTML = '<option value="" disabled selected>Seleccioná un profesional</option>'
+      + profesionales.map(p => `<option value="${p.id}">${p.nombre_completo}</option>`).join('');
+
+    document.getElementById('donacion-volumen').value = 450;
+    document.getElementById('donacion-resultado').value = 'apto';
+    document.getElementById('donacion-observaciones').value = '';
+    document.getElementById('modal-donacion-titulo').textContent = 'Registrar donación realizada';
+    document.getElementById('modal-donacion-form').style.display = 'block';
+    document.getElementById('modal-donacion-exito').style.display = 'none';
+
     document.getElementById('modal-donacion').style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
+
   function cerrarModalDonacion() {
     document.getElementById('modal-donacion').style.display = 'none';
     document.body.style.overflow = '';
+    renderTurnosLista();
+  }
+
+  async function confirmarDonacionUI() {
+    const profesionalId = Number(document.getElementById('donacion-profesional').value) || null;
+    const volumenMl = Number(document.getElementById('donacion-volumen').value) || 450;
+    const resultadoApto = document.getElementById('donacion-resultado').value === 'apto';
+    const observaciones = document.getElementById('donacion-observaciones').value.trim();
+
+    const resultado = HemoRed.data.registrarDonacion(_turnoDonacionId, { profesionalId, volumenMl, resultadoApto, observaciones });
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+
+    document.getElementById('modal-donacion-titulo').textContent = 'Formulario post-donación';
+    document.getElementById('modal-donacion-form').style.display = 'none';
+    document.getElementById('modal-donacion-exito').style.display = 'block';
+
+    const url = new URL('../donante/postdonacion_anonimo.html?token=' + resultado.token, window.location.href).href;
+    const qr = qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    document.getElementById('donacion-qr').innerHTML = qr.createImgTag(6, 8);
+
+    HemoRed.ui.toast('Donación registrada');
   }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
@@ -381,29 +439,24 @@
 
 <!-- MODAL REGISTRAR DONACIÓN -->
 <div id="modal-donacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:white;border-radius:20px;width:100%;max-width:440px;overflow:hidden;">
-    <div style="padding:20px 24px;border-bottom:0.5px solid #e8d0d8;display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:16px;font-weight:500;color:#5a1e37;">Registrar donación realizada</div>
+  <div style="background:white;border-radius:20px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;">
+    <div style="padding:20px 24px;border-bottom:0.5px solid #e8d0d8;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;">
+      <div style="font-size:16px;font-weight:500;color:#5a1e37;" id="modal-donacion-titulo">Registrar donación realizada</div>
       <button onclick="cerrarModalDonacion()" style="background:none;border:none;cursor:pointer;color:#a9435d;font-size:20px;"><i class="ti ti-x"></i></button>
     </div>
-    <div style="padding:24px;">
+
+    <!-- VISTA FORMULARIO -->
+    <div id="modal-donacion-form" style="padding:24px;">
 
       <!-- Info turno -->
-      <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
-        <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO</div>
-        <div style="font-size:14px;font-weight:500;color:#5a1e37;">Carlos Méndez</div>
-        <div style="font-size:13px;color:#5a3040;margin-top:3px;">19 may · 14:00hs · Campaña pediátrica</div>
+      <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;" id="modal-donacion-info-turno">
       </div>
 
       <!-- Profesional que atendió -->
       <div style="margin-bottom:16px;">
         <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Profesional que atendió la donación</label>
-        <select style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;background:white;">
+        <select id="donacion-profesional" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;background:white;">
           <option value="" disabled selected>Seleccioná un profesional</option>
-          <option>Dr. Carlos Méndez</option>
-          <option>Dra. Ana Rodríguez</option>
-          <option>Dr. Luis Fernández</option>
-          <option>Dra. Marta Peralta</option>
         </select>
         <p style="font-size:11px;color:#a9435d;margin-top:4px;">El profesional quedará asociado a esta donación y firmará el resultado del análisis.</p>
       </div>
@@ -411,23 +464,45 @@
       <!-- Volumen -->
       <div style="margin-bottom:16px;">
         <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Volumen donado (ml)</label>
-        <input type="number" value="450" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+        <input type="number" id="donacion-volumen" value="450" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+      </div>
+
+      <!-- Resultado -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Resultado</label>
+        <select id="donacion-resultado" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;background:white;">
+          <option value="apto" selected>Apto para donar</option>
+          <option value="no_apto">No apto — observaciones</option>
+        </select>
       </div>
 
       <!-- Observaciones -->
       <div style="margin-bottom:20px;">
         <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
-        <textarea style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;resize:vertical;min-height:70px;" placeholder="Alguna observación clínica relevante..."></textarea>
+        <textarea id="donacion-observaciones" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;resize:vertical;min-height:70px;" placeholder="Alguna observación clínica relevante..."></textarea>
       </div>
 
       <div style="display:flex;gap:10px;">
         <button onclick="cerrarModalDonacion()" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cancelar</button>
-        <button onclick="cerrarModalDonacion()" style="flex:1;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Confirmar donación</button>
+        <button onclick="confirmarDonacionUI()" style="flex:1;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Confirmar donación</button>
       </div>
+    </div>
+
+    <!-- VISTA ÉXITO: QR para el formulario post-donación -->
+    <div id="modal-donacion-exito" style="display:none;padding:24px;text-align:center;">
+      <div style="width:56px;height:56px;border-radius:50%;background:#27ae60;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <i class="ti ti-check" style="color:white;font-size:28px;"></i>
+      </div>
+      <div style="font-size:15px;font-weight:500;color:#5a1e37;margin-bottom:6px;">Donación registrada</div>
+      <p style="font-size:13px;color:#5a3040;line-height:1.5;margin-bottom:18px;">Pedile al donante que escanee este código con su celular <strong>antes de irse</strong>, para completar el formulario de autoexclusión post-donación (es anónimo — nadie en la sala ve su respuesta).</p>
+      <div id="donacion-qr" style="display:flex;justify-content:center;margin-bottom:8px;"></div>
+      <p style="font-size:11px;color:#a9435d;">También le llegó como notificación a su cuenta, por si prefiere completarlo después.</p>
+      <button onclick="cerrarModalDonacion()" style="width:100%;margin-top:18px;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Listo</button>
     </div>
   </div>
 </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
