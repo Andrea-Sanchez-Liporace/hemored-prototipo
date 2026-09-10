@@ -181,19 +181,45 @@ No implementar nada de esto sin retomar el diseño primero — queda anotado com
 
 **Qué falta resolver:** hoy el registro de un donante acepta cualquier email y cualquier DNI sin ninguna verificación real — no se confirma que el email sea válido/propio (no hay verificación por link ni por código), y el DNI no se valida más allá de lo que ya pide el formulario como texto.
 
-**Estado: pendiente de investigación, todavía no de diseño.** La usuaria pidió explícitamente dejarlo anotado como un hito más para cerrar el perfil del donante, pero aclaró que antes de proponer cualquier diseño hace falta investigar qué herramientas/servicios existen para esto — no armar una solución de una.
+**Estado: email investigado (2026-09-10, ver más abajo); DNI todavía sin investigar.** La usuaria pidió explícitamente dejarlo anotado como un hito más para cerrar el perfil del donante, pero aclaró que antes de proponer cualquier diseño hace falta investigar qué herramientas/servicios existen para esto — no armar una solución de una. **Aclaración importante: esto queda documentado para cuando exista el backend real — no se implementa nada de esto en el prototipo actual**, mismo criterio que se usó con la evaluación de FHIR (ver `docs/01`).
 
-Preguntas que esa investigación va a tener que responder (anotadas para no perderlas, no resueltas todavía):
-- **Email:** ¿verificación por link con token (mismo patrón que ya existe para `formulario_postdonacion.token`, con expiración) o por código numérico? ¿Con qué se enviaría el mail, dado que el prototipo no tiene backend real todavía?
-- **DNI:** ¿alcanza con validar el formato, o se busca integrar algo como RENAPER (el padrón nacional en Argentina) para confirmar identidad de verdad? Esto último implica costo, cuestiones de privacidad y disponibilidad de API que hay que investigar antes de decidir si es viable para este proyecto.
-- **Alcance para el prototipo actual:** sin backend real, es probable que esto termine siendo una simulación visual del flujo (como ya se hizo con login/registro) en vez de una integración real — pero es una decisión a tomar después de investigar, no antes.
+Preguntas que esa investigación tiene que responder:
+- **Email — investigado, ver subsección de abajo.**
+- **DNI:** ¿alcanza con validar el formato, o se busca integrar algo como RENAPER (el padrón nacional en Argentina) para confirmar identidad de verdad? Esto último implica costo, cuestiones de privacidad y disponibilidad de API que hay que investigar antes de decidir si es viable para este proyecto. **Sigue sin investigar — no confundir con el bloque de email, que ya está resuelto.**
+- **Alcance para el prototipo actual:** confirmado — no hay backend real, así que esto no se implementa ahora. Queda documentado el cómo, para cuando exista.
 
-Es el último hito que le falta al perfil del donante para considerarlo completamente cerrado — queda bloqueado hasta que haya una investigación concreta para discutir, no se avanza en código mientras tanto.
+Es el último hito que le falta al perfil del donante para considerarlo completamente cerrado — queda bloqueado hasta que haya una investigación concreta sobre DNI para discutir, no se avanza en código mientras tanto (tampoco en la parte de email, aunque ya esté investigada: falta el backend real para poder implementarla).
+
+#### Investigación: cómo validar el email del donante (investigado 2026-09-10, sin implementar)
+
+**El patrón estándar de la industria es "verification link" — y ya usamos exactamente este mecanismo en otro lugar del proyecto:**
+1. Al registrarse, el usuario queda creado con `email_verificado: false`.
+2. El backend genera un token de un solo uso con expiración (ej. 24-48hs), lo asocia al usuario, y le manda un mail real a su casilla personal con un link tipo `https://hemored.com/verificar-email?token=XXXX`.
+3. El usuario abre SU correo (fuera de la app) y hace click.
+4. El backend valida el token (existe, no expiró, no fue usado ya), marca `email_verificado: true`, y lo invalida para que no se reuse.
+5. Mientras no esté verificado, se puede restringir funcionalidad — **recomendación: no bloquear el login** (no trabar el onboarding), pero sí bloquear "Reservar turno" con un banner visible hasta verificar.
+
+**Es el mismo patrón que ya implementamos para el token de `formulario_postdonacion` (F4)** — de un solo uso, con expiración, validado contra una tabla antes de aceptar la acción. No hace falta inventar nada nuevo conceptualmente, solo aplicar la misma idea a un caso distinto.
+
+**Herramientas para cuando exista el backend (Django + DRF, según lo ya definido en "Arquitectura propuesta"):**
+- **`django-allauth`** — la librería más usada y completa para autenticación en Django; trae verificación de email lista para usar (generación de link, template, endpoint de confirmación), y de paso resuelve login social si algún día hiciera falta.
+- **`djoser`** — pensada específicamente para proyectos DRF + JWT (que es exactamente nuestro stack planeado: "API REST... autenticación JWT", ver arriba); expone endpoints REST listos para activación de cuenta por email, en el mismo estilo `/api/{recurso}` que ya está definido acá.
+- **A mano, sin librería de terceros:** Django ya trae `django.core.signing` (tokens firmados con expiración, sin necesitar tabla nueva) o se puede adaptar el mismo mecanismo que usa `django.contrib.auth` para resetear contraseña (`PasswordResetTokenGenerator`). Menos dependencias, más trabajo manual.
+
+**Envío real del mail — Django no manda mails de verdad por sí solo en producción, hace falta un servicio:**
+- Desarrollo/pruebas: `EMAIL_BACKEND` de consola de Django — imprime el mail en la terminal, sin mandar nada real, útil para probar el flujo.
+- Producción — servicios transaccionales típicos (pensados para pocos mails automáticos, no marketing masivo): **SendGrid**, **Amazon SES**, **Mailgun**, o **Resend**. Todos con un tier gratuito chico, suficiente al principio. `django-anymail` es la librería que unifica la integración con cualquiera de ellos sin atarse a un proveedor específico desde el primer día.
+
+**Cómo se vería concretamente en HemoRed:**
+- Nuevo servicio o extensión de `/api/auth` (ver "Servicios v1 (MVP)" más abajo): un endpoint para reenviar el mail de verificación y otro para confirmar el token.
+- El link del mail apuntaría a una pantalla nueva del frontend (`publico/verificar_email.html`), con el mismo patrón que ya usa `postdonacion_anonimo.html`: leer `?token=` de la URL y llamar al backend — la diferencia es que acá si hace falta sesión (es sobre la cuenta ya logueada), a diferencia de F4 que es anónimo a propósito.
+
+**DNI queda explícitamente afuera de esta investigación** — es un problema distinto (confirmar identidad real, no solo que una casilla de correo responda), con sus propias preguntas sin resolver (RENAPER, costo, privacidad). No se investigó todavía.
 
 ### Rol Donante: completo (salvo 2 pendientes de diseño)
 
 **Estado 2026-09-10:** no queda ningún flujo del rol Donante sin conectar. Lo único pendiente son los 3 ítems ya documentados más arriba:
-- **Validación de email y DNI** — bloqueado hasta que la usuaria traiga la investigación que dijo que iba a hacer (qué herramientas/servicios existen). No avanzar en diseño ni código mientras tanto.
+- **Validación de email y DNI** — la parte de email ya está investigada y documentada (ver subsección de arriba), pero no implementada: falta el backend real. La parte de DNI sigue bloqueada hasta que la usuaria traiga esa investigación. No avanzar en código de ninguna de las dos mientras tanto.
 - **Restricciones de elegibilidad para reservar turno** — pendiente de diseño, sin bloqueo — se puede retomar cuando se quiera.
 - **Recordatorio de F4 si el donante no responde en 2hs** (anotado 2026-09-10) — pendiente de diseño, sin bloqueo.
 
