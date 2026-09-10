@@ -192,6 +192,40 @@ Se opta por **monolítico** por:
 
 **Beneficios:** separación clara de responsabilidades, facilita mantenimiento y testing, permite escalar por módulos.
 
+### Consideración de interoperabilidad: HL7 FHIR (evaluado 2026-09-10, no adoptado)
+
+Se evaluó si conviene modelar la base de datos usando **HL7 FHIR** (Fast Healthcare Interoperability Resources) — el estándar internacional para intercambio de información clínica entre sistemas de salud — en vez del modelo relacional propio descrito en este documento. **Conclusión: no se adopta por ahora**, queda documentado acá para retomar la discusión con el profesor y para revisarlo cuando arranque el desarrollo real del backend (Django+DRF+PostgreSQL), no antes.
+
+**Qué es FHIR y para qué sirve, en criollo:** es un catálogo estandarizado de "recursos" (`Patient`, `Observation`, `Appointment`, etc.) pensado para que sistemas de salud que nunca se pusieron de acuerdo entre sí (distintos hospitales, laboratorios, historia clínica electrónica) puedan intercambiar datos sin que cada integración sea una traducción manual a medida. Su valor real aparece cuando hay un tercero externo con el que interoperar — hoy HemoRed no tiene ninguno (la integración con un sistema hospitalario real, tipo HIS/INCUCAI, está fuera de alcance del prototipo actual).
+
+**Mapeo de entidades propias a recursos FHIR — no todas encajan igual de bien:**
+
+| Entidad HemoRed | Recurso(s) FHIR | Nota |
+|---|---|---|
+| `usuarios` (donante) | `Patient` | Mapeo directo. |
+| `usuarios` (admin/hospital) | — | FHIR no modela cuentas administrativas de un sistema. |
+| `hospitales` | `Organization` | Directo. |
+| `profesionales` | `Practitioner` + `PractitionerRole` | `matricula` como `Identifier`. |
+| `pacientes` | `Patient` | Mismo recurso genérico que el donante — FHIR no distingue esos roles, requeriría extensiones propias para no confundirlos. |
+| `campanas` | sin mapeo limpio | No existe un recurso para "campaña de recolección" — forzarlo (`Group`/`PlanDefinition`) estiraría el estándar fuera de su dominio real. |
+| `turnos` | `Appointment` | Mapeo clásico, es literalmente para esto. |
+| `donaciones` | `Procedure` + `BiologicallyDerivedProduct` | Dos recursos, no uno: el acto clínico y la bolsa son cosas distintas en FHIR. |
+| `resultado_analisis` | `Observation` (por estudio) + `DiagnosticReport` (agrupador) | Cada campo (VIH, grupo sanguíneo, etc.) codificado con LOINC en vez de string libre. |
+| `certificado_donacion` | `DocumentReference` | El campo "emitido para" (a qué empresa se dirige) no tiene lugar natural en el recurso. |
+| `formulario_consentimiento` (F1+F2) | `Consent` + `QuestionnaireResponse` + `Provenance` (firmas) | |
+| `formulario_postdonacion` (F4, anónimo) | `QuestionnaireResponse` atado a la bolsa, no al paciente | Rompe la expectativa habitual de FHIR de trazar todo a un `Patient` — acá el anonimato es una decisión de diseño explícita del proyecto. |
+| `solicitudes_correccion`, `notificaciones_donante`, `mensajes` | sin mapeo real | Son workflow/mensajería propia del producto, no intercambio clínico entre proveedores de salud. |
+| `planes`, `facturas`, `medios_pago` | sin mapeo | Facturación SaaS B2B — fuera del dominio de FHIR (que tiene `Invoice`/`Coverage`, pero para facturación clínica a obras sociales). |
+
+**Qué cambiaría en la estructura de datos si se adoptara:** no es "renombrar tablas" — son cambios de fondo. Los `id` autoincrementales pasarían a ser objetos `Identifier` (`{system, value}`); las FK se reemplazan por `Reference` (más verboso, pero autodescriptivo, permite referenciar un recurso en otro servidor FHIR); los valores hoy libres (`"hepatitis_b": "negativo"`) se codificarían con `CodeableConcept` usando sistemas de códigos estándar como LOINC (qué estudio es) y SNOMED CT (el hallazgo); y cada recurso pasa a ser un JSON con una envoltura fija (`resourceType`, `id`, `meta`) en vez de una fila relacional plana — cualquier campo propio sin equivalente estándar (`experiencia_donante`, el `tono` de una notificación) necesitaría salir como `extension` con su propia URL canónica.
+
+**Por qué no se adopta ahora:**
+1. El backend todavía no tiene una sola línea de código — adoptar FHIR es una decisión arquitectónica de peso sobre algo que ni arrancó.
+2. El valor real de FHIR es interoperar con un tercero externo, y hoy no hay ninguno — se pagaría el costo (codificación LOINC/SNOMED, `Reference`, extensiones custom) sin cobrar el beneficio.
+3. Buena parte del corazón real del sistema (campañas, turnos, facturación SaaS, mensajería) está directamente fuera del dominio de FHIR, que fue pensado para atención clínica, no para gestión operativa.
+
+**Nota a favor de retomarlo más adelante:** el diseño actual (`documentos` como índice + `resultado_analisis`/`certificado_donacion` como tablas hijas separadas) ya es, en espíritu, el mismo patrón de indirección que facilitaría exponer una fachada FHIR el día de mañana sin reescribir el modelo interno — si en algún momento HemoRed se conecta con un sistema hospitalario real, vale la pena evaluar exponer `resultado_analisis`/`formulario_consentimiento`/`formulario_postdonacion` como `Observation`/`DiagnosticReport`/`Consent`/`QuestionnaireResponse` vía una capa de traducción, sin migrar el modelo interno.
+
 ---
 
 ## Interfaces y APIs
