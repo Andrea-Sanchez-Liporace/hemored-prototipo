@@ -138,6 +138,17 @@
       </div>
     </div>
 
+    <!-- NO ELEGIBLE PARA DONAR (global, no por campaña — si el donante no
+         es elegible, no lo es para ninguna, así que va una sola vez arriba
+         de todo en vez de repetirse en cada tarjeta) -->
+    <div style="background:#fde8e8;border:1px solid #c0392b;border-radius:12px;padding:16px 20px;margin-bottom:16px;align-items:center;gap:14px;display:none;" id="no-elegible-banner">
+      <i class="ti ti-alert-triangle" style="color:#c0392b;font-size:22px;flex-shrink:0;" aria-hidden="true"></i>
+      <div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;margin-bottom:2px;">Por ahora no podés reservar un turno</div>
+        <div style="font-size:13px;color:#5a3040;" id="no-elegible-motivo">—</div>
+      </div>
+    </div>
+
     <!-- PRÓXIMO TURNO -->
     <div class="proximo-turno" id="proximo-turno-banner" style="display:none;">
       <div class="pt-left">
@@ -326,6 +337,18 @@
 
     const elVidas = document.getElementById('vidas-ayudadas');
     if (elVidas) elVidas.textContent = donaciones.length * 3;
+
+    // Elegibilidad para donar: es un dato del donante, no de la campaña —
+    // si no es elegible, no lo es para NINGUNA campaña. Por eso va un solo
+    // banner acá arriba (2026-09-10, a pedido de la usuaria), no un
+    // indicador repetido en cada tarjeta.
+    if (donante) {
+      const elegibilidad = HemoRed.data.verificarElegibilidadReserva(donante.id);
+      if (!elegibilidad.ok) {
+        document.getElementById('no-elegible-motivo').textContent = elegibilidad.error;
+        document.getElementById('no-elegible-banner').style.display = 'flex';
+      }
+    }
 
     // Próximo turno confirmado (el más cercano en el futuro)
     const hospitales = HemoRed.db.all('hospitales');

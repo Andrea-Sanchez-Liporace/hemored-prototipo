@@ -117,7 +117,15 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. El token es de un solo uso: se prueba que reusarlo después de completado se rechace.
 6. Casos aparte, sin necesitar todo el flujo previo (se arman directo contra la tabla): token inexistente, token ya usado y token vencido — cada uno muestra su propio mensaje de error, sin excepciones de JS.
 
-## Qué NO cubre todavía
+**`restricciones-elegibilidad.spec.js`** — restricciones de elegibilidad para reservar turno, agregado 2026-09-10, ampliado 2026-09-14 tras una auditoría de consistencia en todo el rol Donante:
+
+1. Un donante recién registrado, sin fecha de nacimiento ni peso cargados en el perfil, no queda bloqueado por default — los requisitos no validables (falta el dato) se mantienen en verde, no se asume incumplimiento.
+2. Menor de 18 años: el ítem de edad en "Requisitos para donar" se marca en rojo y "Reservar turno" queda deshabilitado de entrada (antes de llegar a elegir fecha/hora), con el motivo puntual visible.
+3. **Tope de edad 65, hasta 70 para donantes habituales**: se prueba el mismo donante (67 años) bloqueado como donante normal y habilitado al marcarlo `experiencia_donante: 'habitual'` — el checklist muestra el tope real en cada caso, no un texto fijo.
+4. Menos de 50kg: mismo patrón para el ítem de peso — y se prueba que los chequeos no se crucen (edad sigue en verde si solo falla el peso).
+5. **Un turno activo en OTRA campaña también bloquea** — antes el chequeo solo miraba la misma campaña, y ni siquiera consideraba un turno `pendiente` como bloqueante (bug real encontrado al tocar este código, corregido de paso). Se prueba tanto desde la UI como llamando directo a `crearTurno()`.
+6. **Reprogramar un turno (`actualizarTurno()`) re-valida elegibilidad completa, no solo la ventana de 24hs** — se prueba bajando el peso a menos de 50kg *después* de reservar: reprogramar a una fecha nueva se rechaza; con el peso corregido, reprograma sin problema (y no se bloquea contra su propio turno activo).
+7. **El dashboard muestra un banner único arriba de todo** (no un indicador por tarjeta) cuando el donante no es elegible — con el motivo puntual visible.
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 

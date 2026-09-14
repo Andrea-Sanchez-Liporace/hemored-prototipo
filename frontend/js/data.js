@@ -83,29 +83,105 @@ HemoRed.data = (function() {
     }));
   }
 
-  // Reserva un turno real. Valida: no duplicar turno para la misma campaña,
-  // que el horario no esté ya tomado en ese hospital, y la regla de 90 días
-  // desde la última donación (citada en docs/03-documentacion-tecnica-consolidada.md).
+  // Única fuente de verdad para la ventana de 90 días desde la última
+  // donación real del donante — la usan tanto _validarElegibilidadDonante()
+  // (para bloquear una reserva) como cargarMisDonaciones() (para el banner
+  // "próxima fecha habilitada"). Antes cada una calculaba esto por su
+  // cuenta con el mismo "90 * 86400000" repetido en dos lugares —
+  // refactorizado 2026-09-10 a pedido de la usuaria para no tener que
+  // acordarse de tocar los dos si el número cambia algún día.
+  // Devuelve la fecha (Date) en la que el donante vuelve a estar habilitado,
+  // o null si nunca donó (no hay ninguna ventana corriendo).
+  function _proximaFechaHabilitada(usuarioId) {
+    const fechasDonaciones = HemoRed.db.where('donaciones', 'usuario_id', usuarioId)
+      .map(d => d.registrado_en).filter(Boolean).sort();
+    const ultimaDonacion = fechasDonaciones[fechasDonaciones.length - 1];
+    if (!ultimaDonacion) return null;
+    return new Date(new Date(ultimaDonacion).getTime() + 90 * 86400000);
+  }
+
+  // Restricciones de elegibilidad para donar (anotadas como pendiente de
+  // diseño 2026-09-01, resueltas y conectadas 2026-09-10). Compartida entre
+  // crearTurno() (valida contra la fecha elegida del turno), actualizarTurno()
+  // (valida contra la fecha NUEVA al reprogramar — ver nota abajo) y
+  // verificarElegibilidadReserva() (valida contra "hoy", para poder
+  // deshabilitar el botón "Reservar turno" ANTES de que el donante elija
+  // fecha/hora — con el motivo puntual visible, mismo patrón que ya usan
+  // actualizarTurno()/cancelarTurno() con la ventana de tiempo).
+  //
+  // Por qué se evalúa siempre contra la fecha DEL TURNO (no contra "hoy"),
+  // salvo en verificarElegibilidadReserva() donde todavía no hay fecha
+  // elegida: la usuaria pidió explícitamente que la edad se cumpla "en el
+  // momento de la donación", no solo en el momento de tomar el turno — si
+  // alguien tiene 17 hoy pero ya cumplió 18 para la fecha del turno, tiene
+  // que poder reservar; si tiene 65 hoy pero para la fecha del turno ya
+  // cumplió 66, no. Evaluar contra la fecha del turno cubre los dos casos
+  // con un solo chequeo — no hace falta un chequeo aparte contra "hoy".
+  //
+  // Decisiones tomadas con la usuaria 2026-09-10:
+  // - 90 días (no 85, que era un número aproximado al anotar el pendiente).
+  // - "Ya tener un turno" se amplió de "por campaña" a un turno activo
+  //   (pendiente/confirmado/en_curso) en TODA la plataforma — de paso se
+  //   corrigió que la versión anterior de este chequeo no incluía
+  //   'pendiente' entre los estados bloqueantes, lo cual permitía reservar
+  //   más de un turno pendiente para la misma campaña a la vez.
+  // - Condición médica inhabilitante (detectada en un análisis anterior)
+  //   queda AFUERA a propósito: no hay campos estructurados para eso en
+  //   resultado_analisis todavía (ver docs/01, queda anotado como v2).
+  // - Al reprogramar (actualizarTurno()), se re-chequea TODO de nuevo, no
+  //   solo la ventana de 24hs — si en el medio cambió el peso, por ejemplo,
+  //   hay que volver a evaluarlo. `excluirTurnoId` existe para que el propio
+  //   turno que se está reprogramando no se cuente a sí mismo como "ya
+  //   tenés un turno activo".
+  function _validarElegibilidadDonante(usuarioId, fechaEvaluacion, { excluirTurnoId } = {}) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+
+    if (usuario.fecha_nacimiento) {
+      const edad = Math.floor((new Date(fechaEvaluacion) - new Date(usuario.fecha_nacimiento)) / (365.25 * 86400000));
+      // Tope general 65 años, salvo donantes habituales (experiencia_donante,
+      // ver perfil): hasta 70 — regla real de donación de sangre en Argentina,
+      // agregada 2026-09-10 a pedido de la usuaria.
+      const edadMaxima = usuario.experiencia_donante === 'habitual' ? 70 : 65;
+      if (edad < 18) return { ok: false, error: 'Para donar sangre tenés que tener al menos 18 años.' };
+      if (edad > edadMaxima) return { ok: false, error: `La edad máxima para donar sangre es ${edadMaxima} años${usuario.experiencia_donante === 'habitual' ? ' (para donantes habituales)' : ''}.` };
+    }
+
+    if (usuario.peso_kg != null && usuario.peso_kg < 50) {
+      return { ok: false, error: 'Para donar sangre tenés que pesar al menos 50kg.' };
+    }
+
+    const turnoActivo = HemoRed.db.where('turnos', 'usuario_id', usuarioId)
+      .some(t => t.id !== excluirTurnoId && ['pendiente', 'confirmado', 'en_curso'].includes(t.estado));
+    if (turnoActivo) return { ok: false, error: 'Ya tenés un turno activo — solo podés tener uno a la vez en toda la plataforma. Cancelalo primero si querés reservar en otra campaña.' };
+
+    const habilitado = _proximaFechaHabilitada(usuarioId);
+    if (habilitado && new Date(fechaEvaluacion) < habilitado) {
+      return { ok: false, error: `Todavía no podés donar: tu última donación fue hace menos de 90 días. Vas a poder reservar turno a partir del ${habilitado.toLocaleDateString('es-AR')}.` };
+    }
+
+    return { ok: true };
+  }
+
+  // Chequeo proactivo (contra "hoy", sin fecha de turno todavía elegida) —
+  // usado por dashboard.html (banner global, antes de listar campañas) y
+  // campana_detalle.html (deshabilita "Reservar turno" de entrada, antes de
+  // que el donante llegue a elegir fecha/hora).
+  function verificarElegibilidadReserva(usuarioId) {
+    const hoy = AHORA_DEMO.toISOString().slice(0, 10);
+    return _validarElegibilidadDonante(usuarioId, hoy);
+  }
+
+  // Reserva un turno real. Valida elegibilidad (edad, peso, turno activo,
+  // 90 días desde la última donación) y que el horario no esté ya tomado
+  // en ese hospital.
   function crearTurno({ usuario_id, campana_id, hospital_id, fecha, hora }) {
-    const yaTiene = HemoRed.db.where('turnos', 'usuario_id', usuario_id)
-      .some(t => t.campana_id === campana_id && ['confirmado', 'en_curso', 'completado'].includes(t.estado));
-    if (yaTiene) return { ok: false, error: 'Ya tenés un turno para esta campaña.' };
+    const elegibilidad = _validarElegibilidadDonante(usuario_id, fecha);
+    if (!elegibilidad.ok) return elegibilidad;
 
     const ocupado = HemoRed.db.all('turnos')
       .some(t => t.hospital_id === hospital_id && t.fecha === fecha && t.hora === hora && t.estado !== 'cancelado');
     if (ocupado) return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
-
-    const fechasDonaciones = HemoRed.db.where('donaciones', 'usuario_id', usuario_id)
-      .map(d => d.registrado_en).filter(Boolean).sort();
-    const ultimaDonacion = fechasDonaciones[fechasDonaciones.length - 1];
-    if (ultimaDonacion) {
-      const dias = Math.floor((new Date(fecha) - new Date(ultimaDonacion)) / 86400000);
-      if (dias < 90) {
-        const habilitado = new Date(new Date(ultimaDonacion).getTime() + 90 * 86400000)
-          .toLocaleDateString('es-AR');
-        return { ok: false, error: `Todavía no podés donar: tu última donación fue hace menos de 90 días. Vas a poder reservar turno a partir del ${habilitado}.` };
-      }
-    }
 
     const turno = HemoRed.db.crear('turnos', {
       campana_id, usuario_id, hospital_id, fecha, hora,
@@ -144,6 +220,14 @@ HemoRed.data = (function() {
   // pendiente o confirmado (ver nota en docs/03-documentacion-tecnica-consolidada.md,
   // sección "Mis turnos": el motivo es darle margen de reacción al hospital,
   // y ese motivo aplica igual en ambos estados).
+  //
+  // Re-valida elegibilidad completa contra la NUEVA fecha (2026-09-10, a
+  // pedido de la usuaria) — no alcanza con la ventana de 24hs: si en el
+  // medio entre reservar y reprogramar cambió algo (ej. el peso cargado en
+  // el perfil), hay que volver a evaluarlo, no asumir que sigue valiendo lo
+  // que se chequeó en la reserva original. `excluirTurnoId` evita que el
+  // propio turno que se está moviendo se cuente como "ya tenés un turno
+  // activo" contra sí mismo.
   function actualizarTurno(turnoId, { fecha, hora }) {
     const turno = HemoRed.db.find('turnos', turnoId);
     if (!turno) return { ok: false, error: 'Turno no encontrado.' };
@@ -151,6 +235,9 @@ HemoRed.data = (function() {
     if (horasHastaElTurno(turno) < 24) {
       return { ok: false, error: 'No podés modificar el turno a menos de 24hs de la fecha pactada.' + datosContactoHospital(turno.hospital_id) };
     }
+
+    const elegibilidad = _validarElegibilidadDonante(turno.usuario_id, fecha, { excluirTurnoId: turnoId });
+    if (!elegibilidad.ok) return elegibilidad;
 
     const ocupado = HemoRed.db.all('turnos')
       .some(t => t.id !== turnoId && t.hospital_id === turno.hospital_id && t.fecha === fecha && t.hora === hora && t.estado !== 'cancelado');
@@ -256,14 +343,15 @@ HemoRed.data = (function() {
       .map(d => ({ ...d, hospital: hospitales.find(h => h.id === d.hospital_id) }))
       .sort((a, b) => new Date(b.registrado_en) - new Date(a.registrado_en));
 
-    // Misma ventana de 90 días que usa crearTurno() para habilitar la
-    // próxima reserva (AHORA_DEMO está declarado más arriba en este mismo
-    // archivo) — se calcula acá para no duplicar el número mágico en dos
-    // lugares. Si ya pasaron los 90 días, no hay nada que esperar.
+    // Misma ventana de 90 días que usa _validarElegibilidadDonante() para
+    // bloquear una reserva — reusa _proximaFechaHabilitada() (refactorizado
+    // 2026-09-10, antes este cálculo estaba duplicado acá con el mismo
+    // "90 * 86400000" repetido). Si ya pasaron los 90 días, no hay nada que
+    // esperar.
     let proximaFechaHabilitada = null;
     let diasHastaHabilitado = 0;
-    if (donaciones[0]) {
-      const candidata = new Date(new Date(donaciones[0].registrado_en).getTime() + 90 * 86400000);
+    const candidata = _proximaFechaHabilitada(s.usuario_id);
+    if (candidata) {
       const dias = Math.ceil((candidata - AHORA_DEMO) / 86400000);
       if (dias > 0) {
         proximaFechaHabilitada = candidata;
@@ -784,6 +872,7 @@ HemoRed.data = (function() {
     cargarDashboardDonante,
     renderCampanas,
     crearTurno,
+    verificarElegibilidadReserva,
     actualizarTurno,
     cancelarTurno,
     confirmarTurno,

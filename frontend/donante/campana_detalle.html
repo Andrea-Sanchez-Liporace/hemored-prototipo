@@ -141,15 +141,15 @@
           <div class="card">
             <div class="campaign-desc-title" style="margin-bottom:14px;">Requisitos para donar</div>
             <div style="display:flex;flex-direction:column;gap:10px;">
-              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;" id="req-edad">
                 <i class="ti ti-check" style="color:#27ae60;font-size:16px;" aria-hidden="true"></i>
-                Tener entre 18 y 65 años
+                <span id="req-edad-texto">Tener entre 18 y 65 años</span>
               </div>
-              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;" id="req-peso">
                 <i class="ti ti-check" style="color:#27ae60;font-size:16px;" aria-hidden="true"></i>
                 Pesar más de 50 kg
               </div>
-              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;" id="req-90dias">
                 <i class="ti ti-check" style="color:#27ae60;font-size:16px;" aria-hidden="true"></i>
                 No haber donado sangre en los últimos 3 meses
               </div>
@@ -185,7 +185,7 @@
               <i class="ti ti-calendar-plus" aria-hidden="true"></i>
               Reservar turno
             </button>
-            <p class="nota-info">Podés cancelar tu turno hasta 24hs antes sin penalidad.</p>
+            <p class="nota-info" id="btn-reservar-nota">Podés cancelar tu turno hasta 24hs antes sin penalidad.</p>
           </div>
         </div>
       </div>
@@ -459,6 +459,64 @@
 
     const sesion = HemoRed.sesion.get();
     document.getElementById('conf-donante').textContent = sesion?.nombre || '—';
+
+    if (sesion) {
+      actualizarRequisitos(HemoRed.db.find('usuarios', sesion.usuario_id));
+      aplicarElegibilidadBoton(sesion.usuario_id);
+    }
+  }
+
+  // Restricciones de elegibilidad (anotadas 2026-09-01, conectadas
+  // 2026-09-10): antes "Requisitos para donar" era una lista fija, todo en
+  // verde sin importar quién la mirara — ahora refleja el estado real del
+  // donante logueado para edad/peso/90 días (no hay forma de "cumplir o no"
+  // presentar el DNI en este punto, ese ítem queda fijo).
+  function marcarRequisito(id, cumplido) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const icon = el.querySelector('i');
+    icon.className = cumplido ? 'ti ti-check' : 'ti ti-x';
+    icon.style.color = cumplido ? '#27ae60' : '#c0392b';
+    el.style.color = cumplido ? '#5a3040' : '#c0392b';
+  }
+
+  function actualizarRequisitos(usuario) {
+    if (usuario?.fecha_nacimiento) {
+      const edad = Math.floor((new Date(HOY) - new Date(usuario.fecha_nacimiento)) / (365.25 * 86400000));
+      // Tope general 65 años, salvo donantes habituales: hasta 70.
+      const esHabitual = usuario.experiencia_donante === 'habitual';
+      const edadMaxima = esHabitual ? 70 : 65;
+      document.getElementById('req-edad-texto').textContent = `Tener entre 18 y ${edadMaxima} años` + (esHabitual ? ' (donante habitual)' : '');
+      marcarRequisito('req-edad', edad >= 18 && edad <= edadMaxima);
+    }
+    if (usuario?.peso_kg != null) {
+      marcarRequisito('req-peso', usuario.peso_kg >= 50);
+    }
+    const fechas = HemoRed.db.where('donaciones', 'usuario_id', usuario?.id)
+      .map(d => d.registrado_en).filter(Boolean).sort();
+    const ultima = fechas[fechas.length - 1];
+    if (ultima) {
+      const dias = Math.floor((new Date(HOY) - new Date(ultima)) / 86400000);
+      marcarRequisito('req-90dias', dias >= 90);
+    }
+  }
+
+  // Deshabilita "Reservar turno" de entrada (antes de que el donante llegue
+  // a elegir fecha/hora) si ya no es elegible por algún motivo, con el
+  // motivo puntual visible — mismo patrón que ya usan actualizarTurno()/
+  // cancelarTurno() cuando rechazan por la ventana de tiempo vencida.
+  function aplicarElegibilidadBoton(usuarioId) {
+    const resultado = HemoRed.data.verificarElegibilidadReserva(usuarioId);
+    if (resultado.ok) return;
+    const btn = document.getElementById('btn-reservar');
+    const nota = document.getElementById('btn-reservar-nota');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    if (nota) {
+      nota.textContent = resultado.error;
+      nota.style.color = '#c0392b';
+    }
   }
 
   async function confirmarReserva() {
