@@ -134,7 +134,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; mi
 .btn-xs-warn { background: #faeeda; color: #412402; }
 .btn-xs-danger { background: #fde8e8; color: #c0392b; }
 .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
-.filter-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; color: #1a1a1a; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+.filter-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; color: #1a1a1a; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; min-width: 200px; }
 .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 0.5px solid #e0e0e0; }
 .pag-info { font-size: 12px; color: #999; }
 .pag-btns { display: flex; gap: 4px; }

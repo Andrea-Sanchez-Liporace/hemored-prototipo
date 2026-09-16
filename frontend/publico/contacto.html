@@ -300,5 +300,15 @@
   }
 </script>
 
+<!-- Esta página nunca cargó el framework de HemoRed (es un mockup estático,
+     parte del circuito "registro de hospital → pago → aprobación" todavía
+     sin conectar, ver docs/04) — se agregan estos 2 scripts únicamente
+     para que los 4 selects de este formulario tengan el mismo componente
+     personalizado que el resto del sitio (ver docs/04, "Componente
+     compartido: select personalizado"). db.js solo crea el objeto global
+     `HemoRed` que necesita ui.js — no se llama a HemoRed.db.init() acá,
+     esta pantalla sigue sin datos reales. -->
+<script src="../js/db.js"></script>
+<script src="../js/ui.js"></script>
 </body>
 </html>

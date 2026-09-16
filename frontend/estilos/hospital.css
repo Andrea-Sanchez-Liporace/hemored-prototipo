@@ -119,7 +119,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a9435d; font-size: 15px; }
 .search-input { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; background: white; }
 .search-input:focus { border-color: #ef647c; }
-.filter-select { padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; }
+.filter-select { padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; background: white; cursor: pointer; min-width: 200px; }
 .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
 .table-header { display: grid; grid-template-columns: 2fr 1.4fr 0.9fr 1fr 0.8fr 170px; gap: 12px; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
 .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }

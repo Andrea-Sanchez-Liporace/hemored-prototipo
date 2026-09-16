@@ -132,7 +132,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Condición IVA</label>
-          <select class="form-input">
+          <select class="form-input" id="pago-condicion-iva">
             <option>Responsable inscripto</option>
             <option>Monotributista</option>
             <option>Exento</option>
@@ -248,5 +248,15 @@
   }
 </script>
 
+<!-- Esta página nunca cargó el framework de HemoRed (es un mockup estático,
+     parte del circuito "registro de hospital → pago → aprobación" todavía
+     sin conectar, ver docs/04) — se agregan estos 2 scripts únicamente
+     para que el select de "Condición IVA" tenga el mismo componente
+     personalizado que el resto del sitio (ver docs/04, "Componente
+     compartido: select personalizado"). db.js solo crea el objeto global
+     `HemoRed` que necesita ui.js — no se llama a HemoRed.db.init() acá,
+     esta pantalla sigue sin datos reales. -->
+<script src="../js/db.js"></script>
+<script src="../js/ui.js"></script>
 </body>
 </html>

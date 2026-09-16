@@ -98,3 +98,98 @@ ul { list-style: none; }
 @media (min-width: 769px) {
   .hide-desktop { display: none !important; }
 }
+
+/* ============================================================
+   SELECT PERSONALIZADO (HemoRed.ui.mejorarSelects(), ver js/ui.js)
+   ------------------------------------------------------------
+   Ningún navegador deja estilizar con CSS el color de resaltado de las
+   opciones dentro del popup nativo de un <select> — lo dibuja el sistema
+   operativo, fuera del alcance de la página. Por eso cada <select> del
+   sitio se reemplaza visualmente por un botón + una lista propia; el
+   <select> real queda oculto pero sigue existiendo (con su mismo id) como
+   fuente de verdad, así que todo el código que ya lee/escribe `.value` en
+   un select sigue funcionando sin cambios.
+   ============================================================ */
+
+/* El <select> real: oculto a la vista pero sin colapsar a tamaño 0 (así
+   sigue teniendo un "bounding box" real) ni volverse invisible del todo
+   para herramientas de automatización — solo pasa a segundo plano, debajo
+   del botón que ocupa su lugar.
+   El tamaño se fuerza a 1x1px a propósito: como casi ningún contenedor del
+   sitio tiene `position:relative`, un elemento `position:absolute` sin
+   ancestro posicionado toma como referencia el viewport completo — así
+   que el `width:100%` que traía de `.form-input` (para no perder el
+   tamaño visual) se resolvía contra TODA la página, no contra su
+   contenedor original, generando scroll horizontal en cualquier pantalla
+   con ese tipo de select (bug real, encontrado por la usuaria revisando
+   pago.html/contacto.html, pero afectaba a cualquier página con selects
+   `.form-input` — ver docs/04). 1x1px sigue siendo un bounding box "no
+   vacío" (Playwright solo pide eso para `selectOption()`), y como total
+   es invisible (opacity:0) el tamaño real no importa. */
+.hr-select-native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1;
+}
+
+/* El botón que reemplaza visualmente al select — se le agregan las MISMAS
+   clases que tenía el select (.form-input, .filter-select, etc.), así
+   hereda automáticamente el mismo tamaño/borde/tipografía sin duplicar
+   esos estilos acá. Estas reglas solo agregan el layout interno
+   (texto + flecha) y el estado abierto/deshabilitado. */
+.hr-select-trigger {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+}
+.hr-select-trigger::-moz-focus-inner { border: 0; padding: 0; }
+.hr-select-trigger .hr-select-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-select-trigger .hr-select-chevron { flex-shrink: 0; font-size: 12px; color: var(--color-text-muted); transition: transform var(--transition-base); }
+.hr-select-trigger.hr-select-open .hr-select-chevron { transform: rotate(180deg); }
+.hr-select-trigger.hr-select-disabled { opacity: 0.55; cursor: not-allowed; }
+.hr-select-trigger:focus-visible { outline: 2px solid var(--color-rosa); outline-offset: 1px; }
+
+/* La lista de opciones — se agrega a <body> (no adentro del botón) para no
+   quedar recortada por ningún contenedor con overflow:hidden alrededor. */
+.hr-select-panel {
+  position: fixed;
+  background: var(--color-white);
+  border: 1px solid var(--color-rosa-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-modal);
+  padding: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden; /* explícito a propósito: overflow-y:auto por sí solo ya
+    pone overflow-x en auto (regla del spec de CSS) — sin esto, una opción
+    más ancha que el panel generaba scroll horizontal adentro. Con el texto
+    ahora en varias líneas (ver .hr-select-option) esto ya no debería
+    disparar nunca, pero queda como red de seguridad. */
+  z-index: 250; /* por encima de .modal-overlay (200), por si el select está dentro de un modal */
+}
+.hr-select-option {
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--color-text);
+  cursor: pointer;
+  /* Una sola línea, sin cortar palabras — el ancho real lo da el propio
+     campo (`.filter-select`/`.form-input` tienen un min-width pensado para
+     que entre el contenido más largo, ej. "Santiago del Estero"), no el
+     panel. Forzar el wrap acá (probado antes) partía palabras a la mitad
+     ("Catamarc"+"a"), se veía roto — mejor ensanchar el campo que cortar texto. */
+  white-space: nowrap;
+}
+/* El color de resaltado que reemplaza al azul nativo del sistema operativo. */
+.hr-select-option.hr-select-highlight { background: var(--color-rosa-pale); color: var(--color-borravino); }
+.hr-select-option[aria-selected="true"] { font-weight: 500; }
