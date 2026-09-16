@@ -45,6 +45,18 @@ async function firmar(page, canvasSelector) {
   await page.mouse.up();
 }
 
+// El cuestionario médico (F2) ya no trae ninguna respuesta pre-marcada
+// (corregido 2026-09-15) — hay que contestar las 34 antes de poder enviar.
+// Este test no evalúa ese detalle en particular, así que contesta todas
+// "No" sin necesidad de variar ninguna.
+async function responderCuestionario(page) {
+  const items = page.locator('.excl-item');
+  const total = await items.count();
+  for (let i = 0; i < total; i++) {
+    await items.nth(i).locator('.excl-btn', { hasText: 'No' }).click();
+  }
+}
+
 test.describe('Registrar donación (Hospital) + formulario post-donación anónimo (F4)', () => {
 
   test('camino completo: registrar/reservar/confirmar → F1/F2 → registrar donación → F4 anónimo', async ({ page }) => {
@@ -112,6 +124,7 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       // el mouse dibuja sobre un canvas que todavía no tiene el pad enganchado.
       await page.waitForTimeout(250);
 
+      await responderCuestionario(page);
       await firmar(page, '#sig-f2');
       await page.click('button:has-text("Confirmar y enviar formularios")');
       await expect(page.locator('#step-3')).toHaveClass(/active/);

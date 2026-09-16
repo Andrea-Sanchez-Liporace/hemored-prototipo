@@ -159,8 +159,28 @@
               <select class="form-input" id="input-provincia">
                 <option>Buenos Aires</option>
                 <option>CABA</option>
+                <option>Catamarca</option>
+                <option>Chaco</option>
+                <option>Chubut</option>
                 <option>Córdoba</option>
+                <option>Corrientes</option>
+                <option>Entre Ríos</option>
+                <option>Formosa</option>
+                <option>Jujuy</option>
+                <option>La Pampa</option>
+                <option>La Rioja</option>
+                <option>Mendoza</option>
+                <option>Misiones</option>
+                <option>Neuquén</option>
+                <option>Río Negro</option>
+                <option>Salta</option>
+                <option>San Juan</option>
+                <option>San Luis</option>
+                <option>Santa Cruz</option>
                 <option>Santa Fe</option>
+                <option>Santiago del Estero</option>
+                <option>Tierra del Fuego</option>
+                <option>Tucumán</option>
               </select>
             </div>
             <div class="form-group">
@@ -385,10 +405,10 @@
               </div>
               <div>
                 <div class="security-item-title">Contraseña</div>
-                <div class="security-item-sub">Última modificación: hace 3 meses</div>
+                <div class="security-item-sub" id="seg-password-sub">—</div>
               </div>
             </div>
-            <button class="btn-outline-sm">Cambiar contraseña</button>
+            <button class="btn-outline-sm" onclick="abrirModalPassword()">Cambiar contraseña</button>
           </div>
           <div class="security-item">
             <div class="security-item-left">
@@ -397,10 +417,10 @@
               </div>
               <div>
                 <div class="security-item-title">Email</div>
-                <div class="security-item-sub">sofia@email.com · Verificado</div>
+                <div class="security-item-sub" id="seg-email-sub">—</div>
               </div>
             </div>
-            <button class="btn-outline-sm">Cambiar email</button>
+            <button class="btn-outline-sm" onclick="abrirModalEmail()">Cambiar email</button>
           </div>
           <div class="security-item">
             <div class="security-item-left">
@@ -412,12 +432,89 @@
                 <div class="security-item-sub">Esta acción es irreversible</div>
               </div>
             </div>
-            <button class="btn-danger-sm">Eliminar cuenta</button>
+            <button class="btn-danger-sm" onclick="abrirModalEliminarCuenta()">Eliminar cuenta</button>
           </div>
         </div>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<div class="modal-overlay" id="modal-password">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Cambiar contraseña</div>
+      <button class="modal-close" onclick="HemoRed.ui.cerrarModal('modal-password')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Contraseña actual</label>
+        <input class="form-input" type="password" id="pw-actual">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nueva contraseña</label>
+        <input class="form-input" type="password" id="pw-nueva" placeholder="Mínimo 8 caracteres">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Repetir nueva contraseña</label>
+        <input class="form-input" type="password" id="pw-nueva2">
+      </div>
+      <div class="aviso av-rojo" id="pw-error" style="display:none;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="HemoRed.ui.cerrarModal('modal-password')">Cancelar</button>
+      <button class="btn-save" onclick="confirmarCambiarPassword()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR EMAIL -->
+<div class="modal-overlay" id="modal-email">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Cambiar email</div>
+      <button class="modal-close" onclick="HemoRed.ui.cerrarModal('modal-email')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nuevo email</label>
+        <input class="form-input" type="email" id="email-nuevo">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña actual (para confirmar que sos vos)</label>
+        <input class="form-input" type="password" id="email-pass-actual">
+      </div>
+      <div class="aviso av-azul">Vas a ver el email nuevo marcado como "pendiente de verificación" hasta que la app tenga el envío real de un link de confirmación (ver docs).</div>
+      <div class="aviso av-rojo" id="email-error" style="display:none;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="HemoRed.ui.cerrarModal('modal-email')">Cancelar</button>
+      <button class="btn-save" onclick="confirmarCambiarEmail()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ELIMINAR CUENTA -->
+<div class="modal-overlay" id="modal-eliminar-cuenta">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Eliminar cuenta</div>
+      <button class="modal-close" onclick="HemoRed.ui.cerrarModal('modal-eliminar-cuenta')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="aviso av-rojo">Esta acción es irreversible: vas a perder el acceso a tu cuenta y no vas a poder volver a iniciar sesión con este email. Tu historial de donaciones queda igual en el sistema (el hospital lo sigue necesitando), pero deja de estar asociado a una cuenta activa.</div>
+      <div class="form-group">
+        <label class="form-label">Confirmá tu contraseña para eliminar la cuenta</label>
+        <input class="form-input" type="password" id="eliminar-pass-actual">
+      </div>
+      <div class="aviso av-rojo" id="eliminar-error" style="display:none;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="HemoRed.ui.cerrarModal('modal-eliminar-cuenta')">Cancelar</button>
+      <button class="btn-danger-sm" onclick="confirmarEliminarCuenta()">Eliminar mi cuenta</button>
+    </div>
   </div>
 </div>
 
@@ -440,6 +537,7 @@
     document.getElementById('perfil-email').textContent = usuarioActual.email || '';
     document.getElementById('perfil-badge-sangre').style.display = usuarioActual.tipo_sangre ? 'none' : '';
     actualizarCompletitud();
+    actualizarResumenSeguridad();
 
     // Sección 1 — Datos personales
     document.getElementById('input-nombre').value = usuarioActual.nombre || '';
@@ -726,6 +824,90 @@
     if (!resultado.ok) return;
     usuarioActual = resultado.usuario;
     HemoRed.ui.toast('Preferencias guardadas');
+  }
+
+  // ===== SEGURIDAD DE LA CUENTA =====
+  function actualizarResumenSeguridad() {
+    const sub = usuarioActual.password_actualizada_en
+      ? `Última modificación: ${new Date(usuarioActual.password_actualizada_en).toLocaleDateString('es-AR')}`
+      : 'Nunca la cambiaste desde que te registraste.';
+    document.getElementById('seg-password-sub').textContent = sub;
+    document.getElementById('seg-email-sub').textContent =
+      `${usuarioActual.email} · ${usuarioActual.email_verificado === false ? 'Pendiente de verificación' : 'Verificado'}`;
+  }
+
+  function abrirModalPassword() {
+    document.getElementById('pw-actual').value = '';
+    document.getElementById('pw-nueva').value = '';
+    document.getElementById('pw-nueva2').value = '';
+    document.getElementById('pw-error').style.display = 'none';
+    HemoRed.ui.abrirModal('modal-password');
+  }
+
+  function confirmarCambiarPassword() {
+    const actual = document.getElementById('pw-actual').value;
+    const nueva = document.getElementById('pw-nueva').value;
+    const nueva2 = document.getElementById('pw-nueva2').value;
+    const errorEl = document.getElementById('pw-error');
+    if (nueva !== nueva2) {
+      errorEl.textContent = 'Las contraseñas nuevas no coinciden.';
+      errorEl.style.display = 'flex';
+      return;
+    }
+    const resultado = HemoRed.data.cambiarPasswordDonante(usuarioActual.id, { actual, nueva });
+    if (!resultado.ok) {
+      errorEl.textContent = resultado.error;
+      errorEl.style.display = 'flex';
+      return;
+    }
+    usuarioActual = resultado.usuario;
+    actualizarResumenSeguridad();
+    HemoRed.ui.cerrarModal('modal-password');
+    HemoRed.ui.toast('Contraseña actualizada');
+  }
+
+  function abrirModalEmail() {
+    document.getElementById('email-nuevo').value = '';
+    document.getElementById('email-pass-actual').value = '';
+    document.getElementById('email-error').style.display = 'none';
+    HemoRed.ui.abrirModal('modal-email');
+  }
+
+  function confirmarCambiarEmail() {
+    const nuevoEmail = document.getElementById('email-nuevo').value;
+    const actual = document.getElementById('email-pass-actual').value;
+    const errorEl = document.getElementById('email-error');
+    const resultado = HemoRed.data.cambiarEmailDonante(usuarioActual.id, { actual, nuevoEmail });
+    if (!resultado.ok) {
+      errorEl.textContent = resultado.error;
+      errorEl.style.display = 'flex';
+      return;
+    }
+    usuarioActual = resultado.usuario;
+    document.getElementById('perfil-email').textContent = usuarioActual.email;
+    document.getElementById('input-email').value = usuarioActual.email;
+    actualizarResumenSeguridad();
+    HemoRed.ui.cerrarModal('modal-email');
+    HemoRed.ui.toast('Email actualizado');
+  }
+
+  function abrirModalEliminarCuenta() {
+    document.getElementById('eliminar-pass-actual').value = '';
+    document.getElementById('eliminar-error').style.display = 'none';
+    HemoRed.ui.abrirModal('modal-eliminar-cuenta');
+  }
+
+  function confirmarEliminarCuenta() {
+    const actual = document.getElementById('eliminar-pass-actual').value;
+    const errorEl = document.getElementById('eliminar-error');
+    const resultado = HemoRed.data.eliminarCuentaDonante(usuarioActual.id, { actual });
+    if (!resultado.ok) {
+      errorEl.textContent = resultado.error;
+      errorEl.style.display = 'flex';
+      return;
+    }
+    HemoRed.ui.toast('Tu cuenta fue eliminada.');
+    HemoRed.sesion.logout();
   }
 
   document.addEventListener('DOMContentLoaded', cargarPerfil);

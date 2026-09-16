@@ -1,15 +1,13 @@
 /**
- * Test E2E de "Mis documentos" del rol Donante: 4 pestañas (Resultados,
- * Evaluaciones clínicas, Certificados, Consentimientos) + solicitar un
- * certificado nuevo.
+ * Test E2E de "Mis documentos" del rol Donante: 3 pestañas (Resultados,
+ * Evaluaciones clínicas, Certificados) + solicitar un certificado nuevo.
  *
  * Contexto importante:
  * - `documentos` es solo un índice (`tipo` + `referencia_id`), no una tabla
  *   con los datos en sí — HemoRed.data.cargarMisDocumentos() ya resuelve el
  *   join contra `resultado_analisis`/`certificado_donacion`/`donaciones`
  *   (para evaluación clínica, los signos vitales viven en `donaciones`, no
- *   hay tabla propia) / `formulario_consentimiento` (que ni pasa por
- *   `documentos`, se consulta directo por `usuario_id`).
+ *   hay tabla propia).
  * - La pestaña "Evaluaciones clínicas" estaba rota antes de este cambio: el
  *   botón existía pero el contenido nunca se armó, así que clickearla
  *   tiraba un error de JS. Este test la prueba específicamente.
@@ -17,13 +15,20 @@
  *   cuenta demo (sus 2 donaciones semilla ya tienen certificado) — el test
  *   fuerza el escenario borrando el documento existente vía localStorage
  *   antes de solicitar uno nuevo.
+ * - **Ya no hay pestaña "Consentimientos"** (sacada 2026-09-15, a pedido de
+ *   la usuaria): mostraba el formulario F1/F2 como si fuera un documento
+ *   aparte para consultar después, pero por cada donación ya se declara el
+ *   estado de salud y la voluntad de donar en F1/F2 mismo — no sumaba nada
+ *   archivarlo de nuevo acá. El formulario en sí sigue existiendo igual
+ *   (`formulario_consentimiento`, ver `tests/formularios-predonacion.spec.js`),
+ *   solo dejó de mostrarse en esta pantalla.
  */
 
 const { test, expect } = require('@playwright/test');
 
 test.describe('Mis documentos (donante)', () => {
 
-  test('las 4 pestañas muestran datos reales de la cuenta demo', async ({ page }) => {
+  test('las 3 pestañas muestran datos reales de la cuenta demo', async ({ page }) => {
     await test.step('loguearse con la cuenta demo y entrar a Mis documentos', async () => {
       await page.goto('/publico/login.html');
       await page.fill('#email', 'donante@hemored.com');
@@ -72,17 +77,6 @@ test.describe('Mis documentos (donante)', () => {
       await expect(page.locator('#modal-solicitud-correccion')).toHaveClass(/active/);
       await expect(page.locator('#solicitud-campos-lista')).toContainText('Nombre');
       await page.click('#modal-solicitud-correccion button:has-text("Cancelar")');
-    });
-
-    await test.step('Consentimientos: la tarjeta y el detalle muestran el formulario F1/F2 real', async () => {
-      await page.click('.view.active .back-btn');
-      await page.locator('.tab', { hasText: 'Consentimientos' }).click();
-      await expect(page.locator('#lista-consentimientos .doc-card')).toHaveCount(1);
-      await page.locator('#lista-consentimientos .doc-card').first().click();
-      await expect(page.locator('#consentimiento-contenido')).toContainText('Sofía Páez');
-      // La cuenta demo tiene el cuestionario completado por el profesional
-      // (dato semilla) — confirma que se lee el campo real, no un texto fijo.
-      await expect(page.locator('#consentimiento-contenido')).toContainText('El profesional');
     });
   });
 

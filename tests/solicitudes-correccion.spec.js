@@ -205,15 +205,14 @@ test.describe('Solicitudes de corrección sobre certificados (donante + hospital
     });
   });
 
-  test('el formulario de consentimiento NO tiene flujo de corrección (solo certificados)', async ({ page }) => {
-    await page.goto('/publico/login.html');
-    await page.fill('#email', 'donante@hemored.com');
-    await page.fill('#password', 'donante123');
-    await page.click('button:has-text("Iniciar sesión")');
-    await page.goto('/donante/mis_documentos.html');
-    await page.locator('.tab', { hasText: 'Consentimientos' }).click();
-    await page.locator('#lista-consentimientos .doc-card').first().click();
-    await expect(page.locator('#consentimiento-contenido button:has-text("Reportar dato incorrecto")')).toHaveCount(0);
-  });
+  // Este caso probaba explícitamente que la pestaña "Consentimientos" de
+  // `mis_documentos.html` no tuviera ningún botón "Reportar dato
+  // incorrecto" (para no repetir el error de una versión anterior de este
+  // mismo trabajo, que había extendido el flujo a consentimiento por
+  // error). Esa pestaña completa se sacó el 2026-09-15 (a pedido de la
+  // usuaria: por cada donación ya se declara salud y voluntad de donar en
+  // F1/F2, no tenía sentido archivarlo aparte como documento) — con la
+  // pestaña afuera, la garantía queda estructural: el único "Reportar dato
+  // incorrecto" de todo el archivo vive en `verCertificado()`.
 
 });

@@ -34,6 +34,9 @@ HemoRed.sesion = (function() {
 
     await HemoRed.db.init();
     const registrado = HemoRed.db.where('usuarios', 'email', emailNorm)[0];
+    if (registrado && registrado.activo === false) {
+      return { ok: false, error: 'Esta cuenta fue eliminada.' };
+    }
     if (registrado && registrado.password_hash === password) {
       const nombreCompleto = `${registrado.nombre} ${registrado.apellido || ''}`.trim();
       const iniciales = registrado.avatar_iniciales || (nombreCompleto[0] || '?').toUpperCase();

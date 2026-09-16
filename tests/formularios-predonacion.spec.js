@@ -15,11 +15,20 @@
  * - Hay DOS firmas del donante (no una): una para F1 (autoexclusión) y otra
  *   para F2 (cuestionario + consentimiento), porque son dos momentos de
  *   consentimiento distintos.
+ * - Las 34 preguntas del cuestionario médico NO vienen con ningún valor
+ *   pre-seleccionado (corregido 2026-09-15, a pedido explícito de la
+ *   usuaria) — el donante tiene que contestar cada una para poder enviar.
+ *   Una vez enviado el cuestionario, queda en modo solo-lectura: el donante
+ *   puede volver a verlo pero no volver a tocarlo. La única forma de
+ *   corregir una respuesta ya enviada es que el profesional de salud la
+ *   actualice durante la revisión presencial previa a la donación (ese
+ *   flujo, del lado Profesional de salud, todavía no existe).
  *
  * Qué prueba este archivo: que el turno real se carga desde la URL
- * (?turno_id=), que las respuestas del cuestionario (incluidos los valores
- * por default, no solo los que el donante cambia) y ambas firmas se
- * persisten de verdad, y que "Mis turnos" refleja el estado completado.
+ * (?turno_id=), que el cuestionario exige las 34 respuestas antes de
+ * habilitar el envío, que las respuestas y ambas firmas se persisten de
+ * verdad, que "Mis turnos" refleja el estado completado, y que al reentrar
+ * al mismo turno el cuestionario queda congelado (solo lectura).
  */
 
 const { test, expect } = require('@playwright/test');
@@ -41,6 +50,21 @@ async function firmar(page, canvasSelector) {
   await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.3);
   await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.6);
   await page.mouse.up();
+}
+
+// Contesta las 34 preguntas del cuestionario médico, todas "No" salvo las
+// claves que se pasen en `excepciones` (ej. { fiebre_2sem: 'Sí' }). Hace
+// falta contestarlas todas para que se habilite "Confirmar y enviar
+// formularios" — ya no hay ningún valor por default.
+async function responderCuestionario(page, excepciones = {}) {
+  const items = page.locator('.excl-item');
+  const total = await items.count();
+  for (let i = 0; i < total; i++) {
+    const item = items.nth(i);
+    const key = await item.getAttribute('data-key');
+    const val = excepciones[key] || 'No';
+    await item.locator('.excl-btn', { hasText: val }).click();
+  }
 }
 
 test.describe('Formularios pre-donación (F1 + F2)', () => {
@@ -99,25 +123,25 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       await expect(page.locator('#step-2')).toHaveClass(/active/);
     });
 
-    await test.step('Paso 2 (cuestionario): cambiar una respuesta del default y agregar una observación', async () => {
-      // Todas las preguntas arrancan con un valor por default ya seleccionado
-      // (ver donante/formularios_predonacion.html) — acá cambiamos una para
-      // confirmar que el cambio se guarda, no solo los defaults.
-      await page.locator('.excl-item[data-key="fiebre_2sem"] .excl-btn', { hasText: 'Sí' }).click();
-      await expect(page.locator('.excl-item[data-key="fiebre_2sem"] .excl-btn.sel-si')).toHaveText('Sí');
-      await page.fill('#input-observaciones', 'Nota de prueba E2E.');
-    });
+    await test.step('Paso 2 (cuestionario): arranca sin nada marcado y exige las 34 respuestas antes de habilitar el envío', async () => {
+      await expect(page.locator('#btn-paso2')).toBeDisabled();
+      // Ninguna pregunta viene con un botón ya seleccionado al cargar.
+      await expect(page.locator('.excl-btn.sel-si, .excl-btn.sel-no')).toHaveCount(0);
 
-    await test.step('intentar confirmar sin firmar el cuestionario se rechaza', async () => {
-      await page.click('button:has-text("Confirmar y enviar formularios")');
-      await expect(page.locator('.toast')).toContainText('Falta firmar');
-      await expect(page.locator('#step-2')).toHaveClass(/active/); // no avanzó
+      await responderCuestionario(page, { fiebre_2sem: 'Sí' });
+      await expect(page.locator('.excl-item[data-key="fiebre_2sem"] .excl-btn.sel-si')).toHaveText('Sí');
+      await expect(page.locator('.excl-item[data-key="cancer"] .excl-btn.sel-no')).toHaveText('No');
+      await page.fill('#input-observaciones', 'Nota de prueba E2E.');
+
+      // Contestadas las 34, todavía falta firmar F2.
+      await expect(page.locator('#btn-paso2')).toBeDisabled();
     });
 
     await test.step('firmar y confirmar: avanza a la pantalla de éxito', async () => {
       await firmar(page, '#sig-f2');
       await expect(page.locator('#f2-sig-st')).toHaveText('✓ Firmado');
-      await page.click('button:has-text("Confirmar y enviar formularios")');
+      await expect(page.locator('#btn-paso2')).toBeEnabled();
+      await page.click('#btn-paso2');
       await expect(page.locator('#step-3')).toHaveClass(/active/);
       await expect(page.locator('.success-title')).toContainText('¡Todo listo');
     });
@@ -131,9 +155,9 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
 
     await test.step('los datos guardados en la BD simulada son correctos', async () => {
       // Verificación directa sobre localStorage: más específica que solo
-      // mirar la UI, confirma que se guardaron las 34 respuestas (no solo
-      // la que cambiamos), ambas firmas como imágenes reales, y que
-      // donacion_id quedó en null (la donación todavía no existe).
+      // mirar la UI, confirma que se guardaron las 34 respuestas, ambas
+      // firmas como imágenes reales, y que donacion_id quedó en null (la
+      // donación todavía no existe).
       const overrides = await page.evaluate(() => JSON.parse(localStorage.getItem('hemored_overrides') || '{}'));
       const lista = overrides.formulario_consentimiento || [];
       const formulario = lista[lista.length - 1]; // _persistir() guarda la tabla completa, no un delta
@@ -145,7 +169,7 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       expect(formulario.firma_donante_cuestionario_url).toMatch(/^data:image/);
       expect(formulario.observaciones).toBe('Nota de prueba E2E.');
       expect(formulario.respuestas_cuestionario.fiebre_2sem).toBe('si');
-      expect(formulario.respuestas_cuestionario.cancer).toBe('no'); // quedó en su default, sin tocar
+      expect(formulario.respuestas_cuestionario.cancer).toBe('no');
       expect(Object.keys(formulario.respuestas_cuestionario).length).toBe(34);
 
       const turno = (overrides.turnos || []).find(t => t.id === formulario.turno_id);
@@ -153,14 +177,16 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       expect(turno.formulario_cuestionario_completado).toBe(true);
     });
 
-    await test.step('volver a entrar al mismo turno restaura lo ya completado (no aparece en blanco)', async () => {
+    await test.step('volver a entrar al mismo turno restaura lo ya completado, en solo lectura (no se puede regrabar)', async () => {
       await page.goto(urlFormulario);
       await page.waitForTimeout(300);
 
       await expect(page.locator('#input-observaciones')).toHaveValue('Nota de prueba E2E.');
+      await expect(page.locator('#input-observaciones')).toHaveAttribute('readonly', '');
       await expect(page.locator('#check1')).toBeChecked();
-      await expect(page.locator('#check2')).toBeChecked();
-      await expect(page.locator('#check3')).toBeChecked();
+      await expect(page.locator('#check1')).toBeDisabled();
+      await expect(page.locator('#check2')).toBeDisabled();
+      await expect(page.locator('#check3')).toBeDisabled();
       await expect(page.locator('.excl-item[data-key="fiebre_2sem"] .excl-btn.sel-si')).toHaveText('Sí');
       await expect(page.locator('.excl-item[data-key="cancer"] .excl-btn.sel-no')).toHaveText('No');
       await expect(page.locator('#f1-sig-st')).toHaveText('✓ Firmado');
@@ -172,16 +198,23 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       await page.click('#btn-paso1');
       await expect(page.locator('#f2-sig-st')).toHaveText('✓ Firmado');
 
-      // Reenviar sin cambiar nada actualiza el mismo registro, no crea uno nuevo.
-      await page.click('button:has-text("Confirmar y enviar formularios")');
-      await expect(page.locator('#step-3')).toHaveClass(/active/);
+      // Intentar tocar una respuesta ya enviada no hace nada: excl() corta
+      // apenas detecta soloLectura.
+      await page.locator('.excl-item[data-key="cancer"] .excl-btn', { hasText: 'Sí' }).click();
+      await expect(page.locator('.excl-item[data-key="cancer"] .excl-btn.sel-no')).toHaveText('No');
 
-      // La tabla completa incluye los 2 registros semilla + el nuestro — lo
-      // que importa es que siga habiendo uno solo para ESTE turno (se
-      // actualizó el existente, no se duplicó).
-      const overridesTrasReenvio = await page.evaluate(() => JSON.parse(localStorage.getItem('hemored_overrides') || '{}'));
+      // El cuestionario queda congelado: el aviso de solo lectura está
+      // visible y "Confirmar y enviar formularios" ya no se puede usar.
+      await expect(page.locator('#aviso-solo-lectura')).toBeVisible();
+      await expect(page.locator('#btn-paso2')).toBeDisabled();
+      await expect(page.locator('#btn-paso2')).toContainText('Cuestionario ya enviado');
+      await expect(page.locator('.btn-limpiar').first()).toBeDisabled();
+
+      // No se creó ni se pisó ningún registro nuevo: sigue habiendo uno solo
+      // para este turno.
+      const overridesTrasReingreso = await page.evaluate(() => JSON.parse(localStorage.getItem('hemored_overrides') || '{}'));
       const turnoId = Number(new URL(page.url()).searchParams.get('turno_id'));
-      const paraEsteTurno = overridesTrasReenvio.formulario_consentimiento.filter(f => f.turno_id === turnoId);
+      const paraEsteTurno = overridesTrasReingreso.formulario_consentimiento.filter(f => f.turno_id === turnoId);
       expect(paraEsteTurno.length).toBe(1);
     });
   });

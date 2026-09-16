@@ -170,9 +170,9 @@
       <div class="search-bar">
         <div class="search-input-wrap">
           <i class="ti ti-search search-icon" aria-hidden="true"></i>
-          <input class="search-input" type="text" placeholder="Hospital, campaña o ciudad...">
+          <input class="search-input" type="text" id="input-busqueda" placeholder="Hospital, campaña o ciudad..." oninput="filtrarCampanas()">
         </div>
-        <button class="search-btn">
+        <button class="search-btn" onclick="filtrarCampanas()">
           <i class="ti ti-search" aria-hidden="true"></i>
           Buscar
         </button>
@@ -189,14 +189,28 @@
           <option value="">Provincia</option>
           <option>Buenos Aires</option>
           <option>CABA</option>
+          <option>Catamarca</option>
+          <option>Chaco</option>
+          <option>Chubut</option>
           <option>Córdoba</option>
-          <option>Santa Fe</option>
+          <option>Corrientes</option>
+          <option>Entre Ríos</option>
+          <option>Formosa</option>
+          <option>Jujuy</option>
+          <option>La Pampa</option>
+          <option>La Rioja</option>
           <option>Mendoza</option>
-        </select>
-        <select class="filter-select" id="f-urgencia" onchange="filtrarCampanas()">
-          <option value="">Urgencia</option>
-          <option value="urgente">Urgente</option>
-          <option value="activa">Normal</option>
+          <option>Misiones</option>
+          <option>Neuquén</option>
+          <option>Río Negro</option>
+          <option>Salta</option>
+          <option>San Juan</option>
+          <option>San Luis</option>
+          <option>Santa Cruz</option>
+          <option>Santa Fe</option>
+          <option>Santiago del Estero</option>
+          <option>Tierra del Fuego</option>
+          <option>Tucumán</option>
         </select>
         <select class="filter-select" id="f-orden" onchange="filtrarCampanas()">
           <option value="">Ordenar por</option>
@@ -213,6 +227,11 @@
     </div>
     <div class="campaigns-grid">
       <!-- Se renderiza dinámicamente en runtime vía HemoRed.data.renderCampanas() -->
+    </div>
+    <div class="empty-state" id="sin-resultados-campanas" style="display:none;">
+      <div class="empty-icon"><i class="ti ti-search-off" style="color:#ef647c;font-size:28px;"></i></div>
+      <div class="empty-title">No encontramos campañas para esa búsqueda</div>
+      <div class="empty-text">Probá con otros filtros o borrá el texto buscado.</div>
     </div>
   </div>
 </div>
@@ -303,8 +322,9 @@
   function filtrarCampanas() {
     const sangre   = document.getElementById('f-sangre').value;
     const provincia = document.getElementById('f-provincia').value;
-    const urgencia  = document.getElementById('f-urgencia').value;
     const orden     = document.getElementById('f-orden').value;
+    const texto = document.getElementById('input-busqueda').value.trim()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
     const cards = Array.from(document.querySelectorAll('.campaign-card'));
     let visibles = 0;
@@ -312,13 +332,14 @@
     cards.forEach(card => {
       const matchSangre   = !sangre   || card.dataset.sangre.split(',').includes(sangre);
       const matchProvincia = !provincia || card.dataset.provincia === provincia;
-      const matchUrgencia  = !urgencia  || card.dataset.urgencia === urgencia;
-      const visible = matchSangre && matchProvincia && matchUrgencia;
+      const matchTexto = !texto || (card.dataset.busqueda || '').includes(texto);
+      const visible = matchSangre && matchProvincia && matchTexto;
       card.style.display = visible ? '' : 'none';
       if (visible) visibles++;
     });
 
     document.querySelector('.campaigns-count').textContent = visibles + ' campaña' + (visibles !== 1 ? 's' : '') + ' encontrada' + (visibles !== 1 ? 's' : '');
+    document.getElementById('sin-resultados-campanas').style.display = (cards.length && visibles === 0) ? '' : 'none';
 
     if (orden === 'urgentes') {
       const grid = document.querySelector('.campaigns-grid');

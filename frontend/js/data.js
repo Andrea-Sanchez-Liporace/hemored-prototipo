@@ -41,8 +41,14 @@ HemoRed.data = (function() {
       const tipos = c.tipo_sangre_requerida ? [c.tipo_sangre_requerida] : ['Cualquier tipo'];
       const fechaCierre = new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
 
+      // Texto libre para el buscador del dashboard (hospital, ciudad, título):
+      // todo en minúscula y sin acentos para que "ramos mejia" encuentre
+      // "Hospital Ramos Mejía" sin que el donante tenga que tipear igual.
+      const sinAcentos = s => (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      const busqueda = sinAcentos([hospital?.nombre, hospital?.ciudad, c.titulo].filter(Boolean).join(' '));
+
       return `
-        <div class="campaign-card" data-sangre="${c.tipo_sangre_requerida || ''}" data-provincia="${hospital?.provincia || ''}" data-urgencia="${c.urgente ? 'urgente' : 'activa'}">
+        <div class="campaign-card" data-sangre="${c.tipo_sangre_requerida || ''}" data-provincia="${hospital?.provincia || ''}" data-urgencia="${c.urgente ? 'urgente' : 'activa'}" data-busqueda="${busqueda}">
           <div class="campaign-header">
             <div class="campaign-hospital">${hospital?.nombre || 'Hospital'}</div>
             <span class="campaign-badge ${c.urgente ? 'urgente' : 'activa'}">${c.urgente ? 'Urgente' : 'Activa'}</span>
@@ -362,19 +368,22 @@ HemoRed.data = (function() {
     return { donante, donaciones, proximaFechaHabilitada, diasHastaHabilitado };
   }
 
-  // Trae los 4 tipos de documento del donante con sus datos completos ya
+  // Trae los 3 tipos de documento del donante con sus datos completos ya
   // resueltos (join), agrupados por pestaña. `documentos` es solo un índice
   // (tipo + referencia_id) — acá se resuelve contra la tabla real que
-  // corresponda en cada caso. `formulario_consentimiento` no pasa por
-  // `documentos` (el donante ya lo tiene por su propio usuario_id, desde que
-  // se conectó el flujo F1/F2), así que se arma aparte.
+  // corresponda en cada caso. (El formulario de consentimiento F1/F2 tenía
+  // antes una pestaña propia acá, "Consentimientos" — se sacó 2026-09-15 a
+  // pedido de la usuaria: por cada donación ya se declara estado de salud y
+  // voluntad de donar en F1/F2 mismo, no tenía sentido archivarlo también
+  // como un documento aparte para consultar después. El formulario en sí
+  // sigue existiendo igual, solo dejó de mostrarse acá — ver
+  // `guardarFormularioConsentimiento()` y `formularios_predonacion.html`.)
   async function cargarMisDocumentos() {
     await HemoRed.db.init();
     const s = HemoRed.sesion.get();
-    if (!s) return { resultados: [], evaluaciones: [], certificados: [], consentimientos: [], donacionesSinCertificado: [] };
+    if (!s) return { resultados: [], evaluaciones: [], certificados: [], donacionesSinCertificado: [] };
 
     const hospitales = HemoRed.db.all('hospitales');
-    const turnos = HemoRed.db.all('turnos');
     const docs = HemoRed.db.where('documentos', 'usuario_id', s.usuario_id).filter(d => d.visible);
     const donaciones = HemoRed.db.where('donaciones', 'usuario_id', s.usuario_id);
 
@@ -403,14 +412,7 @@ HemoRed.data = (function() {
     const donacionesSinCertificado = donaciones.filter(don => !docs.some(d => d.tipo === 'certificado' && d.donacion_id === don.id))
       .map(don => ({ ...don, hospital: hospitales.find(h => h.id === don.hospital_id) }));
 
-    // formulario_consentimiento no pasa por `documentos` — el donante ya lo
-    // tiene indexado por su propio usuario_id desde que se conectó F1/F2.
-    const consentimientos = HemoRed.db.where('formulario_consentimiento', 'usuario_id', s.usuario_id).map(f => {
-      const turno = turnos.find(t => t.id === f.turno_id);
-      return { ...f, hospital: turno ? hospitales.find(h => h.id === turno.hospital_id) : null };
-    });
-
-    return { resultados, evaluaciones, certificados, consentimientos, donacionesSinCertificado };
+    return { resultados, evaluaciones, certificados, donacionesSinCertificado };
   }
 
   // El donante pide el certificado de una donación que todavía no lo tiene.
@@ -626,6 +628,67 @@ HemoRed.data = (function() {
     if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
     const lista = (usuario.empleadores_frecuentes || []).filter(e => e !== nombre);
     return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, { empleadores_frecuentes: lista }) };
+  }
+
+  // ===== SECCIÓN "SEGURIDAD DE LA CUENTA" (perfil.html) =====
+  // Nota sobre las 4 cuentas demo hardcodeadas en sesion.js (login):
+  // cambiar la contraseña o el email acá actualiza `usuarios` de verdad,
+  // pero el login de esas 4 cuentas puntuales (donante@hemored.com y las
+  // otras 3) nunca consulta esta tabla — usa el objeto USUARIOS fijo. Así
+  // que para esas cuentas el cambio no altera con qué credenciales hay que
+  // loguearse la próxima vez. Para cualquier donante registrado por
+  // publico/registro.html (el camino real de la demo) funciona de punta a
+  // punta, incluyendo el login.
+
+  function cambiarPasswordDonante(usuarioId, { actual, nueva }) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+    if (usuario.password_hash !== actual) {
+      return { ok: false, error: 'La contraseña actual no es correcta.' };
+    }
+    if (!nueva || nueva.length < 8) {
+      return { ok: false, error: 'La nueva contraseña debe tener al menos 8 caracteres.' };
+    }
+    const cambios = { password_hash: nueva, password_actualizada_en: new Date().toISOString() };
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, cambios) };
+  }
+
+  // El nuevo email queda marcado como no verificado — la verificación real
+  // por link de correo es parte del backend (ver docs/04, "Validación de
+  // email del donante"), acá no hay forma de mandar ni confirmar ese mail.
+  function cambiarEmailDonante(usuarioId, { actual, nuevoEmail }) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+    if (usuario.password_hash !== actual) {
+      return { ok: false, error: 'La contraseña no es correcta.' };
+    }
+    const emailNorm = (nuevoEmail || '').toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+      return { ok: false, error: 'Ingresá un email válido.' };
+    }
+    if (emailNorm === usuario.email) {
+      return { ok: false, error: 'Ese ya es tu email actual.' };
+    }
+    const enUso = HemoRed.db.where('usuarios', 'email', emailNorm).some(u => u.id !== usuarioId);
+    if (enUso) {
+      return { ok: false, error: 'Ya existe una cuenta con ese email.' };
+    }
+    const cambios = { email: emailNorm, email_verificado: false };
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, cambios) };
+  }
+
+  // "Eliminar cuenta" es una baja lógica (activo:false), no un borrado real:
+  // turnos, donaciones, certificados y formularios ya generados desde otros
+  // roles (Hospital, Profesional de salud) siguen referenciando este
+  // usuario_id — borrar el registro de verdad los dejaría huérfanos. Bloquea
+  // el login (ver sesion.js) y el llamador debe cerrar la sesión actual.
+  function eliminarCuentaDonante(usuarioId, { actual }) {
+    const usuario = HemoRed.db.find('usuarios', usuarioId);
+    if (!usuario) return { ok: false, error: 'Usuario no encontrado.' };
+    if (usuario.password_hash !== actual) {
+      return { ok: false, error: 'La contraseña no es correcta.' };
+    }
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuarioId, { activo: false }) };
   }
 
   function editarEmpleador(usuarioId, nombreViejo, nombreNuevo) {
@@ -894,6 +957,9 @@ HemoRed.data = (function() {
     agregarEmpleador,
     editarEmpleador,
     eliminarEmpleador,
+    cambiarPasswordDonante,
+    cambiarEmailDonante,
+    eliminarCuentaDonante,
     cargarDashboardHospital,
     cargarTurnosHoy,
     cargarProfesionalesHospital,

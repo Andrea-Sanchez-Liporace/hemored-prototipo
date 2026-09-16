@@ -114,6 +114,7 @@
       error.style.display = 'none';
       window.location.href = result.dest;
     } else {
+      error.textContent = result.error || 'Email o contraseña incorrectos.';
       error.style.display = 'block';
     }
   }

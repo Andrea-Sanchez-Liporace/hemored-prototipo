@@ -347,7 +347,7 @@
         </div>
 
         <div class="exito-actions">
-          <button class="btn-calendario">
+          <button class="btn-calendario" onclick="agregarCalendario()">
             <i class="ti ti-calendar-plus" aria-hidden="true"></i>
             Agregar al calendario
           </button>
@@ -592,6 +592,42 @@
     document.getElementById('conf-fecha').textContent = fechaLabel;
     document.getElementById('conf-hora').textContent = hora + 'hs';
     document.getElementById('exito-fecha').textContent = fechaLabel + ' · ' + hora + 'hs';
+  }
+
+  // Genera un archivo .ics real (estándar iCalendar) con el turno reservado
+  // y dispara su descarga — sin backend ni servicio externo, solo funciona
+  // con los datos que ya tenemos en memoria de la reserva recién confirmada.
+  function agregarCalendario() {
+    if (!fechaSeleccionada || !horaSeleccionada || !hospitalActual) return;
+    const [hh, mm] = horaSeleccionada.split(':');
+    const inicio = new Date(`${fechaSeleccionada}T${horaSeleccionada}:00`);
+    const fin = new Date(inicio.getTime() + 30 * 60000); // turno de 30 min
+    const formatoICS = d => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//HemoRed//Turno de donación//ES',
+      'BEGIN:VEVENT',
+      `UID:turno-${Date.now()}@hemored`,
+      `DTSTAMP:${formatoICS(new Date())}`,
+      `DTSTART:${formatoICS(inicio)}`,
+      `DTEND:${formatoICS(fin)}`,
+      `SUMMARY:Donación de sangre — ${hospitalActual.nombre}`,
+      `LOCATION:${hospitalActual.nombre}${hospitalActual.direccion ? ', ' + hospitalActual.direccion : ''}`,
+      'DESCRIPTION:Turno de donación de sangre reservado en HemoRed.',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const blob = new Blob([ics], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'turno-hemored.ics';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   function abrirSidebar() {

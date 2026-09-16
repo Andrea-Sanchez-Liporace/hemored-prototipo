@@ -71,14 +71,14 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. Tipo de sangre sigue el mismo criterio de escritura única: se puede elegir libremente hasta el primer guardado, y después la grilla queda bloqueada (clickear otra opción no cambia nada) — se prueba con la cuenta demo (que ya tiene tipo de sangre cargado) y con un registro nuevo.
 6. Empleadores frecuentes: además de agregar/eliminar, se puede **editar** el nombre de uno ya guardado (ícono lápiz, mini-form inline con el nombre actual precargado). Se prueba que el cambio persista tras recargar, que "Cancelar" no guarde nada, y que intentar renombrar a un nombre que ya usa otro empleador se rechace (el form queda abierto con lo escrito, no se pierde ni se cierra solo).
 
-**`formularios-predonacion.spec.js`** — Formularios pre-donación (F1 autoexclusión + F2 cuestionario médico), agregado 2026-09-08:
+**`formularios-predonacion.spec.js`** — Formularios pre-donación (F1 autoexclusión + F2 cuestionario médico), agregado 2026-09-08, reescrito 2026-09-15:
 
 1. El turno real se carga desde la URL (`?turno_id=`) y el banner muestra sus datos reales, no el texto fijo que tenía antes esta pantalla.
 2. El botón del paso 1 sigue bloqueado hasta tildar los 3 checkboxes **y** firmar — se prueban los estados intermedios, no solo el final.
-3. Confirmar sin haber firmado el cuestionario médico (paso 2) se rechaza con un toast, sin avanzar a la pantalla de éxito.
-4. Al guardar, se verifica directamente contra `localStorage` que se persistieron: las dos firmas (F1 y F2 son firmas distintas, en momentos distintos), las 34 respuestas del cuestionario —incluidas las que quedaron en su valor por default, no solo la que se cambió a propósito—, las observaciones, y que `donacion_id` quedó en `null` (la donación todavía no existe en este punto del flujo, la crea el profesional más adelante).
+3. **El cuestionario médico (paso 2) arranca sin ninguna pregunta contestada** (corregido 2026-09-15 — antes venían con "No" pre-marcado desde el HTML) y "Confirmar y enviar formularios" (`#btn-paso2`) queda deshabilitado hasta contestar las 34 **y** firmar F2 — se prueba explícitamente que no haya ningún `.excl-btn.sel-si`/`.sel-no` al cargar.
+4. Al guardar, se verifica directamente contra `localStorage` que se persistieron: las dos firmas (F1 y F2 son firmas distintas, en momentos distintos), las 34 respuestas del cuestionario, las observaciones, y que `donacion_id` quedó en `null` (la donación todavía no existe en este punto del flujo, la crea el profesional más adelante).
 5. "Mis turnos" refleja el estado completado en sus badges después de guardar.
-6. Volver a entrar al mismo turno restaura todo lo ya completado (respuestas, observaciones, checks y ambas firmas — no aparece en blanco), y reenviar sin cambios actualiza el mismo registro en vez de duplicarlo.
+6. **Volver a entrar al mismo turno lo muestra en modo solo lectura, no editable** (corregido 2026-09-15 — antes se podía reenviar libremente y pisar la respuesta): las respuestas, observaciones, checks y ambas firmas se restauran visualmente, pero clickear una pregunta ya contestada no cambia nada (`excl()` corta apenas detecta `soloLectura`), los checks y el textarea quedan `disabled`/`readonly`, el aviso de solo lectura está visible, y "Confirmar y enviar formularios" queda deshabilitado con el texto "Cuestionario ya enviado". Se confirma que no se creó ni se pisó ningún registro nuevo en `formulario_consentimiento`.
 
 **`mis-donaciones.spec.js`** — "Mis donaciones" del donante (solo lectura), agregado 2026-09-08:
 
@@ -87,12 +87,14 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 3. Los filtros de año/resultado, que ya eran funcionales antes sobre contenido fijo, siguen funcionando sobre las tarjetas reales.
 4. Un donante recién registrado (sin ninguna donación) ve el estado vacío correctamente, sin errores ni datos de otro donante.
 
-**`mis-documentos.spec.js`** — "Mis documentos" del donante (4 pestañas: Resultados, Evaluaciones clínicas, Certificados, Consentimientos), agregado 2026-09-08:
+**`mis-documentos.spec.js`** — "Mis documentos" del donante (3 pestañas: Resultados, Evaluaciones clínicas, Certificados), agregado 2026-09-08, reducido de 4 a 3 pestañas el 2026-09-15:
 
-1. Cada pestaña muestra datos reales de la cuenta demo — `documentos` es solo un índice, así que se prueba que el detalle traiga bien el join contra `resultado_analisis`/`certificado_donacion`/`donaciones`/`formulario_consentimiento`.
+1. Cada pestaña muestra datos reales de la cuenta demo — `documentos` es solo un índice, así que se prueba que el detalle traiga bien el join contra `resultado_analisis`/`certificado_donacion`/`donaciones`.
 2. **"Evaluaciones clínicas" estaba rota antes de este cambio** (tiraba un error de JS al clickear la pestaña) — el test explícitamente escucha errores de página y falla si aparece alguno, para no volver a dejarla rota sin darse cuenta.
 3. "Reportar dato incorrecto" (reemplazó al viejo "Enviar observación", que no persistía nada) abre el modal de solicitud de corrección — el flujo completo de aprobación/rechazo se prueba en `solicitudes-correccion.spec.js`, acá solo se confirma que el botón abra el modal correcto.
 4. Solicitar un certificado nuevo (caso que no existe en los datos semilla — ambas donaciones demo ya tienen certificado, así que el test lo fuerza borrando el documento existente vía `localStorage`) lo deja "Pendiente", y pedirlo dos veces se rechaza.
+
+**Ya no hay pestaña "Consentimientos"** (sacada 2026-09-15, a pedido de la usuaria): mostraba el formulario F1/F2 como un documento aparte para consultar después, pero por cada donación ya se declara el estado de salud y la voluntad de donar en F1/F2 mismo — no sumaba nada archivarlo de nuevo acá. El formulario en sí sigue existiendo igual (ver `formularios-predonacion.spec.js`), solo dejó de mostrarse en esta pantalla.
 
 **`solicitudes-correccion.spec.js`** — flujo completo de "Solicitudes de corrección" sobre **certificados de donación** (donante + hospital), agregado 2026-09-08. **Es exclusivo de certificados** — el formulario de consentimiento no tiene este flujo (son documentos de otra naturaleza, se firman antes de donar, no se "solicitan" para un tercero):
 
@@ -100,7 +102,8 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 2. **Estado visible del certificado** (badge en la lista + detalle, calculado contra la última solicitud, no un campo nuevo): al enviar la solicitud pasa a "En revisión"; si el hospital aprueba, a "Emitido con corrección" (y se verifica el dato real cambiado en `certificado_donacion`); si rechaza, vuelve a "Emitido" sin marca (y se verifica que el DNI original NO cambió). En cualquier estado, el detalle sigue mostrando el desglose completo de la solicitud (no se pierde el historial del pedido).
 3. El hospital ve la solicitud en la 3ª pestaña de `hospital/documentacion.html` ("Solicitudes de corrección"), con el badge de pendientes actualizado, revisa el modal (dato actual tachado vs. corrección propuesta) y aprueba o rechaza (exige motivo para rechazar).
 4. Al rechazar, se prueba que se genere una **notificación real** (no solo un aviso en el certificado): el botón "Ver notificaciones" del certificado lleva a `notificaciones.html` y ahí aparece la notificación sin leer con el motivo exacto que escribió el hospital.
-5. Caso aparte, explícito: la vista de "Consentimientos" no tiene ningún botón "Reportar dato incorrecto" — confirma que el flujo no se filtró ahí por error.
+
+*(El caso que probaba explícitamente que "Consentimientos" no tuviera botón "Reportar dato incorrecto" se sacó el 2026-09-15 junto con la pestaña entera — ver `mis-documentos.spec.js` — la garantía queda estructural: ese botón solo existe en `verCertificado()`.)*
 
 **`notificaciones.spec.js`** — "Notificaciones" del donante, agregado 2026-09-08 (pasó de ser 100% estática a leer datos reales, adelantada junto con "Solicitudes de corrección" porque el aviso de rechazo la necesitaba):
 
@@ -117,6 +120,8 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. El token es de un solo uso: se prueba que reusarlo después de completado se rechace.
 6. Casos aparte, sin necesitar todo el flujo previo (se arman directo contra la tabla): token inexistente, token ya usado y token vencido — cada uno muestra su propio mensaje de error, sin excepciones de JS.
 
+*(Actualizado 2026-09-15: como el cuestionario médico F2 ya no trae respuestas por default, este test ahora contesta las 34 preguntas explícitamente antes de firmar — ver `formularios-predonacion.spec.js` para el detalle de ese cambio.)*
+
 **`restricciones-elegibilidad.spec.js`** — restricciones de elegibilidad para reservar turno, agregado 2026-09-10, ampliado 2026-09-14 tras una auditoría de consistencia en todo el rol Donante:
 
 1. Un donante recién registrado, sin fecha de nacimiento ni peso cargados en el perfil, no queda bloqueado por default — los requisitos no validables (falta el dato) se mantienen en verde, no se asume incumplimiento.
@@ -126,6 +131,26 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. **Un turno activo en OTRA campaña también bloquea** — antes el chequeo solo miraba la misma campaña, y ni siquiera consideraba un turno `pendiente` como bloqueante (bug real encontrado al tocar este código, corregido de paso). Se prueba tanto desde la UI como llamando directo a `crearTurno()`.
 6. **Reprogramar un turno (`actualizarTurno()`) re-valida elegibilidad completa, no solo la ventana de 24hs** — se prueba bajando el peso a menos de 50kg *después* de reservar: reprogramar a una fecha nueva se rechaza; con el peso corregido, reprograma sin problema (y no se bloquea contra su propio turno activo).
 7. **El dashboard muestra un banner único arriba de todo** (no un indicador por tarjeta) cuando el donante no es elegible — con el motivo puntual visible.
+
+**`seguridad-cuenta.spec.js`** — sección "Seguridad de la cuenta" del perfil del donante (cambiar contraseña, cambiar email, eliminar cuenta), agregado 2026-09-15 — hasta esa fecha los 3 botones no tenían ninguna acción (hallazgo de la segunda auditoría de consistencia, ver `docs/04`):
+
+1. Cambiar contraseña rechaza la contraseña actual incorrecta y una confirmación que no coincide con la nueva; al tener éxito, actualiza el resumen ("Última modificación: ...") y la nueva contraseña sirve para volver a loguearse (se prueba que la vieja ya no funcione).
+2. Cambiar email rechaza un formato inválido y el mismo email ya actual; al tener éxito, actualiza `#perfil-email` y deja el resumen en "Pendiente de verificación" (no hay forma de mandar/confirmar un link real sin backend, ver `docs/04`).
+3. Eliminar cuenta rechaza la contraseña incorrecta; al tener éxito, cierra la sesión y el email queda bloqueado para futuros logins (mensaje "Esta cuenta fue eliminada.", en vez del texto genérico fijo que mostraba antes `login.html` para cualquier error).
+4. Se registra un donante nuevo para todo el test (no la cuenta demo hardcodeada): el login de esas 4 cuentas fijas de `sesion.js` no consulta `usuarios.password_hash` en absoluto, así que cambiar la contraseña o el email ahí no tendría ningún efecto observable.
+
+**`select-personalizado.spec.js`** — el componente que reemplaza a todos los `<select>` nativos del sitio por un botón + panel propio (ver `docs/04`, sección "Componente compartido: select personalizado"), agregado 2026-09-15. No es de un rol en particular, prueba el componente en sí:
+
+1. El `<select>` real queda invisible (`opacity:0`) pero con un bounding box real (no colapsado a tamaño 0) — se verifica el estilo computado en vez de `toBeHidden()`, porque a propósito Playwright tiene que poder seguir usando `selectOption()` sobre él (así no hubo que tocar ningún test existente que ya lo hacía). El botón que lo reemplaza queda visible en su lugar.
+2. Abrirlo muestra un panel propio (no el popup nativo del navegador) con todas las opciones.
+3. La opción resaltada al pasar el mouse usa el rosa de la marca (`--color-rosa-pale`, se verifica el color RGB computado), no el azul del sistema operativo.
+4. Elegir una opción actualiza el botón, el `<select>` real (`toHaveValue()`), y dispara el comportamiento real de la pantalla (se prueba filtrando campañas por una provincia sin resultados y confirmando que aparece el cartel de "sin resultados" — no alcanza con que se vea bien, tiene que filtrar de verdad).
+5. Escape y click afuera cierran el panel sin cambiar nada.
+6. Un select bloqueado (`disabled`, ej. "¿Donaste antes?" ya completado — escritura única) no abre el panel al clickearlo.
+7. Una asignación programática de `.value` (ej. `cargarPerfil()` precargando el formulario) sincroniza el botón sin que haga falta ningún click — confirma que el interceptor de `Object.defineProperty` funciona, no solo el flujo manual de abrir/elegir.
+8. **No genera scroll horizontal en la página** — regresión real encontrada por la usuaria (el `<select>` oculto resolvía su `width:100%` contra todo el viewport al no tener ningún ancestro `position:relative`, en vez de contra su contenedor original; corregido forzándolo a 1×1px, ver `docs/04`).
+9. `publico/pago.html` y `publico/contacto.html` (mockups estáticos que no cargaban ningún script de HemoRed) también tienen el componente, agregado a pedido explícito de la usuaria.
+10. **El panel tampoco genera scroll horizontal interno** con opciones largas (ej. "Santiago del Estero") — segundo bug de scroll, encontrado después de corregir el primero: el panel se achicaba al ancho exacto de un botón angosto como "Provincia", y `overflow-y:auto` traía `overflow-x:auto` de regalo (regla del spec de CSS). Arreglo final: se ensanchó el CAMPO en sí (`.filter-select`, `min-width:200px` en `donante.css`/`hospital.css`/`admin.css`), no el panel — así el texto entra en una sola línea sin partirse y panel/botón quedan siempre del mismo ancho. Se puede scrollear dentro del panel para ver las opciones de más abajo sin que se cierre solo (tercer bug, encontrado al verificar el segundo: el listener de "cerrar al scrollear la página" no distinguía el scroll interno del panel).
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 

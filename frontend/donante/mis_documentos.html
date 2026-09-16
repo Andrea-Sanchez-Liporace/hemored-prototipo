@@ -67,7 +67,6 @@
         <button class="tab active" onclick="cambiarTab('resultados', this)">Resultados</button>
         <button class="tab" onclick="cambiarTab('evaluaciones', this)">Evaluaciones clínicas</button>
         <button class="tab" onclick="cambiarTab('certificados', this)">Certificados</button>
-        <button class="tab" onclick="cambiarTab('consentimientos', this)">Consentimientos</button>
       </div>
 
       <!-- RESULTADOS -->
@@ -106,17 +105,6 @@
         </div>
       </div>
 
-      <!-- CONSENTIMIENTOS -->
-      <div id="tab-consentimientos" style="display:none;">
-        <div class="doc-list" id="lista-consentimientos">
-          <!-- Se renderiza dinámicamente vía HemoRed.data.cargarMisDocumentos() -->
-        </div>
-        <div class="empty-state" id="sin-consentimientos" style="display:none;">
-          <div class="empty-icon"><i class="ti ti-writing" style="color:#ef647c;font-size:28px;"></i></div>
-          <div class="empty-title">Todavía no completaste ningún formulario</div>
-          <div class="empty-text">Se generan al completar los formularios pre-donación de un turno.</div>
-        </div>
-      </div>
     </div>
 
     <!-- VISTA RESULTADO -->
@@ -145,16 +133,6 @@
       </button>
       <div class="certificado-layout" id="certificado-contenido">
         <!-- Se renderiza dinámicamente vía renderVistaCertificado() -->
-      </div>
-    </div>
-
-    <!-- VISTA CONSENTIMIENTO -->
-    <div class="view" id="view-consentimiento">
-      <button class="back-btn" onclick="volverLista()">
-        <i class="ti ti-arrow-left" aria-hidden="true"></i> Mis documentos
-      </button>
-      <div class="certificado-layout" id="consentimiento-contenido">
-        <!-- Se renderiza dinámicamente vía renderVistaConsentimiento() -->
       </div>
     </div>
 
@@ -187,7 +165,7 @@
   // `documentos` es solo un índice (tipo + referencia_id) — HemoRed.data.cargarMisDocumentos()
   // ya devuelve todo resuelto (join), agrupado por pestaña. Se guarda acá para
   // no volver a pedirlo cada vez que se abre el detalle de un ítem.
-  let misDocumentos = { resultados: [], evaluaciones: [], certificados: [], consentimientos: [], donacionesSinCertificado: [] };
+  let misDocumentos = { resultados: [], evaluaciones: [], certificados: [], donacionesSinCertificado: [] };
   let donanteActual = null;
 
   async function cargarYRenderizar() {
@@ -200,7 +178,6 @@
     renderResultados();
     renderEvaluaciones();
     renderCertificados();
-    renderConsentimientos();
   }
 
   function fechaLarga(fechaStr) {
@@ -228,7 +205,7 @@
   function cambiarTab(tab, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    ['resultados', 'evaluaciones', 'certificados', 'consentimientos'].forEach(t => {
+    ['resultados', 'evaluaciones', 'certificados'].forEach(t => {
       const el2 = document.getElementById('tab-' + t);
       if (el2) el2.style.display = 'none';
     });
@@ -251,7 +228,7 @@
         <div class="doc-right">
           <span class="doc-badge visto">${d.analisis?.resultado_general || 'Ver'}</span>
           <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verResultado(${d.id})">Ver</button>
-          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()"><i class="ti ti-download" aria-hidden="true"></i></button>
+          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();descargarNoDisponible()"><i class="ti ti-download" aria-hidden="true"></i></button>
         </div>
       </div>`).join('');
     document.getElementById('sin-resultados').style.display = lista.length ? 'none' : '';
@@ -309,7 +286,7 @@
       <div class="resultado-sidebar">
         <div class="sidebar-card">
           <div class="sidebar-card-title">Descargar resultado</div>
-          <button class="btn-download"><i class="ti ti-download" aria-hidden="true"></i>Descargar PDF</button>
+          <button class="btn-download" onclick="descargarNoDisponible()"><i class="ti ti-download" aria-hidden="true"></i>Descargar PDF</button>
           <p style="font-size:11px;color:#a9435d;text-align:center;line-height:1.5;">El PDF incluye firma digital del profesional y sello del hospital.</p>
         </div>
       </div>`;
@@ -431,7 +408,7 @@
         <div class="doc-right">
           <span class="doc-badge ${badge.clase}">${badge.texto}</span>
           <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verCertificado(${d.id})">Ver</button>
-          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()"><i class="ti ti-download" aria-hidden="true"></i></button>
+          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();descargarNoDisponible()"><i class="ti ti-download" aria-hidden="true"></i></button>
         </div>
       </div>`;
     }).join('');
@@ -502,7 +479,7 @@
         </div>
         <div class="sidebar-card" style="margin-bottom:14px;">
           <div class="sidebar-card-title">Descargar certificado</div>
-          <button class="btn-download"><i class="ti ti-download" aria-hidden="true"></i>Descargar PDF</button>
+          <button class="btn-download" onclick="descargarNoDisponible()"><i class="ti ti-download" aria-hidden="true"></i>Descargar PDF</button>
           <p style="font-size:11px;color:#a9435d;text-align:center;line-height:1.5;margin-top:8px;">Podés generar un certificado distinto para cada empleador.</p>
         </div>
         ${bloqueCorreccion(c.id)}
@@ -521,65 +498,15 @@
     actualizarEmitidoPara(val);
   }
 
-  // ===== CONSENTIMIENTOS =====
-  function renderConsentimientos() {
-    const lista = misDocumentos.consentimientos;
-    document.getElementById('lista-consentimientos').innerHTML = lista.map(f => `
-      <div class="doc-card" onclick="verConsentimiento(${f.id})">
-        <div class="doc-icon" style="background:#f0f8f4;"><i class="ti ti-writing" style="color:#27ae60;font-size:22px;" aria-hidden="true"></i></div>
-        <div class="doc-info">
-          <div class="doc-title">Formulario de consentimiento — ${f.hospital?.nombre || 'Hospital'}</div>
-          <div class="doc-meta">
-            <div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>${fechaLarga((f.cuestionario_fecha || f.autoexclusion_fecha || '').slice(0, 10))}</div>
-            <div class="doc-meta-item"><i class="ti ti-check" style="color:#27ae60;" aria-hidden="true"></i>Firmado</div>
-          </div>
-        </div>
-        <div class="doc-right">
-          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verConsentimiento(${f.id})">Ver</button>
-          <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation()"><i class="ti ti-download" aria-hidden="true"></i></button>
-        </div>
-      </div>`).join('');
-    document.getElementById('sin-consentimientos').style.display = lista.length ? 'none' : '';
-  }
-
-  function verConsentimiento(fId) {
-    const f = misDocumentos.consentimientos.find(x => x.id === fId);
-    if (!f) return;
-    const fechaFirma = (f.cuestionario_fecha || f.autoexclusion_fecha || '').slice(0, 10);
-    document.getElementById('consentimiento-contenido').innerHTML = `
-      <div>
-        <div class="cert-preview">
-          <div class="cert-preview-header">
-            <div class="cert-logo">Hemo<span>red</span></div>
-            <div class="cert-preview-title">Formulario de consentimiento informado</div>
-          </div>
-          <div class="cert-body">
-            <p>Yo, <strong>${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}</strong>, DNI <strong>${donanteActual?.numero_documento || '—'}</strong>, declaro haber sido informado/a en forma clara y comprensible sobre el procedimiento de donación voluntaria de sangre a realizarse en <strong>${f.hospital?.nombre || 'el hospital'}</strong>.</p>
-            <div class="cert-datos">
-              <div class="cert-dato"><div class="cert-dato-label">Fecha de firma</div><div class="cert-dato-value">${fechaLarga(fechaFirma)}</div></div>
-              <div class="cert-dato"><div class="cert-dato-label">Autoexclusión completada por</div><div class="cert-dato-value">${f.autoexclusion_completado_por === 'profesional' ? 'El profesional' : 'Vos'}</div></div>
-              <div class="cert-dato"><div class="cert-dato-label">Cuestionario completado por</div><div class="cert-dato-value">${f.cuestionario_completado_por === 'profesional' ? 'El profesional' : 'Vos'}</div></div>
-              <div class="cert-dato"><div class="cert-dato-label">Nro. de formulario</div><div class="cert-dato-value">#CONS-${f.id}</div></div>
-            </div>
-            <p>Confirmo que comprendo los posibles riesgos y beneficios del proceso, que la donación es voluntaria y gratuita, y que puedo retirar mi consentimiento en cualquier momento antes del procedimiento sin que esto implique consecuencia alguna.</p>
-            <div class="cert-firma">
-              <div class="firma-item"><div class="firma-linea"></div><div class="firma-label">${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}<br>Donante</div></div>
-              <div class="firma-item"><div class="firma-linea"></div><div class="firma-label">${f.firma_profesional_perfil_url ? 'Firmado' : 'Pendiente de firma'}<br>Profesional a cargo</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="sidebar-card" style="margin-bottom:14px;">
-          <div class="sidebar-card-title">Descargar formulario</div>
-          <button class="btn-download"><i class="ti ti-download" aria-hidden="true"></i>Descargar PDF</button>
-        </div>
-      </div>`;
-    mostrarVista('view-consentimiento', 'Formulario de consentimiento');
-  }
-
   function volverLista() {
     mostrarVista('view-lista', 'Mis documentos');
+  }
+
+  // El prototipo no genera PDFs reales (los documentos son registros
+  // estructurados, no archivos) — en vez de dejar el botón sin ninguna
+  // acción, avisa claramente que todavía no está disponible.
+  function descargarNoDisponible() {
+    HemoRed.ui.toast('La descarga en PDF todavía no está disponible en este prototipo.');
   }
 
   // ===== SOLICITUDES DE CORRECCIÓN =====
