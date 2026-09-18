@@ -6,8 +6,15 @@
  * Contexto importante:
  * - Se convirtieron los 6 ejemplos estáticos originales en datos semilla
  *   reales (`frontend/db/notificaciones_donante.json`), agrupados por
- *   'hoy'/'ayer'/'semana' contra la misma fecha fija de demo (`AHORA_DEMO`)
- *   que usa el resto del sitio — no contra la fecha real del navegador.
+ *   'hoy'/'ayer'/'semana'/'antes' contra la fecha real del navegador
+ *   (`HemoRed.data.ahora()`, corregido 2026-09-16 — antes era una fecha
+ *   fija de demo, ver docs/04).
+ * - Los 6 ejemplos semilla de la cuenta demo están fechados en mayo 2026 a
+ *   propósito (van con la donación real de esa cuenta, que tampoco se
+ *   tocó) — contra la fecha real de hoy, los 6 caen en el grupo "Más
+ *   antiguas", no en Hoy/Ayer/Esta semana. Para probar esos 3 grupos de
+ *   verdad se arma un donante fresco con notificaciones creadas a
+ *   propósito con fecha real de hoy/ayer/hace unos días.
  * - Es también el destino de la notificación que genera
  *   `resolverSolicitudCorreccion()` al rechazar una solicitud de corrección
  *   (ver `solicitudes-correccion.spec.js` para ese caso específico) — este
@@ -27,11 +34,13 @@ test.describe('Notificaciones (donante)', () => {
       await page.goto('/donante/notificaciones.html');
     });
 
-    await test.step('se ven los 6 ejemplos reales, agrupados en Hoy/Ayer/Esta semana', async () => {
+    await test.step('se ven los 6 ejemplos reales, agrupados en "Más antiguas" (son de mayo 2026, ya lejos de hoy)', async () => {
       await expect(page.locator('.notif-item')).toHaveCount(6);
-      await expect(page.locator('.notif-group', { hasText: 'Hoy' })).toContainText('Tu certificado está listo');
-      await expect(page.locator('.notif-group', { hasText: 'Ayer' })).toContainText('Recordatorio de turno');
-      await expect(page.locator('.notif-group', { hasText: 'Esta semana' })).toContainText('¡Gracias por tu donación!');
+      const grupo = page.locator('.notif-group', { hasText: 'Más antiguas' });
+      await expect(grupo).toContainText('Tu certificado está listo');
+      await expect(grupo).toContainText('Recordatorio de turno');
+      await expect(grupo).toContainText('¡Gracias por tu donación!');
+      await expect(page.locator('.notif-group')).toHaveCount(1); // un solo grupo, no Hoy/Ayer/Semana
       // 3 de los 6 datos semilla arrancan sin leer
       await expect(page.locator('.notif-item.unread')).toHaveCount(3);
     });
@@ -64,6 +73,41 @@ test.describe('Notificaciones (donante)', () => {
       await page.reload();
       await expect(page.locator('.notif-item.unread')).toHaveCount(0);
     });
+  });
+
+  test('agrupa Hoy/Ayer/Esta semana contra la fecha real, con notificaciones frescas', async ({ page }) => {
+    await page.goto('/publico/registro.html');
+    await page.click('text=Soy donante');
+    await page.fill('#d-nombre', 'Fresca');
+    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-email', `donante.notif.${Date.now()}@example.com`);
+    await page.fill('#d-tel', '11-2222-2222');
+    await page.fill('#d-pass', 'password123');
+    await page.fill('#d-pass2', 'password123');
+    await page.click('#btn-crear-cuenta-donante');
+    await page.waitForURL('**/donante/dashboard.html');
+
+    await page.evaluate(async () => {
+      await HemoRed.db.init();
+      const s = HemoRed.sesion.get();
+      const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
+      const base = { usuario_id: donante.id, tipo: 'campanas', icono: 'ti-heart', tono: 'rosa', leido: false, accion_texto: null, accion_url: null };
+      // La agrupación compara por DÍA de calendario (n.fecha.slice(0,10)),
+      // no por "hace X horas" — se arma con setDate() para no depender de
+      // en qué momento del día real corra el test (restar milisegundos
+      // crudos podría caer del lado equivocado de la medianoche).
+      const diasAtras = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString(); };
+      HemoRed.db.crear('notificaciones_donante', { ...base, titulo: 'Notificación de hoy', descripcion: 'x', fecha: diasAtras(0) });
+      HemoRed.db.crear('notificaciones_donante', { ...base, titulo: 'Notificación de ayer', descripcion: 'x', fecha: diasAtras(1) });
+      HemoRed.db.crear('notificaciones_donante', { ...base, titulo: 'Notificación de esta semana', descripcion: 'x', fecha: diasAtras(4) });
+      HemoRed.db.crear('notificaciones_donante', { ...base, titulo: 'Notificación vieja', descripcion: 'x', fecha: diasAtras(30) });
+    });
+    await page.goto('/donante/notificaciones.html');
+
+    await expect(page.locator('.notif-group', { hasText: 'Hoy' })).toContainText('Notificación de hoy');
+    await expect(page.locator('.notif-group', { hasText: 'Ayer' })).toContainText('Notificación de ayer');
+    await expect(page.locator('.notif-group', { hasText: 'Esta semana' })).toContainText('Notificación de esta semana');
+    await expect(page.locator('.notif-group', { hasText: 'Más antiguas' })).toContainText('Notificación vieja');
   });
 
 });

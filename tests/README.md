@@ -57,10 +57,10 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. El hospital lo confirma
 6. El donante, al volver a loguearse, ve el turno "Confirmado" (`donante/mis_turnos.html`)
 
-**`modificar-cancelar-turno.spec.js`** — el segundo bloque de Donante, agregado 2026-09-01:
+**`modificar-cancelar-turno.spec.js`** — el segundo bloque de Donante, agregado 2026-09-01, ajustado 2026-09-16:
 
 1. Un turno reservado con más de 24hs de anticipación se puede reprogramar (nueva fecha/horario) y después cancelar sin problema.
-2. Un turno para el que ya venció la ventana de tiempo (2hs para cancelar, 24hs para reprogramar) se rechaza con el motivo de negocio explicado y el contacto del hospital — no con un error genérico.
+2. Un turno para el que ya venció la ventana de tiempo (2hs para cancelar, 24hs para reprogramar) se rechaza con el motivo de negocio explicado y el contacto del hospital — no con un error genérico. Desde que "hoy" pasó a ser la fecha real (ver `docs/04`, "Fecha 'hoy' del prototipo"), este caso arma el turno directo contra la fecha/hora real menos 1 hora (`HemoRed.db.crear`) en vez de reservarlo por la pestaña "hoy" de la UI — así no depende de en qué momento del día real corra el test (a la mañana temprano, el primer horario de la grilla de "hoy" todavía podría estar a más de 2hs de distancia).
 
 **`perfil.spec.js`** — "Mi perfil" del donante, agregado 2026-09-01:
 
@@ -80,12 +80,13 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. "Mis turnos" refleja el estado completado en sus badges después de guardar.
 6. **Volver a entrar al mismo turno lo muestra en modo solo lectura, no editable** (corregido 2026-09-15 — antes se podía reenviar libremente y pisar la respuesta): las respuestas, observaciones, checks y ambas firmas se restauran visualmente, pero clickear una pregunta ya contestada no cambia nada (`excl()` corta apenas detecta `soloLectura`), los checks y el textarea quedan `disabled`/`readonly`, el aviso de solo lectura está visible, y "Confirmar y enviar formularios" queda deshabilitado con el texto "Cuestionario ya enviado". Se confirma que no se creó ni se pisó ningún registro nuevo en `formulario_consentimiento`.
 
-**`mis-donaciones.spec.js`** — "Mis donaciones" del donante (solo lectura), agregado 2026-09-08:
+**`mis-donaciones.spec.js`** — "Mis donaciones" del donante (solo lectura), agregado 2026-09-08, ajustado 2026-09-16:
 
-1. Con la cuenta demo (que tiene una donación real en los datos semilla), las estadísticas, el banner de "próxima fecha habilitada" y la tarjeta del historial muestran datos reales, no el contenido fijo que tenía antes esta pantalla.
-2. La "próxima fecha habilitada" usa la misma ventana de 90 días que ya usa `crearTurno()` para bloquear una reserva — se prueba el número exacto para no perder de vista si en algún momento se resuelve el pendiente de "85 vs. 90 días" (ver `docs/04`).
-3. Los filtros de año/resultado, que ya eran funcionales antes sobre contenido fijo, siguen funcionando sobre las tarjetas reales.
-4. Un donante recién registrado (sin ninguna donación) ve el estado vacío correctamente, sin errores ni datos de otro donante.
+1. Con la cuenta demo (que tiene una donación real en los datos semilla, fechada 17/05/2026 a propósito sin tocar), las estadísticas y la tarjeta del historial muestran datos reales, no el contenido fijo que tenía antes esta pantalla.
+2. **El banner de "próxima fecha habilitada" ya NO se muestra para la cuenta demo** — desde que "hoy" es la fecha real del sistema (ver `docs/04`), esa donación de mayo 2026 quedó afuera de los 90 días hace rato, así que el banner correctamente no aparece más para ella (antes el test esperaba verlo con el texto fijo "15 de agosto de 2026").
+3. La ventana de 90 días sigue siendo la misma que usa `crearTurno()` — se prueba con un donante fresco cuya donación se crea a propósito "hace 30 días" (dentro de la ventana), y se verifica que el banner muestre la fecha exacta (calculada en el test, no un texto fijo).
+4. Los filtros de año/resultado, que ya eran funcionales antes sobre contenido fijo, siguen funcionando sobre las tarjetas reales.
+5. Un donante recién registrado (sin ninguna donación) ve el estado vacío correctamente, sin errores ni datos de otro donante.
 
 **`mis-documentos.spec.js`** — "Mis documentos" del donante (3 pestañas: Resultados, Evaluaciones clínicas, Certificados), agregado 2026-09-08, reducido de 4 a 3 pestañas el 2026-09-15:
 
@@ -105,11 +106,12 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 
 *(El caso que probaba explícitamente que "Consentimientos" no tuviera botón "Reportar dato incorrecto" se sacó el 2026-09-15 junto con la pestaña entera — ver `mis-documentos.spec.js` — la garantía queda estructural: ese botón solo existe en `verCertificado()`.)*
 
-**`notificaciones.spec.js`** — "Notificaciones" del donante, agregado 2026-09-08 (pasó de ser 100% estática a leer datos reales, adelantada junto con "Solicitudes de corrección" porque el aviso de rechazo la necesitaba):
+**`notificaciones.spec.js`** — "Notificaciones" del donante, agregado 2026-09-08 (pasó de ser 100% estática a leer datos reales, adelantada junto con "Solicitudes de corrección" porque el aviso de rechazo la necesitaba), ajustado 2026-09-16:
 
-1. Los 6 ejemplos que antes eran HTML fijo ahora son datos semilla reales (`frontend/db/notificaciones_donante.json`), agrupados en "Hoy"/"Ayer"/"Esta semana" contra la misma fecha fija de demo que usa el resto del sitio.
-2. Los filtros por tipo ("Documentos", etc.) y "No leídas" — que ya eran funcionales sobre contenido fijo — ahora filtran datos reales.
-3. Clickear una notificación la marca como leída de verdad (persiste tras recargar la página); "Marcar todas como leídas" hace lo mismo para todas.
+1. Los 6 ejemplos que antes eran HTML fijo ahora son datos semilla reales (`frontend/db/notificaciones_donante.json`). Están fechados en mayo 2026 (van con la donación real de la cuenta demo, que tampoco se tocó) — contra la fecha real de hoy, los 6 caen en un solo grupo, "Más antiguas", no en Hoy/Ayer/Esta semana.
+2. **Caso nuevo, con un donante fresco:** se crean notificaciones a propósito con fecha real de hoy/ayer/hace 4 días/hace 30 días (`HemoRed.db.crear`, usando offsets de día de calendario para no depender de la hora exacta en que corra el test) y se confirma que caen en los grupos Hoy/Ayer/Esta semana/Más antiguas correctamente — así se sigue probando la agrupación de verdad, ahora contra la fecha real del sistema en vez de la fecha fija de demo que usaba antes.
+3. Los filtros por tipo ("Documentos", etc.) y "No leídas" — que ya eran funcionales sobre contenido fijo — ahora filtran datos reales.
+4. Clickear una notificación la marca como leída de verdad (persiste tras recargar la página); "Marcar todas como leídas" hace lo mismo para todas.
 
 **`registrar-donacion.spec.js`** — "Registrar donación" (Hospital) + formulario post-donación anónimo F4 (Donante), agregado 2026-09-10. **Cierra el rol Donante** (era el único flujo que quedaba sin conectar) — y de paso conecta "Registrar donación" en Hospital, que hasta esa fecha era un modal 100% de mentira (el botón "Confirmar donación" llamaba a la misma función que "Cancelar", y ningún flujo del prototipo creaba una donación real):
 
@@ -122,7 +124,7 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 
 *(Actualizado 2026-09-15: como el cuestionario médico F2 ya no trae respuestas por default, este test ahora contesta las 34 preguntas explícitamente antes de firmar — ver `formularios-predonacion.spec.js` para el detalle de ese cambio.)*
 
-**`restricciones-elegibilidad.spec.js`** — restricciones de elegibilidad para reservar turno, agregado 2026-09-10, ampliado 2026-09-14 tras una auditoría de consistencia en todo el rol Donante:
+**`restricciones-elegibilidad.spec.js`** — restricciones de elegibilidad para reservar turno, agregado 2026-09-10, ampliado 2026-09-14 tras una auditoría de consistencia en todo el rol Donante, y de nuevo 2026-09-16:
 
 1. Un donante recién registrado, sin fecha de nacimiento ni peso cargados en el perfil, no queda bloqueado por default — los requisitos no validables (falta el dato) se mantienen en verde, no se asume incumplimiento.
 2. Menor de 18 años: el ítem de edad en "Requisitos para donar" se marca en rojo y "Reservar turno" queda deshabilitado de entrada (antes de llegar a elegir fecha/hora), con el motivo puntual visible.
@@ -131,6 +133,8 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. **Un turno activo en OTRA campaña también bloquea** — antes el chequeo solo miraba la misma campaña, y ni siquiera consideraba un turno `pendiente` como bloqueante (bug real encontrado al tocar este código, corregido de paso). Se prueba tanto desde la UI como llamando directo a `crearTurno()`.
 6. **Reprogramar un turno (`actualizarTurno()`) re-valida elegibilidad completa, no solo la ventana de 24hs** — se prueba bajando el peso a menos de 50kg *después* de reservar: reprogramar a una fecha nueva se rechaza; con el peso corregido, reprograma sin problema (y no se bloquea contra su propio turno activo).
 7. **El dashboard muestra un banner único arriba de todo** (no un indicador por tarjeta) cuando el donante no es elegible — con el motivo puntual visible.
+8. **Ningún donante de los datos semilla tiene más de un turno activo a la vez** — chequeo de consistencia de datos, no de UI. Se agregó después de encontrar que la cuenta demo violaba esta misma regla (turno 3, duplicado huérfano del turno 6 ya completado, quedó en `en_curso` para siempre — ver `docs/04`), lo que hacía fallar la modificación de un turno real con un mensaje engañoso ("ya tenés un turno activo" en vez del motivo real).
+9. **Fechas de nacimiento y de turnos calculadas en runtime, no hardcodeadas** — desde que "hoy" pasó a ser la fecha real del sistema (ver `docs/04`, "Fecha 'hoy' del prototipo"), los `fecha_nacimiento: '1959-01-01'`/turnos `'2026-06-01'` que este archivo tenía hardcodeados hubieran quedado mal (las edades habrían cambiado con el paso del tiempo real, y esas fechas de turno ya habrían quedado en el pasado). Se agregaron 2 helpers (`fechaNacimientoParaEdad(edad)`, `diasDesdeHoy(n)`) que calculan todo relativo al momento real en que corre el test.
 
 **`seguridad-cuenta.spec.js`** — sección "Seguridad de la cuenta" del perfil del donante (cambiar contraseña, cambiar email, eliminar cuenta), agregado 2026-09-15 — hasta esa fecha los 3 botones no tenían ninguna acción (hallazgo de la segunda auditoría de consistencia, ver `docs/04`):
 
@@ -151,6 +155,21 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 8. **No genera scroll horizontal en la página** — regresión real encontrada por la usuaria (el `<select>` oculto resolvía su `width:100%` contra todo el viewport al no tener ningún ancestro `position:relative`, en vez de contra su contenedor original; corregido forzándolo a 1×1px, ver `docs/04`).
 9. `publico/pago.html` y `publico/contacto.html` (mockups estáticos que no cargaban ningún script de HemoRed) también tienen el componente, agregado a pedido explícito de la usuaria.
 10. **El panel tampoco genera scroll horizontal interno** con opciones largas (ej. "Santiago del Estero") — segundo bug de scroll, encontrado después de corregir el primero: el panel se achicaba al ancho exacto de un botón angosto como "Provincia", y `overflow-y:auto` traía `overflow-x:auto` de regalo (regla del spec de CSS). Arreglo final: se ensanchó el CAMPO en sí (`.filter-select`, `min-width:200px` en `donante.css`/`hospital.css`/`admin.css`), no el panel — así el texto entra en una sola línea sin partirse y panel/botón quedan siempre del mismo ancho. Se puede scrollear dentro del panel para ver las opciones de más abajo sin que se cierre solo (tercer bug, encontrado al verificar el segundo: el listener de "cerrar al scrollear la página" no distinguía el scroll interno del panel).
+
+**`dashboard-modal-turno.spec.js`** — el modal "Detalle del turno" de `donante/dashboard.html` (botón "Ver detalles" del banner de próximo turno), agregado 2026-09-16. Hasta esa fecha era 100% HTML fijo (siempre "Hospital Ramos Mejía", "20 may", "Campaña urgente 0−", etc., sin relación con el turno real — coincidía por casualidad con la cuenta demo) y sus 3 botones no pasaban ningún id por la URL, la usuaria notó que "Modificar turno" obligaba a volver a buscar el turno en la lista de `mis_turnos.html` en vez de abrir directo el modal de modificación:
+
+1. El modal muestra los datos reales del turno confirmado más próximo (hospital, fecha/hora, estado, campaña, tipo de sangre, número `#TRN-<id>`, y el checklist real de formularios completados/pendientes) — no el mockup fijo de antes.
+2. "Modificar turno" navega a `mis_turnos.html?turno_id=<id>` y esa pantalla abre el modal de modificación directo, con los datos del turno correcto (antes solo mandaba a la lista, sin id).
+3. "Ver campaña" navega a `campana_detalle.html?id=<id>` con la campaña real del turno (antes tampoco pasaba ningún id).
+4. "Completar cuestionario" pasa el `turno_id` real y queda oculto si el donante ya completó los 2 formularios pre-donación.
+
+**`cupo-confirmacion-automatica.spec.js`** — confirmación automática y cupo por turno (`crearTurno()`/`actualizarTurno()`), agregado 2026-09-18 a pedido de la usuaria ("que sea automático en ambas instancias, ya que el hospital setea la capacidad al crear la campaña"). Antes, reservar SIEMPRE nacía `pendiente` (RF3, el hospital confirma a mano) y un horario se bloqueaba con el primer turno, sin importar cuántos donantes admitiera en simultáneo:
+
+1. Una campaña con `confirmacion_automatica: true` (id 2, "Banco de sangre general") confirma el turno al instante, sin pasar por `pendiente`.
+2. Una campaña sin esa configuración (id 1, urgente con paciente específico) sigue naciendo `pendiente` como antes — no se rompió nada para el caso que ya probaba `golden-path.spec.js`.
+3. El `cupo_por_turno` de la campaña (2, para la id 2) admite más de un donante en el mismo hospital+fecha+hora — se prueba con 3 donantes distintos: el 1º y 2º entran, el 3º se rechaza con "Ese horario ya no está disponible". Se llama directo a `HemoRed.data.crearTurno()` (no por la UI), mismo criterio que `restricciones-elegibilidad.spec.js`, porque lo que se prueba es la regla de negocio en sí.
+
+Ver `docs/04-estado-actual-prototipo.md`, sección "Confirmación automática y cupo por turno", para el detalle completo (valores semilla por campaña, y que el flujo de "Nueva campaña" del hospital para setear esto desde la UI todavía no está conectado).
 
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 

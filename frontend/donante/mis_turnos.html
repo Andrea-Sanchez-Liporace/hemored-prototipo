@@ -132,9 +132,15 @@
 </div>
 
 <script>
-  // Mismo día de referencia que usa el resto del prototipo (campana_detalle.html,
-  // cargarTurnosHoy()) — el dataset de demo vive fijo en mayo 2026.
-  const HOY = '2026-05-17';
+  // Fecha real de hoy (corregido 2026-09-16: antes era un string fijo en
+  // mayo 2026, igual que HemoRed.data.ahora() — ver ese comentario en
+  // data.js para el porqué). Es una función, no una constante evaluada acá
+  // arriba, porque este bloque corre ANTES de que carguen los <script src>
+  // de más abajo — no hace falta esperarlos, `new Date()` no depende de
+  // ningún otro archivo.
+  function hoy() {
+    return new Date().toISOString().slice(0, 10);
+  }
   const TIME_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'];
 
   let turnoModal = null; // el turno que se está modificando/cancelando
@@ -175,7 +181,7 @@
     const cont = document.getElementById('fecha-tabs-modal');
     cont.innerHTML = '';
     for (let i = 0; i < 4; i++) {
-      const fechaISO = sumarDias(HOY, i);
+      const fechaISO = sumarDias(hoy(), i);
       const label = new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
       const btn = document.createElement('button');
       btn.className = 'fecha-tab-m' + (i === 0 ? ' active' : '');
@@ -189,13 +195,14 @@
 
   function renderTurnosGridModal() {
     const cont = document.getElementById('turnos-grid-modal');
-    const ocupados = new Set(
-      HemoRed.db.all('turnos')
-        .filter(t => t.id !== turnoModal.id && t.hospital_id === turnoModal.hospital_id && t.fecha === fechaModal && t.estado !== 'cancelado')
-        .map(t => t.hora)
-    );
+    const campana = HemoRed.db.find('campanas', turnoModal.campana_id);
+    const cupo = campana?.cupo_por_turno ?? 1;
+    const conteoPorHora = {};
+    HemoRed.db.all('turnos')
+      .filter(t => t.id !== turnoModal.id && t.hospital_id === turnoModal.hospital_id && t.fecha === fechaModal && t.estado !== 'cancelado')
+      .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
     cont.innerHTML = TIME_SLOTS.map(hora => {
-      if (ocupados.has(hora)) {
+      if ((conteoPorHora[hora] || 0) >= cupo) {
         return `<div class="turno-m ocp"><div class="th">${hora}</div><div class="ts ocp">Ocupado</div></div>`;
       }
       return `<div class="turno-m" data-hora="${hora}"><div class="th">${hora}</div><div class="ts libre">Disponible</div></div>`;
@@ -376,6 +383,13 @@
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('donante');
     await renderMisTurnos();
+
+    // Si se llega acá desde otra pantalla con un turno puntual en mente
+    // (ej. "Modificar turno" del modal de detalle en dashboard.html), abre
+    // directo el modal de modificación para ese turno — antes había que
+    // volver a encontrarlo en la lista y clickear "Modificar" de nuevo.
+    const turnoId = Number(new URLSearchParams(window.location.search).get('turno_id'));
+    if (turnoId) abrirModal(turnoId);
   });
 </script>
 

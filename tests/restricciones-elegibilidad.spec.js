@@ -26,6 +26,20 @@ const timestamp = Date.now();
 const donanteEmail = `donante.elegibilidad.${timestamp}@example.com`;
 const donantePassword = 'password123';
 
+// "Hoy" ya no es una fecha fija de demo (corregido 2026-09-16, ver
+// HemoRed.data.ahora() en data.js) — estos helpers arman fechas relativas
+// al momento real en que corre el test, para no repetir el problema que
+// tenía este archivo antes (fechas de nacimiento/turnos hardcodeadas
+// asumiendo que "hoy" era el 17 de mayo de 2026).
+function fechaNacimientoParaEdad(edad) {
+  return `${new Date().getFullYear() - edad}-01-01`;
+}
+function diasDesdeHoy(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 async function registrarYEntrarACampana(page) {
   await page.goto('/publico/registro.html');
   await page.click('text=Soy donante');
@@ -55,11 +69,11 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
 
   test('menor de 18: el requisito de edad se marca en rojo y el botón queda deshabilitado', async ({ page }) => {
     await registrarYEntrarACampana(page);
-    await page.evaluate(async () => {
+    await page.evaluate(async (fecha_nacimiento) => {
       await HemoRed.db.init();
       const donante = HemoRed.db.where('usuarios', 'email', HemoRed.sesion.get().email)[0];
-      HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento: '2015-01-01' }); // 11 años en la fecha de demo
-    });
+      HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento });
+    }, fechaNacimientoParaEdad(11));
     await page.reload();
 
     await expect(page.locator('#req-edad i')).toHaveClass(/ti-x/);
@@ -69,12 +83,12 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
 
   test('tope de edad: 65 para donante normal, pero hasta 70 si es donante habitual', async ({ page }) => {
     await registrarYEntrarACampana(page);
-    // 67 años en la fecha de demo (2026-05-17): pasa el tope de 65, pero no el de 70
-    await page.evaluate(async () => {
+    // 67 años a hoy: pasa el tope de 65, pero no el de 70
+    await page.evaluate(async (fecha_nacimiento) => {
       await HemoRed.db.init();
       const donante = HemoRed.db.where('usuarios', 'email', HemoRed.sesion.get().email)[0];
-      HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento: '1959-01-01' });
-    });
+      HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento });
+    }, fechaNacimientoParaEdad(67));
     await page.reload();
     await expect(page.locator('#req-edad-texto')).toHaveText('Tener entre 18 y 65 años');
     await expect(page.locator('#req-edad i')).toHaveClass(/ti-x/);
@@ -95,12 +109,12 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
 
   test('menos de 50kg: el requisito de peso se marca en rojo y el botón queda deshabilitado', async ({ page }) => {
     await registrarYEntrarACampana(page);
-    await page.evaluate(async () => {
+    await page.evaluate(async (fecha_nacimiento) => {
       await HemoRed.db.init();
       const s = HemoRed.sesion.get();
       const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
-      HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento: '1995-01-01', peso_kg: 45 });
-    });
+      HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento, peso_kg: 45 });
+    }, fechaNacimientoParaEdad(30));
     await page.reload();
 
     await expect(page.locator('#req-edad i')).toHaveClass(/ti-check/); // edad sí cumple, no se cruzan los chequeos
@@ -111,7 +125,7 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
 
   test('un turno activo en OTRA campaña también bloquea (antes solo bloqueaba la misma campaña)', async ({ page }) => {
     await registrarYEntrarACampana(page);
-    await page.evaluate(async () => {
+    await page.evaluate(async (fecha) => {
       await HemoRed.db.init();
       const s = HemoRed.sesion.get();
       const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
@@ -119,13 +133,13 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
       // siquiera se consideraba bloqueante por un bug real del chequeo viejo.
       HemoRed.db.crear('turnos', {
         campana_id: 1, usuario_id: donante.id, hospital_id: 1,
-        fecha: '2026-06-01', hora: '10:00', estado: 'pendiente',
+        fecha, hora: '10:00', estado: 'pendiente',
         formulario_autoexclusion_completado: false, formulario_autoexclusion_completado_en: null,
         autoexclusion_completado_por: null, formulario_cuestionario_completado: false,
         formulario_cuestionario_completado_en: null, cuestionario_completado_por: null,
         creado_en: new Date().toISOString(),
       });
-    });
+    }, diasDesdeHoy(14));
     await page.reload(); // seguimos en la MISMA página de campaña (campana_detalle.html?id=X), no necesariamente la campana_id=1 de arriba
 
     await expect(page.locator('#btn-reservar')).toBeDisabled();
@@ -134,12 +148,12 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
     // Confirmación directa contra la función real, por si la campaña de la URL
     // coincidiera por casualidad con la del turno creado arriba (no debería
     // cambiar el resultado en ningún caso, ambas son bloqueo "toda la plataforma"):
-    const resultado = await page.evaluate(async () => {
+    const resultado = await page.evaluate(async (fecha) => {
       await HemoRed.db.init();
       const s = HemoRed.sesion.get();
       const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
-      return HemoRed.data.crearTurno({ usuario_id: donante.id, campana_id: 2, hospital_id: 1, fecha: '2026-06-05', hora: '11:00' });
-    });
+      return HemoRed.data.crearTurno({ usuario_id: donante.id, campana_id: 2, hospital_id: 1, fecha, hora: '11:00' });
+    }, diasDesdeHoy(20));
     expect(resultado.ok).toBe(false);
     expect(resultado.error).toContain('Ya tenés un turno activo');
   });
@@ -156,45 +170,48 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
     await page.click('#btn-crear-cuenta-donante');
     await page.waitForURL('**/donante/dashboard.html');
 
+    const fechaTurno = diasDesdeHoy(14);
+    const fechaReprogramada = diasDesdeHoy(25);
+
     let turnoId;
     await test.step('crear un turno confirmado, con más de 24hs de anticipación, siendo elegible', async () => {
-      turnoId = await page.evaluate(async () => {
+      turnoId = await page.evaluate(async ({ fechaNacimiento, fecha }) => {
         await HemoRed.db.init();
         const s = HemoRed.sesion.get();
         const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
-        HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento: '1995-01-01', peso_kg: 60 });
+        HemoRed.db.actualizar('usuarios', donante.id, { fecha_nacimiento: fechaNacimiento, peso_kg: 60 });
         const turno = HemoRed.db.crear('turnos', {
           campana_id: 1, usuario_id: donante.id, hospital_id: 1,
-          fecha: '2026-06-01', hora: '10:00', estado: 'confirmado',
+          fecha, hora: '10:00', estado: 'confirmado',
           formulario_autoexclusion_completado: false, formulario_autoexclusion_completado_en: null,
           autoexclusion_completado_por: null, formulario_cuestionario_completado: false,
           formulario_cuestionario_completado_en: null, cuestionario_completado_por: null,
           creado_en: new Date().toISOString(),
         });
         return turno.id;
-      });
+      }, { fechaNacimiento: fechaNacimientoParaEdad(30), fecha: fechaTurno });
     });
 
     await test.step('bajar el peso por debajo de 50kg en el medio: reprogramar ahora se rechaza', async () => {
-      const resultado = await page.evaluate((id) => {
+      const resultado = await page.evaluate(({ id, fecha }) => {
         const s = HemoRed.sesion.get();
         const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
         HemoRed.db.actualizar('usuarios', donante.id, { peso_kg: 40 }); // cambió DESPUÉS de reservar
-        return HemoRed.data.actualizarTurno(id, { fecha: '2026-06-10', hora: '11:00' });
-      }, turnoId);
+        return HemoRed.data.actualizarTurno(id, { fecha, hora: '11:00' });
+      }, { id: turnoId, fecha: fechaReprogramada });
       expect(resultado.ok).toBe(false);
       expect(resultado.error).toContain('al menos 50kg');
     });
 
     await test.step('con el peso corregido de nuevo, reprogramar funciona (y no se bloquea contra sí mismo)', async () => {
-      const resultado = await page.evaluate((id) => {
+      const resultado = await page.evaluate(({ id, fecha }) => {
         const s = HemoRed.sesion.get();
         const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
         HemoRed.db.actualizar('usuarios', donante.id, { peso_kg: 60 });
-        return HemoRed.data.actualizarTurno(id, { fecha: '2026-06-10', hora: '11:00' });
-      }, turnoId);
+        return HemoRed.data.actualizarTurno(id, { fecha, hora: '11:00' });
+      }, { id: turnoId, fecha: fechaReprogramada });
       expect(resultado.ok).toBe(true);
-      expect(resultado.turno.fecha).toBe('2026-06-10');
+      expect(resultado.turno.fecha).toBe(fechaReprogramada);
     });
   });
 
@@ -224,6 +241,32 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
     await expect(page.locator('#no-elegible-motivo')).toContainText('al menos 50kg');
     // Es un solo banner arriba de todo, no un indicador repetido por tarjeta:
     await expect(page.locator('.campaign-card .ti-alert-triangle')).toHaveCount(0);
+  });
+
+  // Bug real encontrado 2026-09-16 (reportado por la usuaria: "quiero
+  // modificar mi turno y me dice que ya tengo uno activo"): el turno id 3
+  // de los datos semilla (usuario 1, la cuenta demo) había quedado
+  // duplicado en estado `en_curso` — mismo hospital/fecha/hora/campaña que
+  // el turno id 6, ya `completado`, que es el que realmente tiene una
+  // donación real asociada (`donaciones.json`, turno_id: 6). Como la regla
+  // de "un solo turno activo en toda la plataforma" es posterior a cuando
+  // se armó ese dato semilla, nadie había notado que la cuenta demo violaba
+  // su propia regla. Se sacó el turno 3 duplicado de `turnos.json`. Este
+  // test es una guarda de datos, no de UI: confirma que ningún donante de
+  // los datos semilla tiene más de un turno activo a la vez, para no
+  // repetir este tipo de inconsistencia sin darse cuenta.
+  test('ningún donante de los datos semilla tiene más de un turno activo a la vez (consistencia de datos)', async ({ page }) => {
+    await page.goto('/publico/login.html');
+    const porUsuario = await page.evaluate(async () => {
+      await HemoRed.db.init();
+      const activos = HemoRed.db.all('turnos').filter(t => ['pendiente', 'confirmado', 'en_curso'].includes(t.estado));
+      const conteo = {};
+      activos.forEach(t => { conteo[t.usuario_id] = (conteo[t.usuario_id] || 0) + 1; });
+      return conteo;
+    });
+    Object.entries(porUsuario).forEach(([usuarioId, cantidad]) => {
+      expect(cantidad, `usuario_id ${usuarioId} tiene ${cantidad} turnos activos a la vez`).toBeLessThanOrEqual(1);
+    });
   });
 
 });

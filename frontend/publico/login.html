@@ -63,6 +63,7 @@
     <button class="form-register" onclick="window.location='../publico/registro.html'">Crear cuenta gratis</button>
 
     <p class="form-footer-note">Registrarse es gratis para donantes · Planes mensuales para instituciones</p>
+    <p class="form-footer-note"><a href="#" id="link-reset-demo" style="color:inherit;text-decoration:underline;">Reiniciar datos de ejemplo</a></p>
   </div>
 </main>
 
@@ -121,6 +122,19 @@
 
   // Enter key support
   document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+  // Borra los cambios guardados en este navegador (reservas, cancelaciones,
+  // etc. hechas durante pruebas) y vuelve a los datos de ejemplo originales.
+  // Útil porque HemoRed.db guarda cada cambio en localStorage para que no se
+  // pierda al navegar entre páginas — con el tiempo eso puede dejar el
+  // navegador "desincronizado" de los archivos de ejemplo reales.
+  document.getElementById('link-reset-demo').addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!confirm('Esto borra todos los cambios de prueba guardados en este navegador (turnos, donaciones, etc.) y vuelve a los datos de ejemplo originales. ¿Continuar?')) return;
+    HemoRed.db.reset();
+    HemoRed.sesion.logout();
+    window.location.reload();
+  });
 </script>
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>

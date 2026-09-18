@@ -370,10 +370,13 @@
   let campanaActual = null;
   let hospitalActual = null;
 
-  // El dataset de demo vive fijo en mayo 2026 (mismo criterio que data.js
-  // usa en cargarDashboardHospital/cargarTurnosHoy) — se usa para calcular
-  // fechas relativas ("publicada hace X días") de forma consistente.
-  const HOY = '2026-05-17';
+  // Fecha real de hoy (corregido 2026-09-16, ver el mismo comentario en
+  // data.js/ahora()). Es una función, no una constante evaluada acá
+  // arriba, porque este bloque corre antes de que carguen los <script src>
+  // de más abajo.
+  function hoy() {
+    return new Date().toISOString().slice(0, 10);
+  }
   const TIME_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'];
 
   function sumarDias(fechaISO, n) {
@@ -392,7 +395,7 @@
     const cont = document.getElementById('fecha-tabs');
     cont.innerHTML = '';
     for (let i = 0; i < 4; i++) {
-      const fechaISO = sumarDias(HOY, i);
+      const fechaISO = sumarDias(hoy(), i);
       const label = new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
       const btn = document.createElement('button');
       btn.className = 'fecha-tab' + (i === 0 ? ' active' : '');
@@ -405,16 +408,19 @@
   }
 
   // Pinta la grilla de horarios chequeando ocupación real contra turnos.json
-  // para el hospital y la fecha seleccionados (no otro hospital/fecha).
+  // para el hospital y la fecha seleccionados (no otro hospital/fecha). Un
+  // horario se marca ocupado recién al llegar al cupo de la campaña (antes
+  // alcanzaba con que hubiera un turno; ahora depende de "Donantes por
+  // turno", 2026-09-17).
   function renderTurnosGrid() {
     const cont = document.getElementById('turnos-grid');
-    const ocupados = new Set(
-      HemoRed.db.all('turnos')
-        .filter(t => t.hospital_id === campanaActual.hospital_id && t.fecha === fechaSeleccionada && t.estado !== 'cancelado')
-        .map(t => t.hora)
-    );
+    const cupo = campanaActual.cupo_por_turno ?? 1;
+    const conteoPorHora = {};
+    HemoRed.db.all('turnos')
+      .filter(t => t.hospital_id === campanaActual.hospital_id && t.fecha === fechaSeleccionada && t.estado !== 'cancelado')
+      .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
     cont.innerHTML = TIME_SLOTS.map(hora => {
-      const ocupado = ocupados.has(hora);
+      const ocupado = (conteoPorHora[hora] || 0) >= cupo;
       if (ocupado) {
         return `<div class="turno-opt ocupado"><div class="turno-hora">${hora}</div><div class="turno-estado ocupado">Ocupado</div></div>`;
       }
@@ -444,7 +450,7 @@
     document.getElementById('d-fecha-limite').textContent = new Date(c.fecha_cierre + 'T00:00:00')
       .toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
     document.getElementById('d-donantes-necesarios').textContent = `${c.unidades_requeridas} donantes`;
-    const diasPublicada = Math.floor((new Date(HOY) - new Date(c.fecha_publicacion.slice(0, 10))) / 86400000);
+    const diasPublicada = Math.floor((new Date(hoy()) - new Date(c.fecha_publicacion.slice(0, 10))) / 86400000);
     document.getElementById('d-publicada').textContent = diasPublicada <= 0 ? 'hoy' : `hace ${diasPublicada} día${diasPublicada !== 1 ? 's' : ''}`;
     document.getElementById('d-descripcion').textContent = c.descripcion || '';
     const pct = c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0;
@@ -482,7 +488,7 @@
 
   function actualizarRequisitos(usuario) {
     if (usuario?.fecha_nacimiento) {
-      const edad = Math.floor((new Date(HOY) - new Date(usuario.fecha_nacimiento)) / (365.25 * 86400000));
+      const edad = Math.floor((new Date(hoy()) - new Date(usuario.fecha_nacimiento)) / (365.25 * 86400000));
       // Tope general 65 años, salvo donantes habituales: hasta 70.
       const esHabitual = usuario.experiencia_donante === 'habitual';
       const edadMaxima = esHabitual ? 70 : 65;
@@ -496,7 +502,7 @@
       .map(d => d.registrado_en).filter(Boolean).sort();
     const ultima = fechas[fechas.length - 1];
     if (ultima) {
-      const dias = Math.floor((new Date(HOY) - new Date(ultima)) / 86400000);
+      const dias = Math.floor((new Date(hoy()) - new Date(ultima)) / 86400000);
       marcarRequisito('req-90dias', dias >= 90);
     }
   }

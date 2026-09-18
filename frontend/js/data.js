@@ -174,25 +174,39 @@ HemoRed.data = (function() {
   // campana_detalle.html (deshabilita "Reservar turno" de entrada, antes de
   // que el donante llegue a elegir fecha/hora).
   function verificarElegibilidadReserva(usuarioId) {
-    const hoy = AHORA_DEMO.toISOString().slice(0, 10);
+    const hoy = ahora().toISOString().slice(0, 10);
     return _validarElegibilidadDonante(usuarioId, hoy);
   }
 
+  // Cuántos turnos activos (no cancelados) ya hay en ese hospital+fecha+hora,
+  // sin contar `excluirTurnoId` (el propio turno, al reprogramar).
+  function _turnosActivosEnHorario(hospitalId, fecha, hora, excluirTurnoId) {
+    return HemoRed.db.all('turnos')
+      .filter(t => t.id !== excluirTurnoId && t.hospital_id === hospitalId && t.fecha === fecha && t.hora === hora && t.estado !== 'cancelado')
+      .length;
+  }
+
   // Reserva un turno real. Valida elegibilidad (edad, peso, turno activo,
-  // 90 días desde la última donación) y que el horario no esté ya tomado
-  // en ese hospital.
+  // 90 días desde la última donación) y que el horario no haya llegado al
+  // cupo de la campaña (RF configurable al crear la campaña — "Donantes por
+  // turno", 2026-09-17).
   function crearTurno({ usuario_id, campana_id, hospital_id, fecha, hora }) {
     const elegibilidad = _validarElegibilidadDonante(usuario_id, fecha);
     if (!elegibilidad.ok) return elegibilidad;
 
-    const ocupado = HemoRed.db.all('turnos')
-      .some(t => t.hospital_id === hospital_id && t.fecha === fecha && t.hora === hora && t.estado !== 'cancelado');
-    if (ocupado) return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
+    const campana = HemoRed.db.find('campanas', campana_id);
+    const cupo = campana?.cupo_por_turno ?? 1;
+    if (_turnosActivosEnHorario(hospital_id, fecha, hora) >= cupo) {
+      return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
+    }
 
     const turno = HemoRed.db.crear('turnos', {
       campana_id, usuario_id, hospital_id, fecha, hora,
-      // Arranca pendiente: el hospital lo confirma o rechaza (RF3).
-      estado: 'pendiente',
+      // Si la campaña tiene confirmación automática, nace confirmado
+      // directo; si no, nace pendiente y el hospital lo confirma o
+      // rechaza a mano (RF3) — "¿Requiere confirmación manual?" al crear
+      // la campaña (2026-09-17).
+      estado: campana?.confirmacion_automatica ? 'confirmado' : 'pendiente',
       formulario_autoexclusion_completado: false,
       formulario_autoexclusion_completado_en: null,
       autoexclusion_completado_por: null,
@@ -204,15 +218,23 @@ HemoRed.data = (function() {
     return { ok: true, turno };
   }
 
-  // Referencia fija de "ahora" para las ventanas de 2h/24h de abajo — el
-  // dataset de demo vive fijo en mayo 2026 (mismo criterio que HOY en
-  // cargarTurnosHoy()/campana_detalle.html), así que no podemos comparar
-  // contra la hora real del sistema (siempre sería "ya pasó hace meses").
-  const AHORA_DEMO = new Date('2026-05-17T09:00:00');
+  // "Ahora" para las ventanas de 2h/24h, la regla de 90 días, edad, y la
+  // agrupación de notificaciones — la fecha/hora real del sistema, no una
+  // fija (corregido 2026-09-16: antes esto era `AHORA_DEMO`, una constante
+  // fija en mayo 2026, atada a que el dataset semilla estaba fechado ese
+  // mes. Quedaba desactualizada apenas pasaba el tiempo real, generando
+  // que "hoy" en el prototipo dejara de tener sentido para quien lo
+  // probara meses después. Los datos semilla que representan hechos ya
+  // ocurridos (ej. la donación exitosa de la cuenta demo) se dejan con su
+  // fecha original de mayo 2026 a propósito — son un hecho histórico, no
+  // necesitan "seguir" a la fecha real).
+  function ahora() {
+    return new Date();
+  }
 
   function horasHastaElTurno(turno) {
     const fechaTurno = new Date(`${turno.fecha}T${turno.hora}:00`);
-    return (fechaTurno - AHORA_DEMO) / 3600000;
+    return (fechaTurno - ahora()) / 3600000;
   }
 
   function datosContactoHospital(hospitalId) {
@@ -245,9 +267,11 @@ HemoRed.data = (function() {
     const elegibilidad = _validarElegibilidadDonante(turno.usuario_id, fecha, { excluirTurnoId: turnoId });
     if (!elegibilidad.ok) return elegibilidad;
 
-    const ocupado = HemoRed.db.all('turnos')
-      .some(t => t.id !== turnoId && t.hospital_id === turno.hospital_id && t.fecha === fecha && t.hora === hora && t.estado !== 'cancelado');
-    if (ocupado) return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
+    const campana = HemoRed.db.find('campanas', turno.campana_id);
+    const cupo = campana?.cupo_por_turno ?? 1;
+    if (_turnosActivosEnHorario(turno.hospital_id, fecha, hora, turnoId) >= cupo) {
+      return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
+    }
 
     return { ok: true, turno: HemoRed.db.actualizar('turnos', turnoId, { fecha, hora }) };
   }
@@ -358,7 +382,7 @@ HemoRed.data = (function() {
     let diasHastaHabilitado = 0;
     const candidata = _proximaFechaHabilitada(s.usuario_id);
     if (candidata) {
-      const dias = Math.ceil((candidata - AHORA_DEMO) / 86400000);
+      const dias = Math.ceil((candidata - ahora()) / 86400000);
       if (dias > 0) {
         proximaFechaHabilitada = candidata;
         diasHastaHabilitado = dias;
@@ -557,21 +581,19 @@ HemoRed.data = (function() {
 
   // ===== NOTIFICACIONES (DONANTE) =====
   // Agrupa cada notificación en 'hoy'/'ayer'/'semana'/'antes' contra la
-  // misma fecha fija de demo que usa el resto del sitio (AHORA_DEMO, arriba
-  // en este archivo) — así la agrupación no depende de la fecha real del
-  // navegador que corre la demo.
+  // fecha real del sistema.
   function cargarNotificacionesDonante() {
     const s = HemoRed.sesion.get();
     if (!s) return [];
-    const hoy = AHORA_DEMO.toISOString().slice(0, 10);
-    const ayer = new Date(AHORA_DEMO.getTime() - 86400000).toISOString().slice(0, 10);
+    const hoy = ahora().toISOString().slice(0, 10);
+    const ayer = new Date(ahora().getTime() - 86400000).toISOString().slice(0, 10);
     return HemoRed.db.where('notificaciones_donante', 'usuario_id', s.usuario_id)
       .map(n => {
         const dia = n.fecha.slice(0, 10);
         let grupo = 'antes';
         if (dia === hoy) grupo = 'hoy';
         else if (dia === ayer) grupo = 'ayer';
-        else if ((AHORA_DEMO - new Date(dia)) <= 7 * 86400000) grupo = 'semana';
+        else if ((ahora() - new Date(dia)) <= 7 * 86400000) grupo = 'semana';
         return { ...n, grupo };
       })
       .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -718,7 +740,7 @@ HemoRed.data = (function() {
 
     _set('hospital-nombre', hospital?.nombre || '');
     _set('campanas-activas', campanas.filter(c => c.estado === 'activa').length);
-    _set('turnos-hoy', turnos.filter(t => t.fecha === '2026-05-17').length);
+    _set('turnos-hoy', turnos.filter(t => t.fecha === ahora().toISOString().slice(0, 10)).length);
     _set('donaciones-mes', donaciones.length);
 
     return { hospital, campanas, turnos, donaciones };
@@ -730,7 +752,7 @@ HemoRed.data = (function() {
     const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
     const hospital = HemoRed.db.find('hospitales', usuario?.hospital_id);
 
-    const hoy = '2026-05-17';
+    const hoy = ahora().toISOString().slice(0, 10);
     const turnos = HemoRed.db.all('turnos').filter(t => t.hospital_id === hospital?.id && t.fecha === hoy);
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
@@ -823,14 +845,13 @@ HemoRed.data = (function() {
       resultado_apto: resultadoApto !== false,
       reacciones: null,
       observaciones: observaciones || null,
-      registrado_en: AHORA_DEMO.toISOString(),
+      registrado_en: ahora().toISOString(),
     });
 
     HemoRed.db.actualizar('turnos', turnoId, { estado: 'completado' });
 
-    // El token y su expiración usan la hora real (no AHORA_DEMO): tienen que
-    // seguir siendo válidos/inválidos de verdad cuando alguien prueba el
-    // link más tarde, sin importar qué día diga la demo.
+    // El token y su expiración ya usaban la hora real de por sí (ahora
+    // `ahora()` también es la hora real en todos lados, ver más arriba).
     const token = generarTokenPostdonacion();
     const formularioPostdonacion = HemoRed.db.crear('formulario_postdonacion', {
       numero_bolsa: numeroBolsa,
@@ -891,7 +912,7 @@ HemoRed.data = (function() {
     const ph = HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id);
     const hospital_ids = ph.map(p => p.hospital_id);
 
-    const hoy = '2026-05-17';
+    const hoy = ahora().toISOString().slice(0, 10);
     const turnos = HemoRed.db.all('turnos').filter(t => hospital_ids.includes(t.hospital_id) && t.fecha === hoy);
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
@@ -932,6 +953,7 @@ HemoRed.data = (function() {
   }
 
   return {
+    ahora,
     cargarDashboardDonante,
     renderCampanas,
     crearTurno,

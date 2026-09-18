@@ -13,6 +13,8 @@
     "fecha_publicacion": "2026-05-01T09:00:00",
     "fecha_cierre": "2026-05-31",
     "alcance": "provincial",
+    "cupo_por_turno": 1,
+    "confirmacion_automatica": false,
     "creado_en": "2026-04-28T14:00:00"
   },
   {
@@ -29,6 +31,8 @@
     "fecha_publicacion": "2026-04-01T08:00:00",
     "fecha_cierre": "2026-06-30",
     "alcance": "local",
+    "cupo_por_turno": 2,
+    "confirmacion_automatica": true,
     "creado_en": "2026-03-28T10:00:00"
   },
   {
@@ -45,6 +49,8 @@
     "fecha_publicacion": "2026-05-10T11:00:00",
     "fecha_cierre": "2026-05-25",
     "alcance": "local",
+    "cupo_por_turno": 1,
+    "confirmacion_automatica": false,
     "creado_en": "2026-05-10T10:00:00"
   },
   {
@@ -61,6 +67,8 @@
     "fecha_publicacion": "2026-03-01T08:00:00",
     "fecha_cierre": "2026-04-30",
     "alcance": "local",
+    "cupo_por_turno": 2,
+    "confirmacion_automatica": true,
     "creado_en": "2026-02-28T09:00:00"
   }
 ]

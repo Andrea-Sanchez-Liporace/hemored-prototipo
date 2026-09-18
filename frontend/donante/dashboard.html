@@ -248,45 +248,43 @@
       <!-- Fecha y hospital -->
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
         <div style="background:#fdf0f3;border:1.5px solid #f28b98;border-radius:12px;padding:10px 14px;text-align:center;min-width:56px;">
-          <div style="font-size:22px;font-weight:600;color:#5a1e37;line-height:1;">20</div>
-          <div style="font-size:11px;font-weight:500;color:#ef647c;text-transform:uppercase;">may</div>
+          <div style="font-size:22px;font-weight:600;color:#5a1e37;line-height:1;" id="modal-turno-dia">—</div>
+          <div style="font-size:11px;font-weight:500;color:#ef647c;text-transform:uppercase;" id="modal-turno-mes">—</div>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:500;color:#5a1e37;">Hospital Ramos Mejía</div>
-          <div style="font-size:13px;color:#5a3040;margin-top:3px;">Martes · 10:00hs · CABA</div>
-          <span style="display:inline-block;margin-top:6px;background:#e6f7ed;color:#1a6b3a;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:500;">Confirmado</span>
+          <div style="font-size:15px;font-weight:500;color:#5a1e37;" id="modal-turno-hospital">—</div>
+          <div style="font-size:13px;color:#5a3040;margin-top:3px;" id="modal-turno-fechahora">—</div>
+          <span style="display:inline-block;margin-top:6px;background:#e6f7ed;color:#1a6b3a;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:500;" id="modal-turno-estado">—</span>
         </div>
       </div>
 
       <!-- Info campaña -->
       <div style="background:#fdf9fb;border-radius:10px;padding:14px 16px;border:0.5px solid #e8d0d8;margin-bottom:16px;">
         <div style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Campaña</div>
-        <div style="font-size:14px;font-weight:500;color:#5a1e37;margin-bottom:4px;">Campaña urgente 0−</div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;margin-bottom:4px;" id="modal-turno-campana">—</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <div style="font-size:12px;color:#5a3040;display:flex;align-items:center;gap:4px;"><i class="ti ti-droplet" style="color:#a9435d;"></i>0− · 0+</div>
-          <div style="font-size:12px;color:#5a3040;display:flex;align-items:center;gap:4px;"><i class="ti ti-hash" style="color:#a9435d;"></i>#TRN-20240520-0042</div>
+          <div style="font-size:12px;color:#5a3040;display:flex;align-items:center;gap:4px;"><i class="ti ti-droplet" style="color:#a9435d;"></i><span id="modal-turno-sangre">—</span></div>
+          <div style="font-size:12px;color:#5a3040;display:flex;align-items:center;gap:4px;"><i class="ti ti-hash" style="color:#a9435d;"></i><span id="modal-turno-numero">—</span></div>
         </div>
       </div>
 
       <!-- Formularios -->
       <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #f28b98;margin-bottom:20px;">
         <div style="font-size:11px;font-weight:500;color:#5a1e37;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="ti ti-clipboard-list" style="color:#ef647c;"></i>Formularios pre-donación</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#1a6b3a;"><i class="ti ti-circle-check" style="color:#27ae60;"></i>Autoexclusión completado</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#a9435d;"><i class="ti ti-circle" style="color:#ef647c;"></i>Cuestionario pendiente</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#888;"><i class="ti ti-lock" style="color:#ccc;"></i>Evaluación clínica — lo carga el profesional</div>
+        <div style="display:flex;flex-direction:column;gap:6px;" id="modal-turno-formularios">
+          <!-- Se completa dinámicamente en abrirModalTurno() -->
         </div>
       </div>
 
       <!-- Botones -->
-      <button onclick="window.location='../donante/formularios_predonacion.html'" style="width:100%;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;">
+      <button id="modal-turno-btn-cuestionario" style="width:100%;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;">
         Completar cuestionario
       </button>
       <div style="display:flex;gap:8px;">
-        <button onclick="window.location='../donante/mis_turnos.html'" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:10px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
+        <button id="modal-turno-btn-modificar" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:10px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
           Modificar turno
         </button>
-        <button onclick="window.location='../donante/campana_detalle.html'" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:10px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
+        <button id="modal-turno-btn-campana" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:10px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">
           Ver campaña
         </button>
       </div>
@@ -296,7 +294,50 @@
 </div>
 
 <script>
+  // Datos reales del próximo turno confirmado, calculados una vez en
+  // DOMContentLoaded — antes el modal de detalle era 100% HTML fijo
+  // (siempre "Hospital Ramos Mejía", "20 may", etc.), sin relación con el
+  // turno real del donante logueado.
+  let proximoTurnoInfo = null;
+
   function abrirModalTurno() {
+    if (!proximoTurnoInfo) return;
+    const { turno, hospital, campana } = proximoTurnoInfo;
+
+    const fecha = new Date(turno.fecha + 'T00:00:00');
+    document.getElementById('modal-turno-dia').textContent = fecha.getDate();
+    document.getElementById('modal-turno-mes').textContent = fecha.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '');
+    document.getElementById('modal-turno-hospital').textContent = hospital?.nombre || '—';
+    const diaSemana = fecha.toLocaleDateString('es-AR', { weekday: 'long' });
+    document.getElementById('modal-turno-fechahora').textContent =
+      `${diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)} · ${turno.hora}hs · ${hospital?.ciudad || ''}`;
+    const estadoTexto = turno.estado === 'confirmado' ? 'Confirmado' : 'Pendiente';
+    const estadoEl = document.getElementById('modal-turno-estado');
+    estadoEl.textContent = estadoTexto;
+    estadoEl.style.background = turno.estado === 'confirmado' ? '#e6f7ed' : '#fdf0e0';
+    estadoEl.style.color = turno.estado === 'confirmado' ? '#1a6b3a' : '#a9660e';
+
+    document.getElementById('modal-turno-campana').textContent = campana?.titulo || '—';
+    document.getElementById('modal-turno-sangre').textContent = campana?.tipo_sangre_requerida || 'Cualquier tipo';
+    document.getElementById('modal-turno-numero').textContent = '#TRN-' + turno.id;
+
+    const itemFormulario = (ok, texto, pendienteTexto) => ok
+      ? `<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#1a6b3a;"><i class="ti ti-circle-check" style="color:#27ae60;"></i>${texto}</div>`
+      : `<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#a9435d;"><i class="ti ti-circle" style="color:#ef647c;"></i>${pendienteTexto}</div>`;
+    document.getElementById('modal-turno-formularios').innerHTML =
+      itemFormulario(turno.formulario_autoexclusion_completado, 'Autoexclusión completado', 'Autoexclusión pendiente') +
+      itemFormulario(turno.formulario_cuestionario_completado, 'Cuestionario completado', 'Cuestionario pendiente') +
+      '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#888;"><i class="ti ti-lock" style="color:#ccc;"></i>Evaluación clínica — lo carga el profesional</div>';
+
+    // El botón de completar el cuestionario solo tiene sentido si falta
+    // alguno de los dos formularios pre-donación.
+    const faltaFormulario = !turno.formulario_autoexclusion_completado || !turno.formulario_cuestionario_completado;
+    const btnCuestionario = document.getElementById('modal-turno-btn-cuestionario');
+    btnCuestionario.style.display = faltaFormulario ? '' : 'none';
+    btnCuestionario.onclick = () => window.location = `../donante/formularios_predonacion.html?turno_id=${turno.id}`;
+    document.getElementById('modal-turno-btn-modificar').onclick = () => window.location = `../donante/mis_turnos.html?turno_id=${turno.id}`;
+    document.getElementById('modal-turno-btn-campana').onclick = () => window.location = `../donante/campana_detalle.html?id=${campana?.id || ''}`;
+
     document.getElementById('modal-turno').style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
@@ -379,6 +420,12 @@
     const banner = document.getElementById('proximo-turno-banner');
     if (proximo && banner) {
       const hospital = hospitales.find(h => h.id === proximo.hospital_id);
+      // Se busca directo en `campanas` (todas, no solo las activas) porque
+      // la campaña de un turno ya reservado puede haber cerrado mientras
+      // tanto — el filtro de `cargarDashboardDonante()` para el grid de
+      // búsqueda no debería dejar esta campaña sin encontrar acá.
+      const campana = HemoRed.db.find('campanas', proximo.campana_id);
+      proximoTurnoInfo = { turno: proximo, hospital, campana };
       const fecha = new Date(proximo.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
       document.getElementById('proximo-turno-valor').textContent = `${fecha} · ${proximo.hora}hs · ${hospital?.nombre || ''}`;
       banner.style.display = '';

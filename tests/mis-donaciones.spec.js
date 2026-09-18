@@ -4,13 +4,18 @@
  *
  * Qué prueba:
  * 1. Con la cuenta demo (que ya tiene una donación real en
- *    frontend/db/donaciones.json), las estadísticas, el banner de "próxima
- *    fecha habilitada" y la tarjeta del historial muestran datos reales,
- *    no el contenido fijo que tenía antes esta pantalla.
+ *    frontend/db/donaciones.json), las estadísticas y la tarjeta del
+ *    historial muestran datos reales, no el contenido fijo que tenía antes
+ *    esta pantalla.
  * 2. La "próxima fecha habilitada" reutiliza la misma ventana de 90 días
  *    que ya usa crearTurno() para bloquear una reserva — no es un número
  *    nuevo inventado para esta pantalla (ver cargarMisDonaciones() en
- *    frontend/js/data.js).
+ *    frontend/js/data.js). Se prueba con un donante fresco cuya donación se
+ *    crea a propósito "hace 30 días" (dentro de la ventana), no con la
+ *    cuenta demo — desde que "hoy" pasó a ser la fecha real del sistema
+ *    (2026-09-16, ver docs/04), la donación semilla de la cuenta demo
+ *    (17/05/2026, a propósito sin tocar) ya quedó afuera de los 90 días
+ *    hace rato, así que el banner correctamente ya NO se muestra para ella.
  * 3. Los filtros (año / resultado), que ya eran funcionales antes sobre
  *    contenido fijo, siguen funcionando sobre las tarjetas reales.
  * 4. Un donante sin ninguna donación ve el estado vacío correctamente
@@ -18,6 +23,12 @@
  */
 
 const { test, expect } = require('@playwright/test');
+
+function diasDesdeHoy(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d;
+}
 
 test.describe('Mis donaciones (donante)', () => {
 
@@ -37,14 +48,8 @@ test.describe('Mis donaciones (donante)', () => {
       await expect(page.locator('#stat-ultima-donacion')).toContainText('2026');
     });
 
-    await test.step('el banner de "próxima fecha habilitada" usa la misma ventana de 90 días que crearTurno()', async () => {
-      // La donación real quedó registrada el 17/05/2026 → habilitado recién
-      // el 15/08/2026 (90 días después). Si este número cambia porque se
-      // resuelve el pendiente de "85 vs 90 días" (ver docs/04), hay que
-      // actualizar este test también.
-      await expect(page.locator('#proximo-banner')).toBeVisible();
-      await expect(page.locator('#proximo-banner-valor')).toContainText('15 de agosto de 2026');
-      await expect(page.locator('#proximo-banner-valor')).toContainText('días');
+    await test.step('el banner de "próxima fecha habilitada" ya no se muestra: la donación semilla (17/05/2026) quedó afuera de los 90 días hace rato', async () => {
+      await expect(page.locator('#proximo-banner')).toBeHidden();
     });
 
     await test.step('la tarjeta del historial muestra el hospital, tipo de sangre y número de bolsa reales', async () => {
@@ -64,6 +69,39 @@ test.describe('Mis donaciones (donante)', () => {
       await expect(page.locator('#sin-resultados')).toBeHidden();
       await expect(page.locator('#lista-donaciones .turno-card:visible')).toHaveCount(1);
     });
+  });
+
+  test('un donante con una donación reciente (dentro de los 90 días) ve el banner con la fecha correcta', async ({ page }) => {
+    await page.goto('/publico/registro.html');
+    await page.click('text=Soy donante');
+    await page.fill('#d-nombre', 'Reciente');
+    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-email', `donante.reciente.${Date.now()}@example.com`);
+    await page.fill('#d-tel', '11-1111-1111');
+    await page.fill('#d-pass', 'password123');
+    await page.fill('#d-pass2', 'password123');
+    await page.click('#btn-crear-cuenta-donante');
+    await page.waitForURL('**/donante/dashboard.html');
+
+    const fechaEsperada = await page.evaluate(async () => {
+      await HemoRed.db.init();
+      const s = HemoRed.sesion.get();
+      const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
+      const hace30dias = new Date(Date.now() - 30 * 86400000);
+      HemoRed.db.crear('donaciones', {
+        turno_id: null, campana_id: 1, usuario_id: donante.id, hospital_id: 1, profesional_id: 1,
+        numero_bolsa: 'BLS-TEST-0001', volumen_ml: 450, resultado_apto: true,
+        registrado_en: hace30dias.toISOString(),
+      });
+      // Misma cuenta que ya usa la pantalla: 90 días desde la donación.
+      const habilitado = new Date(hace30dias.getTime() + 90 * 86400000);
+      return habilitado.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    });
+
+    await page.goto('/donante/mis_donaciones.html');
+    await expect(page.locator('#proximo-banner')).toBeVisible();
+    await expect(page.locator('#proximo-banner-valor')).toContainText(fechaEsperada);
+    await expect(page.locator('#proximo-banner-valor')).toContainText('días');
   });
 
   test('un donante sin donaciones ve el estado vacío, sin romper nada', async ({ page }) => {

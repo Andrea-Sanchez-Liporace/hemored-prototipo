@@ -7,12 +7,17 @@
  * paso 1) y docs/03-documentacion-tecnica-consolidada.md (sección
  * "Mis turnos") para las reglas de negocio que este test verifica.
  *
- * Nota sobre fechas: el dataset de demo y las validaciones de
- * actualizarTurno()/cancelarTurno() (frontend/js/data.js) usan una
- * fecha/hora de referencia fija ("AHORA_DEMO" = 2026-05-17 09:00),
- * no la hora real del sistema — por eso este test elige a propósito
- * turnos lejanos (>24hs) o cercanos (<2hs) respecto de esa referencia,
- * no respecto de "hoy" en el calendario real.
+ * Nota sobre fechas (actualizada 2026-09-16): `actualizarTurno()`/
+ * `cancelarTurno()` (frontend/js/data.js) validan las ventanas de 24hs/2hs
+ * contra la hora real del sistema (antes usaban una constante fija,
+ * `AHORA_DEMO` = 2026-05-17 09:00 — se sacó, ver el mismo cambio en
+ * docs/04). El primer caso de este archivo elige a propósito un turno
+ * lejano (>24hs desde HOY real) vía la pestaña de fecha #3 del calendario.
+ * El segundo caso (turno de HOY, ya vencido) no depende de ninguna pestaña
+ * de la UI — arma el turno directo contra la fecha/hora real menos un
+ * rato, para no depender de en qué momento del día corra el test (a la
+ * mañana, el primer horario de "hoy" de la grilla todavía podría estar a
+ * más de 2hs de distancia).
  */
 
 const { test, expect } = require('@playwright/test');
@@ -119,19 +124,52 @@ test.describe('Modificar y cancelar turno', () => {
   });
 
   test('un turno para "hoy" (ya pasada la ventana) no se puede modificar ni cancelar', async ({ page }) => {
-    let numeroTurno;
+    await page.goto('/publico/registro.html');
+    await page.click('text=Soy donante');
+    await page.fill('#d-nombre', 'Marina');
+    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-email', `donante.mod.vencido.${Date.now()}@example.com`);
+    await page.fill('#d-tel', '11-5555-4444');
+    await page.fill('#d-pass', donantePassword);
+    await page.fill('#d-pass2', donantePassword);
+    await page.click('#btn-crear-cuenta-donante');
+    await page.waitForURL('**/donante/dashboard.html');
 
-    await test.step('registrar donante y reservar un turno para hoy, primer horario del día', async () => {
-      // Índice 0 = HOY. AHORA_DEMO está fijado a las 09:00 (ver data.js);
-      // el primer horario libre de la grilla (08:00 en adelante) puede caer
-      // antes o muy cerca de esa referencia, así que la ventana de 2h/24h
-      // ya está vencida para este turno.
-      numeroTurno = await registrarYReservar(page, 0);
+    await test.step('crear directo un turno confirmado para hace 1 hora (ya vencido)', async () => {
+      // Se arma directo contra la fecha/hora real menos 1 hora, en vez de
+      // elegir "hoy" en la grilla de la UI — así el test no depende de en
+      // qué momento del día real corra (a la mañana temprano, el primer
+      // horario de la grilla de "hoy" todavía podría estar a más de 2hs).
+      await page.evaluate(async () => {
+        await HemoRed.db.init();
+        const s = HemoRed.sesion.get();
+        const donante = HemoRed.db.where('usuarios', 'email', s.email)[0];
+        const haceUnaHora = new Date(Date.now() - 3600000);
+        // fecha/hora en hora LOCAL, no UTC (toISOString() da la fecha en
+        // UTC) — horasHastaElTurno() en data.js arma `new Date(fecha+'T'+hora)`
+        // sin sufijo de zona horaria, que el navegador interpreta como hora
+        // LOCAL. Mezclar una fecha en UTC con una hora local podía referirse
+        // a un momento distinto al real "hace 1 hora" (bug real, encontrado
+        // al correr este test).
+        const pad = (n) => String(n).padStart(2, '0');
+        const fechaLocal = `${haceUnaHora.getFullYear()}-${pad(haceUnaHora.getMonth() + 1)}-${pad(haceUnaHora.getDate())}`;
+        const horaLocal = `${pad(haceUnaHora.getHours())}:${pad(haceUnaHora.getMinutes())}`;
+        HemoRed.db.crear('turnos', {
+          campana_id: 1, usuario_id: donante.id, hospital_id: 1,
+          fecha: fechaLocal,
+          hora: horaLocal,
+          estado: 'confirmado',
+          formulario_autoexclusion_completado: false, formulario_autoexclusion_completado_en: null,
+          autoexclusion_completado_por: null, formulario_cuestionario_completado: false,
+          formulario_cuestionario_completado_en: null, cuestionario_completado_por: null,
+          creado_en: new Date().toISOString(),
+        });
+      });
     });
 
     await test.step('intentar cancelar: debe rechazarse con el motivo de negocio', async () => {
       await page.goto('/donante/mis_turnos.html');
-      const card = page.locator('.turno-card', { hasText: `${numeroTurno}` });
+      const card = page.locator('#lista-proximos .turno-card').first();
       await card.locator('button:has-text("Modificar")').click();
       await page.click('text=Cancelar este turno');
       await page.click('text=Sí, cancelar turno');
