@@ -7,6 +7,35 @@
 HemoRed.data = (function() {
 
   // ===== DONANTE =====
+
+  // Campos "recomendados" del perfil, agrupados por la sección de
+  // perfil.html a la que pertenecen — fuente única de verdad para el %
+  // de completitud, el badge Completo/Pendiente de cada acordeón, y el
+  // aviso "Perfil incompleto" del sidebar (2026-09-22: antes cada uno
+  // tenía su propio criterio, o ninguno — el aviso del sidebar era texto
+  // fijo, siempre visible, sin mirar el dato real).
+  const CAMPOS_PERFIL_PERSONAL = ['telefono', 'fecha_nacimiento', 'numero_documento', 'provincia', 'ciudad'];
+  const CAMPOS_PERFIL_MEDICOS = ['tipo_sangre', 'peso_kg'];
+
+  function _camposCompletos(usuario, campos) {
+    return campos.every(c => usuario[c] !== null && usuario[c] !== undefined && usuario[c] !== '');
+  }
+
+  // Muestra/oculta el aviso "Perfil incompleto" del sidebar (si existe en
+  // la pantalla — no todas lo tienen todavía) contra el dato real del
+  // donante logueado, en vez del texto fijo que había antes.
+  async function verificarPerfilIncompleto() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    if (!s) return;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    if (!usuario) return;
+    const alerta = document.getElementById('sidebar-alerta-perfil');
+    if (!alerta) return;
+    const completo = _camposCompletos(usuario, [...CAMPOS_PERFIL_PERSONAL, ...CAMPOS_PERFIL_MEDICOS]);
+    alerta.style.display = completo ? 'none' : '';
+  }
+
   async function cargarDashboardDonante() {
     const db = await HemoRed.db.init();
     const s = HemoRed.sesion.get();
@@ -960,6 +989,9 @@ HemoRed.data = (function() {
 
   return {
     ahora,
+    CAMPOS_PERFIL_PERSONAL,
+    CAMPOS_PERFIL_MEDICOS,
+    verificarPerfilIncompleto,
     cargarDashboardDonante,
     renderCampanas,
     crearTurno,

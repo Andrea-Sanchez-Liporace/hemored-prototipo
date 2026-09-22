@@ -171,6 +171,11 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 
 Ver `docs/04-estado-actual-prototipo.md`, sección "Confirmación automática y cupo por turno", para el detalle completo (valores semilla por campaña, y que el flujo de "Nueva campaña" del hospital para setear esto desde la UI todavía no está conectado).
 
+**`perfil-incompleto.spec.js`** — aviso "Perfil incompleto" del sidebar (todas las pantallas de Donante) y badges Completo/Pendiente de `donante/perfil.html`, agregado 2026-09-22. La usuaria notó que el aviso le aparecía en el dashboard con la cuenta demo a pesar de tener todos los datos médicos cargados — era HTML fijo, sin mirar el dato real, y solo existía en `dashboard.html`:
+
+1. Un donante recién registrado (solo nombre/apellido/email/teléfono) ve el aviso en el sidebar del dashboard **y** de otra pantalla distinta (`mis_turnos.html`) — antes ni siquiera existía ahí. En `perfil.html`, la sección "Datos médicos" está en "Pendiente". Al completar los campos que faltan (fecha de nacimiento, DNI, provincia, ciudad, tipo de sangre, peso) y guardar, las dos secciones pasan a "Completo", el % de completitud llega a 100%, y el aviso desaparece en todas las pantallas — sin ningún criterio nuevo, es la misma lista de campos que ya usaba el % de completitud (`HemoRed.data.CAMPOS_PERFIL_PERSONAL`/`CAMPOS_PERFIL_MEDICOS`, movida a `data.js` para que el sidebar y `perfil.html` compartan una sola fuente de verdad).
+2. La cuenta demo (`donante@hemored.com`), que ya tiene todo cargado, no ve el aviso ni en el sidebar ni en los badges — el caso puntual que reportó la usuaria.
+
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 
 Flujos que sabemos que faltan probar (porque todavía no están conectados a datos reales, no porque nos olvidamos):

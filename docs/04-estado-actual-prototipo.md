@@ -187,6 +187,21 @@ Sin test automatizado nuevo para nada de esta sección (es UI/navegación/texto,
 
 ---
 
+## Aviso "Perfil incompleto" y badges de sección, ahora contra el dato real (corregido 2026-09-22)
+
+**Reportado por la usuaria, probando con la cuenta demo (donante@hemored.com):** el aviso del sidebar ("⚠️ Perfil incompleto — Completá tu tipo de sangre para ver campañas compatibles") le aparecía en el dashboard a pesar de que esa cuenta YA tiene tipo de sangre y el resto de los datos médicos cargados — porque era HTML 100% fijo, sin mirar ningún dato real, y solo existía en `donante/dashboard.html` (ausente en las otras 6 pantallas de Donante con sidebar). De paso, notó lo mismo en `perfil.html`: el badge de la sección "Datos médicos" decía "Pendiente" siempre, también fijo, sin relación con si esos campos estaban cargados.
+
+**Corrección — una sola fuente de verdad, no dos criterios de "completo" distintos:** `perfil.html` ya calculaba un % de completitud (`actualizarCompletitud()`) contra una lista de 7 campos "recomendados" (`telefono`, `fecha_nacimiento`, `numero_documento`, `provincia`, `ciudad`, `tipo_sangre`, `peso_kg`) — esa lista se movió a `data.js` como `HemoRed.data.CAMPOS_PERFIL_PERSONAL` (los primeros 5) y `CAMPOS_PERFIL_MEDICOS` (los últimos 2), y ahora la usan los tres lugares:
+- El aviso del sidebar (`HemoRed.data.verificarPerfilIncompleto()`, nuevo): se agregó el HTML del aviso (antes solo en `dashboard.html`) a las 7 pantallas de Donante con sidebar, con `id="sidebar-alerta-perfil"` y oculto por default — la función lo muestra/oculta contra el usuario logueado real. Mensaje corregido de paso: ya no dice "para ver campañas compatibles" (esa restricción no existe — cualquier donante puede anotarse a cualquier campaña, ver la corrección de copy de tipo de sangre documentada más arriba en este archivo), ahora dice "Completá tus datos personales y médicos para agilizar tu próxima donación".
+- Los badges Completo/Pendiente de "Datos personales" y "Datos médicos" en `perfil.html` (`#status-sec-personal`/`#status-sec-medicos`): se actualizan dentro de la misma `actualizarCompletitud()`, cada uno contra su propia mitad de la lista de campos.
+- El % de completitud en sí, sin cambios de comportamiento (solo pasó a leer la lista compartida en vez de tener su propia copia inline).
+
+Las otras 3 secciones de `perfil.html` (Preferencias de notificaciones, Datos laborales, Seguridad de la cuenta) se dejaron con su badge fijo a propósito — no tienen un estado real de "incompleto" (cualquier combinación de preferencias es válida, datos laborales es explícitamente opcional, y seguridad son solo acciones, no datos a cargar).
+
+Test nuevo: `tests/perfil-incompleto.spec.js` (2 casos — un donante recién registrado ve el aviso en 2 pantallas distintas y en ambos badges de `perfil.html`, lo completa, y el aviso desaparece en todas partes sin recargar manualmente ninguna otra lógica; y la cuenta demo, con todo cargado, no lo ve). Suite completa (37 tests) en verde.
+
+---
+
 ## Público / Onboarding
 
 | Flujo | Vistas | Estado | Qué hace hoy | Qué falta |

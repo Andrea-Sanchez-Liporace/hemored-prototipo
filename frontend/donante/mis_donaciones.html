@@ -34,6 +34,14 @@
     <a class="nav-item" href="../donante/notificaciones.html"><i class="ti ti-bell" aria-hidden="true"></i>Notificaciones</a>
     <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión</a>
   </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-alert" id="sidebar-alerta-perfil" style="display:none;">
+      <div class="sidebar-alert-title">⚠️ Perfil incompleto</div>
+      <div class="sidebar-alert-text">Completá tus datos personales y médicos para agilizar tu próxima donación.</div>
+      <a class="sidebar-alert-btn" href="../donante/perfil.html">Completar perfil</a>
+    </div>
+  </div>
 </aside>
 
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
@@ -228,6 +236,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('donante');
     HemoRed.sesion.inyectarPerfil();
+    await HemoRed.data.verificarPerfilIncompleto();
     await renderMisDonaciones();
   });
 </script>

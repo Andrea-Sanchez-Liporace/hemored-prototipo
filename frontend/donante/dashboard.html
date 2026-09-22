@@ -65,9 +65,9 @@
   </nav>
 
   <div class="sidebar-footer">
-    <div class="sidebar-alert">
+    <div class="sidebar-alert" id="sidebar-alerta-perfil" style="display:none;">
       <div class="sidebar-alert-title">⚠️ Perfil incompleto</div>
-      <div class="sidebar-alert-text">Completá tu tipo de sangre para ver campañas compatibles.</div>
+      <div class="sidebar-alert-text">Completá tus datos personales y médicos para agilizar tu próxima donación.</div>
       <a class="sidebar-alert-btn" href="../donante/perfil.html">Completar perfil</a>
     </div>
   </div>
@@ -392,6 +392,7 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('donante');
+    await HemoRed.data.verificarPerfilIncompleto();
     const { donante, turnos, donaciones, campanas } = await HemoRed.data.cargarDashboardDonante();
 
     const elNombre = document.getElementById('donante-primer-nombre');
