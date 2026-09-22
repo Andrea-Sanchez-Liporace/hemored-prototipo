@@ -103,8 +103,8 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .btn-outline-sm { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.active { display: flex; }
-.modal { background: white; border-radius: 20px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; }
-.modal-header { padding: 20px 24px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; }
+.modal { background: white; border-radius: 20px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; }
+.modal-header { padding: 20px 24px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 10; flex-shrink: 0; }
 .modal-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
 .modal-subtitle { font-size: 13px; color: #a9435d; }
 .modal-close { background: none; border: none; cursor: pointer; color: #a9435d; font-size: 22px; line-height: 1; }

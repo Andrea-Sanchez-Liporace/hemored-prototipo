@@ -490,7 +490,10 @@ body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; mi
 .diag-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; padding: 24px; }
 .diag-modal.open { display: flex; }
 .diag-modal-inner { background: white; border-radius: 16px; max-width: 95vw; max-height: 90vh; overflow: auto; padding: 24px; position: relative; }
-.diag-modal-close { position: absolute; top: 14px; right: 14px; background: #f3f4f6; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #374151; }
+/* Fijo respecto del overlay (que ocupa toda la pantalla y no scrollea), no
+   de `.diag-modal-inner` — así el botón de cerrar no se va con el scroll
+   del contenido, sin importar cuánto mida el diagrama. */
+.diag-modal-close { position: fixed; top: 38px; right: 38px; background: #f3f4f6; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #374151; z-index: 10; }
 .diag-modal-title { font-size: 15px; font-weight: 600; color: var(--admin-dark); margin-bottom: 16px; padding-right: 40px; }
 .diag-modal-svg svg { max-width: 100%; height: auto; }
 ::-webkit-scrollbar { width: 4px; }

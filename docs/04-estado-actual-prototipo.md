@@ -140,6 +140,23 @@ Test: `tests/select-personalizado.spec.js` (9 casos en total — se agregaron lo
 
 ---
 
+## Modales: header fijo + scroll contenido en pantalla (corregido 2026-09-22)
+
+**Reportado por la usuaria con una captura:** en un modal con poco alto de pantalla disponible, el botón de cerrar (X) se scrolleaba junto con el contenido en vez de quedar siempre visible, y aparecía una barra de scroll pegada al borde del navegador, por fuera del recuadro redondeado del modal (en vez de una barra contenida adentro del modal).
+
+**Causa: no era un solo bug, eran dos patrones de modal distintos con el mismo problema de fondo, repetidos en varios lugares del sitio** — el header (título + X) no estaba fijo dentro del contenedor que sí scrollea:
+- `donante/dashboard.html` (`#modal-turno`, el que se veía en la captura): el recuadro blanco no tenía `max-height`/`overflow-y` en absoluto — al no caber en pantallas bajas, el que terminaba scrolleando era el DOCUMENTO completo, no el modal, de ahí la barra de scroll pegada al borde del navegador en vez de contenida adentro.
+- `donante/mis_turnos.html` (`#modal-modificar`, modal "Modificar turno"): sí tenía el scroll contenido adentro del recuadro, pero el header no era `position: sticky`, así que scrolleaba junto con la grilla de horarios.
+- `estilos/hospital.css` y `estilos/profesional.css` (clases compartidas `.modal`/`.modal-header`, usadas por varias pantallas de esos 2 roles): mismo problema que el anterior — el `.modal` sí tenía `overflow-y: auto`, pero le faltaba `display: flex; flex-direction: column` y al `.modal-header` le faltaba `position: sticky; top: 0`.
+- `estilos/admin.css` (`.diag-modal`, visor de diagramas de `admin/documentacion.html`): variante distinta del mismo problema — la X estaba `position: absolute` DENTRO del contenedor que scrollea, así que se iba con el contenido igual.
+- `estilos/componentes.css` (`.modal`/`.modal-header`, la más usada del sitio) y `hospital/turnos.html` (`#modal-donacion`) **ya estaban bien** — sirvieron de referencia para el resto: `.modal` como contenedor único que scrollea (`overflow-y: auto`) más `display: flex; flex-direction: column`, con `.modal-header` (y `.modal-actions`, si el modal tiene botones fijos abajo) en `position: sticky` (`top: 0` / `bottom: 0` respectivamente) con fondo blanco propio y `flex-shrink: 0` — así quedan siempre visibles sin importar cuánto scrollee el contenido del medio.
+
+**Corrección:** se llevó ese mismo patrón a los 5 lugares que no lo tenían. En `.diag-modal` puntualmente, la X pasó de `position: absolute` (relativa al contenedor que scrollea) a `position: fixed` (relativa a la pantalla, que no scrollea) — más simple que sticky para ese caso porque el contenedor no tiene un "header" propio separado del resto del contenido.
+
+Verificado visualmente con Playwright en viewport bajo (390×380px, fuerza el scroll) en los 2 modales de Donante: el header queda fijo arriba con la X visible mientras el resto del contenido scrollea por debajo, sin ninguna barra de scroll fuera del recuadro del modal. Sin test automatizado nuevo (es un chequeo visual/CSS, no de lógica de negocio) — la suite completa (35 tests) se corrió igual después del cambio para confirmar que ningún selector se rompió, en verde.
+
+---
+
 ## Público / Onboarding
 
 | Flujo | Vistas | Estado | Qué hace hoy | Qué falta |
