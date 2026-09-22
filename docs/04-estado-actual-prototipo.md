@@ -202,6 +202,18 @@ Test nuevo: `tests/perfil-incompleto.spec.js` (2 casos — un donante recién re
 
 ---
 
+## Mostrar/ocultar contraseña (agregado 2026-09-22)
+
+**Hito acordado con el profesor:** ningún campo de contraseña del sitio tenía forma de revisar lo que se tipeó antes de enviar el formulario. Mismo criterio que el select personalizado (ver sección más arriba): en vez de tocar cada formulario a mano, `HemoRed.ui.mejorarPasswords()` (`ui.js`) recorre automáticamente todos los `<input type="password">` del documento y les agrega un botón de ojo al lado — no hace falta que cada pantalla nueva lo pida explícitamente, alcanza con que cargue `ui.js` (y `estilos/global.css`, directo o vía `@import` como en `publico.css`).
+
+**Cubre los 11 campos reales del sitio, en 4 pantallas:** `publico/login.html` (contraseña), `publico/registro.html` (contraseña + confirmar, para donante y para institución — 4 campos), `publico/recuperar.html` (nueva contraseña + confirmar — a esta pantalla, 100% mockup hasta ahora, hubo que agregarle `js/db.js` y `js/ui.js`, que no cargaba ningún script de HemoRed), y `donante/perfil.html` → Seguridad de la cuenta (contraseña actual/nueva/repetir al cambiar contraseña, contraseña actual al cambiar email, contraseña actual al eliminar la cuenta — 5 campos).
+
+**Excluido a propósito:** el campo "CVV" del mockup de `publico/pago.html` usa `type="password"` solo para taparse visualmente (como cualquier campo de tarjeta), no es una contraseña real de ningún usuario — se le agregó `data-sin-toggle="1"` para que `mejorarPasswords()` lo salte. **Bug real encontrado al implementar el opt-out:** un primer intento usó el atributo booleano `data-sin-toggle` sin valor — `element.dataset.sinToggle` en ese caso vale `""` (string vacío), que es *falsy* en JavaScript, así que el chequeo `if (input.dataset.sinToggle) return;` no cortaba nada y el CVV se envolvía igual. Se corrigió dándole un valor real (`data-sin-toggle="1"`), mismo patrón que ya usa el propio código para marcar elementos ya mejorados (`dataset.hrEnhanced = '1'`).
+
+Test nuevo: `tests/mostrar-contrasena.spec.js` (4 casos: alterna visible/oculto en login, aparece en los 4 campos de registro + los 2 de recuperar contraseña, aparece en los 3 modales de Seguridad de la cuenta, y el CVV de pago.html no lo tiene). Suite completa (41 tests) en verde.
+
+---
+
 ## Público / Onboarding
 
 | Flujo | Vistas | Estado | Qué hace hoy | Qué falta |

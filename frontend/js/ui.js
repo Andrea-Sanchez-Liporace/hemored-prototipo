@@ -274,16 +274,52 @@ HemoRed.ui = (function() {
   }, true);
   window.addEventListener('resize', () => cerrarPanelAbierto());
 
+  // ===== MOSTRAR/OCULTAR CONTRASEÑA =====
+  // Mismo criterio que mejorarSelects(): se agrega automáticamente a
+  // cualquier <input type="password"> del sitio, sin tener que tocar cada
+  // formulario a mano (login, registro, recuperar contraseña, seguridad
+  // de la cuenta). Un input puede optar afuera con `data-sin-toggle`
+  // (ej. el CVV de publico/pago.html — se ve igual que una contraseña
+  // pero no tiene sentido "revelarlo").
+  function mejorarPasswords(root = document) {
+    root.querySelectorAll('input[type="password"]').forEach(mejorarPassword);
+  }
+
+  function mejorarPassword(input) {
+    if (input.dataset.hrEnhanced || input.dataset.sinToggle) return;
+    input.dataset.hrEnhanced = '1';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'hr-pass-wrap';
+    input.insertAdjacentElement('beforebegin', wrap);
+    wrap.appendChild(input);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hr-pass-toggle';
+    btn.setAttribute('aria-label', 'Mostrar contraseña');
+    btn.innerHTML = '<i class="ti ti-eye" aria-hidden="true"></i>';
+    wrap.appendChild(btn);
+
+    btn.addEventListener('click', () => {
+      const mostrar = input.type === 'password';
+      input.type = mostrar ? 'text' : 'password';
+      btn.innerHTML = `<i class="ti ti-${mostrar ? 'eye-off' : 'eye'}" aria-hidden="true"></i>`;
+      btn.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    });
+  }
+
   // ===== INIT GENERAL =====
   function init() {
     initSidebar();
     initFiltros();
     initTabs();
     mejorarSelects();
+    mejorarPasswords();
     HemoRed.sesion?.inyectarPerfil();
   }
 
-  return { init, initSidebar, abrirModal, cerrarModal, cerrarTodosModales, toast, initFiltros, initTabs, initFirma, limpiarFirma, mejorarSelects };
+  return { init, initSidebar, abrirModal, cerrarModal, cerrarTodosModales, toast, initFiltros, initTabs, initFirma, limpiarFirma, mejorarSelects, mejorarPasswords };
 })();
 
 // Auto-init on DOMContentLoaded
