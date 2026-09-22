@@ -395,13 +395,13 @@
 
 
 <!-- MODAL MODIFICAR TURNO -->
-<div id="modal-modificar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:white;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;">
-    <div style="padding:20px 24px;border-bottom:0.5px solid #e8d0d8;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:10;">
-      <div style="font-size:16px;font-weight:500;color:#5a1e37;">Modificar turno</div>
-      <button onclick="cerrarModal()" style="background:none;border:none;cursor:pointer;color:#a9435d;font-size:20px;"><i class="ti ti-x"></i></button>
+<div id="modal-modificar" class="modal-overlay" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">Modificar turno</div>
+      <button class="modal-close" onclick="cerrarModal()"><i class="ti ti-x"></i></button>
     </div>
-    <div style="padding:20px 24px;">
+    <div class="modal-body">
 
       <!-- Info turno actual -->
       <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
@@ -441,8 +441,8 @@
 </div>
 
 <!-- MODAL CONFIRMACIÓN CANCELAR -->
-<div id="modal-cancelar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:white;border-radius:20px;width:100%;max-width:400px;padding:28px;">
+<div id="modal-cancelar" class="modal-overlay" style="display:none;z-index:300;">
+  <div class="modal" style="max-width:400px;padding:28px;">
     <div style="text-align:center;margin-bottom:20px;">
       <div style="width:56px;height:56px;border-radius:50%;background:#fde8e8;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
         <i class="ti ti-calendar-off" style="color:#c0392b;font-size:24px;"></i>

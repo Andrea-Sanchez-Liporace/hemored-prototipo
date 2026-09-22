@@ -11,7 +11,7 @@
     "estado": "activa",
     "urgente": true,
     "fecha_publicacion": "2026-05-01T09:00:00",
-    "fecha_cierre": "2026-05-31",
+    "fecha_cierre": "2026-12-15",
     "alcance": "provincial",
     "cupo_por_turno": 1,
     "confirmacion_automatica": false,
@@ -29,7 +29,7 @@
     "estado": "activa",
     "urgente": false,
     "fecha_publicacion": "2026-04-01T08:00:00",
-    "fecha_cierre": "2026-06-30",
+    "fecha_cierre": "2026-12-31",
     "alcance": "local",
     "cupo_por_turno": 2,
     "confirmacion_automatica": true,
@@ -46,12 +46,12 @@
     "unidades_obtenidas": 1,
     "estado": "activa",
     "urgente": true,
-    "fecha_publicacion": "2026-05-10T11:00:00",
-    "fecha_cierre": "2026-05-25",
+    "fecha_publicacion": "2026-09-15T11:00:00",
+    "fecha_cierre": "2026-09-30",
     "alcance": "local",
     "cupo_por_turno": 1,
     "confirmacion_automatica": false,
-    "creado_en": "2026-05-10T10:00:00"
+    "creado_en": "2026-09-15T10:00:00"
   },
   {
     "id": 4,

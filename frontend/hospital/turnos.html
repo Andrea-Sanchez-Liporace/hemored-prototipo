@@ -438,15 +438,15 @@
 
 
 <!-- MODAL REGISTRAR DONACIÓN -->
-<div id="modal-donacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:white;border-radius:20px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;">
-    <div style="padding:20px 24px;border-bottom:0.5px solid #e8d0d8;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;">
-      <div style="font-size:16px;font-weight:500;color:#5a1e37;" id="modal-donacion-titulo">Registrar donación realizada</div>
-      <button onclick="cerrarModalDonacion()" style="background:none;border:none;cursor:pointer;color:#a9435d;font-size:20px;"><i class="ti ti-x"></i></button>
+<div id="modal-donacion" class="modal-overlay" style="display:none;">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-donacion-titulo">Registrar donación realizada</div>
+      <button class="modal-close" onclick="cerrarModalDonacion()"><i class="ti ti-x"></i></button>
     </div>
 
     <!-- VISTA FORMULARIO -->
-    <div id="modal-donacion-form" style="padding:24px;">
+    <div id="modal-donacion-form" class="modal-body">
 
       <!-- Info turno -->
       <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;" id="modal-donacion-info-turno">
@@ -489,7 +489,7 @@
     </div>
 
     <!-- VISTA ÉXITO: QR para el formulario post-donación -->
-    <div id="modal-donacion-exito" style="display:none;padding:24px;text-align:center;">
+    <div id="modal-donacion-exito" class="modal-body" style="display:none;text-align:center;">
       <div style="width:56px;height:56px;border-radius:50%;background:#27ae60;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
         <i class="ti ti-check" style="color:white;font-size:28px;"></i>
       </div>
