@@ -743,6 +743,12 @@ HemoRed.data = (function() {
     _set('turnos-hoy', turnos.filter(t => t.fecha === ahora().toISOString().slice(0, 10)).length);
     _set('donaciones-mes', donaciones.length);
 
+    // Texto de bienvenida (antes fijo: "Hoy es jueves 15 de mayo de 2026...",
+    // corregido 2026-09-22 junto con las otras fechas de ejemplo vencidas).
+    _set('bienvenida-fecha', ahora().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+    _set('bienvenida-campanas', campanas.filter(c => c.estado === 'activa').length);
+    _set('bienvenida-turnos-pendientes', turnos.filter(t => t.estado === 'pendiente').length);
+
     return { hospital, campanas, turnos, donaciones };
   }
 
