@@ -283,7 +283,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .side-btn-outline { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.active { display: flex; }
-.modal { background: white; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
+.modal { background: white; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
 .modal-header { padding: 20px 24px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 10; flex-shrink: 0; }
 .modal-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
 .modal-close { background: none; border: none; cursor: pointer; color: #a9435d; font-size: 20px; }

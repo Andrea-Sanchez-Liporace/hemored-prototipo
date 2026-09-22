@@ -490,7 +490,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; mi
 .btn-zoom:hover { background: #eff6ff; }
 .diag-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; padding: 24px; }
 .diag-modal.open { display: flex; }
-.diag-modal-inner { background: white; border-radius: 16px; max-width: 95vw; max-height: 90vh; overflow: auto; padding: 24px; position: relative; }
+.diag-modal-inner { background: white; max-width: 95vw; max-height: 90vh; overflow: auto; padding: 24px; position: relative; }
 /* Fijo respecto del overlay (que ocupa toda la pantalla y no scrollea), no
    de `.diag-modal-inner` — así el botón de cerrar no se va con el scroll
    del contenido, sin importar cuánto mida el diagrama. */
