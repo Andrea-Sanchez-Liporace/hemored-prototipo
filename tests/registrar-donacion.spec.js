@@ -48,12 +48,20 @@ async function firmar(page, canvasSelector) {
 // El cuestionario médico (F2) ya no trae ninguna respuesta pre-marcada
 // (corregido 2026-09-15) — hay que contestar las 34 antes de poder enviar.
 // Este test no evalúa ese detalle en particular, así que contesta todas
-// "No" sin necesidad de variar ninguna.
+// "No" salvo las 2 preguntas de comprensión del proceso
+// (info_escrita_autoexclusion/comprendio_autoexclusion), donde "Sí" es la
+// respuesta esperada — al revés que el resto, que son de factor de riesgo
+// (agregado 2026-09-22: una respuesta "inhabilitante" ahora bloquea el
+// envío del cuestionario, ver "F2: restricciones de respuestas
+// inhabilitantes" en formularios-predonacion.spec.js).
 async function responderCuestionario(page) {
   const items = page.locator('.excl-item');
   const total = await items.count();
   for (let i = 0; i < total; i++) {
-    await items.nth(i).locator('.excl-btn', { hasText: 'No' }).click();
+    const item = items.nth(i);
+    const key = await item.getAttribute('data-key');
+    const invertida = ['info_escrita_autoexclusion', 'comprendio_autoexclusion'].includes(key);
+    await item.locator('.excl-btn', { hasText: invertida ? 'Sí' : 'No' }).click();
   }
 }
 
@@ -112,6 +120,12 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await page.click('button:has-text("Completar formularios")');
       await page.waitForURL('**/formularios_predonacion.html?turno_id=**');
       urlFormulario = page.url();
+
+      // Espera a que cargarFormulario() termine (banner con el hospital real)
+      // antes de tocar nada — si no, el checkeo/firma puede ganarle a
+      // initPad('sig-f1') y la firma queda dibujada en un canvas todavía sin
+      // SignaturePad enganchado (bug de timing real, encontrado 2026-09-22).
+      await expect(page.locator('#banner-hospital')).toHaveText('Hospital Ramos Mejía');
 
       await page.check('#check1');
       await page.check('#check2');

@@ -148,11 +148,11 @@
       <div class="card-desc">Responda con veracidad sobre su estado de salud actual y reciente. Esta información es confidencial y se utiliza para evaluar si puede donar de forma segura.</div>
 
       <div class="sec-header"><div class="sec-title">Comprensión de la información</div></div>
-      <div class="excl-item" data-key="info_escrita_autoexclusion">
+      <div class="excl-item invertido" data-key="info_escrita_autoexclusion">
         <div class="excl-text">¿Se le ha proporcionado información escrita para su autoexclusión predonación?</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
       </div>
-      <div class="excl-item" data-key="comprendio_autoexclusion">
+      <div class="excl-item invertido" data-key="comprendio_autoexclusion">
         <div class="excl-text">¿Ha comprendido las situaciones descriptas en el formulario de autoexclusión? (en caso de dudas, consulte con el profesional que lo atenderá)</div>
         <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn" onclick="excl(this,'no')">No</div></div>
       </div>
@@ -335,8 +335,20 @@
       </div>
     </div>
 
+    <!-- Se muestra si alguna respuesta del cuestionario autoexcluye al donante
+         (ver actualizarBloqueoInhabilitante()) — reemplaza al botón de enviar,
+         no tiene sentido dejar mandar un cuestionario que ya sabemos que
+         termina en autoexclusión. -->
+    <div class="aviso av-rojo" id="f2-aviso-inhabilitante" style="display:none;text-align:left;">
+      <i class="ti ti-alert-triangle" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
+      <span>Marcaste al menos una respuesta que te autoexcluye del proceso de donación esta vez, así que no vas a poder enviar el cuestionario. Si no fue un error de selección, cancelá tu turno con el botón de abajo — vas a poder reservar uno nuevo más adelante.</span>
+    </div>
+
     <button class="btn-primary" id="btn-paso2" onclick="confirmarYEnviar()" disabled style="opacity:0.5;cursor:not-allowed;">
       <i class="ti ti-check"></i>Confirmar y enviar formularios
+    </button>
+    <button class="btn-danger" id="btn-cancelar-turno-f2" onclick="cancelarTurnoDesdeF2()" style="display:none;">
+      <i class="ti ti-calendar-off"></i>Cancelar turno
     </button>
     <button class="btn-outline" onclick="irPaso(1)">
       <i class="ti ti-arrow-left"></i>Volver a la información
@@ -556,20 +568,65 @@
   }
 
   // Habilita "Confirmar y enviar formularios" solo cuando están las 34
-  // respuestas Y la firma de F2 — antes, con los defaults pre-marcados, este
-  // botón no necesitaba validar nada; ahora que el cuestionario arranca en
-  // blanco, hace falta la misma lógica de habilitación que ya tenía F1. En
-  // soloLectura no hace nada (el botón queda fijo, ver restaurarFormularioExistente()).
+  // respuestas Y la firma de F2 Y ninguna respuesta autoexcluye al donante
+  // (ver actualizarBloqueoInhabilitante) — antes, con los defaults
+  // pre-marcados, este botón no necesitaba validar nada; ahora que el
+  // cuestionario arranca en blanco, hace falta la misma lógica de
+  // habilitación que ya tenía F1. En soloLectura no hace nada (el botón
+  // queda fijo, ver restaurarFormularioExistente()).
   function actualizarBotonPaso2() {
     if (soloLectura) return;
     const btn = document.getElementById('btn-paso2');
     if (!btn) return;
     const completo = Object.keys(respuestas).length >= TOTAL_PREGUNTAS;
     const firmado = pads['sig-f2'] && !pads['sig-f2'].isEmpty();
-    const ok = completo && firmado;
+    const ok = completo && firmado && !hayRespuestaInhabilitante();
     btn.disabled = !ok;
     btn.style.opacity = ok ? '1' : '0.5';
     btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+  }
+
+  // Una pregunta "invertida" (ver clase en el HTML) es de comprensión del
+  // proceso, no de factor de riesgo: ahí "Sí" es la respuesta esperada y
+  // "No" es la que autoexcluye — al revés que el resto del cuestionario.
+  function esRespuestaInhabilitante(item, val) {
+    const invertida = item?.classList.contains('invertido');
+    return invertida ? val === 'no' : val === 'si';
+  }
+
+  function hayRespuestaInhabilitante() {
+    return Array.from(document.querySelectorAll('.excl-item')).some(item => {
+      const val = respuestas[item.dataset.key];
+      return val && esRespuestaInhabilitante(item, val);
+    });
+  }
+
+  // Si hay alguna respuesta que autoexcluye al donante, reemplaza el botón
+  // de enviar por uno para cancelar el turno directamente — no tiene
+  // sentido dejar completar y mandar un cuestionario que ya sabemos que
+  // termina en autoexclusión (agregado 2026-09-22, a pedido de la usuaria).
+  function actualizarBloqueoInhabilitante() {
+    if (soloLectura) return;
+    const bloqueado = hayRespuestaInhabilitante();
+    const aviso = document.getElementById('f2-aviso-inhabilitante');
+    const btnCancelar = document.getElementById('btn-cancelar-turno-f2');
+    const btnEnviar = document.getElementById('btn-paso2');
+    const yaVisible = aviso.style.display !== 'none';
+    aviso.style.display = bloqueado ? 'flex' : 'none';
+    btnCancelar.style.display = bloqueado ? 'flex' : 'none';
+    btnEnviar.style.display = bloqueado ? 'none' : 'flex';
+    if (bloqueado && !yaVisible) aviso.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function cancelarTurnoDesdeF2() {
+    if (!confirm('¿Cancelar tu turno? Esta acción libera el cupo para otro donante — vas a poder reservar uno nuevo más adelante.')) return;
+    const resultado = HemoRed.data.cancelarTurno(turnoActual.id);
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+    HemoRed.ui.toast('Turno cancelado.');
+    setTimeout(() => window.location = '../donante/mis_turnos.html', 1200);
   }
 
   function excl(btn, val) {
@@ -578,6 +635,7 @@
     btn.className = 'excl-btn ' + (val === 'si' ? 'sel-si' : 'sel-no');
     const item = btn.closest('.excl-item');
     if (item?.dataset.key) respuestas[item.dataset.key] = val;
+    actualizarBloqueoInhabilitante();
     actualizarBotonPaso2();
   }
 

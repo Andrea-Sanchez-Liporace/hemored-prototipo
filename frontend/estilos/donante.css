@@ -387,6 +387,14 @@ main { flex: 1; padding: 32px 24px; max-width: 640px; width: 100%; margin: 0 aut
 .excl-btn { width: 48px; padding: 8px 0; border: 1.5px solid #e8d0d8; border-radius: 8px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; color: #5a3040; transition: all 0.12s; }
 .excl-btn.sel-si { border-color: #c0392b; background: #fde8e8; color: #c0392b; }
 .excl-btn.sel-no { border-color: #27ae60; background: #e1f5ee; color: #27ae60; }
+/* Preguntas de comprensión del proceso ("¿le dieron la información?", "¿la
+   entendió?"): al revés que el resto del cuestionario, ahí "Sí" es la
+   respuesta esperada (verde) y "No" es la que hay que marcar en rojo —
+   corregido 2026-09-22, antes las 2 preguntas usaban el color por
+   defecto (Sí=rojo) igual que las de factor de riesgo, al revés de lo
+   que correspondía. */
+.excl-item.invertido .excl-btn.sel-si { border-color: #27ae60; background: #e1f5ee; color: #27ae60; }
+.excl-item.invertido .excl-btn.sel-no { border-color: #c0392b; background: #fde8e8; color: #c0392b; }
 .sec-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; border-bottom: 0.5px solid #f0e0e6; margin-bottom: 4px; }
 .sec-title { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; }
 .form-group { margin-bottom: 14px; }
@@ -405,6 +413,8 @@ main { flex: 1; padding: 32px 24px; max-width: 640px; width: 100%; margin: 0 aut
 .btn-primary { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
 .btn-primary:hover { background: #d4537e; }
 .btn-primary:disabled { background: #e8d0d8; cursor: not-allowed; }
+.btn-danger { width: 100%; background: #c0392b; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
+.btn-danger:hover { background: #a93226; }
 .btn-outline { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
 .success-view { text-align: center; padding: 40px 20px; }
 .success-icon { width: 80px; height: 80px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }

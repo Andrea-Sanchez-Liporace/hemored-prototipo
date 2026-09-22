@@ -80,6 +80,15 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 5. "Mis turnos" refleja el estado completado en sus badges después de guardar.
 6. **Volver a entrar al mismo turno lo muestra en modo solo lectura, no editable** (corregido 2026-09-15 — antes se podía reenviar libremente y pisar la respuesta): las respuestas, observaciones, checks y ambas firmas se restauran visualmente, pero clickear una pregunta ya contestada no cambia nada (`excl()` corta apenas detecta `soloLectura`), los checks y el textarea quedan `disabled`/`readonly`, el aviso de solo lectura está visible, y "Confirmar y enviar formularios" queda deshabilitado con el texto "Cuestionario ya enviado". Se confirma que no se creó ni se pisó ningún registro nuevo en `formulario_consentimiento`.
 
+**Caso nuevo, agregado 2026-09-22: "F2: una respuesta inhabilitante bloquea el envío y ofrece cancelar el turno"** — hasta ahora, contestar algo que autoexcluye al donante no impedía enviar el cuestionario igual:
+1. Las 2 preguntas de "Comprensión de la información" contestadas "Sí" quedan en VERDE (es la respuesta esperada, no un factor de riesgo) y no bloquean nada — bug real corregido de paso: antes usaban el mismo criterio que el resto (Sí=rojo), así que contestar bien se marcaba como si fuera un problema.
+2. Esa misma pregunta contestada "No" queda en ROJO, muestra el aviso de autoexclusión, oculta "Confirmar y enviar formularios" y muestra "Cancelar turno" en su lugar.
+3. Corregir la respuesta saca el bloqueo solo, sin recargar la página.
+4. Una respuesta de riesgo normal (ej. "Sí" a una pregunta sobre cáncer) bloquea con el mismo criterio de siempre — no es exclusivo de las 2 preguntas invertidas.
+5. "Cancelar turno" desde ahí llama a la misma `cancelarTurno()` de siempre y cancela de verdad (se verifica contra `localStorage`), navegando de vuelta a "Mis turnos".
+
+**Bug de timing real, encontrado al escribir este caso (y que también afectaba a un test ya existente de `registrar-donacion.spec.js`):** si se tildan los 3 checks y se firma F1 inmediatamente después de navegar a `formularios_predonacion.html`, sin esperar a que `cargarFormulario()` termine, la firma puede dibujarse en el canvas ANTES de que `initPad('sig-f1', ...)` enganche el `SignaturePad` — la firma queda visualmente pero `pads['sig-f1'].isEmpty()` sigue dando `true`, y "Continuar" nunca se habilita. Se corrigió agregando una espera explícita a que el banner muestre el hospital real (`#banner-hospital`) antes de tocar el paso 1, en los dos archivos.
+
 **`mis-donaciones.spec.js`** — "Mis donaciones" del donante (solo lectura), agregado 2026-09-08, ajustado 2026-09-16:
 
 1. Con la cuenta demo (que tiene una donación real en los datos semilla, fechada 17/05/2026 a propósito sin tocar), las estadísticas y la tarjeta del historial muestran datos reales, no el contenido fijo que tenía antes esta pantalla.
