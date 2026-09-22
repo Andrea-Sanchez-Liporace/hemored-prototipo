@@ -70,7 +70,8 @@ body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; mi
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-title { font-size: 16px; font-weight: 500; color: #1a1a1a; }
 .topbar-actions { display: flex; align-items: center; gap: 10px; }
-.topbar-btn { background: white; border: 1px solid #e0e0e0; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; color: #1a1a1a; }
+.topbar-btn { background: white; border: 1px solid #e0e0e0; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; color: #1a1a1a; position: relative; text-decoration: none; transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease; }
+.topbar-btn:hover { background: #eff6ff; border-color: var(--admin-accent); color: var(--admin-accent); }
 .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
 .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
 .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #1a1a1a; border-radius: 2px; }

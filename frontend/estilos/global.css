@@ -85,6 +85,31 @@ ul { list-style: none; }
 .text-center { text-align: center; }
 .hidden { display: none; }
 
+/* TOOLTIP genérico: agregar data-tooltip="texto" a cualquier elemento con
+   position:relative (ej. .topbar-btn ya lo tiene) para que muestre un
+   globo al pasar el mouse. Compartido entre roles porque el mecanismo es
+   siempre el mismo — solo cambia el color de hover del botón en sí,
+   definido en el CSS propio de cada rol (donante.css/hospital.css/etc). */
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--color-borravino-dark);
+  color: var(--color-white);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  z-index: 100;
+}
+[data-tooltip]:hover::after { opacity: 1; visibility: visible; }
+
 /* SCROLL */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-rosa-pale); }

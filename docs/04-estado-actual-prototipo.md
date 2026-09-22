@@ -161,6 +161,26 @@ Verificado visualmente con Playwright en viewport bajo (390×380px, fuerza el sc
 
 ---
 
+## Botones de la topbar: notificaciones + perfil, con tooltip (corregido 2026-09-22)
+
+**Reportado por la usuaria con una captura:** en el dashboard del donante, el botón de perfil (ícono de persona, al lado de la campanita de notificaciones) no llevaba a ningún lado — era un `<div>` sin `href` ni `onclick`, a diferencia de la campanita que sí navegaba bien. Pidió además que ambos botones cambiaran de color al pasar el mouse y mostraran una leyenda con el destino.
+
+**Al revisar el resto del sitio con el mismo patrón (`class="topbar-btn"`), apareció el mismo bug en más lugares — no solo el botón de perfil, en algunos casos también la campanita:**
+- `donante/dashboard.html`: el botón de perfil no tenía link (el de notificaciones sí).
+- `hospital/dashboard.html`: **ninguno de los dos** tenía link (ni notificaciones ni el ícono de institución que hace de "perfil" para una cuenta de hospital).
+- `hospital/turnos.html`, `documentacion.html`, `profesionales.html`, `pacientes.html`, `campanas.html`, `nueva_campana.html`, `nueva_campana_paso2.html`, `nueva_campana_paso3.html`: la campanita no tenía link (estas pantallas no tienen botón de perfil en la topbar, solo campanita).
+- El resto de las pantallas de Donante (`mis_turnos.html`, `campana_detalle.html`, `perfil.html`, `mis_documentos.html`, `mis_donaciones.html`) ya tenían la campanita bien linkeada — no había nada roto ahí, solo les faltaba el tooltip nuevo.
+
+**Corrección:** todos esos botones pasaron a ser `<a href="...">` con destino real (`notificaciones.html`/`perfil.html` del rol correspondiente) y un atributo `data-tooltip="..."` con el texto a mostrar. El mecanismo del tooltip (el globo oscuro que aparece al pasar el mouse) se agregó una sola vez en `estilos/global.css` (`[data-tooltip]::after`, compartido por cualquier botón de cualquier rol que tenga el atributo — no es propio de la topbar), y el cambio de color al pasar el mouse se agregó como `.topbar-btn:hover` en el CSS propio de cada rol (`donante.css`/`hospital.css`/`profesional.css`/`admin.css`), respetando la paleta de cada uno en vez de un color genérico. Ningún estilo nuevo quedó inline en el HTML — coherente con la corrección de los modales de más arriba, el mismo día.
+
+**Quedó afuera a propósito:** el botón de notificaciones de `admin/dashboard.html` — no existe todavía ninguna pantalla `admin/notificaciones.html` a la cual enlazarlo (Admin es un rol que todavía no se empezó a construir), así que se dejó sin `href` para no inventar un destino que no existe. Sí se le agregó la capacidad de hover/tooltip en `admin.css` para cuando corresponda conectarlo.
+
+**Hallazgo de paso, no corregido (fuera de lo pedido):** al revisar `hospital/dashboard.html` para este fix, el saludo de bienvenida mostraba "Hoy es jueves 15 de mayo de 2026" — otra fecha fija de ejemplo, de la misma familia que la de `campanas.json` corregida más arriba, pero en un texto de bienvenida en vez de un dato de negocio. No se tocó en esta vuelta (no fue lo que se pidió), queda anotado para cuando se revise Hospital a fondo.
+
+Sin test automatizado nuevo (es UI/navegación, no lógica de negocio) — verificado con Playwright a mano (hover + click real en los botones de Donante y Hospital) y la suite completa (35 tests) corrida después, en verde.
+
+---
+
 ## Público / Onboarding
 
 | Flujo | Vistas | Estado | Qué hace hoy | Qué falta |
