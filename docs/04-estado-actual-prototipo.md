@@ -280,6 +280,8 @@ A pedido de la usuaria ("todo el sitio de donante, no es responsive?"), se revis
 
 **De paso, mismo pedido con capturas:** dentro del detalle de "Resultado de análisis", el bloque Donante/Grupo sanguíneo/Laboratorio/Nro. de bolsa (`.resultado-meta`) mostraba 2 datos por fila en mobile — mismo patrón ya corregido varias veces en esta sesión (`.form-row`, `.cert-datos`, `.signos-vitales-grid`). Se agregó `.resultado-meta .meta-item { flex-basis: 100% }`, **acotado a esa clase puntual y no a `.meta-item` en general** porque esa misma clase la reusa `.campaign-meta` en `campana_detalle.html`, que no tenía este problema (ya se ve bien en 2 columnas ahí) y no había que tocarla.
 
+**Octava vuelta (mismo día): la usuaria preguntó explícitamente "¿miraste dentro de certificado de donación, lo mismo?"** — no lo había hecho a fondo, y tenía razón: el header del detalle del certificado (`.cert-preview-header`, el logo "Hemored" + "Certificado de donación de sangre" en mayúsculas) comparte una fila en desktop/tablet (`display:flex;justify-content:space-between`) que a 375px no entra — el título envolvía y quedaba pisando el logo. Mismo patrón que ya se venía corrigiendo toda la sesión ("lo que en tablet/PC comparte una línea, en mobile va uno debajo del otro"), acá no se había mirado todavía porque no forma parte de ninguna grilla de datos (no es un `grid`/`.meta-item`, es un `justify-content:space-between` de 2 bloques de texto). Se agregó `.cert-preview-header { flex-direction: column; align-items: flex-start; gap: 6px; }` en el bloque RESPONSIVE.
+
 ---
 
 ## Público / Onboarding

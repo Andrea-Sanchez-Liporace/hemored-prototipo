@@ -772,6 +772,13 @@ select.form-input { cursor: pointer; }
      no tiene este problema (ya se ve bien en 2 columnas ahí). */
   .resultado-meta .meta-item { flex-basis: 100%; }
 
+  /* .cert-preview-header ("Hemored" + "Certificado de donación de sangre",
+     dentro del detalle de un certificado) es la misma "fila que comparten
+     en tablet/PC" que la usuaria pidió apilar — el título en mayúsculas
+     con letter-spacing no entra al lado del logo y quedaba envuelto,
+     pisando el logo. */
+  .cert-preview-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+
   /* .excl-item (formularios_predonacion.html, cuestionario F2 — 34
      preguntas): en desktop la pregunta y los botones Sí/No van en la
      misma fila. A pedido explícito de la usuaria, solo en mobile: la

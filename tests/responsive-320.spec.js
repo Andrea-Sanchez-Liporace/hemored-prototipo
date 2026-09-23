@@ -244,4 +244,26 @@ test.describe('Sin scroll horizontal en Donante a 320px', () => {
     const grupoBox = await page.locator('.resultado-meta .meta-item').nth(1).boundingBox();
     expect(grupoBox.y).toBeGreaterThan(donanteBox.y + donanteBox.height / 2);
   });
+
+  test('mis_documentos.html: el header del certificado ("Hemored" + título) no se pisa en mobile', async ({ page }) => {
+    // La usuaria preguntó explícitamente "¿miraste dentro de certificado de
+    // donación, lo mismo?" — no se había revisado a fondo: .cert-preview-header
+    // comparte una fila (logo + título en mayúsculas) que no entra a 320px,
+    // el título quedaba envuelto pisando el logo.
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/publico/login.html');
+    await page.fill('#email', 'donante@hemored.com');
+    await page.fill('#password', 'donante123');
+    await page.click('.form-btn');
+    await page.waitForURL('**/donante/dashboard.html');
+    await page.goto('/donante/mis_documentos.html');
+    await page.waitForLoadState('networkidle');
+    await page.click('text=Certificados');
+    await page.locator('#tab-certificados .doc-card').first().locator('button:has-text("Ver")').click();
+
+    const logoBox = await page.locator('.cert-logo').boundingBox();
+    const tituloBox = await page.locator('.cert-preview-title').boundingBox();
+    expect(tituloBox.y).toBeGreaterThan(logoBox.y + logoBox.height / 2);
+    await sinScrollHorizontal(page);
+  });
 });
