@@ -207,4 +207,41 @@ test.describe('Sin scroll horizontal en Donante a 320px', () => {
     await expect(page.locator('#topbar-title')).toHaveText('Confirmación');
     await sinScrollHorizontal(page);
   });
+
+  test('mis_documentos.html: la tarjeta de documento va ícono → badge/botones → detalle, y el detalle de resultado no queda en 2 columnas', async ({ page }) => {
+    // Pedido explícito de la usuaria, con capturas: el orden visual de
+    // .doc-card en mobile debe ser ícono arriba, después el badge + los
+    // botones Ver/Descargar (más anchos que antes), y el título/fecha al
+    // final — antes el detalle iba primero. Se implementó con `order` en
+    // CSS, así que un chequeo de posición real (no de orden en el DOM) es
+    // la única forma de confirmar que se ve como se pidió.
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/publico/login.html');
+    await page.fill('#email', 'donante@hemored.com');
+    await page.fill('#password', 'donante123');
+    await page.click('.form-btn');
+    await page.waitForURL('**/donante/dashboard.html');
+    await page.goto('/donante/mis_documentos.html');
+    await page.waitForLoadState('networkidle');
+
+    const card = page.locator('#tab-resultados .doc-card').first();
+    const iconBox = await card.locator('.doc-icon').boundingBox();
+    const rightBox = await card.locator('.doc-right').boundingBox();
+    const infoBox = await card.locator('.doc-info').boundingBox();
+    expect(iconBox.y).toBeLessThan(rightBox.y);
+    expect(rightBox.y).toBeLessThan(infoBox.y);
+
+    // Los 2 botones (Ver/Descargar) se reparten el ancho disponible, no
+    // quedan angostos del tamaño de su propio contenido.
+    const verBtn = card.locator('button:has-text("Ver")');
+    const verBox = await verBtn.boundingBox();
+    expect(verBox.width).toBeGreaterThan(100);
+
+    // Detalle de "Resultado de análisis": Donante/Grupo sanguíneo/
+    // Laboratorio/Nro. de bolsa, un dato por fila (antes 2 por fila).
+    await verBtn.click();
+    const donanteBox = await page.locator('.resultado-meta .meta-item').nth(0).boundingBox();
+    const grupoBox = await page.locator('.resultado-meta .meta-item').nth(1).boundingBox();
+    expect(grupoBox.y).toBeGreaterThan(donanteBox.y + donanteBox.height / 2);
+  });
 });

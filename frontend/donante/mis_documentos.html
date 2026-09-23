@@ -270,7 +270,7 @@
               <div class="resultado-title">Resultado de análisis</div>
               <div class="resultado-sub">${d.hospital?.nombre || '—'} · ${fechaLarga(d.fecha)}</div>
             </div>
-            <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;">${a?.resultado_general || '—'}</span>
+            <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;text-align:center;">${a?.resultado_general || '—'}</span>
           </div>
           <div class="resultado-meta">
             <div class="meta-item"><div class="meta-label">Donante</div><div class="meta-value">${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}</div></div>
@@ -359,7 +359,7 @@
       <div style="background:white;border-radius:14px;padding:24px;border:0.5px solid #e8d0d8;margin-top:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <div style="font-size:14px;font-weight:500;color:#5a1e37;">Resultado de la evaluación</div>
-          <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;"><i class="ti ti-heart-check" style="font-size:11px;"></i> ${don?.resultado_apto ? 'Apto para donar' : '—'}</span>
+          <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:4px;"><i class="ti ti-heart-check" style="font-size:11px;"></i>${don?.resultado_apto ? 'Apto para donar' : '—'}</span>
         </div>
         <div class="signos-vitales-grid" style="gap:14px;margin-bottom:16px;">
           ${signoVital('Presión arterial', don?.presion_arterial, 'mmHg', 'Rango normal: 90/60 – 180/100')}
@@ -406,7 +406,7 @@
           <div class="doc-meta"><div class="doc-meta-item"><i class="ti ti-calendar" style="color:#a9435d;" aria-hidden="true"></i>${fechaLarga(d.fecha)}</div></div>
         </div>
         <div class="doc-right">
-          <span style="background:#faeeda;color:#412402;border:0.5px solid #e67e22;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Pendiente</span>
+          <span class="doc-badge" style="background:#faeeda;color:#412402;border:0.5px solid #e67e22;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Pendiente</span>
         </div>
       </div>`;
       const badge = estadoCertificadoBadge(d.certificado.id);

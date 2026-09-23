@@ -704,15 +704,26 @@ select.form-input { cursor: pointer; }
   /* Mismo problema que .turno-card de arriba, en mis_documentos.html:
      .doc-card es "display:flex;align-items:center" en una sola fila
      (ícono + info + badge/botones) — a este ancho el texto de .doc-info
-     quedaba comprimido a unos pocos px y se partía en líneas ilegibles. */
+     quedaba comprimido a unos pocos px y se partía en líneas ilegibles.
+     Corregido 2026-09-23 (2), a pedido explícito de la usuaria, con
+     capturas: el orden visual pasa a ser ícono → badge/botones → detalle
+     (antes era detalle → badge/botones), usando `order` en vez de tocar
+     el HTML — así el detalle (título + fecha/lab) queda abajo, con todo
+     el ancho de la tarjeta para acomodarse en 2 líneas en vez de compartir
+     fila con el ícono. */
   .doc-card { flex-direction: column; align-items: stretch; }
-  .doc-right { justify-content: flex-start; flex-wrap: wrap; margin-left: 58px; }
+  .doc-icon { order: 1; }
+  .doc-right { order: 2; justify-content: flex-start; flex-wrap: wrap; }
+  .doc-info { order: 3; }
   /* Sin esto, el wrap de la línea de arriba deja el orden impredecible
      según cuánto mida el texto del badge (ej. "Apto para transfusión"): a
      veces el botón de descarga (solo ícono) queda solo, huérfano, en su
      propia línea. Con el badge siempre en su propia fila, los 2 botones
-     quedan siempre juntos en la fila de abajo. */
-  .doc-badge { flex-basis: 100%; }
+     quedan siempre juntos en la fila de abajo — y ahora ocupan todo el
+     ancho disponible entre los dos (antes quedaban angostos, del tamaño
+     justo de su propio texto/ícono). */
+  .doc-badge { flex-basis: 100%; text-align: center; }
+  .doc-right > .btn-sm { flex: 1; }
 
   /* Mismo problema, en notificaciones.html: .notif-right (el punto de "no
      leído" + el botón de acción, ej. "Ver documento") tiene flex-shrink:0
@@ -751,6 +762,15 @@ select.form-input { cursor: pointer; }
   .signos-vitales-grid { grid-template-columns: 1fr; }
   .cert-datos { grid-template-columns: 1fr; }
   .cert-firma { flex-direction: column; gap: 20px; align-items: center; }
+
+  /* .resultado-meta (vista de detalle de "Resultado de análisis": Donante/
+     Grupo sanguíneo/Laboratorio/Nro. de bolsa) es flex-wrap con 4 ítems
+     de ancho libre — a este ancho entran 2 por fila en vez de 1, mismo
+     patrón que .form-row/.cert-datos ya corregidos. Acotado a
+     ".resultado-meta .meta-item" y no a ".meta-item" a secas porque esa
+     misma clase la usa también .campaign-meta (campana_detalle.html), que
+     no tiene este problema (ya se ve bien en 2 columnas ahí). */
+  .resultado-meta .meta-item { flex-basis: 100%; }
 
   /* .excl-item (formularios_predonacion.html, cuestionario F2 — 34
      preguntas): en desktop la pregunta y los botones Sí/No van en la
