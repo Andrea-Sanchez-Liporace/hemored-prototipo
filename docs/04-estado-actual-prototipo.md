@@ -216,6 +216,16 @@ Test nuevo: `tests/mostrar-contrasena.spec.js` (4 casos: alterna visible/oculto 
 
 ---
 
+## Limpieza de estilos inline — arranque (2026-09-22, hito 3 del correo al profesor)
+
+**Alcance decidido con la usuaria:** el sitio tiene ~1500 atributos `style="..."` en 47 archivos. Se empieza por Donante (356 en 9 archivos) — Hospital (472) y Admin (531) quedan para cuando se conecten de verdad, no ahora que son maqueta (ver [[hemored-arquitectura-y-flujo-git]] en la memoria del proyecto). Regla agregada al proceso: antes de cerrar cualquier tarea de HTML, chequear que no quedó un estilo inline que debería ser una clase compartida; al migrar uno ya existente, comparar los valores exactos contra la clase nueva y sacar capturas antes/después (no hay diff visual automatizado en este proyecto).
+
+**Primer paso: el aviso "Perfil incompleto" del sidebar, repetido idéntico en las 7 pantallas de Donante que lo tienen** (`style="display:none;"` en el HTML + `alerta.style.display = completo ? 'none' : '';` en `HemoRed.data.verificarPerfilIncompleto()`, `data.js`). Se reemplazó por la clase utilitaria `.hidden` (`display:none`, ya existía en `global.css` sin usarse) + `alerta.classList.toggle('hidden', completo)` — mismo comportamiento, pero ahora es una sola fuente de verdad en vez de repetir la regla de visibilidad en el `style=""` de 7 archivos distintos. Verificado con la suite completa (43 tests, incluye `tests/perfil-incompleto.spec.js` que ya probaba explícitamente este show/hide).
+
+**Relevado (no corregido todavía) el resto del patrón `style="display:none;"` en Donante — 25 casos más**, la mayoría de dos familias: pestañas que se ocultan al cambiar de tab (`cambiarTab()`/`irPaso()`, ej. `mis_documentos.html`/`mis_turnos.html`) y estados vacíos ("Sin resultados", `.empty-state`). Además hay bastante contenido REPETIDO con estilos inline idénticos que todavía no se tocó (ej. `campana_detalle.html` tiene 4 filas de "Requisitos para donar" con el mismo `style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5a3040;"` y el mismo ícono `style="color:#27ae60;font-size:16px;"` cada una — candidato directo a una clase `.requisito-row`). Queda para la próxima vuelta, archivo por archivo.
+
+---
+
 ## Público / Onboarding
 
 | Flujo | Vistas | Estado | Qué hace hoy | Qué falta |

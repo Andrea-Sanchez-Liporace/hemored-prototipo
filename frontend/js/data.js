@@ -33,7 +33,7 @@ HemoRed.data = (function() {
     const alerta = document.getElementById('sidebar-alerta-perfil');
     if (!alerta) return;
     const completo = _camposCompletos(usuario, [...CAMPOS_PERFIL_PERSONAL, ...CAMPOS_PERFIL_MEDICOS]);
-    alerta.style.display = completo ? 'none' : '';
+    alerta.classList.toggle('hidden', completo);
   }
 
   async function cargarDashboardDonante() {
