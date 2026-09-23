@@ -83,7 +83,12 @@ ul { list-style: none; }
 .gap-16 { gap: 16px; }
 .w-full { width: 100%; }
 .text-center { text-align: center; }
-.hidden { display: none; }
+/* !important a propósito: es una utilidad de "ocultar sin importar qué otra
+   clase también tenga el elemento" (ej. una que le ponga display:flex para
+   mostrarse) — sin esto, cuál gana depende del orden de carga de los CSS,
+   no de la intención real (agregado 2026-09-22, al encontrar el primer
+   caso real de esta combinación en donante/dashboard.html). */
+.hidden { display: none !important; }
 
 /* TOOLTIP genérico: agregar data-tooltip="texto" a cualquier elemento con
    position:relative (ej. .topbar-btn ya lo tiene) para que muestre un

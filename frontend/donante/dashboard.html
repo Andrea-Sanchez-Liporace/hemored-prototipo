@@ -20,6 +20,9 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <a href="../index.html">Hemo<span>red</span></a>
+    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu">
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
   </div>
 
   <div class="sidebar-user">
@@ -141,21 +144,21 @@
     <!-- NO ELEGIBLE PARA DONAR (global, no por campaña — si el donante no
          es elegible, no lo es para ninguna, así que va una sola vez arriba
          de todo en vez de repetirse en cada tarjeta) -->
-    <div style="background:#fde8e8;border:1px solid #c0392b;border-radius:12px;padding:16px 20px;margin-bottom:16px;align-items:center;gap:14px;display:none;" id="no-elegible-banner">
-      <i class="ti ti-alert-triangle" style="color:#c0392b;font-size:22px;flex-shrink:0;" aria-hidden="true"></i>
+    <div class="banner-no-elegible hidden" id="no-elegible-banner">
+      <i class="ti ti-alert-triangle banner-no-elegible-icono" aria-hidden="true"></i>
       <div>
-        <div style="font-size:14px;font-weight:500;color:#5a1e37;margin-bottom:2px;">Por ahora no podés reservar un turno</div>
-        <div style="font-size:13px;color:#5a3040;" id="no-elegible-motivo">—</div>
+        <div class="banner-no-elegible-titulo">Por ahora no podés reservar un turno</div>
+        <div class="banner-no-elegible-motivo" id="no-elegible-motivo">—</div>
       </div>
     </div>
 
     <!-- PRÓXIMO TURNO -->
-    <div class="proximo-turno" id="proximo-turno-banner" style="display:none;">
+    <div class="proximo-turno hidden" id="proximo-turno-banner">
       <div class="pt-left">
         <div class="pt-icon">
           <i class="ti ti-calendar" style="color:white;font-size:20px;" aria-hidden="true"></i>
         </div>
-        <div>
+        <div class="pt-text">
           <div class="pt-title" id="proximo-turno-titulo">Próximo turno confirmado</div>
           <div class="pt-value" id="proximo-turno-valor">—</div>
         </div>
@@ -228,7 +231,7 @@
     <div class="campaigns-grid">
       <!-- Se renderiza dinámicamente en runtime vía HemoRed.data.renderCampanas() -->
     </div>
-    <div class="empty-state" id="sin-resultados-campanas" style="display:none;">
+    <div class="empty-state hidden" id="sin-resultados-campanas">
       <div class="empty-icon"><i class="ti ti-search-off" style="color:#ef647c;font-size:28px;"></i></div>
       <div class="empty-title">No encontramos campañas para esa búsqueda</div>
       <div class="empty-text">Probá con otros filtros o borrá el texto buscado.</div>
@@ -237,7 +240,7 @@
 </div>
 
 <!-- MODAL DETALLE DE TURNO -->
-<div id="modal-turno" class="modal-overlay" style="display:none;">
+<div id="modal-turno" class="modal-overlay">
   <div class="modal" style="max-width:460px;">
     <div class="modal-header">
       <div class="modal-title">Detalle del turno</div>
@@ -333,16 +336,16 @@
     // alguno de los dos formularios pre-donación.
     const faltaFormulario = !turno.formulario_autoexclusion_completado || !turno.formulario_cuestionario_completado;
     const btnCuestionario = document.getElementById('modal-turno-btn-cuestionario');
-    btnCuestionario.style.display = faltaFormulario ? '' : 'none';
+    btnCuestionario.classList.toggle('hidden', !faltaFormulario);
     btnCuestionario.onclick = () => window.location = `../donante/formularios_predonacion.html?turno_id=${turno.id}`;
     document.getElementById('modal-turno-btn-modificar').onclick = () => window.location = `../donante/mis_turnos.html?turno_id=${turno.id}`;
     document.getElementById('modal-turno-btn-campana').onclick = () => window.location = `../donante/campana_detalle.html?id=${campana?.id || ''}`;
 
-    document.getElementById('modal-turno').style.display = 'flex';
+    document.getElementById('modal-turno').classList.add('active');
     document.body.style.overflow = 'hidden';
   }
   function cerrarModalTurno() {
-    document.getElementById('modal-turno').style.display = 'none';
+    document.getElementById('modal-turno').classList.remove('active');
     document.body.style.overflow = '';
   }
   function abrirSidebar() {
@@ -380,7 +383,7 @@
     });
 
     document.querySelector('.campaigns-count').textContent = visibles + ' campaña' + (visibles !== 1 ? 's' : '') + ' encontrada' + (visibles !== 1 ? 's' : '');
-    document.getElementById('sin-resultados-campanas').style.display = (cards.length && visibles === 0) ? '' : 'none';
+    document.getElementById('sin-resultados-campanas').classList.toggle('hidden', !(cards.length && visibles === 0));
 
     if (orden === 'urgentes') {
       const grid = document.querySelector('.campaigns-grid');
@@ -409,7 +412,7 @@
       const elegibilidad = HemoRed.data.verificarElegibilidadReserva(donante.id);
       if (!elegibilidad.ok) {
         document.getElementById('no-elegible-motivo').textContent = elegibilidad.error;
-        document.getElementById('no-elegible-banner').style.display = 'flex';
+        document.getElementById('no-elegible-banner').classList.remove('hidden');
       }
     }
 
@@ -436,7 +439,7 @@
       const fecha = new Date(proximo.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
       document.getElementById('proximo-turno-valor').textContent = `${fecha} · ${proximo.hora}hs · ${hospital?.nombre || ''}`;
       document.getElementById('proximo-turno-titulo').textContent = proximo.estado === 'confirmado' ? 'Próximo turno confirmado' : 'Próximo turno (pendiente de confirmación)';
-      banner.style.display = '';
+      banner.classList.remove('hidden');
     }
 
     HemoRed.data.renderCampanas(campanas, hospitales);

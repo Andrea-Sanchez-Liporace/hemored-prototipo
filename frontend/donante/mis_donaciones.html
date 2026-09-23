@@ -15,6 +15,9 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <a href="../index.html">Hemo<span>red</span></a>
+    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu">
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
   </div>
   <div class="sidebar-user">
     <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
@@ -96,12 +99,12 @@
     </div>
 
     <!-- PRÓXIMA FECHA HABILITADA (solo si todavía no pasaron los 90 días) -->
-    <div class="proximo-banner" id="proximo-banner" style="margin-bottom:28px;display:none;">
+    <div class="proximo-banner hidden" id="proximo-banner" style="margin-bottom:28px;">
       <div class="pb-left">
         <div class="pb-icon">
           <i class="ti ti-calendar-check" style="color:white;font-size:20px;" aria-hidden="true"></i>
         </div>
-        <div>
+        <div class="pb-text">
           <div class="pb-label">Próxima fecha habilitada para donar</div>
           <div class="pb-value" id="proximo-banner-valor">—</div>
         </div>
@@ -131,7 +134,7 @@
       <!-- Se renderiza dinámicamente vía HemoRed.data.cargarMisDonaciones() -->
     </div>
 
-    <div id="sin-resultados" style="display:none;" class="empty-state">
+    <div id="sin-resultados" class="empty-state hidden">
       <div class="empty-icon"><i class="ti ti-heart-off" style="color:#ef647c;font-size:28px;"></i></div>
       <div class="empty-title">Sin donaciones para este filtro</div>
       <div class="empty-text">Probá con otro año o resultado.</div>
@@ -151,7 +154,7 @@
       c.style.display = ok ? '' : 'none';
       if (ok) visibles++;
     });
-    document.getElementById('sin-resultados').style.display = visibles === 0 ? '' : 'none';
+    document.getElementById('sin-resultados').classList.toggle('hidden', visibles !== 0);
   }
 
   function abrirSidebar()  { document.getElementById('sidebar').classList.add('open');    document.getElementById('sidebar-overlay').classList.add('open'); }
@@ -214,7 +217,7 @@
     const { donante, donaciones, proximaFechaHabilitada, diasHastaHabilitado } = await HemoRed.data.cargarMisDonaciones();
 
     document.getElementById('lista-donaciones').innerHTML = donaciones.map(d => donacionCardHTML(d, donante?.tipo_sangre)).join('');
-    document.getElementById('sin-resultados').style.display = donaciones.length ? 'none' : '';
+    document.getElementById('sin-resultados').classList.toggle('hidden', !!donaciones.length);
 
     document.getElementById('stat-total-donaciones').textContent = donaciones.length;
     const totalMl = donaciones.reduce((sum, d) => sum + (d.volumen_ml || 0), 0);
@@ -227,9 +230,9 @@
     if (proximaFechaHabilitada) {
       const fechaLabel = new Date(proximaFechaHabilitada).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
       document.getElementById('proximo-banner-valor').textContent = `${fechaLabel} · Faltan ${diasHastaHabilitado} día${diasHastaHabilitado === 1 ? '' : 's'}`;
-      banner.style.display = '';
+      banner.classList.remove('hidden');
     } else {
-      banner.style.display = 'none';
+      banner.classList.add('hidden');
     }
   }
 

@@ -20,6 +20,9 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <a href="../index.html">Hemo<span>red</span></a>
+    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu">
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
   </div>
   <div class="sidebar-user">
     <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
@@ -70,12 +73,12 @@
   <div class="content">
 
     <!-- PRÓXIMO TURNO -->
-    <div class="proximo-banner" id="proximo-banner" style="display:none;">
+    <div class="proximo-banner hidden" id="proximo-banner">
       <div class="pb-left">
         <div class="pb-icon">
           <i class="ti ti-calendar-check" style="color:white;font-size:20px;" aria-hidden="true"></i>
         </div>
-        <div>
+        <div class="pb-text">
           <div class="pb-label">Próximo turno</div>
           <div class="pb-value" id="proximo-banner-valor">—</div>
         </div>
@@ -96,7 +99,7 @@
       <div class="turnos-list" id="lista-proximos">
         <!-- Se renderiza dinámicamente vía cargarMisTurnos() -->
       </div>
-      <div class="empty-state" id="empty-proximos" style="display:none;">
+      <div class="empty-state hidden" id="empty-proximos">
         <div class="empty-icon"><i class="ti ti-calendar-off" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i></div>
         <div class="empty-title">No tenés turnos próximos</div>
         <div class="empty-text">Buscá una campaña activa y reservá tu turno.</div>
@@ -105,23 +108,23 @@
     </div>
 
     <!-- HISTORIAL -->
-    <div id="tab-historial" style="display:none;">
+    <div id="tab-historial" class="hidden">
       <div class="section-title">Turnos anteriores</div>
       <div class="turnos-list" id="lista-historial">
         <!-- Se renderiza dinámicamente vía cargarMisTurnos() -->
       </div>
-      <div class="empty-state" id="empty-historial" style="display:none;">
+      <div class="empty-state hidden" id="empty-historial">
         <div class="empty-icon"><i class="ti ti-calendar-off" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i></div>
         <div class="empty-title">Todavía no tenés turnos anteriores</div>
       </div>
     </div>
 
     <!-- CANCELADOS -->
-    <div id="tab-cancelados" style="display:none;">
+    <div id="tab-cancelados" class="hidden">
       <div class="turnos-list" id="lista-cancelados">
         <!-- Se renderiza dinámicamente vía cargarMisTurnos() -->
       </div>
-      <div class="empty-state" id="empty-cancelados" style="display:none;">
+      <div class="empty-state hidden" id="empty-cancelados">
         <div class="empty-icon">
           <i class="ti ti-calendar-off" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i>
         </div>
@@ -173,15 +176,15 @@
     document.getElementById('modal-turno-hospital').textContent = hospital?.nombre || '—';
     document.getElementById('modal-turno-fecha').textContent =
       `${formatearFecha(turnoModal.fecha)} · ${turnoModal.hora}hs`;
-    document.getElementById('modal-error').style.display = 'none';
+    document.getElementById('modal-error').classList.add('hidden');
 
     renderFechaTabsModal();
 
-    document.getElementById('modal-modificar').style.display = 'flex';
+    document.getElementById('modal-modificar').classList.add('active');
     document.body.style.overflow = 'hidden';
   }
   function cerrarModal() {
-    document.getElementById('modal-modificar').style.display = 'none';
+    document.getElementById('modal-modificar').classList.remove('active');
     document.body.style.overflow = '';
   }
 
@@ -220,7 +223,7 @@
     });
 
     horaModal = null;
-    document.getElementById('modal-sel').style.display = 'none';
+    document.getElementById('modal-sel').classList.add('hidden');
     document.getElementById('btn-confirmar-cambio').disabled = true;
     document.getElementById('btn-confirmar-cambio').style.opacity = '0.5';
   }
@@ -235,7 +238,7 @@
     document.querySelectorAll('.turno-m:not(.ocp)').forEach(t => t.classList.remove('selected'));
     el.classList.add('selected');
     horaModal = hora;
-    document.getElementById('modal-sel').style.display = 'block';
+    document.getElementById('modal-sel').classList.remove('hidden');
     document.getElementById('modal-sel-text').textContent = formatearFecha(fechaModal) + ' · ' + hora + 'hs';
     document.getElementById('btn-confirmar-cambio').disabled = false;
     document.getElementById('btn-confirmar-cambio').style.opacity = '1';
@@ -244,7 +247,7 @@
   function mostrarErrorModal(msg) {
     const el = document.getElementById('modal-error');
     el.textContent = msg;
-    el.style.display = 'block';
+    el.classList.remove('hidden');
   }
 
   async function confirmarCambio() {
@@ -260,11 +263,11 @@
 
   function cancelarTurno() {
     cerrarModal();
-    document.getElementById('modal-cancelar-error').style.display = 'none';
-    document.getElementById('modal-cancelar').style.display = 'flex';
+    document.getElementById('modal-cancelar-error').classList.add('hidden');
+    document.getElementById('modal-cancelar').classList.add('active');
   }
   function cerrarModalCancelar() {
-    document.getElementById('modal-cancelar').style.display = 'none';
+    document.getElementById('modal-cancelar').classList.remove('active');
     document.body.style.overflow = '';
   }
   async function confirmarCancelacion() {
@@ -272,10 +275,10 @@
     if (!resultado.ok) {
       const el = document.getElementById('modal-cancelar-error');
       el.textContent = resultado.error;
-      el.style.display = 'block';
+      el.classList.remove('hidden');
       return;
     }
-    document.getElementById('modal-cancelar').style.display = 'none';
+    document.getElementById('modal-cancelar').classList.remove('active');
     document.body.style.overflow = '';
     HemoRed.ui.toast('Turno cancelado correctamente');
     await renderMisTurnos();
@@ -284,10 +287,10 @@
   function cambiarTab(tab, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    document.getElementById('tab-proximos').style.display = 'none';
-    document.getElementById('tab-historial').style.display = 'none';
-    document.getElementById('tab-cancelados').style.display = 'none';
-    document.getElementById('tab-' + tab).style.display = 'block';
+    document.getElementById('tab-proximos').classList.add('hidden');
+    document.getElementById('tab-historial').classList.add('hidden');
+    document.getElementById('tab-cancelados').classList.add('hidden');
+    document.getElementById('tab-' + tab).classList.remove('hidden');
   }
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
@@ -340,7 +343,7 @@
 
     return `
       <div class="turno-card" style="flex-direction:column;align-items:stretch;gap:12px;">
-        <div style="display:flex;align-items:center;gap:16px;">
+        <div class="turno-top-row" style="display:flex;align-items:center;gap:16px;">
           <div class="turno-date" style="${dateStyle}">
             <div class="turno-date-day">${dia}</div>
             <div class="turno-date-month">${mes}</div>
@@ -372,11 +375,11 @@
     const cancelados = turnos.filter(t => t.estado === 'cancelado');
 
     document.getElementById('lista-proximos').innerHTML = proximos.map(turnoCardHTML).join('');
-    document.getElementById('empty-proximos').style.display = proximos.length ? 'none' : '';
+    document.getElementById('empty-proximos').classList.toggle('hidden', !!proximos.length);
     document.getElementById('lista-historial').innerHTML = historial.map(turnoCardHTML).join('');
-    document.getElementById('empty-historial').style.display = historial.length ? 'none' : '';
+    document.getElementById('empty-historial').classList.toggle('hidden', !!historial.length);
     document.getElementById('lista-cancelados').innerHTML = cancelados.map(turnoCardHTML).join('');
-    document.getElementById('empty-cancelados').style.display = cancelados.length ? 'none' : '';
+    document.getElementById('empty-cancelados').classList.toggle('hidden', !!cancelados.length);
 
     // Banner de próximo turno = el primero de la lista ya ordenada
     const banner = document.getElementById('proximo-banner');
@@ -384,7 +387,13 @@
       const t = proximos[0];
       const fechaLabel = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
       document.getElementById('proximo-banner-valor').textContent = `${fechaLabel} · ${t.hora}hs · ${t.hospital?.nombre || ''}`;
-      banner.style.display = '';
+      banner.classList.remove('hidden');
+    } else {
+      // Bug real encontrado de paso (2026-09-22): no había rama para volver a
+      // ocultar el banner — si el donante cancelaba su único turno próximo,
+      // el banner se quedaba mostrando el último turno (ya cancelado) porque
+      // nada lo volvía a esconder.
+      banner.classList.add('hidden');
     }
   }
 
@@ -404,7 +413,7 @@
 
 
 <!-- MODAL MODIFICAR TURNO -->
-<div id="modal-modificar" class="modal-overlay" style="display:none;">
+<div id="modal-modificar" class="modal-overlay">
   <div class="modal" style="max-width:480px;">
     <div class="modal-header">
       <div class="modal-title">Modificar turno</div>
@@ -432,11 +441,11 @@
       </div>
 
       <!-- Selección actual -->
-      <div id="modal-sel" style="display:none;background:#fdf0f3;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#5a1e37;">
+      <div id="modal-sel" class="hidden" style="background:#fdf0f3;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#5a1e37;">
         <strong>Nueva selección:</strong> <span id="modal-sel-text"></span>
       </div>
 
-      <div id="modal-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
+      <div id="modal-error" class="hidden" style="background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
 
       <!-- Botones -->
       <button id="btn-confirmar-cambio" onclick="confirmarCambio()" disabled style="width:100%;background:#ef647c;color:white;border:none;padding:13px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px;opacity:0.5;">
@@ -450,7 +459,7 @@
 </div>
 
 <!-- MODAL CONFIRMACIÓN CANCELAR -->
-<div id="modal-cancelar" class="modal-overlay" style="display:none;z-index:300;">
+<div id="modal-cancelar" class="modal-overlay" style="z-index:300;">
   <div class="modal" style="max-width:400px;padding:28px;">
     <div style="text-align:center;margin-bottom:20px;">
       <div style="width:56px;height:56px;border-radius:50%;background:#fde8e8;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
@@ -459,7 +468,7 @@
       <div style="font-size:18px;font-weight:500;color:#5a1e37;margin-bottom:8px;">¿Cancelar el turno?</div>
       <div style="font-size:13px;color:#5a3040;line-height:1.6;">Esta acción libera el cupo para otro donante. Si cambiás de idea podés reservar un nuevo turno.</div>
     </div>
-    <div id="modal-cancelar-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
+    <div id="modal-cancelar-error" class="hidden" style="background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
     <button onclick="confirmarCancelacion()" style="width:100%;background:#c0392b;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;">Sí, cancelar turno</button>
     <button onclick="cerrarModalCancelar()" style="width:100%;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:11px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Volver</button>
   </div>

@@ -88,6 +88,13 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 /* === RECUPERAR — CÓDIGO === */
 .step { display: none; width: 100%; max-width: 400px; }
 .step.active { display: block; }
+/* Pasos con formularios largos (registro de donante/institución): el ancho
+   fijo de 400px que usan login/recuperar deja los campos muy angostos
+   cuando hay varias preguntas seguidas. En desktop el doble de ancho
+   (800px), en tablet un 25% más (500px) — en mobile el viewport ya achica
+   el ancho real antes de llegar a ningún máximo, así que no hace falta
+   una regla aparte. */
+.step.form-wide, .step.form-wide .form-card { max-width: 800px; }
 .code-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 6px; }
 .code-input { width: 48px; height: 56px; border: 1.5px solid #e8d0d8; border-radius: 10px; font-size: 22px; font-weight: 500; text-align: center; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; }
 .code-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
@@ -374,6 +381,7 @@ main.contacto .form-card { max-width: none; }
 
 /* === RESPONSIVE === */
 @media (max-width: 1024px) {
+  .step.form-wide, .step.form-wide .form-card { max-width: 500px; }
   nav, footer { padding-left: 40px; padding-right: 40px; }
   .hero { padding: 48px 40px; grid-template-columns: 1fr 1fr; gap: 24px; }
   .hero h1 { font-size: 38px; }

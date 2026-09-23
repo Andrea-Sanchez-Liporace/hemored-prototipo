@@ -111,7 +111,7 @@
     </div>
 
     <!-- SUCCESS -->
-    <div class="success-view" id="success-view" style="display:none;">
+    <div class="success-view hidden" id="success-view">
       <div class="success-icon">
         <i class="ti ti-check" style="color:white;font-size:32px;"></i>
       </div>
@@ -129,7 +129,7 @@
     </div>
 
     <!-- ERROR: token inválido, vencido o ya usado -->
-    <div class="card-body" id="error-view" style="display:none;text-align:center;padding:40px 24px;">
+    <div class="card-body hidden" id="error-view" style="text-align:center;padding:40px 24px;">
       <div style="width:56px;height:56px;border-radius:50%;background:#fde8e8;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
         <i class="ti ti-alert-triangle" style="color:#c0392b;font-size:28px;" aria-hidden="true"></i>
       </div>
@@ -182,15 +182,15 @@
       msg.textContent = 'Gracias por tu donación y por completar el formulario. Tu respuesta fue registrada de forma anónima y segura.';
     }
 
-    body.style.display = 'none';
-    success.style.display = 'block';
+    body.classList.add('hidden');
+    success.classList.remove('hidden');
   }
 
   function mostrarError(mensaje) {
-    document.getElementById('form-body').style.display = 'none';
-    document.getElementById('success-view').style.display = 'none';
+    document.getElementById('form-body').classList.add('hidden');
+    document.getElementById('success-view').classList.add('hidden');
     document.getElementById('error-mensaje').textContent = mensaje;
-    document.getElementById('error-view').style.display = 'block';
+    document.getElementById('error-view').classList.remove('hidden');
   }
 
   document.addEventListener('DOMContentLoaded', async () => {

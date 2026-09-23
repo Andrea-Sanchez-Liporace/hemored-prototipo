@@ -20,6 +20,9 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <a href="../index.html">Hemo<span>red</span></a>
+    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu">
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
   </div>
   <div class="sidebar-user">
     <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
@@ -113,7 +116,7 @@
                   <span id="d-hospital-dir">—</span>
                 </div>
               </div>
-              <span class="badge-urgente" id="d-badge-urgencia" style="display:none;">Urgente</span>
+              <span class="badge-urgente hidden" id="d-badge-urgencia">Urgente</span>
             </div>
             <div class="campaign-meta">
               <div class="meta-item">
@@ -219,7 +222,7 @@
           <div class="turno-resumen">
             <div class="turno-resumen-title">Tu selección</div>
             <div id="resumen-vacio" class="turno-resumen-empty">Seleccioná un turno para continuar</div>
-            <div id="resumen-datos" style="display:none;">
+            <div id="resumen-datos" class="hidden">
               <div class="turno-resumen-item">
                 <div class="turno-resumen-icon"><i class="ti ti-calendar" style="color:#ef647c;font-size:16px;" aria-hidden="true"></i></div>
                 <div>
@@ -296,7 +299,7 @@
           </div>
         </div>
 
-        <div id="reserva-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#c0392b;text-align:center;"></div>
+        <div id="reserva-error" class="hidden" style="background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#c0392b;text-align:center;"></div>
 
         <div class="aviso-card">
           <i class="ti ti-info-circle" style="color:#e67e22;font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
@@ -440,7 +443,7 @@
 
     horaSeleccionada = null;
     document.getElementById('resumen-vacio').style.display = 'block';
-    document.getElementById('resumen-datos').style.display = 'none';
+    document.getElementById('resumen-datos').classList.add('hidden');
     document.getElementById('btn-continuar').disabled = true;
   }
 
@@ -452,7 +455,7 @@
     document.getElementById('d-hospital-tel').textContent = hospital?.telefono || '—';
 
     const badge = document.getElementById('d-badge-urgencia');
-    if (c.urgente) { badge.style.display = ''; badge.textContent = 'Urgente'; }
+    if (c.urgente) { badge.classList.remove('hidden'); badge.textContent = 'Urgente'; }
 
     document.getElementById('d-tipo-sangre').textContent = c.tipo_sangre_requerida || 'Cualquier tipo';
     document.getElementById('d-fecha-limite').textContent = new Date(c.fecha_cierre + 'T00:00:00')
@@ -535,7 +538,7 @@
 
   async function confirmarReserva() {
     const errorEl = document.getElementById('reserva-error');
-    errorEl.style.display = 'none';
+    errorEl.classList.add('hidden');
 
     const sesion = HemoRed.sesion.get();
     if (!sesion || !campanaActual || !horaSeleccionada) return;
@@ -553,7 +556,7 @@
 
     if (!resultado.ok) {
       errorEl.textContent = resultado.error;
-      errorEl.style.display = 'block';
+      errorEl.classList.remove('hidden');
       btn.disabled = false;
       return;
     }
@@ -601,7 +604,7 @@
     document.getElementById('res-fecha').textContent = fechaLabel;
     document.getElementById('res-hora').textContent = hora + 'hs';
     document.getElementById('resumen-vacio').style.display = 'none';
-    document.getElementById('resumen-datos').style.display = 'block';
+    document.getElementById('resumen-datos').classList.remove('hidden');
     document.getElementById('btn-continuar').disabled = false;
     document.getElementById('conf-fecha').textContent = fechaLabel;
     document.getElementById('conf-hora').textContent = hora + 'hs';

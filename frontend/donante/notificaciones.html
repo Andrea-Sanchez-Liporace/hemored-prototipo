@@ -17,7 +17,7 @@
 <body>
 
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a><button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
   <div class="sidebar-user">
     <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
     <div>
@@ -54,7 +54,11 @@
       <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
       <div class="topbar-title">Notificaciones</div>
     </div>
-    <button class="btn-marcar" onclick="marcarTodasLeidasUI()">Marcar todas como leídas</button>
+    <div class="topbar-actions">
+      <button class="topbar-btn" onclick="marcarTodasLeidasUI()" data-tooltip="Marcar todas como leídas">
+        <i class="ti ti-checks" style="font-size:18px;" aria-hidden="true"></i>
+      </button>
+    </div>
   </div>
 
   <div class="content">
@@ -67,7 +71,7 @@
       <button class="filtro-chip" onclick="filtrarNotif('campanas', this)">Campañas</button>
     </div>
 
-    <div id="sin-resultados-notif" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
+    <div id="sin-resultados-notif" class="hidden" style="padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
 
     <div id="lista-notificaciones"><!-- renderizado dinámico vía HemoRed.data.cargarNotificacionesDonante() --></div>
 
@@ -177,7 +181,7 @@
       group.style.display = visibles.length === 0 ? 'none' : '';
     });
     const totalVisibles = document.querySelectorAll('.notif-item:not([style*="display: none"])').length;
-    document.getElementById('sin-resultados-notif').style.display = totalVisibles === 0 ? 'block' : 'none';
+    document.getElementById('sin-resultados-notif').classList.toggle('hidden', totalVisibles !== 0);
   }
 
   document.addEventListener('DOMContentLoaded', cargarYRenderizarNotif);

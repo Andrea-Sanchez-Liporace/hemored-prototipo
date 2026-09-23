@@ -101,6 +101,10 @@ test.describe('Modificar y cancelar turno', () => {
       await expect(page.locator('#modal-modificar')).toBeHidden();
     });
 
+    await test.step('el banner de "próximo turno" está visible antes de cancelar (es el único turno del donante)', async () => {
+      await expect(page.locator('#proximo-banner')).toBeVisible();
+    });
+
     await test.step('cancelar el mismo turno', async () => {
       const card = page.locator('.turno-card', { hasText: `${numeroTurno}` });
       await card.locator('button:has-text("Modificar")').click();
@@ -120,6 +124,10 @@ test.describe('Modificar y cancelar turno', () => {
       const card = page.locator('#lista-cancelados .turno-card', { hasText: `${numeroTurno}` });
       await expect(card).toBeVisible();
       await expect(card.locator('.turno-badge')).toHaveText('Cancelado');
+    });
+
+    await test.step('el banner de "próximo turno" desaparece al no quedar ningún turno próximo (bug real, encontrado y corregido 2026-09-22)', async () => {
+      await expect(page.locator('#proximo-banner')).toBeHidden();
     });
   });
 

@@ -20,6 +20,9 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <a href="../index.html">Hemo<span>red</span></a>
+    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu">
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
   </div>
   <div class="sidebar-user">
     <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
@@ -82,7 +85,7 @@
         <div class="doc-list" id="lista-resultados">
           <!-- Se renderiza dinámicamente vía HemoRed.data.cargarMisDocumentos() -->
         </div>
-        <div class="empty-state" id="sin-resultados" style="display:none;">
+        <div class="empty-state hidden" id="sin-resultados">
           <div class="empty-icon"><i class="ti ti-test-pipe" style="color:#ef647c;font-size:28px;"></i></div>
           <div class="empty-title">Todavía no tenés resultados de análisis</div>
           <div class="empty-text">Van a aparecer acá después de tu primera donación.</div>
@@ -90,11 +93,11 @@
       </div>
 
       <!-- EVALUACIONES CLÍNICAS -->
-      <div id="tab-evaluaciones" style="display:none;">
+      <div id="tab-evaluaciones" class="hidden">
         <div class="doc-list" id="lista-evaluaciones">
           <!-- Se renderiza dinámicamente vía HemoRed.data.cargarMisDocumentos() -->
         </div>
-        <div class="empty-state" id="sin-evaluaciones" style="display:none;">
+        <div class="empty-state hidden" id="sin-evaluaciones">
           <div class="empty-icon"><i class="ti ti-stethoscope" style="color:#ef647c;font-size:28px;"></i></div>
           <div class="empty-title">Todavía no tenés evaluaciones clínicas</div>
           <div class="empty-text">Se registran el mismo día de la donación.</div>
@@ -102,11 +105,11 @@
       </div>
 
       <!-- CERTIFICADOS -->
-      <div id="tab-certificados" style="display:none;">
+      <div id="tab-certificados" class="hidden">
         <div class="doc-list" id="lista-certificados">
           <!-- Se renderiza dinámicamente vía HemoRed.data.cargarMisDocumentos() -->
         </div>
-        <div class="empty-state" id="sin-certificados" style="display:none;">
+        <div class="empty-state hidden" id="sin-certificados">
           <div class="empty-icon"><i class="ti ti-certificate-off" style="color:#ef647c;font-size:28px;"></i></div>
           <div class="empty-title">Todavía no tenés certificados</div>
           <div class="empty-text">Van a aparecer acá después de tu primera donación.</div>
@@ -216,9 +219,9 @@
     el.classList.add('active');
     ['resultados', 'evaluaciones', 'certificados'].forEach(t => {
       const el2 = document.getElementById('tab-' + t);
-      if (el2) el2.style.display = 'none';
+      if (el2) el2.classList.add('hidden');
     });
-    document.getElementById('tab-' + tab).style.display = 'block';
+    document.getElementById('tab-' + tab).classList.remove('hidden');
   }
 
   // ===== RESULTADOS =====
@@ -240,7 +243,7 @@
           <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();descargarNoDisponible()"><i class="ti ti-download" aria-hidden="true"></i></button>
         </div>
       </div>`).join('');
-    document.getElementById('sin-resultados').style.display = lista.length ? 'none' : '';
+    document.getElementById('sin-resultados').classList.toggle('hidden', !!lista.length);
   }
 
   function datoRow(nombre, valor) {
@@ -322,7 +325,7 @@
           <button class="btn-sm btn-sm-outline" onclick="event.stopPropagation();verEvaluacion(${d.id})">Ver</button>
         </div>
       </div>`).join('');
-    document.getElementById('sin-evaluaciones').style.display = lista.length ? 'none' : '';
+    document.getElementById('sin-evaluaciones').classList.toggle('hidden', !!lista.length);
   }
 
   function signoVital(nombre, valor, unidad, rango) {
@@ -358,7 +361,7 @@
           <div style="font-size:14px;font-weight:500;color:#5a1e37;">Resultado de la evaluación</div>
           <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;"><i class="ti ti-heart-check" style="font-size:11px;"></i> ${don?.resultado_apto ? 'Apto para donar' : '—'}</span>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+        <div class="signos-vitales-grid" style="gap:14px;margin-bottom:16px;">
           ${signoVital('Presión arterial', don?.presion_arterial, 'mmHg', 'Rango normal: 90/60 – 180/100')}
           ${signoVital('Frecuencia cardíaca', don?.frecuencia_cardiaca, 'lpm', 'Rango normal: 50 – 100 lpm')}
           ${signoVital('Temperatura', don?.temperatura, '°C', 'Rango normal: 36 – 37.5 °C')}
@@ -437,7 +440,7 @@
       </div>`).join('');
 
     document.getElementById('lista-certificados').innerHTML = emitidosPendientes + sinSolicitar;
-    document.getElementById('sin-certificados').style.display = (misDocumentos.certificados.length || misDocumentos.donacionesSinCertificado.length) ? 'none' : '';
+    document.getElementById('sin-certificados').classList.toggle('hidden', !!(misDocumentos.certificados.length || misDocumentos.donacionesSinCertificado.length));
   }
 
   function solicitarCertificadoUI(donacionId) {

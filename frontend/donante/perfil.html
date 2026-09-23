@@ -20,6 +20,9 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <a href="../index.html">Hemo<span>red</span></a>
+    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu">
+      <i class="ti ti-x" aria-hidden="true"></i>
+    </button>
   </div>
   <div class="sidebar-user">
     <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
@@ -98,7 +101,7 @@
           <span class="perfil-badge donante">
             <i class="ti ti-heart" style="font-size:11px;" aria-hidden="true"></i>Donante
           </span>
-          <span class="perfil-badge incompleto" id="perfil-badge-sangre" style="display:none;">
+          <span class="perfil-badge incompleto hidden" id="perfil-badge-sangre">
             <i class="ti ti-alert-circle" style="font-size:11px;" aria-hidden="true"></i>Tipo de sangre pendiente
           </span>
         </div>
@@ -194,7 +197,7 @@
               <input class="form-input" type="text" id="input-ciudad">
             </div>
           </div>
-          <div id="error-datos-personales" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
+          <div id="error-datos-personales" class="hidden" style="background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#c0392b;"></div>
           <div class="form-actions">
             <button class="btn-cancel" onclick="cargarPerfil()">Cancelar</button>
             <button class="btn-save" onclick="guardarDatosPersonales()">Guardar cambios</button>
@@ -232,7 +235,7 @@
               <div class="sangre-opt" data-tipo="0-" onclick="seleccionarSangre(this)">0-</div>
             </div>
             <p class="form-hint" id="hint-sangre-normal">Seleccioná tu tipo de sangre para ver campañas compatibles.</p>
-            <p class="form-hint" id="hint-sangre-bloqueada" style="display:none;">Este dato es autoreportado. Se verificará con un análisis de sangre real recién en tu primera donación a través de HemoRed — hasta entonces queda guardado, pero no se puede volver a editar desde acá.</p>
+            <p class="form-hint hidden" id="hint-sangre-bloqueada">Este dato es autoreportado. Se verificará con un análisis de sangre real recién en tu primera donación a través de HemoRed — hasta entonces queda guardado, pero no se puede volver a editar desde acá.</p>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -249,13 +252,13 @@
                 <option value="primera_vez">No, es mi primera vez</option>
               </select>
               <p class="form-hint" id="hint-experiencia-normal">Se refiere a donaciones previas a registrarte en HemoRed.</p>
-              <p class="form-hint" id="hint-experiencia-bloqueada" style="display:none;">Es un dato histórico: una vez guardado no se puede volver a editar (igual que el email).</p>
+              <p class="form-hint hidden" id="hint-experiencia-bloqueada">Es un dato histórico: una vez guardado no se puede volver a editar (igual que el email).</p>
             </div>
           </div>
 
           <!-- Solo se muestra si "¿Donaste antes?" es afirmativo (habitual u ocasional).
                Ver actualizarVisibilidadUltimaDonacion() en el script de esta página. -->
-          <div id="bloque-ultima-donacion" style="display:none;background:#fdf0f3;border-radius:12px;border:1px solid #f28b98;padding:16px;margin-bottom:20px;">
+          <div id="bloque-ultima-donacion" class="hidden" style="background:#fdf0f3;border-radius:12px;border:1px solid #f28b98;padding:16px;margin-bottom:20px;">
             <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:12px;">Sobre tu última donación</div>
             <div class="form-row">
               <div class="form-group" id="grupo-ultima-fecha">
@@ -266,7 +269,7 @@
                   No recuerdo la fecha exacta
                 </label>
               </div>
-              <div class="form-group" id="grupo-ultima-fecha-aprox" style="display:none;">
+              <div class="form-group hidden" id="grupo-ultima-fecha-aprox">
                 <label class="form-label">Aproximadamente, ¿cuándo fue?</label>
                 <select class="form-input" id="input-ultima-fecha-aprox">
                   <option value="" disabled selected>Seleccioná</option>
@@ -367,7 +370,7 @@
           </div>
 
           <!-- Agregar nuevo empleador -->
-          <div id="form-nuevo-emp" style="display:none;background:#fdf0f3;border-radius:12px;border:1px solid #f28b98;padding:16px;margin-bottom:16px;">
+          <div id="form-nuevo-emp" class="hidden" style="background:#fdf0f3;border-radius:12px;border:1px solid #f28b98;padding:16px;margin-bottom:16px;">
             <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:10px;">Agregar empleador</div>
             <input id="input-nuevo-emp" class="form-input" type="text" placeholder="Nombre de la empresa u organismo" style="margin-bottom:10px;">
             <div style="display:flex;gap:8px;">
@@ -467,7 +470,7 @@
         <label class="form-label">Repetir nueva contraseña</label>
         <input class="form-input" type="password" id="pw-nueva2">
       </div>
-      <div class="aviso av-rojo" id="pw-error" style="display:none;"></div>
+      <div class="aviso av-rojo hidden" id="pw-error"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="HemoRed.ui.cerrarModal('modal-password')">Cancelar</button>
@@ -493,7 +496,7 @@
         <input class="form-input" type="password" id="email-pass-actual">
       </div>
       <div class="aviso av-azul">Vas a ver el email nuevo marcado como "pendiente de verificación" hasta que la app tenga el envío real de un link de confirmación (ver docs).</div>
-      <div class="aviso av-rojo" id="email-error" style="display:none;"></div>
+      <div class="aviso av-rojo hidden" id="email-error"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="HemoRed.ui.cerrarModal('modal-email')">Cancelar</button>
@@ -515,7 +518,7 @@
         <label class="form-label">Confirmá tu contraseña para eliminar la cuenta</label>
         <input class="form-input" type="password" id="eliminar-pass-actual">
       </div>
-      <div class="aviso av-rojo" id="eliminar-error" style="display:none;"></div>
+      <div class="aviso av-rojo hidden" id="eliminar-error"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="HemoRed.ui.cerrarModal('modal-eliminar-cuenta')">Cancelar</button>
@@ -542,7 +545,7 @@
     document.getElementById('perfil-avatar-iniciales').textContent = usuarioActual.avatar_iniciales || '?';
     document.getElementById('perfil-nombre-completo').textContent = `${usuarioActual.nombre} ${usuarioActual.apellido}`.trim();
     document.getElementById('perfil-email').textContent = usuarioActual.email || '';
-    document.getElementById('perfil-badge-sangre').style.display = usuarioActual.tipo_sangre ? 'none' : '';
+    document.getElementById('perfil-badge-sangre').classList.toggle('hidden', !!usuarioActual.tipo_sangre);
     actualizarCompletitud();
     actualizarResumenSeguridad();
 
@@ -555,7 +558,7 @@
     document.getElementById('input-dni').value = usuarioActual.numero_documento || '';
     document.getElementById('input-provincia').value = usuarioActual.provincia || '';
     document.getElementById('input-ciudad').value = usuarioActual.ciudad || '';
-    document.getElementById('error-datos-personales').style.display = 'none';
+    document.getElementById('error-datos-personales').classList.add('hidden');
 
     // Sección 2 — Datos médicos
     tipoSangreSeleccionado = usuarioActual.tipo_sangre || null;
@@ -589,7 +592,7 @@
     // El hint normal ("se refiere a donaciones previas a registrarte") queda
     // siempre visible, aunque esté bloqueado — si no, se pierde la aclaración
     // de qué pregunta esta respondiendo y queda ambigua para quien lo lee después.
-    document.getElementById('hint-experiencia-bloqueada').style.display = experienciaBloqueada ? '' : 'none';
+    document.getElementById('hint-experiencia-bloqueada').classList.toggle('hidden', !experienciaBloqueada);
 
     // Tipo de sangre: autoreportado por el donante, también de escritura única.
     // Se verifica recién con la primera donación real (análisis del profesional
@@ -602,7 +605,7 @@
     const sangreBloqueada = !!usuarioActual.tipo_sangre;
     document.getElementById('sangre-grid').classList.toggle('bloqueado', sangreBloqueada);
     document.getElementById('hint-sangre-normal').style.display = sangreBloqueada ? 'none' : '';
-    document.getElementById('hint-sangre-bloqueada').style.display = sangreBloqueada ? '' : 'none';
+    document.getElementById('hint-sangre-bloqueada').classList.toggle('hidden', !sangreBloqueada);
 
     // Sección 3 — Preferencias de notificación
     document.getElementById('notif-recordatorio').checked = !!usuarioActual.notif_recordatorio_turno;
@@ -701,12 +704,12 @@
   }
 
   function mostrarFormEmp() {
-    document.getElementById('form-nuevo-emp').style.display = 'block';
+    document.getElementById('form-nuevo-emp').classList.remove('hidden');
     document.getElementById('btn-agregar-emp').style.display = 'none';
     document.getElementById('input-nuevo-emp').focus();
   }
   function cancelarNuevoEmp() {
-    document.getElementById('form-nuevo-emp').style.display = 'none';
+    document.getElementById('form-nuevo-emp').classList.add('hidden');
     document.getElementById('btn-agregar-emp').style.display = 'flex';
     document.getElementById('input-nuevo-emp').value = '';
   }
@@ -754,10 +757,10 @@
     const errorEl = document.getElementById('error-datos-personales');
     if (!nombre || !apellido) {
       errorEl.textContent = 'Nombre y apellido son obligatorios.';
-      errorEl.style.display = 'block';
+      errorEl.classList.remove('hidden');
       return;
     }
-    errorEl.style.display = 'none';
+    errorEl.classList.add('hidden');
 
     const iniciales = (nombre[0] || '').toUpperCase() + (apellido[0] || '').toUpperCase();
     const cambios = {
@@ -773,7 +776,7 @@
     const resultado = HemoRed.data.actualizarPerfilDonante(usuarioActual.id, cambios);
     if (!resultado.ok) {
       errorEl.textContent = resultado.error || 'No se pudieron guardar los cambios.';
-      errorEl.style.display = 'block';
+      errorEl.classList.remove('hidden');
       return;
     }
     usuarioActual = resultado.usuario;
@@ -789,14 +792,14 @@
   function actualizarVisibilidadUltimaDonacion() {
     const exp = document.getElementById('input-experiencia').value;
     const mostrar = exp === 'habitual' || exp === 'ocasional';
-    document.getElementById('bloque-ultima-donacion').style.display = mostrar ? 'block' : 'none';
+    document.getElementById('bloque-ultima-donacion').classList.toggle('hidden', !mostrar);
   }
 
   // Fecha exacta y fecha aproximada son mutuamente excluyentes: se guarda una
   // u otra, nunca las dos (evita ambigüedad sobre cuál vale si difieren).
   function toggleNoRecuerdoFecha() {
     const noRecuerda = document.getElementById('chk-no-recuerdo-fecha').checked;
-    document.getElementById('grupo-ultima-fecha-aprox').style.display = noRecuerda ? 'block' : 'none';
+    document.getElementById('grupo-ultima-fecha-aprox').classList.toggle('hidden', !noRecuerda);
     document.getElementById('input-ultima-fecha').disabled = noRecuerda;
     if (noRecuerda) document.getElementById('input-ultima-fecha').value = '';
     else document.getElementById('input-ultima-fecha-aprox').value = '';
@@ -862,7 +865,7 @@
     document.getElementById('pw-actual').value = '';
     document.getElementById('pw-nueva').value = '';
     document.getElementById('pw-nueva2').value = '';
-    document.getElementById('pw-error').style.display = 'none';
+    document.getElementById('pw-error').classList.add('hidden');
     HemoRed.ui.abrirModal('modal-password');
   }
 
@@ -873,13 +876,13 @@
     const errorEl = document.getElementById('pw-error');
     if (nueva !== nueva2) {
       errorEl.textContent = 'Las contraseñas nuevas no coinciden.';
-      errorEl.style.display = 'flex';
+      errorEl.classList.remove('hidden');
       return;
     }
     const resultado = HemoRed.data.cambiarPasswordDonante(usuarioActual.id, { actual, nueva });
     if (!resultado.ok) {
       errorEl.textContent = resultado.error;
-      errorEl.style.display = 'flex';
+      errorEl.classList.remove('hidden');
       return;
     }
     usuarioActual = resultado.usuario;
@@ -891,7 +894,7 @@
   function abrirModalEmail() {
     document.getElementById('email-nuevo').value = '';
     document.getElementById('email-pass-actual').value = '';
-    document.getElementById('email-error').style.display = 'none';
+    document.getElementById('email-error').classList.add('hidden');
     HemoRed.ui.abrirModal('modal-email');
   }
 
@@ -902,7 +905,7 @@
     const resultado = HemoRed.data.cambiarEmailDonante(usuarioActual.id, { actual, nuevoEmail });
     if (!resultado.ok) {
       errorEl.textContent = resultado.error;
-      errorEl.style.display = 'flex';
+      errorEl.classList.remove('hidden');
       return;
     }
     usuarioActual = resultado.usuario;
@@ -915,7 +918,7 @@
 
   function abrirModalEliminarCuenta() {
     document.getElementById('eliminar-pass-actual').value = '';
-    document.getElementById('eliminar-error').style.display = 'none';
+    document.getElementById('eliminar-error').classList.add('hidden');
     HemoRed.ui.abrirModal('modal-eliminar-cuenta');
   }
 
@@ -925,7 +928,7 @@
     const resultado = HemoRed.data.eliminarCuentaDonante(usuarioActual.id, { actual });
     if (!resultado.ok) {
       errorEl.textContent = resultado.error;
-      errorEl.style.display = 'flex';
+      errorEl.classList.remove('hidden');
       return;
     }
     HemoRed.ui.toast('Tu cuenta fue eliminada.');

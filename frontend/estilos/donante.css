@@ -47,9 +47,14 @@
    ============================================================ */
 body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
 .sidebar { width: 240px; min-height: 100vh; background: #5a1e37; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
-.sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+.sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; }
 .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
 .sidebar-logo a span { color: #f28b98; }
+/* Solo se ve cuando el sidebar es off-canvas (mobile/tablet, ver media
+   query de abajo) — en desktop el sidebar ya está siempre visible, así
+   que no hay nada que cerrar. */
+.sidebar-close-btn { display: none; background: none; border: none; color: #f28b98; font-size: 22px; cursor: pointer; padding: 4px; line-height: 1; }
+.sidebar-close-btn:hover { color: white; }
 .sidebar-user { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
 .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: white; flex-shrink: 0; }
 .sidebar-user-info { overflow: hidden; }
@@ -68,15 +73,28 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .sidebar-alert-title { font-size: 12px; font-weight: 500; color: #f28b98; margin-bottom: 4px; }
 .sidebar-alert-text { font-size: 11px; color: rgba(242,139,152,0.8); line-height: 1.4; }
 .sidebar-alert-btn { display: block; background: #ef647c; color: white; border: none; padding: 7px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; text-align: center; margin-top: 8px; font-family: 'Inter', sans-serif; text-decoration: none; width: 100%; }
-.main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+/* min-width:0 es la causa raíz de fondo del desborde horizontal encontrado
+   en la auditoría de responsive a 320px (ver .pb-text/.notif-item más abajo
+   para los síntomas puntuales): sin esto, un item de flex nunca se achica
+   más allá del contenido más "terco" que tenga adentro (el default es
+   min-width:auto) — y como .main es el contenedor de TODA la página, ese
+   ancho mínimo se propaga hacia arriba y termina agrandando el body entero
+   en vez de forzar a wrappear/apilarse al elemento que realmente no entraba. */
+.main { margin-left: 240px; flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-.topbar-left { display: flex; align-items: center; gap: 12px; }
-.topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
-.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+/* Mismo motivo que el resto de los fixes de este archivo: sin min-width:0,
+   el título nunca se achica — en campana_detalle.html, con el back-link
+   "← Campañas" + separador + el ícono de notificaciones a la derecha, un
+   título como "Confirmación" empujaba el ancho del topbar unos px más
+   allá del viewport en pantallas muy angostas (320px). En vez de wrappear
+   (cambiaría el alto de una barra "sticky"), se corta con "…". */
+.topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
 .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; text-decoration: none; transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease; }
 .topbar-btn:hover { background: #f28b98; border-color: #ef647c; color: #5a1e37; }
 .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; position: absolute; top: 6px; right: 6px; border: 1.5px solid white; }
-.mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; }
+.mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; flex-shrink: 0; }
 .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
 .content { padding: 32px; flex: 1; }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
@@ -108,13 +126,25 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .campaigns-count { font-size: 12px; color: #a9435d; background: #fdf0f3; border: 0.5px solid #f28b98; padding: 2px 8px; border-radius: 20px; }
 
 /* === MIS TURNOS === */
-.tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 24px; }
+/* width:fit-content hace que la barra de pestañas nunca se achique para
+   entrar en su contenedor — a 320px las 3 pestañas ("Próximos"/"Historial"/
+   "Cancelados") no entran y desbordaban 20px más allá del viewport. Con
+   max-width:100% + flex-wrap, en el peor caso pasan a 2 líneas en vez de
+   desbordar (no llegó a pasar en ninguna resolución probada, pero queda
+   cubierto). */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; max-width: 100%; margin-bottom: 24px; }
 .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
 .tab.active { background: #5a1e37; color: white; }
 .tab:hover:not(.active) { background: #fdf0f3; }
 .proximo-banner { background: #5a1e37; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.pb-left { display: flex; align-items: center; gap: 14px; }
+.pb-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .pb-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+/* Sin min-width:0 acá, un item de flex no se achica más allá del ancho que
+   necesitaría el texto en una sola línea (el default es min-width:auto) —
+   por eso la fecha/hospital no ajaba nunca de línea y desbordaba el banner
+   en pantallas angostas (bug real, encontrado en una auditoría de
+   responsive a 320px). */
+.pb-text { min-width: 0; flex: 1; }
 .pb-label { font-size: 12px; color: #f28b98; margin-bottom: 3px; }
 .pb-value { font-size: 15px; font-weight: 500; color: white; }
 .pb-btn { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
@@ -125,7 +155,12 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .turno-date { width: 52px; text-align: center; background: #fdf0f3; border-radius: 10px; padding: 8px 4px; flex-shrink: 0; border: 0.5px solid #f28b98; }
 .turno-date-day { font-size: 22px; font-weight: 500; color: #5a1e37; line-height: 1; }
 .turno-date-month { font-size: 11px; color: #a9435d; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
-.turno-info { flex: 1; }
+/* min-width:0 por el mismo motivo que .pb-text/.main más abajo/arriba: sin
+   esto, el nombre del hospital + los 3 datos de .turno-meta nunca se
+   achican ni ajaban de línea, y en .turno-top-row de mis_turnos.html (que
+   además tiene la fecha y la columna de acciones al lado, todo en una sola
+   fila) terminaba desbordando la tarjeta en pantallas muy angostas (320px). */
+.turno-info { flex: 1; min-width: 0; }
 .turno-hospital { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
 .turno-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .turno-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #5a3040; }
@@ -154,8 +189,8 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .turno-m.ocp { opacity: 0.5; cursor: not-allowed; background: #f7f0f3; }
 
 /* === CAMPAÑA DETALLE (donante) === */
-.topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; }
-.topbar-sep { color: #e8d0d8; }
+.topbar-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; text-decoration: none; background: none; border: none; font-family: 'Inter', sans-serif; flex-shrink: 0; }
+.topbar-sep { color: #e8d0d8; flex-shrink: 0; }
 .steps-indicator { background: white; border-bottom: 0.5px solid #e8d0d8; padding: 14px 32px; display: flex; align-items: center; gap: 0; }
 .step-ind { display: flex; align-items: center; gap: 8px; }
 .step-ind-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; border: 1.5px solid #e8d0d8; color: #a9435d; background: white; flex-shrink: 0; }
@@ -204,41 +239,6 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .turnos-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
 .card-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
-/* === RESPONSIVE DONANTE === */
-@media (max-width: 1024px) { .campaign-detail { grid-template-columns: 1fr; } .turnos-layout { grid-template-columns: 1fr; } }
-@media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
-  .sidebar.open { transform: translateX(0); }
-  .sidebar-overlay.open { display: block; }
-  .main { margin-left: 0; }
-  .mobile-topbar-btn { display: flex; }
-  .content { padding: 20px; }
-  .quick-stats { grid-template-columns: 1fr 1fr; }
-  .qstat:last-child { grid-column: span 2; }
-  .search-bar { flex-direction: column; }
-}
-@media (max-width: 480px) {
-  .quick-stats { grid-template-columns: 1fr; }
-  .qstat:last-child { grid-column: span 1; }
-}
-@media (max-width: 640px) {
-  /* .turno-card es "display:flex;align-items:center" en una sola fila
-     (fecha + info + badge/acciones) — a este ancho no entran los 3 bloques
-     lado a lado sin amontonarse (usado en mis_turnos.html y
-     mis_donaciones.html). Se apila verticalmente; .turno-right pasa a fila
-     horizontal (badge a la izquierda, botones a la derecha) en vez de
-     columna, porque en una columna angosta se ve mejor así. */
-  .turno-card { flex-direction: column; align-items: stretch; }
-  .turno-right { flex-direction: row; align-items: center; justify-content: space-between; }
-}
-@media (max-width: 480px) {
-  /* .proximo-banner (usado en mis_turnos.html y mis_donaciones.html) tiene
-     el mismo problema: fila con "white-space:nowrap" en el botón, que le
-     deja muy poco ancho al texto y lo apila en 3-4 líneas angostas. */
-  .proximo-banner { flex-direction: column; align-items: stretch; }
-  .pb-btn { width: 100%; }
-}
-
 /* === MISSING STYLES RECOVERED FROM ORIGINALS === */
 /* From donante/dashboard.html */
 .campaigns-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -261,7 +261,16 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .progress-bar { height: 4px; background: #fdf0f3; border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
 .progress-fill { height: 100%; background: #ef647c; border-radius: 2px; }
 .proximo-turno { background: #5a1e37; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.pt-left { display: flex; align-items: center; gap: 14px; }
+.banner-no-elegible { background: #fde8e8; border: 1px solid #c0392b; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; align-items: center; gap: 14px; display: flex; }
+.banner-no-elegible-icono { color: #c0392b; font-size: 22px; flex-shrink: 0; }
+.banner-no-elegible-titulo { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }
+.banner-no-elegible-motivo { font-size: 13px; color: #5a3040; }
+.pt-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+/* Mismo problema y mismo fix que .pb-text (mis_turnos.html/mis_donaciones.html)
+   — .proximo-turno/.pt-* es la copia de este mismo banner que usa
+   dashboard.html, con otro nombre de clase; se había arreglado una pero no
+   la otra. */
+.pt-text { min-width: 0; flex: 1; }
 .pt-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .pt-title { font-size: 13px; color: #f28b98; margin-bottom: 3px; }
 .pt-value { font-size: 15px; font-weight: 500; color: white; }
@@ -278,7 +287,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 @media (max-width: 768px) { .campaigns-grid { grid-template-columns: 1fr; } }
 /* === ADDITIONAL MISSING STYLES FROM DONANTE PAGES === */
 .topbar-back:hover { color: #5a1e37; }
-.info-body {  }
+.info-body { min-width: 0; flex: 1; }
 .turnos-section { background: white; border-radius: 14px; padding: 24px; border: 0.5px solid #e8d0d8; }
 .turnos-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
 .turnos-subtitle { font-size: 13px; color: #5a3040; margin-bottom: 20px; }
@@ -314,6 +323,11 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .confirmacion-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
 .confirmacion-item:last-child { border-bottom: none; }
 .conf-icon { width: 40px; height: 40px; border-radius: 10px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+/* Mismo motivo que .pb-text/.turno-info (ver el bloque RESPONSIVE al final
+   del archivo): sin min-width:0, un .conf-value largo sin ajustar de línea
+   (ej. una fecha completa, "sábado, 26 de septiembre de 2026") empujaba
+   el ancho de toda la tarjeta de confirmación más allá del viewport. */
+.confirmacion-item > div:last-child { min-width: 0; }
 .conf-label { font-size: 12px; color: #a9435d; margin-bottom: 2px; }
 .conf-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
 .aviso-card { background: #faeeda; border: 1px solid #e67e22; border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
@@ -330,6 +344,10 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .exito-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f0e0e6; }
 .exito-row:last-child { border-bottom: none; }
 .exito-row-icon { width: 32px; height: 32px; border-radius: 8px; background: #fdf0f3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+/* Mismo motivo que .confirmacion-item más arriba — acá es todavía más
+   fácil de disparar porque "Fecha y hora" junta fecha completa + hora en
+   un solo texto sin cortar. */
+.exito-row > div:last-child { min-width: 0; }
 .exito-row-label { font-size: 11px; color: #a9435d; margin-bottom: 1px; }
 .exito-row-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
 .exito-actions { display: flex; flex-direction: column; gap: 10px; }
@@ -346,6 +364,10 @@ nav { display: flex; align-items: center; justify-content: space-between; paddin
 main { flex: 1; padding: 32px 24px; max-width: 640px; width: 100%; margin: 0 auto; }
 .turno-banner { background: #5a1e37; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
 .turno-icon { width: 44px; height: 44px; border-radius: 11px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+/* Mismo problema/fix que .pb-text/.pt-text — este banner es el de
+   formularios_predonacion.html, otra copia más del mismo componente. */
+.turno-banner { min-width: 0; }
+.turno-banner-text { min-width: 0; flex: 1; }
 .turno-hosp { font-size: 15px; font-weight: 500; color: white; margin-bottom: 3px; }
 .turno-meta-text { font-size: 12px; color: #f28b98; }
 .progress-wrap { display: flex; gap: 4px; margin-bottom: 8px; }
@@ -369,7 +391,7 @@ main { flex: 1; padding: 32px 24px; max-width: 640px; width: 100%; margin: 0 aut
 .doc-sub-list li::before { content: '–'; color: #a9435d; flex-shrink: 0; }
 .doc-highlight { background: #fdf0f3; border-left: 3px solid #ef647c; padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; color: #5a3040; line-height: 1.6; }
 .doc-nota { font-size: 12px; color: #a9435d; font-style: italic; margin-top: 14px; line-height: 1.5; }
-.aviso { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+.aviso { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; text-align: left; }
 .av-rojo { background: #fde8e8; border: 1px solid #c0392b; color: #922b21; }
 .av-azul { background: #eef4ff; border: 1px solid #3498db; color: #1a4a7a; }
 .av-gris { background: #f7f0f3; border: 0.5px solid #e8d0d8; color: #5a3040; }
@@ -413,7 +435,7 @@ main { flex: 1; padding: 32px 24px; max-width: 640px; width: 100%; margin: 0 aut
 .firma-label { font-size: 13px; font-weight: 500; color: #5a1e37; }
 .btn-primary { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
 .btn-primary:hover { background: #d4537e; }
-.btn-primary:disabled { background: #e8d0d8; cursor: not-allowed; }
+.btn-primary:disabled { background: #e8d0d8; cursor: not-allowed; opacity: 0.5; }
 .btn-danger { width: 100%; background: #c0392b; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
 .btn-danger:hover { background: #a93226; }
 .btn-outline { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
@@ -478,6 +500,7 @@ footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
 .cert-body p { font-size: 14px; color: #5a3040; line-height: 1.8; margin-bottom: 16px; }
 .cert-body strong { color: #5a1e37; }
 .cert-datos { background: #fdf0f3; border-radius: 10px; padding: 16px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.signos-vitales-grid { display: grid; grid-template-columns: 1fr 1fr; }
 .cert-dato {  }
 .cert-dato-label { font-size: 11px; color: #a9435d; font-weight: 500; margin-bottom: 3px; }
 .cert-dato-value { font-size: 13px; font-weight: 500; color: #5a1e37; }
@@ -507,7 +530,6 @@ footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
 .ts { font-size: 10px; margin-top: 2px; }
 .ts.libre { color: #27ae60; }
 .ts.ocp { color: #c0392b; }
-.btn-marcar { background: white; color: #a9435d; border: 1px solid #e8d0d8; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
 .filtros { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
 .filtro-chip { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid #e8d0d8; background: white; color: #a9435d; font-family: 'Inter', sans-serif; transition: all 0.15s; }
 .filtro-chip.active { background: #5a1e37; color: white; border-color: #5a1e37; }
@@ -535,7 +557,7 @@ footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
 .perfil-header { background: white; border-radius: 16px; padding: 28px; border: 0.5px solid #e8d0d8; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
 .perfil-avatar { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 500; color: white; flex-shrink: 0; position: relative; cursor: pointer; }
 .perfil-avatar-edit { position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; border-radius: 50%; background: #5a1e37; display: flex; align-items: center; justify-content: center; }
-.perfil-info { flex: 1; }
+.perfil-info { flex: 1; min-width: 0; }
 .perfil-name { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
 .perfil-email { font-size: 13px; color: #5a3040; margin-bottom: 10px; }
 .perfil-badges { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -629,3 +651,144 @@ select.form-input { cursor: pointer; }
 .btn-enviar:hover { background: #d4537e; }
 .btn-enviar:disabled { background: #e8d0d8; cursor: not-allowed; }
 .page-footer { text-align: center; margin-top: 20px; font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.6; }
+
+/* === RESPONSIVE DONANTE ===
+   Va AL FINAL del archivo a propósito: un @media puesto antes de la regla
+   base pierde contra ella (misma especificidad, gana la que está más abajo
+   en el archivo) — ya había pasado antes en este mismo archivo con
+   .quick-stats y .resultado-layout/.certificado-layout (ver el comentario
+   en el @media de arriba, cerca de .cert-preview). Se repitió una tercera
+   vez, más grande, 2026-09-23: varias de las reglas de acá abajo (.form-row,
+   .perfil-header, .perfil-completitud, .notif-item, .notif-right)
+   parecían "no hacer nada" — en realidad SÍ se aplicaban, pero la regla
+   base (más abajo en el archivo en ese momento) las pisaba de nuevo
+   propiedad por propiedad. Los campos de perfil.html seguían en 2 columnas
+   pese a la regla `.form-row{grid-template-columns:1fr}`, y el header de
+   perfil.html quedó con texto superpuesto porque `.perfil-completitud`
+   recuperaba su `margin-left:auto`/`text-align:right` original. Ahora que
+   todo este bloque está al final, ya no puede volver a pasar contra
+   ninguna regla base existente — pero si se agrega una regla base NUEVA
+   más abajo de este bloque en el futuro, el problema puede reaparecer: hay
+   que seguir agregando overrides de mobile ACÁ, al final. */
+@media (max-width: 1024px) {
+  .campaign-detail { grid-template-columns: 1fr; }
+  .turnos-layout { grid-template-columns: 1fr; }
+  /* El sidebar fijo se muestra completo hasta 1024px (antes se achicaba
+     recién a los 768px, dejando el contenido de tablet apretado contra
+     un sidebar de 240px que no se podía cerrar). Debajo de 1024px pasa a
+     ser off-canvas: arranca oculto y se abre con el botón del topbar. */
+  .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .sidebar-close-btn { display: block; }
+  .main { margin-left: 0; }
+  .mobile-topbar-btn { display: flex; }
+}
+@media (max-width: 768px) {
+  .content { padding: 20px; }
+  .quick-stats { grid-template-columns: 1fr 1fr; }
+  .qstat:last-child { grid-column: span 2; }
+  .search-bar { flex-direction: column; }
+}
+@media (max-width: 480px) {
+  .quick-stats { grid-template-columns: 1fr; }
+  .qstat:last-child { grid-column: span 1; }
+}
+@media (max-width: 640px) {
+  /* .turno-card es "display:flex;align-items:center" en una sola fila
+     (fecha + info + badge/acciones) — a este ancho no entran los 3 bloques
+     lado a lado sin amontonarse (usado en mis_turnos.html y
+     mis_donaciones.html). Se apila verticalmente; .turno-right pasa a fila
+     horizontal (badge a la izquierda, botones a la derecha) en vez de
+     columna, porque en una columna angosta se ve mejor así. */
+  .turno-card { flex-direction: column; align-items: stretch; }
+  .turno-right { flex-direction: row; align-items: center; justify-content: space-between; }
+
+  /* Mismo problema que .turno-card de arriba, en mis_documentos.html:
+     .doc-card es "display:flex;align-items:center" en una sola fila
+     (ícono + info + badge/botones) — a este ancho el texto de .doc-info
+     quedaba comprimido a unos pocos px y se partía en líneas ilegibles. */
+  .doc-card { flex-direction: column; align-items: stretch; }
+  .doc-right { justify-content: flex-start; flex-wrap: wrap; margin-left: 58px; }
+  /* Sin esto, el wrap de la línea de arriba deja el orden impredecible
+     según cuánto mida el texto del badge (ej. "Apto para transfusión"): a
+     veces el botón de descarga (solo ícono) queda solo, huérfano, en su
+     propia línea. Con el badge siempre en su propia fila, los 2 botones
+     quedan siempre juntos en la fila de abajo. */
+  .doc-badge { flex-basis: 100%; }
+
+  /* Mismo problema, en notificaciones.html: .notif-right (el punto de "no
+     leído" + el botón de acción, ej. "Ver documento") tiene flex-shrink:0
+     a propósito para no achicarse — pero eso significa que a este ancho le
+     saca casi todo el espacio a .notif-body, y el título/texto de la
+     notificación queda comprimido en una columna angosta e ilegible. */
+  .notif-item { flex-direction: column; align-items: stretch; }
+  .notif-right { flex-direction: row; align-items: center; justify-content: flex-end; margin-left: 54px; }
+
+  /* .perfil-completitud (la barra de "Perfil completado") tiene un ancho
+     mínimo propio (la barra son 120px fijos) — sumado al avatar (72px) y
+     al nombre/email/badges, no entraba todo en una sola fila a este ancho.
+     "flex-wrap:wrap" solo NO alcanza: con min-width:0 en .perfil-info (ver
+     más arriba en el archivo), el texto siempre puede seguir achicándose
+     para "entrar" en una sola línea, así que el navegador nunca llega a
+     ajabar de línea de verdad — el resultado, sin flex-direction:column,
+     es nombre/email/barra superpuestos en vez de ordenados. */
+  .perfil-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .perfil-completitud { margin-left: 0; text-align: left; width: 100%; }
+  .completitud-bar { width: 100%; max-width: 280px; }
+
+  /* .form-row (perfil.html: Nombre/Apellido, Email/Teléfono, Fecha de
+     nacimiento/DNI, Provincia/Ciudad) es una grilla fija de 2 columnas sin
+     ningún ajuste para mobile — cada campo quedaba angosto, difícil de
+     leer y de tocar. La usuaria lo pidió explícito: un campo por fila. */
+  .form-row { grid-template-columns: 1fr; }
+
+  /* Mismo problema, en las vistas de detalle de mis_documentos.html que no
+     se habían probado en la primera vuelta de esta auditoría (se llega
+     haciendo click en "Ver" desde la lista, no están en la pantalla
+     principal): .signos-vitales-grid (evaluación clínica: presión, pulso,
+     temperatura, etc. — cada celda tiene 3 líneas de texto, incluida una
+     descripción de rango tipo "90/60 – 180/100" que no entra en la mitad
+     del ancho) y .cert-datos (certificado: fecha/profesional/emitido
+     para/número). */
+  .signos-vitales-grid { grid-template-columns: 1fr; }
+  .cert-datos { grid-template-columns: 1fr; }
+  .cert-firma { flex-direction: column; gap: 20px; align-items: center; }
+
+  /* .excl-item (formularios_predonacion.html, cuestionario F2 — 34
+     preguntas): en desktop la pregunta y los botones Sí/No van en la
+     misma fila. A pedido explícito de la usuaria, solo en mobile: la
+     pregunta pasa a ocupar toda la línea (su propia fila) y los botones
+     van debajo, uno al lado del otro, más grandes — mejor lectura y mejor
+     objetivo táctil que compartir la fila con el texto. */
+  .excl-item { flex-direction: column; align-items: stretch; gap: 10px; }
+  .excl-sino { gap: 10px; }
+  .excl-btn { flex: 1; width: auto; padding: 12px 0; font-size: 14px; }
+}
+@media (max-width: 480px) {
+  /* .proximo-banner (usado en mis_turnos.html y mis_donaciones.html) tiene
+     el mismo problema: fila con "white-space:nowrap" en el botón, que le
+     deja muy poco ancho al texto y lo apila en 3-4 líneas angostas. */
+  .proximo-banner { flex-direction: column; align-items: stretch; }
+  .pb-btn { width: 100%; }
+  .proximo-turno { flex-direction: column; align-items: stretch; }
+  .pt-btn { width: 100%; }
+
+  /* .steps-indicator (campana_detalle.html) tiene las 4 etiquetas en
+     "white-space:nowrap" — no hay forma de que las 4 (+ círculos + líneas)
+     entren en una fila a este ancho. Se ocultan las etiquetas y quedan
+     solo los círculos numerados + las líneas — no se pierde información
+     real: el paso actual ya se repite como texto en el título de la
+     topbar (ej. "Elegí tu turno"), justo arriba. */
+  .steps-indicator { padding: 14px 16px; }
+  .step-ind-label { display: none; }
+  .step-ind { gap: 0; }
+
+  /* .turno-top-row (mis_turnos.html) mete fecha + hospital/meta + badge y
+     botones en una sola fila — con min-width:0 el texto ya ajaba de línea
+     en vez de desbordar, pero a este ancho no entran las 3 columnas ni
+     apiladas: el badge + "Ver campaña"/"Modificar" pasa a su propia fila,
+     debajo, alineado bajo el texto (68px = ancho de .turno-date + gap). */
+  .turno-top-row { flex-wrap: wrap; row-gap: 10px; }
+  .turno-right { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; flex-basis: calc(100% - 68px); margin-left: 68px; }
+}

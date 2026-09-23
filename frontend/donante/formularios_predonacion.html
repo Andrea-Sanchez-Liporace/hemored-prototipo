@@ -32,7 +32,7 @@
 
   <div class="turno-banner">
     <div class="turno-icon"><i class="ti ti-building-hospital" style="color:white;font-size:20px;"></i></div>
-    <div>
+    <div class="turno-banner-text">
       <div class="turno-hosp" id="banner-hospital">—</div>
       <div class="turno-meta-text" id="banner-meta">—</div>
     </div>
@@ -134,7 +134,7 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-paso1" onclick="irPaso(2)" disabled style="opacity:0.5;cursor:not-allowed;">
+    <button class="btn-primary" id="btn-paso1" onclick="irPaso(2)" disabled>
       Continuar al cuestionario médico <i class="ti ti-arrow-right"></i>
     </button>
 
@@ -310,7 +310,7 @@
     </div>
 
     <!-- Se muestra solo si el cuestionario ya fue enviado antes (soloLectura) -->
-    <div class="aviso av-azul" id="aviso-solo-lectura" style="display:none;text-align:left;margin-bottom:16px;">
+    <div class="aviso av-azul hidden" id="aviso-solo-lectura" style="margin-bottom:16px;">
       <i class="ti ti-lock" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
       <span>Ya completaste este cuestionario, así que tus respuestas quedan solo para consulta. Si tu estado de salud cambió desde entonces, comentáselo al profesional que te atienda: él va a poder actualizar tus respuestas en la revisión previa a la donación.</span>
     </div>
@@ -339,7 +339,7 @@
          (ver actualizarBloqueoInhabilitante()) — reemplaza al botón de enviar,
          no tiene sentido dejar mandar un cuestionario que ya sabemos que
          termina en autoexclusión. -->
-    <div class="aviso av-rojo" id="f2-aviso-inhabilitante" style="display:none;text-align:left;">
+    <div class="aviso av-rojo hidden" id="f2-aviso-inhabilitante">
       <i class="ti ti-alert-triangle" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
       <div>
         <div id="f2-aviso-intro"></div>
@@ -348,10 +348,10 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-paso2" onclick="confirmarYEnviar()" disabled style="opacity:0.5;cursor:not-allowed;">
+    <button class="btn-primary" id="btn-paso2" onclick="confirmarYEnviar()" disabled>
       <i class="ti ti-check"></i>Confirmar y enviar formularios
     </button>
-    <button class="btn-danger" id="btn-cancelar-turno-f2" onclick="cancelarTurnoDesdeF2()" style="display:none;">
+    <button class="btn-danger hidden" id="btn-cancelar-turno-f2" onclick="cancelarTurnoDesdeF2()">
       <i class="ti ti-calendar-off"></i>Cancelar turno
     </button>
     <button class="btn-outline" onclick="irPaso(1)">
@@ -376,7 +376,7 @@
         <div class="check-item" style="color:#a9435d;"><i class="ti ti-clock" style="color:#e67e22;font-size:16px;"></i>Formulario post-donación — se completa después de donar</div>
       </div>
 
-      <div class="aviso av-verde" style="text-align:left;margin-bottom:20px;">
+      <div class="aviso av-verde" style="margin-bottom:20px;">
         <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
         <span>Recuerde llevar su DNI. Sus respuestas quedan guardadas para consulta; si tiene algún cambio en su estado de salud antes del turno, coméntelo directamente con el profesional que lo atienda: él va a poder actualizar sus respuestas en la revisión previa a la donación.</span>
       </div>
@@ -494,7 +494,7 @@
     if (pads['sig-f1']) pads['sig-f1'].off();
 
     document.querySelectorAll('.btn-limpiar').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'not-allowed'; });
-    document.getElementById('aviso-solo-lectura').style.display = 'flex';
+    document.getElementById('aviso-solo-lectura').classList.remove('hidden');
     const btn2 = document.getElementById('btn-paso2');
     btn2.disabled = true;
     btn2.style.opacity = '0.5';
@@ -570,8 +570,6 @@
     const btn = document.getElementById('btn-paso1');
     const ok = c1 && c2 && c3 && firmado;
     btn.disabled = !ok;
-    btn.style.opacity = ok ? '1' : '0.5';
-    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
   }
 
   // Habilita "Confirmar y enviar formularios" solo cuando están las 34
@@ -589,8 +587,6 @@
     const firmado = pads['sig-f2'] && !pads['sig-f2'].isEmpty();
     const ok = completo && firmado && !hayRespuestaInhabilitante();
     btn.disabled = !ok;
-    btn.style.opacity = ok ? '1' : '0.5';
-    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
   }
 
   // Una pregunta "invertida" (ver clase en el HTML) es de comprensión del
@@ -638,9 +634,9 @@
       }).join('');
     }
 
-    aviso.style.display = bloqueado ? 'flex' : 'none';
-    btnCancelar.style.display = bloqueado ? 'flex' : 'none';
-    btnEnviar.style.display = bloqueado ? 'none' : 'flex';
+    aviso.classList.toggle('hidden', !bloqueado);
+    btnCancelar.classList.toggle('hidden', !bloqueado);
+    btnEnviar.classList.toggle('hidden', bloqueado);
   }
 
   // Numera las 34 preguntas del cuestionario (1 a 34, en el orden en que

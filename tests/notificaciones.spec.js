@@ -67,7 +67,10 @@ test.describe('Notificaciones (donante)', () => {
     });
 
     await test.step('"Marcar todas como leídas" deja todo sin marca', async () => {
-      await page.click('button:has-text("Marcar todas como leídas")');
+      // 2026-09-23: pasó de un botón de texto a un ícono en la topbar
+      // (mismo estilo que el resto de las pantallas, ver docs/04) — se
+      // identifica por el tooltip, no por texto visible.
+      await page.click('[data-tooltip="Marcar todas como leídas"]');
       await expect(page.locator('.toast')).toContainText('Todas marcadas como leídas');
       await expect(page.locator('.notif-item.unread')).toHaveCount(0);
       await page.reload();
