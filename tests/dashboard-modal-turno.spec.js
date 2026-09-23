@@ -31,7 +31,7 @@ test.describe('Modal "Detalle del turno" (dashboard)', () => {
       await page.click('.pt-btn'); // "Ver detalles"
       await expect(page.locator('#modal-turno')).toBeVisible();
       await expect(page.locator('#modal-turno-hospital')).toHaveText('Hospital Ramos Mejía');
-      await expect(page.locator('#modal-turno-dia')).toHaveText('23');
+      await expect(page.locator('#modal-turno-dia')).toHaveText('30'); // turno id 5, fecha 2026-11-30 (ver frontend/db/turnos.json)
       await expect(page.locator('#modal-turno-fechahora')).toContainText('09:30hs');
       await expect(page.locator('#modal-turno-estado')).toHaveText('Confirmado');
       await expect(page.locator('#modal-turno-campana')).toHaveText('Banco de sangre general — Ramos Mejía');
