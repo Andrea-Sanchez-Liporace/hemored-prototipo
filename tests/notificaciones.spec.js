@@ -46,18 +46,18 @@ test.describe('Notificaciones (donante)', () => {
     });
 
     await test.step('el filtro "Documentos" muestra solo esas notificaciones', async () => {
-      await page.click('.filtro-chip:has-text("Documentos")');
+      await page.click('.tabs .tab:has-text("Documentos")');
       await expect(page.locator('.notif-item:visible')).toHaveCount(2);
-      await page.click('.filtro-chip:has-text("Todas")');
+      await page.click('.tabs .tab:has-text("Todas")');
     });
 
     await test.step('el filtro "No leídas" muestra solo las 3 sin leer', async () => {
-      await page.click('.filtro-chip:has-text("No leídas")');
+      await page.click('.tabs .tab:has-text("No leídas")');
       await expect(page.locator('.notif-item:visible')).toHaveCount(3);
     });
 
     await test.step('clickear una notificación la marca como leída (persiste tras recargar)', async () => {
-      await page.click('.filtro-chip:has-text("Todas")');
+      await page.click('.tabs .tab:has-text("Todas")');
       const item = page.locator('.notif-item', { hasText: 'Turno confirmado' });
       await expect(item).toHaveClass(/unread/);
       await item.click();

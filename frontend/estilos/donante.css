@@ -531,9 +531,6 @@ footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
 .ts.libre { color: #27ae60; }
 .ts.ocp { color: #c0392b; }
 .filtros { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-.filtro-chip { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid #e8d0d8; background: white; color: #a9435d; font-family: 'Inter', sans-serif; transition: all 0.15s; }
-.filtro-chip.active { background: #5a1e37; color: white; border-color: #5a1e37; }
-.filtro-chip:hover:not(.active) { border-color: #a9435d; }
 .notif-group { margin-bottom: 28px; }
 .notif-group-title { font-size: 12px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
 .notif-list { display: flex; flex-direction: column; gap: 8px; }

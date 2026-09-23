@@ -63,12 +63,12 @@
 
   <div class="content">
 
-    <div class="filtros">
-      <button class="filtro-chip active" onclick="filtrarNotif('todas', this)">Todas</button>
-      <button class="filtro-chip" onclick="filtrarNotif('noleidas', this)">No leídas</button>
-      <button class="filtro-chip" onclick="filtrarNotif('turnos', this)">Turnos</button>
-      <button class="filtro-chip" onclick="filtrarNotif('documentos', this)">Documentos</button>
-      <button class="filtro-chip" onclick="filtrarNotif('campanas', this)">Campañas</button>
+    <div class="tabs">
+      <button class="tab active" onclick="filtrarNotif('todas', this)">Todas</button>
+      <button class="tab" onclick="filtrarNotif('noleidas', this)">No leídas</button>
+      <button class="tab" onclick="filtrarNotif('turnos', this)">Turnos</button>
+      <button class="tab" onclick="filtrarNotif('documentos', this)">Documentos</button>
+      <button class="tab" onclick="filtrarNotif('campanas', this)">Campañas</button>
     </div>
 
     <div id="sin-resultados-notif" class="hidden" style="padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
@@ -164,7 +164,7 @@
 
   function filtrarNotif(tipo, el) {
     filtroActual = tipo;
-    document.querySelectorAll('.filtro-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tabs .tab').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     aplicarFiltro();
   }
