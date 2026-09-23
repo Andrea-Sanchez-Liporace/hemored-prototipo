@@ -156,7 +156,7 @@
           <i class="ti ti-calendar" style="color:white;font-size:20px;" aria-hidden="true"></i>
         </div>
         <div>
-          <div class="pt-title">Próximo turno confirmado</div>
+          <div class="pt-title" id="proximo-turno-titulo">Próximo turno confirmado</div>
           <div class="pt-value" id="proximo-turno-valor">—</div>
         </div>
       </div>
@@ -413,10 +413,16 @@
       }
     }
 
-    // Próximo turno confirmado (el más cercano en el futuro)
+    // Próximo turno activo (el más cercano en el futuro) — antes solo
+    // miraba `confirmado`, así que un turno recién reservado en una
+    // campaña sin confirmación automática (nace `pendiente`, ver "Confirmación
+    // automática y cupo por turno" en docs/04) no aparecía acá hasta que el
+    // hospital lo confirmara, aunque sí se viera en "Mis turnos" — corregido
+    // 2026-09-22, reportado por la usuaria. Mismo criterio que ya usa
+    // "Próximos" en mis_turnos.html.
     const hospitales = HemoRed.db.all('hospitales');
     const proximo = turnos
-      .filter(t => t.estado === 'confirmado')
+      .filter(t => ['pendiente', 'confirmado', 'en_curso'].includes(t.estado))
       .sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
     const banner = document.getElementById('proximo-turno-banner');
     if (proximo && banner) {
@@ -429,6 +435,7 @@
       proximoTurnoInfo = { turno: proximo, hospital, campana };
       const fecha = new Date(proximo.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
       document.getElementById('proximo-turno-valor').textContent = `${fecha} · ${proximo.hora}hs · ${hospital?.nombre || ''}`;
+      document.getElementById('proximo-turno-titulo').textContent = proximo.estado === 'confirmado' ? 'Próximo turno confirmado' : 'Próximo turno (pendiente de confirmación)';
       banner.style.display = '';
     }
 

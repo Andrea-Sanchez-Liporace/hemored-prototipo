@@ -50,7 +50,11 @@ HemoRed.data = (function() {
     _set('donante-nombre', donante?.nombre || '');
     _set('donante-tipo-sangre', donante?.tipo_sangre || '—');
     _set('total-donaciones', donaciones.length);
-    _set('proximos-turnos', turnos.filter(t => t.estado === 'confirmado').length);
+    // Mismo criterio que "Próximos" en mis_turnos.html y el banner de
+    // dashboard.html: un turno pendiente (nace así en campañas sin
+    // confirmación automática) sigue siendo un turno activo del donante,
+    // no solo los ya confirmados (corregido 2026-09-22).
+    _set('proximos-turnos', turnos.filter(t => ['pendiente', 'confirmado', 'en_curso'].includes(t.estado)).length);
     _set('campanas-activas', campanas.length);
 
     return { donante, turnos, donaciones, campanas };

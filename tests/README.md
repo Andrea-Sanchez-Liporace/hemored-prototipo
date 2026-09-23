@@ -172,6 +172,8 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 3. "Ver campaña" navega a `campana_detalle.html?id=<id>` con la campaña real del turno (antes tampoco pasaba ningún id).
 4. "Completar cuestionario" pasa el `turno_id` real y queda oculto si el donante ya completó los 2 formularios pre-donación.
 
+**Caso nuevo, agregado 2026-09-22, reportado por la usuaria:** un turno recién reservado en una campaña sin confirmación automática (nace `pendiente`) también tiene que aparecer en el banner y en el contador "Turno próximo" del dashboard — antes ese filtro solo miraba `confirmado`, así que después de cancelar un turno y reservar uno nuevo pendiente, el dashboard parecía no haber registrado nada (aunque sí se veía bien en "Mis turnos"). Se prueba reservando en la campaña "Lucas Gómez" (sin confirmación automática) y confirmando que el contador, el banner (con el título "Próximo turno (pendiente de confirmación)") y el badge del modal de detalle reflejan el estado real.
+
 **`cupo-confirmacion-automatica.spec.js`** — confirmación automática y cupo por turno (`crearTurno()`/`actualizarTurno()`), agregado 2026-09-18 a pedido de la usuaria ("que sea automático en ambas instancias, ya que el hospital setea la capacidad al crear la campaña"). Antes, reservar SIEMPRE nacía `pendiente` (RF3, el hospital confirma a mano) y un horario se bloqueaba con el primer turno, sin importar cuántos donantes admitiera en simultáneo:
 
 1. Una campaña con `confirmacion_automatica: true` (id 2, "Banco de sangre general") confirma el turno al instante, sin pasar por `pendiente`.

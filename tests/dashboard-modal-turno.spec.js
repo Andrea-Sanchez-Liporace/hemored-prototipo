@@ -59,4 +59,43 @@ test.describe('Modal "Detalle del turno" (dashboard)', () => {
     });
   });
 
+  // Agregado 2026-09-22, reportado por la usuaria: reservar un turno nuevo en
+  // una campaña sin confirmación automática (nace `pendiente`, ver
+  // "Confirmación automática y cupo por turno" en docs/04) no lo mostraba acá
+  // — el banner y el contador "Turno próximo" solo miraban `confirmado`, así
+  // que después de cancelar un turno y reservar uno nuevo pendiente, el
+  // dashboard parecía no haber registrado nada.
+  test('un turno recién reservado en estado "pendiente" también aparece en el banner y en el contador', async ({ page }) => {
+    await page.goto('/publico/registro.html');
+    await page.click('text=Soy donante');
+    await page.fill('#d-nombre', 'Marina');
+    await page.fill('#d-apellido', 'Pendiente');
+    await page.fill('#d-email', `donante.pendiente.${Date.now()}@example.com`);
+    await page.fill('#d-tel', '11-2222-3333');
+    await page.fill('#d-pass', 'password123');
+    await page.fill('#d-pass2', 'password123');
+    await page.click('#btn-crear-cuenta-donante');
+    await page.waitForURL('**/donante/dashboard.html');
+
+    // La primera campaña de la lista ("Lucas Gómez") no tiene confirmación
+    // automática — el turno nace pendiente.
+    await page.locator('.campaign-btn').first().click();
+    await page.waitForURL('**/campana_detalle.html**');
+    await page.click('#btn-reservar');
+    const tabs = page.locator('.fecha-tab');
+    await tabs.first().waitFor();
+    await tabs.nth(1).click();
+    await page.locator('.turno-opt[data-hora]').first().click();
+    await page.click('#btn-continuar');
+    await page.click('#btn-confirmar-reserva');
+
+    await page.goto('/donante/dashboard.html');
+    await expect(page.locator('#proximos-turnos')).toHaveText('1');
+    await expect(page.locator('#proximo-turno-banner')).toBeVisible();
+    await expect(page.locator('#proximo-turno-titulo')).toHaveText('Próximo turno (pendiente de confirmación)');
+
+    await page.click('.pt-btn');
+    await expect(page.locator('#modal-turno-estado')).toHaveText('Pendiente');
+  });
+
 });
