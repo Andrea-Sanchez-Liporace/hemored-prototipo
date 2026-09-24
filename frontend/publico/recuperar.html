@@ -199,7 +199,11 @@
 
   // El código en sí no se verifica contra nada real (ver nota de paso2) —
   // solo se exige que las 6 casillas estén completas, para no dejar pasar
-  // un envío vacío.
+  // un envío vacío. PENDIENTE (no implementar sin backend, ver docs/04,
+  // "Pendientes de diseño adicionales" — "Verificación real del código de
+  // Recuperar contraseña"): generar un código real de un solo uso con
+  // expiración corta y mandarlo/validarlo por email de verdad, mismo
+  // mecanismo que el token de F4 y el link de verificación de email.
   function paso3() {
     ocultarError('codigo-error');
     const completo = Array.from(document.querySelectorAll('.code-input')).every(i => i.value.trim().length === 1);
