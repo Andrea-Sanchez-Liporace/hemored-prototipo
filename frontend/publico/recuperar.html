@@ -45,6 +45,8 @@
         <input class="form-input" id="r-email" type="email" placeholder="tu@email.com">
       </div>
 
+      <div id="email-error" class="form-error-box"></div>
+
       <button class="form-btn" onclick="paso2()">
         <i class="ti ti-send" aria-hidden="true"></i>
         Enviar código
@@ -75,6 +77,8 @@
         <input class="code-input" type="text" maxlength="1" oninput="moverFoco(this, 6)">
       </div>
       <span class="resend-link" onclick="reenviarCodigo()">¿No recibiste el código? Reenviarlo</span>
+
+      <div id="codigo-error" class="form-error-box"></div>
 
       <button class="form-btn" onclick="paso3()">
         <i class="ti ti-check" aria-hidden="true"></i>
@@ -107,6 +111,8 @@
         <label class="form-label" for="r-pass2">Repetir nueva contraseña</label>
         <input class="form-input" id="r-pass2" type="password" placeholder="••••••••">
       </div>
+
+      <div id="nueva-error" class="form-error-box"></div>
 
       <button class="form-btn" onclick="paso4()">
         <i class="ti ti-lock-check" aria-hidden="true"></i>
@@ -148,6 +154,7 @@
 
 <script>
   const steps = ['step-email', 'step-codigo', 'step-nueva', 'step-exito'];
+  let emailActual = '';
 
   function mostrar(id) {
     steps.forEach(s => document.getElementById(s).classList.remove('active'));
@@ -155,16 +162,73 @@
     window.scrollTo(0, 0);
   }
 
+  function mostrarError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function ocultarError(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
   function paso1() { mostrar('step-email'); }
 
-  function paso2() {
-    const email = document.getElementById('r-email').value || 'tu@email.com';
+  // Solo valida que el email exista de verdad en `usuarios` — no manda
+  // ningún código real (no hay backend/email que lo envíe). El paso
+  // "Revisá tu email" que sigue es de interfaz únicamente, mismo criterio
+  // ya documentado para no simular canales que el prototipo nunca puede
+  // cumplir de verdad (ver docs/04, "Validación de email del donante").
+  async function paso2() {
+    ocultarError('email-error');
+    const email = document.getElementById('r-email').value.trim();
+    if (!email) {
+      mostrarError('email-error', 'Ingresá tu email.');
+      return;
+    }
+    await HemoRed.db.init();
+    const existe = HemoRed.db.where('usuarios', 'email', email.toLowerCase()).length > 0;
+    if (!existe) {
+      mostrarError('email-error', 'No encontramos ninguna cuenta con ese email.');
+      return;
+    }
+    emailActual = email;
     document.getElementById('email-display').textContent = email;
     mostrar('step-codigo');
   }
 
-  function paso3() { mostrar('step-nueva'); }
-  function paso4() { mostrar('step-exito'); }
+  // El código en sí no se verifica contra nada real (ver nota de paso2) —
+  // solo se exige que las 6 casillas estén completas, para no dejar pasar
+  // un envío vacío.
+  function paso3() {
+    ocultarError('codigo-error');
+    const completo = Array.from(document.querySelectorAll('.code-input')).every(i => i.value.trim().length === 1);
+    if (!completo) {
+      mostrarError('codigo-error', 'Completá los 6 dígitos del código.');
+      return;
+    }
+    mostrar('step-nueva');
+  }
+
+  async function paso4() {
+    ocultarError('nueva-error');
+    const pass = document.getElementById('r-pass').value;
+    const pass2 = document.getElementById('r-pass2').value;
+    if (pass.length < 8) {
+      mostrarError('nueva-error', 'La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (pass !== pass2) {
+      mostrarError('nueva-error', 'Las contraseñas no coinciden.');
+      return;
+    }
+    const resultado = HemoRed.data.restablecerPasswordPorEmail(emailActual, pass);
+    if (!resultado.ok) {
+      mostrarError('nueva-error', resultado.error);
+      return;
+    }
+    mostrar('step-exito');
+  }
 
   function moverFoco(el, pos) {
     if (el.value.length === 1 && pos < 6) {
@@ -184,6 +248,7 @@
 </script>
 
   <script src="../js/db.js"></script>
+  <script src="../js/data.js"></script>
   <script src="../js/ui.js"></script>
 </body>
 </html>

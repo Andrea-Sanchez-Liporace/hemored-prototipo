@@ -6,6 +6,65 @@
 
 HemoRed.data = (function() {
 
+  // ===== PÚBLICO =====
+
+  // Formulario de contacto / lead institucional (publico/contacto.html) —
+  // antes `enviarFormulario()` solo cambiaba de vista, sin guardar nada. No
+  // usa la tabla `mensajes` (esa es mensajería hospital↔admin, con
+  // `hospital_id` obligatorio) porque acá quien escribe todavía no es un
+  // hospital dado de alta en el sistema, es un lead. Queda pendiente una
+  // vista de admin que liste estos mensajes — hoy solo se persisten.
+  function crearMensajeContacto(datos) {
+    const { nombre, apellido, email, telefono, institucion, provincia,
+            tipoConsulta, campanasPromedio, campanasSimultaneas,
+            alcanceGeografico, gestionActual, horarioContacto, mensaje } = datos;
+    if (!nombre || !apellido || !email) {
+      return { ok: false, error: 'Completá nombre, apellido y email.' };
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { ok: false, error: 'Ingresá un email válido.' };
+    }
+    const lead = HemoRed.db.crear('mensajes_contacto', {
+      nombre, apellido,
+      email: email.toLowerCase().trim(),
+      telefono: telefono || null,
+      institucion: institucion || null,
+      provincia: provincia || null,
+      tipo_consulta: tipoConsulta || [],
+      campanas_promedio_mes: campanasPromedio || null,
+      campanas_simultaneas_maximas: campanasSimultaneas || null,
+      alcance_geografico: alcanceGeografico || [],
+      gestion_actual: gestionActual || [],
+      horario_contacto: horarioContacto || null,
+      mensaje: mensaje || null,
+      estado: 'pendiente',
+      fecha: new Date().toISOString(),
+    });
+    return { ok: true, lead };
+  }
+
+  // Recuperar contraseña (publico/recuperar.html) — mismo criterio que
+  // cambiarPasswordDonante() (ver sección Donante más abajo) pero busca por
+  // email en vez de por usuarioId, porque quien la usa todavía no tiene
+  // sesión (es justamente el problema que resuelve). No manda ningún código
+  // real por email: el paso "Revisá tu email" del wizard sigue siendo solo
+  // de interfaz, mismo criterio ya documentado para no simular canales que
+  // el prototipo nunca puede cumplir de verdad (ver docs/04, "Validación de
+  // email del donante"). No está atado a un rol — cualquier `usuarios.email`
+  // real puede resetear su contraseña acá, no solo donantes.
+  function restablecerPasswordPorEmail(email, nuevaPassword) {
+    const emailNorm = (email || '').toLowerCase().trim();
+    const usuario = HemoRed.db.where('usuarios', 'email', emailNorm)[0];
+    if (!usuario) {
+      return { ok: false, error: 'No encontramos ninguna cuenta con ese email.' };
+    }
+    if (!nuevaPassword || nuevaPassword.length < 8) {
+      return { ok: false, error: 'La nueva contraseña debe tener al menos 8 caracteres.' };
+    }
+    const cambios = { password_hash: nuevaPassword, password_actualizada_en: new Date().toISOString() };
+    return { ok: true, usuario: HemoRed.db.actualizar('usuarios', usuario.id, cambios) };
+  }
+
   // ===== DONANTE =====
 
   // Campos "recomendados" del perfil, agrupados por la sección de
@@ -993,6 +1052,8 @@ HemoRed.data = (function() {
 
   return {
     ahora,
+    crearMensajeContacto,
+    restablecerPasswordPorEmail,
     CAMPOS_PERFIL_PERSONAL,
     CAMPOS_PERFIL_MEDICOS,
     verificarPerfilIncompleto,

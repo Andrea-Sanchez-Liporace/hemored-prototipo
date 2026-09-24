@@ -264,6 +264,8 @@
       <textarea class="form-input" id="c-mensaje" placeholder="Contanos cualquier detalle extra que nos ayude a entender mejor tu necesidad..."></textarea>
     </div>
 
+    <div id="contacto-error" class="form-error-box"></div>
+
     <button class="form-btn" onclick="enviarFormulario()">
       <i class="ti ti-send" aria-hidden="true"></i>
       Enviar consulta
@@ -294,22 +296,59 @@
 </footer>
 
 <script>
-  function enviarFormulario() {
+  // Junta los textos de las labels de los checkboxes tildados de un grupo
+  // (ej. "tipo", "alcance", "gestion") — se guardan como texto legible, no
+  // como los ids internos (ch-unica, ch-red...), porque todavía no existe
+  // ninguna vista de admin que los interprete de otra forma.
+  function checkeados(name) {
+    return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => {
+      const label = document.querySelector(`label[for="${cb.id}"]`);
+      return label ? label.textContent : cb.id;
+    });
+  }
+
+  async function enviarFormulario() {
+    const errorEl = document.getElementById('contacto-error');
+    errorEl.style.display = 'none';
+
+    const datos = {
+      nombre: document.getElementById('c-nombre').value.trim(),
+      apellido: document.getElementById('c-apellido').value.trim(),
+      email: document.getElementById('c-email').value.trim(),
+      telefono: document.getElementById('c-tel').value.trim(),
+      institucion: document.getElementById('c-inst').value.trim(),
+      provincia: document.getElementById('c-provincia').value,
+      tipoConsulta: checkeados('tipo'),
+      campanasPromedio: document.getElementById('c-campanas-mes').value,
+      campanasSimultaneas: document.getElementById('c-simultaneas').value,
+      alcanceGeografico: checkeados('alcance'),
+      gestionActual: checkeados('gestion'),
+      horarioContacto: document.getElementById('c-horario').value,
+      mensaje: document.getElementById('c-mensaje').value.trim(),
+    };
+
+    await HemoRed.db.init();
+    const resultado = HemoRed.data.crearMensajeContacto(datos);
+    if (!resultado.ok) {
+      errorEl.textContent = resultado.error;
+      errorEl.style.display = 'block';
+      return;
+    }
+
     document.getElementById('form-container').style.display = 'none';
     document.getElementById('success-msg').style.display = 'block';
     window.scrollTo(0, 0);
   }
 </script>
 
-<!-- Esta página nunca cargó el framework de HemoRed (es un mockup estático,
-     parte del circuito "registro de hospital → pago → aprobación" todavía
-     sin conectar, ver docs/04) — se agregan estos 2 scripts únicamente
-     para que los 4 selects de este formulario tengan el mismo componente
-     personalizado que el resto del sitio (ver docs/04, "Componente
-     compartido: select personalizado"). db.js solo crea el objeto global
-     `HemoRed` que necesita ui.js — no se llama a HemoRed.db.init() acá,
-     esta pantalla sigue sin datos reales. -->
+<!-- Antes esta página nunca cargaba db.js/data.js de verdad (era un mockup
+     que solo cambiaba de vista) — ahora enviarFormulario() persiste el lead
+     en `mensajes_contacto` (ver data.js, crearMensajeContacto()). Sigue sin
+     login/sesión porque quien llena este formulario todavía no es un
+     usuario del sistema. Falta una vista de admin que liste estos mensajes,
+     ver docs/04. -->
 <script src="../js/db.js"></script>
+<script src="../js/data.js"></script>
 <script src="../js/ui.js"></script>
 </body>
 </html>

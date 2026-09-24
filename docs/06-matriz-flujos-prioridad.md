@@ -24,14 +24,14 @@
 | Registro de hospital | Público→Hospital | 🔴 | 🟢 | No lee ni guarda ningún campo del formulario. | Medio | Must | **Por partes** — es el primer eslabón de la cadena Registro→Pago→Aprobación (ver más abajo), no sirve resolverlo solo. |
 | Pago de plan hospital | Público→Hospital | 🔴 | 🟢 | No crea factura ni hospital, y redirige directo al dashboard sin pasar por aprobación (contradice el propio texto de la pantalla anterior). | Medio | Must | **Por partes** — mismo motivo. |
 | Cuenta pendiente de aprobación | Público | 🟡 | 🟡 | Pantalla huérfana — ningún flujo navega hacia acá todavía. Datos 100% hardcodeados. | Bajo | Must | **Por partes** — es el destino final de la cadena de arriba. |
-| Recuperar contraseña | Público | 🔴 | 🟢 | No valida email, no genera/compara código, no cambia contraseña. No incluye ni `db.js`/`sesion.js`. | Medio | Should | Completo |
-| Contacto / lead institucional | Público | 🔴 | 🟢 | No se lee ni se guarda el formulario. Tampoco existe una vista de admin que liste estos mensajes. | Bajo (form) / Medio (+vista admin) | Could | Completo |
+| Recuperar contraseña | Público | 🟢 | 🟢 | Cerrado 2026-09-24. El paso "Revisá tu email" sigue siendo solo de interfaz a propósito (no hay backend que mande un código real). | — | — | — |
+| Contacto / lead institucional | Público | 🟢 | 🟢 | Cerrado 2026-09-24 — el lead ya se guarda de verdad (`mensajes_contacto`). Sigue faltando la vista de admin que los liste. | — | — | — |
 | Nosotros / Términos / Privacidad | Público | 🟢 | 🟢 | Contenido estático, no requiere lógica. | — | — | — |
 | Modal de bienvenida (aviso institucional) | Público | 🟢 | 🟢 | Se muestra una vez por navegador, explica que es un prototipo académico y su alcance real. | — | — | — |
 
 **Nota:** Registro de hospital → Pago → Cuenta pendiente → Aprobación por Super Admin es **una sola cadena de 4 pantallas en 2 roles** (Público/Hospital + Super Admin) que hoy existen cada una por separado sin tocarse entre sí — la propia documentación interna del sistema (`admin/documentacion.html`) ya describe el flujo correcto. Es el ejemplo más claro de "cableado faltante" del prototipo: no falta diseñar nada, falta conectar 4 piezas ya construidas.
 
-**Actualización 2026-09-23/24:** además de conectar lo que faltaba, este bloque pasó por una revisión completa de responsive (mobile 320-375px) y una migración de todos sus estilos inline a `publico.css` — ver `docs/04`, sección "Público / Onboarding", para el detalle de cada corrección. Ninguna cambia el estado 🟢/🔴 de las filas de arriba (son ajustes de calidad de código y de UI, no de conexión a datos), pero dejan el bloque en mejor estado del que sugiere esta tabla por sí sola.
+**Actualización 2026-09-23/24:** este bloque pasó por una revisión completa de responsive (mobile 320-375px) y una migración de todos sus estilos inline a `publico.css` (no cambia ningún estado 🟢/🔴, son ajustes de calidad de código y de UI) — ver `docs/04`, sección "Público / Onboarding", para el detalle. De paso se encontraron y corrigieron 2 filas de esta misma tabla que estaban desactualizadas (Login y Registro de donante ya estaban conectados de verdad, no 🔴/parcial como decía la versión anterior), y se cerraron 2 flujos reales más: **Recuperar contraseña** y **Contacto/lead institucional**. De los 8 flujos originales de este bloque, quedan sin conectar solo los 3 que forman la cadena Registro de hospital → Pago → Cuenta pendiente (ver nota de arriba) — todo lo demás de Público ya está 🟢.
 
 ---
 

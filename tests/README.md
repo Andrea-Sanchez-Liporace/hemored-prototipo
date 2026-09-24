@@ -219,6 +219,21 @@ Ver `docs/04-estado-actual-prototipo.md`, sección "Confirmación automática y 
 1. Las 10 páginas públicas no tienen scroll horizontal a 320px.
 2. Los 3 métodos de pago de `pago.html` entran dentro de la tarjeta sin desbordarla, el caso puntual que disparó el hallazgo.
 
+**`contacto.spec.js`** — formulario de contacto/lead institucional (`publico/contacto.html`), agregado 2026-09-24. Antes `enviarFormulario()` solo cambiaba de vista visual; ahora persiste el lead en una tabla nueva, `mensajes_contacto` (`HemoRed.data.crearMensajeContacto()`) — no en `mensajes.json`, que es mensajería hospital↔admin y requiere un `hospital_id` que acá no existe (quien completa el formulario no es un hospital dado de alta todavía):
+
+1. Enviar el formulario vacío muestra un error y no guarda nada.
+2. Completarlo y enviarlo guarda el lead real (incluidos los 3 grupos de checkboxes, como el texto legible de cada opción tildada) y muestra la vista de éxito.
+
+Queda pendiente, a propósito, una vista de admin que liste estos mensajes — no implementada todavía.
+
+**`recuperar-password.spec.js`** — "Recuperar contraseña" (`publico/recuperar.html`), agregado 2026-09-24. Antes eran 4 pasos que solo alternaban clases CSS. Mismo criterio que `cambiarPasswordDonante()` (Seguridad de la cuenta) pero buscando por email en vez de por `usuarioId` — acá quien lo usa todavía no tiene sesión (`HemoRed.data.restablecerPasswordPorEmail()`):
+
+1. Un email que no existe en `usuarios` muestra error y no avanza.
+2. El código de 6 dígitos no se verifica contra nada real (no hay backend que lo mande) — pero no se puede avanzar si las 6 casillas no están completas.
+3. Ciclo completo con un donante recién registrado: contraseña corta y contraseñas que no coinciden muestran error; el reset real funciona, verificado logueándose después con la contraseña nueva.
+
+**Límite conocido, no un bug de este test:** para las 4 cuentas demo (`donante@hemored.com` y las otras 3), este flujo actualiza `usuarios.json` pero el login de esas cuentas puntuales sigue mirando el objeto `USUARIOS` fijo de `sesion.js` primero — mismo límite ya documentado para `cambiarPasswordDonante`. Por eso el caso de ciclo completo usa un donante recién registrado, no una cuenta fija.
+
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 
 Flujos que sabemos que faltan probar (porque todavía no están conectados a datos reales, no porque nos olvidamos):

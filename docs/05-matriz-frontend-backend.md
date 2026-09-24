@@ -42,10 +42,18 @@ Agrupado por rol, mismo criterio de filas que `docs/04` para que sea fácil cruz
 
 | Funcionalidad | Función hoy (`frontend/js/`) | Qué cambia con backend |
 |---|---|---|
-| Login | `sesion.js` — hoy hardcodeado a 4 pares fijos, ni siquiera lee `usuarios.json` | Se vuelve `POST /api/auth/login` con JWT real (hoy no hay ningún token, la sesión es solo un objeto en `sessionStorage`). Es el gap más grande de este grupo: hoy literalmente no hay autenticación real que reemplazar, hay que construirla. |
-| Registro (cualquier rol) | No implementado (🔴 en las 4 tablas de `docs/04`) | `POST /api/auth/registro/{rol}` — valida email no duplicado, hashea contraseña. |
+| Login | `sesion.js` — valida contra 4 pares fijos y, si no matchea, cae a buscar el email real en `usuarios.json` (corregido en `docs/04`, esto ya no es solo las 4 cuentas demo) | Se vuelve `POST /api/auth/login` con JWT real (hoy no hay ningún token, la sesión es solo un objeto en `sessionStorage`). Es el gap más grande de este grupo: hoy literalmente no hay autenticación real que reemplazar, hay que construirla. |
+| Registro (donante) | `HemoRed.sesion.registrarDonante()` — 🟢 ya implementado | `POST /api/auth/registro/donante` — misma validación (email no duplicado), cambia el hash de contraseña por uno real. |
+| Registro (hospital) | No implementado (🔴, ver `docs/04`) | `POST /api/auth/registro/hospital` — valida email no duplicado, hashea contraseña, crea el hospital en estado `pendiente`. |
 | Toda lectura de listados/dashboards | `db.js`: `find()`/`where()`/`all()` sobre JSON estático | `GET /api/{recurso}` — mismo shape de datos esperado, cambia el origen. |
 | Toda escritura (crear/actualizar un registro) | `db.js`: `crear()`/`actualizar()` sobre `localStorage` | `POST`/`PATCH /api/{recurso}` — la función de negocio (`crearTurno()`, `confirmarTurno()`, etc.) se queda, cambia lo que hay dentro suyo. |
+
+### Público (sin sesión)
+
+| Funcionalidad | Función hoy | Nota |
+|---|---|---|
+| Recuperar contraseña | `restablecerPasswordPorEmail()` | El paso "Revisá tu email" (código de 6 dígitos) sigue siendo solo de interfaz — con backend, ahí sí se manda y verifica un código real (mismo mecanismo de "link de un solo uso" ya documentado para validar el email del donante). La escritura del `password_hash` nuevo en sí ya es una función de negocio real hoy, no hay que inventarla de cero. |
+| Formulario de contacto / lead institucional | `crearMensajeContacto()` | Guarda en `mensajes_contacto`, una tabla nueva (no `mensajes`, que es mensajería hospital↔admin y requiere un hospital ya dado de alta). Falta la vista de admin que los lea — hoy nadie consume esta tabla todavía. |
 
 ### Donante
 
