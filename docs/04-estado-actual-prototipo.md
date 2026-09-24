@@ -300,6 +300,8 @@ A pedido de la usuaria ("todo el sitio de donante, no es responsive?"), se revis
 
 **Hallazgo clave de este grupo:** la propia documentación interna del proyecto (`admin/documentacion.html`) ya describe el flujo correcto (registro → pago → pendiente de aprobación) — el gap no es de diseño, es puramente de que nadie conectó el código a esa spec. Es el ejemplo más claro de "cableado faltante" de todo el prototipo.
 
+**Corregido 2026-09-24, a pedido explícito de la usuaria: el botón "Iniciar sesión" del header (`.nav-cta`) quedaba visible en mobile al lado del ícono de menú** — en las 5 páginas públicas con este nav compartido (`index.html`, `nosotros.html`, `contacto.html`, `terminos.html`, `privacidad.html`). Pidió que en mobile viva solo dentro del menú desplegable, no repetido en el header — se agregó `.nav-cta { display: none; }` en el `@media` de mobile de `publico.css` (el botón equivalente, `.mobile-menu-cta`, ya existía dentro del menú). Al revisarlo se encontraron 2 bugs reales más, no reportados explícitamente pero del mismo componente: **`nosotros.html` tenía el botón del menú sin `onclick`** (no hacía nada al clickearlo) y **`contacto.html` no tenía ese botón en absoluto** dentro de su menú — con el header ya oculto en mobile, esa página se hubiera quedado sin ninguna forma de llegar al login desde el celular. Ambos corregidos con el mismo patrón que ya usaban `index.html`/`terminos.html`/`privacidad.html`.
+
 ---
 
 ## Donante

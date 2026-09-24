@@ -400,6 +400,11 @@ main.contacto .form-card { max-width: none; }
   nav { padding: 14px 24px; }
   .nav-links { display: none; }
   .nav-public-links { display: none; }
+  /* El botón "Iniciar sesión" del header (.nav-cta) quedaba visible al
+     lado del ícono de menú en mobile — pedido explícito de la usuaria:
+     en mobile va solo dentro del menú desplegable (.mobile-menu-cta, ya
+     existe ahí), no repetido en el header. */
+  .nav-cta { display: none; }
   .burger-btn { display: flex; }
   .mobile-menu { display: flex; }
 
