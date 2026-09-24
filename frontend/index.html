@@ -159,9 +159,53 @@
   <div class="footer-copy">© 2026 HemoRed</div>
 </footer>
 
+<!-- MODAL DE BIENVENIDA — se muestra una única vez por navegador, ver
+     script al pie. Explica que HemoRed es un prototipo académico, no una
+     plataforma en producción, para que quien lo visite entienda el
+     alcance real antes de explorarlo. -->
+<div class="modal-overlay" id="modal-bienvenida">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Antes de comenzar</div>
+        <div class="modal-subtitle">Este sitio es un prototipo funcional</div>
+      </div>
+      <button class="modal-close" onclick="cerrarBienvenida()" aria-label="Cerrar"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:12px;line-height:1.6;">HemoRed es un prototipo funcional desarrollado en el marco de la materia Prácticas Profesionalizantes III de una tecnicatura en Análisis de Sistemas. El proyecto fue construido en su totalidad por el equipo desde el momento cero: partiendo del relevamiento de requisitos y las definiciones conceptuales del sistema (necesidades a resolver, roles involucrados y arquitectura de la solución) hasta llegar a la implementación de esta interfaz.</p>
+      <p style="margin-bottom:12px;line-height:1.6;">El proyecto aborda un problema real: en Argentina, la coordinación de campañas de donación de sangre suele depender de canales informales —redes sociales, mensajería— lo que dificulta que hospitales y donantes se encuentren de manera organizada. HemoRed propone una plataforma centralizada para la gestión de campañas, turnos y documentación asociada al proceso de donación.</p>
+      <div class="aviso aviso-info">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
+        <div>Por tratarse de un prototipo con fines académicos, no cuenta con un servidor ni una base de datos real: la información que se ingrese se almacena únicamente en este navegador, a modo demostrativo.</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cerrarBienvenida();window.location='publico/nosotros.html'">Conocer más sobre el proyecto</button>
+      <button class="btn btn-primary" onclick="cerrarBienvenida()">Entendido, continuar</button>
+    </div>
+  </div>
+</div>
+
   <script src="js/db.js"></script>
   <script src="js/sesion.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/data.js"></script>
+  <script>
+    // Modal de bienvenida: se muestra una sola vez por navegador (no por
+    // sesión), de ahí localStorage y no sessionStorage.
+    (function() {
+      try {
+        if (!localStorage.getItem('hemored_modal_bienvenida_visto')) {
+          HemoRed.ui.abrirModal('modal-bienvenida');
+        }
+      } catch (e) { /* localStorage no disponible: se omite el modal */ }
+    })();
+
+    function cerrarBienvenida() {
+      try { localStorage.setItem('hemored_modal_bienvenida_visto', '1'); } catch (e) {}
+      HemoRed.ui.cerrarModal('modal-bienvenida');
+    }
+  </script>
 </body>
 </html>
