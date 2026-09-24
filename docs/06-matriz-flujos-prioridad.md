@@ -19,8 +19,8 @@
 | Flujo | Rol | Desarrollo | Diseño | Qué falta | Esfuerzo | Prioridad | Enfoque |
 |---|---|---|---|---|---|---|---|
 | Landing pública | Público | 🟢 | 🟢 | — | — | — | — |
-| Login | Público | 🟢 (parcial) | 🟢 | Autentica contra 4 usuarios fijos, no contra `usuarios.json`; falta el caso "hospital pendiente → redirigir a cuenta pendiente". | Bajo | Must | Completo |
-| Registro de donante | Público→Donante | 🔴 | 🟢 | El botón "Crear cuenta" no tiene `onclick` — es código muerto, la función ya existe escrita. | Bajo | Must | Completo |
+| Login | Público | 🟢 | 🟢 | Ya autentica contra `usuarios.json` además de las 4 cuentas demo (corregido, ver `docs/04`); falta el caso "hospital pendiente → redirigir a cuenta pendiente", bloqueado hasta que exista un hospital `pendiente` real (ver fila de abajo). | — | — | — |
+| Registro de donante | Público→Donante | 🟢 | 🟢 | — | — | — | — |
 | Registro de hospital | Público→Hospital | 🔴 | 🟢 | No lee ni guarda ningún campo del formulario. | Medio | Must | **Por partes** — es el primer eslabón de la cadena Registro→Pago→Aprobación (ver más abajo), no sirve resolverlo solo. |
 | Pago de plan hospital | Público→Hospital | 🔴 | 🟢 | No crea factura ni hospital, y redirige directo al dashboard sin pasar por aprobación (contradice el propio texto de la pantalla anterior). | Medio | Must | **Por partes** — mismo motivo. |
 | Cuenta pendiente de aprobación | Público | 🟡 | 🟡 | Pantalla huérfana — ningún flujo navega hacia acá todavía. Datos 100% hardcodeados. | Bajo | Must | **Por partes** — es el destino final de la cadena de arriba. |
