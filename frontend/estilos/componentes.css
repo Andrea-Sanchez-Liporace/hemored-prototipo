@@ -22,12 +22,29 @@
 .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-rosa); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
 .sidebar-prof-name { font-size: 13px; font-weight: 500; color: white; }
 .sidebar-prof-role { font-size: 11px; color: var(--color-rosa-light); }
-.sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; color: var(--color-rosa-light); font-size: 13px; transition: background var(--transition-base); }
+/* El scrollbar NATIVO se oculta a propósito: en Windows, Chrome/Edge
+   modernos usan scrollbars "overlay" que ignoran cualquier
+   ::-webkit-scrollbar personalizado (confirmado: ni siquiera reservan
+   ancho) — no hay forma confiable de estilizarlo desde CSS. Se reemplaza
+   por un indicador propio (`.sidebar-nav-wrap`/`.sidebar-nav-scrollbar`,
+   ver global.css), inyectado por JS (HemoRed.ui.init(), ui.js), calculado
+   a mano contra scrollTop/scrollHeight reales. */
+.sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; scrollbar-width: none; }
+.sidebar-nav::-webkit-scrollbar { display: none; }
+/* Look e íconos del ítem de menú: ÚNICA definición para los 4 roles — antes
+   estaba duplicada byte a byte en donante.css/hospital.css/profesional.css
+   (con Donante además con un color de "activo" distinto, más chillón, sin
+   ningún motivo). Admin, que sí tiene paleta propia (navy en vez de rosa/
+   borravino), solo pisa `color` acá — no repite el resto de las
+   propiedades (ver admin.css). */
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: var(--color-rosa-light); font-size: 13px; text-decoration: none; transition: background var(--transition-base); text-align: left; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
 .nav-item.active { background: var(--color-borravino); color: white; }
 .nav-item i { font-size: 18px; flex-shrink: 0; }
 .nav-badge { background: var(--color-rosa); color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+.nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: white; padding: 12px 12px 4px; }
+.sidebar-nav .nav-section-label ~ .nav-section-label { position: relative; padding-top: 20px; }
+.sidebar-nav .nav-section-label ~ .nav-section-label::before { content: ''; display: block; position: absolute; top: 6px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(242,139,152,0.5) 30%, rgba(242,139,152,0.5) 70%, transparent); }
 
 /* ===== TOPBAR ===== */
 .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid var(--color-rosa-border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }

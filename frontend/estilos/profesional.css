@@ -3,8 +3,6 @@
    Estilos específicos del rol profesional de salud
    ============================================================ */
 
-.sidebar-profesional { background: var(--color-borravino-dark); }
-
 /* TURNO ATENCIÓN */
 .turno-atencion { background: white; border-radius: 14px; padding: 20px 24px; border: 0.5px solid var(--color-rosa-border); display: flex; align-items: center; gap: 20px; margin-bottom: 12px; transition: border-color var(--transition-base); }
 .turno-atencion:hover { border-color: var(--color-rosa-light); }
@@ -57,26 +55,9 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
 .sidebar-prof-name { font-size: 13px; font-weight: 500; color: white; }
 .sidebar-prof-role { font-size: 11px; color: #f28b98; }
-/* min-height:0 + overflow-y:auto: sin esto, un hijo de flex-direction:column
-   nunca se achica más allá de su contenido (mismo patrón de min-width:0 ya
-   corregido varias veces en donante.css, acá en el eje vertical). */
-/* El scrollbar NATIVO se oculta a propósito: en Windows, Chrome/Edge
-   modernos usan scrollbars "overlay" que ignoran cualquier
-   ::-webkit-scrollbar personalizado (confirmado: ni siquiera reservan
-   ancho) — no hay forma confiable de estilizarlo desde CSS. Se reemplaza
-   por un indicador propio (`.sidebar-nav-wrap`/`.sidebar-nav-scrollbar`,
-   ver global.css), inyectado por JS (HemoRed.ui.init(), ui.js), calculado
-   a mano contra scrollTop/scrollHeight reales. */
-.sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; scrollbar-width: none; }
-.sidebar-nav::-webkit-scrollbar { display: none; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; text-align: left; }
-.nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
-.nav-item.active { background: #5a1e37; color: white; }
-.nav-item i { font-size: 18px; flex-shrink: 0; }
-.nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
-.nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: white; padding: 12px 12px 4px; }
-.sidebar-nav .nav-section-label ~ .nav-section-label { position: relative; padding-top: 20px; }
-.sidebar-nav .nav-section-label ~ .nav-section-label::before { content: ''; display: block; position: absolute; top: 6px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(242,139,152,0.5) 30%, rgba(242,139,152,0.5) 70%, transparent); }
+/* .sidebar-nav (scroll interno), .nav-item/.nav-section-label (look de los
+   ítems del menú) y .nav-badge son una única definición compartida por los
+   4 roles, en componentes.css — no repetir acá. */
 .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
 .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
 .topbar-left { display: flex; align-items: center; gap: 12px; }

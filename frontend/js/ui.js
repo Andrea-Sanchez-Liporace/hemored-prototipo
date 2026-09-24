@@ -60,6 +60,15 @@ HemoRed.ui = (function() {
 
     nav.addEventListener('scroll', actualizar);
     window.addEventListener('resize', actualizar);
+    // La primera medición puede quedar corta si todavía no cargaron las
+    // fuentes (Lobster/Inter, por @import de Google Fonts) — el texto con
+    // la fuente de reserva ocupa menos alto, así que en ese momento puede
+    // dar que "no hace falta scroll" y quedarse así aunque después, con la
+    // fuente real, el menú sí desborde. Se vuelve a medir cuando termine de
+    // cargar la página entera y, si el navegador lo soporta, apenas las
+    // fuentes terminen de aplicarse.
+    window.addEventListener('load', actualizar);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(actualizar);
     actualizar();
   }
 

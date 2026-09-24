@@ -3,12 +3,6 @@
    Estilos específicos del super administrador
    ============================================================ */
 
-.sidebar-admin { background: #1a1a2e; }
-.sidebar-admin .nav-item { color: #7c8db5; }
-.sidebar-admin .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
-.sidebar-admin .nav-item.active { background: #16213e; color: white; }
-.sidebar-admin .nav-badge { background: #3498db; }
-
 /* HOSPITAL TABLE */
 .hospital-row { background: white; border-radius: 10px; padding: 14px 20px; border: 0.5px solid var(--color-rosa-border); display: flex; align-items: center; gap: 14px; margin-bottom: 8px; cursor: pointer; transition: border-color var(--transition-base); }
 .hospital-row:hover { border-color: var(--color-rosa-light); }
@@ -70,26 +64,13 @@ body { font-family: 'Inter', sans-serif; background: #f0f0f0; color: #1a1a1a; mi
 .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
 .sidebar-user-name { font-size: 13px; font-weight: 500; color: white; }
 .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
-/* min-height:0 + overflow-y:auto: sin esto, un hijo de flex-direction:column
-   nunca se achica más allá de su contenido (mismo patrón de min-width:0 ya
-   corregido varias veces en donante.css, acá en el eje vertical). */
-/* El scrollbar NATIVO se oculta a propósito: en Windows, Chrome/Edge
-   modernos usan scrollbars "overlay" que ignoran cualquier
-   ::-webkit-scrollbar personalizado (confirmado: ni siquiera reservan
-   ancho) — no hay forma confiable de estilizarlo desde CSS. Se reemplaza
-   por un indicador propio (`.sidebar-nav-wrap`/`.sidebar-nav-scrollbar`,
-   ver global.css), inyectado por JS (HemoRed.ui.init(), ui.js), calculado
-   a mano contra scrollTop/scrollHeight reales. */
-.sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; scrollbar-width: none; }
-.sidebar-nav::-webkit-scrollbar { display: none; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; transition: all 0.15s; text-align: left; }
-.nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+/* .sidebar-nav (scroll interno) y .nav-item/.nav-section-label (look de los
+   ítems del menú) son una única definición compartida por los 4 roles, en
+   componentes.css — acá solo se pisa `color`, porque Admin usa paleta
+   navy en vez de rosa/borravino (mismo criterio para el resto del
+   archivo: solo tonos propios, nunca repetir el layout entero). */
+.nav-item { color: rgba(255,255,255,0.5); }
 .nav-item.active { background: #ef647c; color: white; }
-.nav-item i { font-size: 18px; flex-shrink: 0; }
-.nav-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
-.nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: white; padding: 12px 12px 4px; }
-.sidebar-nav .nav-section-label ~ .nav-section-label { position: relative; padding-top: 20px; }
-.sidebar-nav .nav-section-label ~ .nav-section-label::before { content: ''; display: block; position: absolute; top: 6px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(242,139,152,0.5) 30%, rgba(242,139,152,0.5) 70%, transparent); }
 .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
 .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
