@@ -90,6 +90,17 @@ ul { list-style: none; }
    caso real de esta combinación en donante/dashboard.html). */
 .hidden { display: none !important; }
 
+/* Bloquea la interacción con un contenedor mientras sus datos todavía se
+   están cargando de forma asíncrona (HemoRed.db.init() + el resto de la
+   carga inicial de una pantalla) — evita que un click/submit llegue a
+   correr contra datos que todavía no existen (ver perfil.html, agregado
+   2026-09-24 tras un bug real: varias funciones de "Guardar" leían una
+   variable global que recién se completaba después del fetch, y si el
+   click llegaba antes, tiraban un error sin aviso visible). No cambia el
+   contenido ni lo oculta, solo impide interactuar hasta que se saque la
+   clase — pensado para sacarse apenas termina la carga, no para quedarse. */
+.cargando-datos { pointer-events: none; }
+
 /* TOOLTIP genérico: agregar data-tooltip="texto" a cualquier elemento con
    position:relative (ej. .topbar-btn ya lo tiene) para que muestre un
    globo al pasar el mouse. Compartido entre roles porque el mecanismo es

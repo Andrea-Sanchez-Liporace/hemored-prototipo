@@ -84,7 +84,7 @@
     </div>
   </div>
 
-  <div class="content">
+  <fieldset class="content cargando-datos" id="perfil-content" disabled>
 
     <!-- HEADER PERFIL -->
     <div class="perfil-header">
@@ -447,7 +447,7 @@
       </div>
     </div>
 
-  </div>
+  </fieldset>
 </div>
 
 <!-- MODAL CAMBIAR CONTRASEÑA -->
@@ -534,6 +534,21 @@
   let tipoSangreSeleccionado = null;
 
   async function cargarPerfil() {
+    // Se bloquea en CADA llamada, no solo la primera: "Guardar" en cualquier
+    // sección dispara un cargarPerfil() nuevo (sin awaitear) para refrescar
+    // toda la pantalla — sin este re-bloqueo, una segunda interacción muy
+    // rápida (ej. pasar a otra sección y guardar de nuevo) podía correr a
+    // mitad de ese refresco, contra un usuarioActual/DOM a medio actualizar.
+    // Es un <fieldset disabled> (no un <div>) a propósito: bloquear con
+    // pointer-events (clicks) no alcanzaba — Playwright (y cualquier
+    // automatización) puede seguir escribiendo en un input con fill() aunque
+    // tenga pointer-events:none puesto, porque fill() no depende de un click
+    // real. Recién al desactivar el campo de VERDAD (disabled) deja de
+    // aceptar texto hasta que termine de cargar — bug real encontrado así:
+    // cargarPerfil() pisaba con null lo que el usuario ya había escrito en
+    // Datos personales si esa carga terminaba DESPUÉS de escribir.
+    const fieldset = document.getElementById('perfil-content');
+    if (fieldset) { fieldset.disabled = true; fieldset.classList.add('cargando-datos'); }
     await HemoRed.db.init();
     const s = HemoRed.sesion.requerirLogin('donante');
     if (!s) return;
@@ -614,6 +629,11 @@
 
     // Sección 4 — Empleadores frecuentes
     renderEmpleadores(usuarioActual.empleadores_frecuentes || []);
+
+    // Recién ahora `usuarioActual` está completo y todas las secciones
+    // reflejan datos reales — se saca el bloqueo de interacción.
+    fieldset.disabled = false;
+    fieldset.classList.remove('cargando-datos');
   }
 
   // % de completitud simple: cuántos de los campos "opcionales pero recomendados" están cargados.
@@ -874,6 +894,11 @@
     const nueva = document.getElementById('pw-nueva').value;
     const nueva2 = document.getElementById('pw-nueva2').value;
     const errorEl = document.getElementById('pw-error');
+    if (!usuarioActual) {
+      errorEl.textContent = 'Todavía se está cargando tu perfil. Esperá un segundo e intentá de nuevo.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
     if (nueva !== nueva2) {
       errorEl.textContent = 'Las contraseñas nuevas no coinciden.';
       errorEl.classList.remove('hidden');
@@ -902,6 +927,11 @@
     const nuevoEmail = document.getElementById('email-nuevo').value;
     const actual = document.getElementById('email-pass-actual').value;
     const errorEl = document.getElementById('email-error');
+    if (!usuarioActual) {
+      errorEl.textContent = 'Todavía se está cargando tu perfil. Esperá un segundo e intentá de nuevo.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
     const resultado = HemoRed.data.cambiarEmailDonante(usuarioActual.id, { actual, nuevoEmail });
     if (!resultado.ok) {
       errorEl.textContent = resultado.error;
@@ -925,6 +955,11 @@
   function confirmarEliminarCuenta() {
     const actual = document.getElementById('eliminar-pass-actual').value;
     const errorEl = document.getElementById('eliminar-error');
+    if (!usuarioActual) {
+      errorEl.textContent = 'Todavía se está cargando tu perfil. Esperá un segundo e intentá de nuevo.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
     const resultado = HemoRed.data.eliminarCuentaDonante(usuarioActual.id, { actual });
     if (!resultado.ok) {
       errorEl.textContent = resultado.error;

@@ -97,6 +97,13 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .mobile-topbar-btn { display: none; background: none; border: none; cursor: pointer; padding: 4px; flex-direction: column; gap: 4px; flex-shrink: 0; }
 .mobile-topbar-btn span { display: block; width: 22px; height: 2px; background: #5a1e37; border-radius: 2px; }
 .content { padding: 32px; flex: 1; }
+/* perfil.html usa un <fieldset> (no <div>) para .content a propósito, para
+   poder bloquear TODOS sus campos de una vez con `disabled` mientras carga
+   (ver cargarPerfil() en perfil.html) — esto neutraliza el estilo por
+   default del navegador para <fieldset> (borde, margen, y un min-width
+   propio que rompería flex:1 igual que cualquier otro caso de min-width:0
+   ya corregido en este archivo). */
+fieldset.content { border: 0; margin: 0; min-width: 0; }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
 
 /* === DASHBOARD DONANTE === */
