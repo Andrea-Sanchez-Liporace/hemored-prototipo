@@ -61,6 +61,16 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
    nunca se achica más allá de su contenido (mismo patrón de min-width:0 ya
    corregido varias veces en donante.css, acá en el eje vertical). */
 .sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+/* Scrollbar propia para el menú: el scrollbar global del sitio (global.css)
+   está pensado para fondos claros (fondo rosa pálido) — contra el fondo
+   oscuro del sidebar quedaba prácticamente invisible. Fondo un tono más
+   oscuro que el propio del sidebar (no un color plano nuevo, se logra con
+   negro semitransparente encima) y la barra en rosa de marca, bien visible. */
+.sidebar-nav::-webkit-scrollbar { width: 6px; }
+.sidebar-nav::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+.sidebar-nav::-webkit-scrollbar-thumb { background: #ef647c; border-radius: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb:hover { background: #f28b98; }
+.sidebar-nav { scrollbar-width: thin; scrollbar-color: #ef647c rgba(0,0,0,0.2); }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; text-align: left; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
 .nav-item.active { background: #5a1e37; color: white; }
