@@ -35,7 +35,7 @@
 <section class="hero">
   <div class="hero-left">
     <div class="hero-badge">
-      <i class="ti ti-heart" style="color:#ef647c;font-size:13px;"></i>
+      <i class="ti ti-heart"></i>
       Plataforma de donación de sangre
     </div>
     <h1>Cada gota cuenta.<br><span>Conectamos</span> donantes<br>con quienes más lo necesitan.</h1>
@@ -45,8 +45,8 @@
   <div class="hero-right">
     <div class="hero-right-label">¿Cómo querés ingresar?</div>
     <button class="hero-cta-card" onclick="window.location='publico/login.html?rol=donante'">
-      <div class="hero-cta-icon" style="background:#ef647c;">
-        <i class="ti ti-heart" style="color:white;font-size:18px;"></i>
+      <div class="hero-cta-icon donante">
+        <i class="ti ti-heart"></i>
       </div>
       <div class="hero-cta-body">
         <div class="hero-cta-title">Quiero donar sangre</div>
@@ -55,8 +55,8 @@
       <i class="ti ti-arrow-right hero-cta-arrow"></i>
     </button>
     <button class="hero-cta-card" onclick="window.location='publico/login.html?rol=hospital'">
-      <div class="hero-cta-icon" style="background:#5a1e37;">
-        <i class="ti ti-building-hospital" style="color:white;font-size:18px;"></i>
+      <div class="hero-cta-icon hospital">
+        <i class="ti ti-building-hospital"></i>
       </div>
       <div class="hero-cta-body">
         <div class="hero-cta-title">Soy un hospital</div>
@@ -97,7 +97,7 @@
   <div class="roles-grid">
     <div class="role-card donante">
       <div class="role-header">
-        <div class="role-icon donante"><i class="ti ti-heart" style="color:white;font-size:18px;"></i></div>
+        <div class="role-icon donante"><i class="ti ti-heart"></i></div>
         <div class="role-title">Para donantes</div>
       </div>
       <ul class="feature-list">
@@ -110,7 +110,7 @@
     </div>
     <div class="role-card hospital">
       <div class="role-header">
-        <div class="role-icon hospital"><i class="ti ti-building-hospital" style="color:white;font-size:18px;"></i></div>
+        <div class="role-icon hospital"><i class="ti ti-building-hospital"></i></div>
         <div class="role-title">Para hospitales</div>
       </div>
       <ul class="feature-list hospital">
@@ -126,9 +126,9 @@
 
 <!-- PASOS -->
 <section class="steps" id="como-funciona">
-  <div style="text-align:center;">
+  <div class="steps-header">
     <div class="section-label">Cómo funciona</div>
-    <div class="section-title" style="margin:0 auto;text-align:center;max-width:500px;">Donar sangre nunca fue tan simple</div>
+    <div class="section-title">Donar sangre nunca fue tan simple</div>
   </div>
   <div class="steps-grid">
     <div class="step"><div class="step-num">1</div><h3>Creá tu cuenta</h3><p>Registrate como donante en menos de 2 minutos. Solo necesitás tu email y tipo de sangre.</p></div>
@@ -173,13 +173,13 @@
       <button class="modal-close" onclick="cerrarBienvenida()" aria-label="Cerrar"><i class="ti ti-x" aria-hidden="true"></i></button>
     </div>
     <div class="modal-body">
-      <p style="margin-bottom:12px;line-height:1.6;">HemoRed es un prototipo funcional desarrollado en el marco de las Prácticas Profesionalizantes de la Tecnicatura Superior en Análisis de Sistemas del Instituto de Formación Superior N° 11, de la Ciudad Autónoma de Buenos Aires. El proyecto fue construido en su totalidad por el equipo desde el momento cero: partiendo del relevamiento de requisitos y las definiciones conceptuales del sistema (necesidades a resolver, roles involucrados y arquitectura de la solución) hasta llegar a la implementación de esta interfaz.</p>
-      <p style="margin-bottom:12px;line-height:1.6;">El proyecto aborda un problema real: en Argentina, la coordinación de campañas de donación de sangre suele depender de canales informales —redes sociales, mensajería— lo que dificulta que hospitales y donantes se encuentren de manera organizada. HemoRed propone una plataforma centralizada para la gestión de campañas, turnos y documentación asociada al proceso de donación.</p>
+      <p class="modal-bienvenida-parrafo">HemoRed es un prototipo funcional desarrollado en el marco de las Prácticas Profesionalizantes de la Tecnicatura Superior en Análisis de Sistemas del Instituto de Formación Superior N° 11, de la Ciudad Autónoma de Buenos Aires. El proyecto fue construido en su totalidad por el equipo desde el momento cero: partiendo del relevamiento de requisitos y las definiciones conceptuales del sistema (necesidades a resolver, roles involucrados y arquitectura de la solución) hasta llegar a la implementación de esta interfaz.</p>
+      <p class="modal-bienvenida-parrafo">El proyecto aborda un problema real: en Argentina, la coordinación de campañas de donación de sangre suele depender de canales informales —redes sociales, mensajería— lo que dificulta que hospitales y donantes se encuentren de manera organizada. HemoRed propone una plataforma centralizada para la gestión de campañas, turnos y documentación asociada al proceso de donación.</p>
       <div class="aviso aviso-info">
         <i class="ti ti-info-circle" aria-hidden="true"></i>
         <div>Por tratarse de un prototipo con fines académicos, no cuenta con un servidor ni una base de datos real: la información que se ingrese se almacena únicamente en este navegador, a modo demostrativo.</div>
       </div>
-      <p style="margin-top:14px;padding-top:12px;border-top:0.5px solid #e8d0d8;font-size:11px;line-height:1.6;color:#a9435d;">El diseño conceptual, la arquitectura funcional y el desarrollo de HemoRed son de autoría de Sofía Páez, Andrea Sanchez Liporace y Natalia Sanchez Liporace, quienes, en su carácter de creadoras e ideólogas del sistema, se reservan todos los derechos sobre el proyecto. Queda prohibida su reproducción, distribución o utilización total o parcial sin autorización expresa de las autoras. Ciudad Autónoma de Buenos Aires, 01/01/2025.</p>
+      <p class="modal-bienvenida-legal">El diseño conceptual, la arquitectura funcional y el desarrollo de HemoRed son de autoría de Sofía Páez, Andrea Sanchez Liporace y Natalia Sanchez Liporace, quienes, en su carácter de creadoras e ideólogas del sistema, se reservan todos los derechos sobre el proyecto. Queda prohibida su reproducción, distribución o utilización total o parcial sin autorización expresa de las autoras. Ciudad Autónoma de Buenos Aires, 01/01/2025.</p>
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="cerrarBienvenida();window.location='publico/nosotros.html'">Conocer más sobre el proyecto</button>

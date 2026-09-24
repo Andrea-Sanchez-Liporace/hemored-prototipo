@@ -35,7 +35,7 @@
   <div class="form-card">
     <div class="form-logo">Hemo<span>red</span></div>
     <div class="form-subtitle" id="form-subtitle">Iniciá sesión en tu cuenta</div>
-    <div class="form-rol-badge" id="form-rol-badge" style="display:none;">
+    <div class="form-rol-badge hidden" id="form-rol-badge">
       <div class="icon" id="form-rol-icon"></div>
       <div class="label" id="form-rol-label"></div>
     </div>
@@ -54,7 +54,7 @@
 
     <button class="form-btn" onclick="login()">Iniciar sesión</button>
 
-    <div id="login-error" style="display:none;background:#fde8e8;border:1px solid #c0392b;border-radius:9px;padding:10px 14px;margin-top:12px;font-size:13px;color:#c0392b;text-align:center;">
+    <div id="login-error" class="form-error-box">
       Email o contraseña incorrectos.
     </div>
 
@@ -63,7 +63,7 @@
     <button class="form-register" onclick="window.location='../publico/registro.html'">Crear cuenta gratis</button>
 
     <p class="form-footer-note">Registrarse es gratis para donantes · Planes mensuales para instituciones</p>
-    <p class="form-footer-note"><a href="#" id="link-reset-demo" style="color:inherit;text-decoration:underline;">Reiniciar datos de ejemplo</a></p>
+    <p class="form-footer-note"><a href="#" id="link-reset-demo">Reiniciar datos de ejemplo</a></p>
   </div>
 </main>
 
@@ -98,9 +98,9 @@
     const ctx = contextoRol[rol];
     if (!ctx) return;
     document.getElementById('form-subtitle').textContent = 'Accedé a tu cuenta para continuar';
-    document.getElementById('form-rol-badge').style.display = 'flex';
+    document.getElementById('form-rol-badge').classList.remove('hidden');
     document.getElementById('form-rol-icon').style.background = ctx.color;
-    document.getElementById('form-rol-icon').innerHTML = `<i class="ti ${ctx.icono}" style="color:white;font-size:15px;"></i>`;
+    document.getElementById('form-rol-icon').innerHTML = `<i class="ti ${ctx.icono}"></i>`;
     document.getElementById('form-rol-label').textContent = ctx.label;
     document.getElementById('email').value = ctx.email;
     document.getElementById('password').focus();

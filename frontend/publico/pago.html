@@ -89,33 +89,33 @@
       </div>
 
       <!-- DATOS TRANSFERENCIA -->
-      <div id="form-transferencia" style="display:none;">
-        <div style="background:#fdf0f3;border-radius:12px;padding:18px;border:1px solid #f28b98;">
-          <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:12px;">Datos para transferencia</div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div style="display:flex;justify-content:space-between;font-size:13px;">
-              <span style="color:#a9435d;">CBU</span>
-              <span style="font-weight:500;color:#5a1e37;">0720461820000004893152</span>
+      <div id="form-transferencia" class="form-pago-metodo">
+        <div class="datos-transferencia">
+          <div class="datos-transferencia-title">Datos para transferencia</div>
+          <div class="datos-transferencia-rows">
+            <div class="datos-transferencia-row">
+              <span>CBU</span>
+              <span>0720461820000004893152</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;">
-              <span style="color:#a9435d;">Alias</span>
-              <span style="font-weight:500;color:#5a1e37;">HEMORED.PAGO</span>
+            <div class="datos-transferencia-row">
+              <span>Alias</span>
+              <span>HEMORED.PAGO</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;">
-              <span style="color:#a9435d;">Titular</span>
-              <span style="font-weight:500;color:#5a1e37;">HemoRed SRL</span>
+            <div class="datos-transferencia-row">
+              <span>Titular</span>
+              <span>HemoRed SRL</span>
             </div>
           </div>
-          <div style="font-size:11px;color:#a9435d;margin-top:12px;line-height:1.5;">Una vez realizada la transferencia, tu cuenta se activará dentro de las 24 horas hábiles.</div>
+          <div class="datos-transferencia-nota">Una vez realizada la transferencia, tu cuenta se activará dentro de las 24 horas hábiles.</div>
         </div>
       </div>
 
       <!-- DATOS MERCADO PAGO -->
-      <div id="form-mercadopago" style="display:none;">
-        <div style="text-align:center;padding:24px 0;">
-          <div style="font-size:40px;margin-bottom:12px;">💙</div>
-          <div style="font-size:14px;font-weight:500;color:#5a1e37;margin-bottom:8px;">Pagar con Mercado Pago</div>
-          <div style="font-size:13px;color:#5a3040;line-height:1.6;">Al hacer click en "Pagar" serás redirigido a Mercado Pago para completar el pago de forma segura.</div>
+      <div id="form-mercadopago" class="form-pago-metodo">
+        <div class="datos-mercadopago">
+          <div class="datos-mercadopago-emoji">💙</div>
+          <div class="datos-mercadopago-title">Pagar con Mercado Pago</div>
+          <div class="datos-mercadopago-desc">Al hacer click en "Pagar" serás redirigido a Mercado Pago para completar el pago de forma segura.</div>
         </div>
       </div>
 
@@ -148,7 +148,7 @@
 
       <!-- SEGURIDAD -->
       <div class="security-note">
-        <i class="ti ti-shield-check" style="color:#27ae60;font-size:20px;flex-shrink:0;"></i>
+        <i class="ti ti-shield-check"></i>
         <div class="security-text">Pago seguro con encriptación SSL. Tus datos de tarjeta nunca se almacenan en nuestros servidores.</div>
       </div>
 
@@ -166,11 +166,11 @@
         <div class="resumen-plan-name">Plan Provincial</div>
         <div class="resumen-plan-price">$15.000 <span>/ mes + IVA</span></div>
         <ul class="resumen-features">
-          <li><i class="ti ti-check" style="color:#ef647c;font-size:13px;"></i>Campañas ilimitadas</li>
-          <li><i class="ti ti-check" style="color:#ef647c;font-size:13px;"></i>Hasta 3 activas simultáneas</li>
-          <li><i class="ti ti-check" style="color:#ef647c;font-size:13px;"></i>Alcance provincial</li>
-          <li><i class="ti ti-check" style="color:#ef647c;font-size:13px;"></i>Dashboard de métricas</li>
-          <li><i class="ti ti-check" style="color:#ef647c;font-size:13px;"></i>Documentación clínica</li>
+          <li><i class="ti ti-check"></i>Campañas ilimitadas</li>
+          <li><i class="ti ti-check"></i>Hasta 3 activas simultáneas</li>
+          <li><i class="ti ti-check"></i>Alcance provincial</li>
+          <li><i class="ti ti-check"></i>Dashboard de métricas</li>
+          <li><i class="ti ti-check"></i>Documentación clínica</li>
         </ul>
       </div>
       <div class="resumen-line"><span class="label">Subtotal</span><span>$15.000</span></div>
@@ -184,20 +184,20 @@
   <!-- SUCCESS -->
   <div class="success-view" id="success-view">
     <div class="success-icon">
-      <i class="ti ti-check" style="color:white;font-size:32px;"></i>
+      <i class="ti ti-check"></i>
     </div>
     <div class="success-title">¡Pago confirmado!</div>
     <div class="success-text">Tu suscripción al Plan Provincial está activa. Ya podés empezar a publicar campañas y gestionar donaciones en HemoRed.</div>
-    <div style="background:#fdf0f3;border-radius:12px;padding:16px;margin-bottom:24px;text-align:left;">
-      <div style="font-size:12px;font-weight:500;color:#5a1e37;margin-bottom:10px;">Detalles de la suscripción</div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:8px;border-bottom:0.5px solid #e8d0d8;">
-        <span style="color:#5a3040;">Plan</span><span style="font-weight:500;color:#5a1e37;">Plan Provincial</span>
+    <div class="suscripcion-detalle">
+      <div class="suscripcion-detalle-title">Detalles de la suscripción</div>
+      <div class="suscripcion-detalle-row">
+        <span>Plan</span><span>Plan Provincial</span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid #e8d0d8;">
-        <span style="color:#5a3040;">Próximo cobro</span><span style="font-weight:500;color:#5a1e37;">15 de junio 2026</span>
+      <div class="suscripcion-detalle-row">
+        <span>Próximo cobro</span><span>15 de junio 2026</span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding-top:8px;">
-        <span style="color:#5a3040;">Monto</span><span style="font-weight:500;color:#5a1e37;">$18.150 / mes</span>
+      <div class="suscripcion-detalle-row">
+        <span>Monto</span><span>$18.150 / mes</span>
       </div>
     </div>
     <button class="btn-ir-dashboard" onclick="window.location='../hospital/dashboard.html'">

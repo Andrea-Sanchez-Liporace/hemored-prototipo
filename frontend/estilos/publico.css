@@ -57,6 +57,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; pad
 .form-subtitle { font-size: 14px; color: #5a3040; text-align: center; margin-bottom: 32px; }
 .form-rol-badge { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0 18px; }
 .form-rol-badge .icon { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.form-rol-badge .icon i { color: white; font-size: 15px; }
 .form-rol-badge .label { font-size: 13px; font-weight: 500; color: #5a1e37; }
 .form-group { margin-bottom: 18px; }
 .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: block; }
@@ -69,6 +70,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .form-forgot { font-size: 12px; color: #ef647c; text-align: right; display: block; margin-top: -10px; margin-bottom: 24px; cursor: pointer; text-decoration: none; }
 .form-forgot:hover { color: #d4537e; }
 .form-btn { width: 100%; background: #ef647c; color: white; border: none; padding: 13px; border-radius: 9px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.form-error-box { display: none; background: #fde8e8; border: 1px solid #c0392b; border-radius: 9px; padding: 10px 14px; margin-top: 12px; font-size: 13px; color: #c0392b; text-align: center; }
 .form-btn:hover { background: #d4537e; }
 .form-divider { display: flex; align-items: center; gap: 10px; margin: 20px 0; }
 .form-divider span { font-size: 12px; color: #a9435d; white-space: nowrap; }
@@ -76,11 +78,14 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .form-register { width: 100%; background: white; color: #5a1e37; border: 1.5px solid #5a1e37; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
 .form-register:hover { background: #fdf0f3; }
 .form-footer-note { font-size: 11px; color: #a9435d; text-align: center; margin-top: 20px; line-height: 1.5; }
+.form-footer-note a { color: inherit; text-decoration: underline; }
+.form-label .opcional { color: #a9435d; font-weight: 400; }
 .form-back { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a9435d; cursor: pointer; margin-bottom: 24px; background: none; border: none; font-family: 'Inter', sans-serif; }
 .form-back:hover { color: #5a1e37; }
 .form-login { font-size: 13px; color: #5a3040; text-align: center; margin-top: 18px; }
 .form-login a { color: #ef647c; text-decoration: none; font-weight: 500; }
-.form-icon { width: 56px; height: 56px; border-radius: 16px; background: #fdf0f3; border: 1px solid #f28b98; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.form-icon { width: 56px; height: 56px; border-radius: 16px; background: #fdf0f3; border: 1px solid #f28b98; display: flex; align-items: center; justify-content: center; margin: 20px auto 16px; }
+.form-icon i { color: #ef647c; font-size: 24px; }
 .form-title { font-size: 20px; font-weight: 500; color: #5a1e37; text-align: center; margin-bottom: 8px; }
 .form-note { font-size: 11px; color: #a9435d; text-align: center; margin-top: 12px; line-height: 1.5; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -98,15 +103,18 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .code-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 6px; }
 .code-input { width: 48px; height: 56px; border: 1.5px solid #e8d0d8; border-radius: 10px; font-size: 22px; font-weight: 500; text-align: center; color: #5a1e37; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; }
 .code-input:focus { border-color: #ef647c; box-shadow: 0 0 0 3px rgba(239,100,124,0.1); }
-.resend-link { font-size: 12px; color: #a9435d; text-align: center; display: block; margin-top: 10px; cursor: pointer; }
+.resend-link { font-size: 12px; color: #a9435d; text-align: center; display: block; margin-top: 10px; margin-bottom: 20px; cursor: pointer; }
 .resend-link:hover { color: #ef647c; }
 .email-highlight { font-weight: 500; color: #5a1e37; }
-.success-check { width: 64px; height: 64px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.success-check { width: 64px; height: 64px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 24px auto 20px; }
+.success-check i { color: white; font-size: 28px; }
+#step-exito .form-card { text-align: center; }
 
 /* === HOME — HERO === */
 .hero { padding: 56px 80px 56px 120px; background: #fdf0f3; display: grid; grid-template-columns: 1fr 1fr; gap: 0; align-items: center; }
 .hero-left { display: flex; flex-direction: column; align-items: flex-start; }
 .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: white; border: 0.5px solid #f28b98; border-radius: 100px; padding: 5px 14px; font-size: 12px; color: #782b46; margin-bottom: 20px; }
+.hero-badge i { color: #ef647c; font-size: 13px; }
 .hero h1 { font-size: 46px; font-weight: 500; line-height: 1.18; color: #5a1e37; margin-bottom: 16px; }
 .hero h1 span { color: #ef647c; }
 .hero p { font-size: 17px; color: #5a3040; line-height: 1.6; margin-bottom: 28px; }
@@ -116,6 +124,9 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .hero-cta-card { background: white; border: 0.5px solid #e8d0d8; border-radius: 12px; padding: 14px 18px; cursor: pointer; display: flex; align-items: center; gap: 14px; text-align: left; width: 100%; font-family: 'Inter', sans-serif; }
 .hero-cta-card:hover { border-color: #a9435d; }
 .hero-cta-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hero-cta-icon.donante { background: #ef647c; }
+.hero-cta-icon.hospital { background: #5a1e37; }
+.hero-cta-icon i, .role-icon i { color: white; font-size: 18px; }
 .hero-cta-body { flex: 1; }
 .hero-cta-title { font-size: 15px; font-weight: 500; margin-bottom: 3px; color: #5a1e37; }
 .hero-cta-desc { font-size: 12px; color: #5a3040; }
@@ -162,6 +173,8 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .feature-list.hospital li i { color: #782b46; }
 
 /* === HOME — PASOS === */
+.steps-header { text-align: center; }
+.steps-header .section-title { margin: 0 auto; max-width: 500px; }
 .steps { padding: 56px 80px 56px 120px; background: #fdf0f3; }
 .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 48px; position: relative; overflow: visible; }
 .steps-grid::before { content: ''; position: absolute; top: 22px; left: calc(12.5%); right: calc(12.5%); height: 2px; background: #f28b98; z-index: 0; }
@@ -188,6 +201,9 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .rol-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
 .rol-icon.donante { background: #ef647c; }
 .rol-icon.hospital { background: #5a1e37; }
+.rol-icon i { color: white; font-size: 22px; }
+.step-login-note { font-size: 12px; color: #a9435d; text-align: center; }
+.step-login-note a { color: #ef647c; font-weight: 500; text-decoration: none; }
 .rol-name { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; }
 .rol-desc { font-size: 12px; color: #5a3040; line-height: 1.4; }
 .rol-badge { display: inline-block; margin-top: 10px; font-size: 11px; padding: 2px 8px; border-radius: 20px; }
@@ -196,9 +212,12 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .form-rol-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; margin-bottom: 20px; }
 .form-rol-tag.donante { background: #fdf0f3; color: #782b46; border: 0.5px solid #f28b98; }
 .form-rol-tag.hospital { background: #f5eef1; color: #5a1e37; border: 0.5px solid #a9435d; }
+.form-rol-tag i { font-size: 12px; }
+.form-input[type="file"] { padding: 8px 14px; cursor: pointer; }
 
 /* === REGISTRO — PLANES === */
 .plan-section-title { font-size: 13px; font-weight: 500; color: #412402; margin: 20px 0 12px; display: flex; align-items: center; gap: 6px; }
+.plan-section-title i { color: #e67e22; }
 .planes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
 .plan-card { background: #faeeda; border: 1px solid #e67e22; border-radius: 14px; padding: 20px 24px; margin: 20px 0; }
 .plan-card-title { font-size: 13px; font-weight: 500; color: #412402; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
@@ -206,8 +225,15 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .plan-price span { font-size: 14px; font-weight: 400; color: #854f0b; }
 .plan-features { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
 .plan-features li { font-size: 12px; color: #633806; display: flex; align-items: center; gap: 6px; }
+.plan-features li i { color: #e67e22; }
 .plan-especial { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fdf0f3; border: 1px solid #f28b98; border-radius: 12px; padding: 14px 16px; margin-top: 12px; cursor: pointer; transition: border-color 0.15s; }
 .plan-especial:hover { border-color: #5a1e37; }
+.plan-especial-info { display: flex; align-items: center; gap: 10px; }
+.plan-especial-icon { width: 36px; height: 36px; border-radius: 9px; background: #5a1e37; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.plan-especial-icon i { color: white; font-size: 16px; }
+.plan-especial-title { font-size: 13px; font-weight: 500; color: #5a1e37; }
+.plan-especial-desc { font-size: 12px; color: #5a3040; }
+.plan-especial > i { color: #a9435d; font-size: 16px; flex-shrink: 0; }
 .plan-note { font-size: 11px; color: #854f0b; margin-top: 10px; font-style: italic; line-height: 1.5; }
 .plan-card.selectable { background: white; border: 2px solid #e8d0d8; border-radius: 12px; padding: 18px; cursor: pointer; position: relative; transition: border-color 0.15s; }
 .plan-card.selectable:hover { border-color: #e67e22; }
@@ -241,6 +267,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .mv-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
 .mv-icon.mision { background: #ef647c; }
 .mv-icon.vision { background: rgba(255,255,255,0.2); }
+.mv-icon i { color: white; font-size: 20px; }
 .mv-card-title { font-size: 20px; font-weight: 500; color: white; margin-bottom: 12px; }
 .mv-card-text { font-size: 14px; color: #f28b98; line-height: 1.7; }
 
@@ -250,6 +277,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 .valores-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: left; }
 .valor-card { background: white; border-radius: 14px; padding: 28px; border: 0.5px solid #e8d0d8; }
 .valor-icon { width: 40px; height: 40px; border-radius: 10px; background: #ef647c; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.valor-icon i { color: white; font-size: 18px; }
 .valor-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
 .valor-text { font-size: 13px; color: #5a3040; line-height: 1.6; }
 
@@ -276,10 +304,12 @@ main.contacto .form-card { max-width: none; }
 .contact-info p { font-size: 15px; color: #5a3040; line-height: 1.7; margin-bottom: 36px; }
 .contact-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
 .contact-icon { width: 40px; height: 40px; border-radius: 10px; background: #5a1e37; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.contact-icon i { color: white; font-size: 18px; }
 .contact-item-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
 .contact-item-value { font-size: 13px; color: #5a3040; }
 .contact-item-value a, .contact-item-value span { color: #ef647c; text-decoration: none; }
 .response-note { background: white; border: 1px solid #f28b98; border-radius: 12px; padding: 16px 20px; margin-top: 32px; display: flex; align-items: center; gap: 12px; }
+.response-note > i { color: #ef647c; font-size: 22px; flex-shrink: 0; }
 .response-note-text { font-size: 13px; color: #5a3040; line-height: 1.5; }
 .response-note-text strong { color: #5a1e37; }
 .checks-group { display: flex; flex-direction: column; gap: 8px; }
@@ -288,8 +318,10 @@ main.contacto .form-card { max-width: none; }
 .check-item label { font-size: 13px; color: #5a3040; cursor: pointer; line-height: 1.4; }
 .form-divider-line { height: 1px; background: #e8d0d8; margin: 24px 0; }
 .form-section-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+.form-section-title i { color: #ef647c; }
 .success-msg { display: none; text-align: center; padding: 48px 32px; }
 .success-icon { width: 64px; height: 64px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.success-icon i { color: white; font-size: 28px; }
 .success-msg h3 { font-size: 22px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
 .success-msg p { font-size: 14px; color: #5a3040; line-height: 1.6; }
 .form-title { font-size: 20px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; }
@@ -319,6 +351,31 @@ main.contacto .form-card { max-width: none; }
 .card-expiry-label { font-size: 10px; color: rgba(255,255,255,0.7); text-align: right; margin-bottom: 2px; }
 .card-expiry { font-size: 14px; font-weight: 500; color: white; }
 .security-note { display: flex; align-items: center; gap: 8px; background: #fdf0f3; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; }
+.security-note i { color: #27ae60; font-size: 20px; flex-shrink: 0; }
+.resumen-features li i { color: #ef647c; font-size: 13px; }
+
+.form-pago-metodo { display: none; }
+
+.datos-transferencia { background: #fdf0f3; border-radius: 12px; padding: 18px; border: 1px solid #f28b98; }
+.datos-transferencia-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 12px; }
+.datos-transferencia-rows { display: flex; flex-direction: column; gap: 8px; }
+.datos-transferencia-row { display: flex; justify-content: space-between; font-size: 13px; }
+.datos-transferencia-row span:first-child { color: #a9435d; }
+.datos-transferencia-row span:last-child { font-weight: 500; color: #5a1e37; }
+.datos-transferencia-nota { font-size: 11px; color: #a9435d; margin-top: 12px; line-height: 1.5; }
+
+.datos-mercadopago { text-align: center; padding: 24px 0; }
+.datos-mercadopago-emoji { font-size: 40px; margin-bottom: 12px; }
+.datos-mercadopago-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; }
+.datos-mercadopago-desc { font-size: 13px; color: #5a3040; line-height: 1.6; }
+
+.suscripcion-detalle { background: #fdf0f3; border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: left; }
+.suscripcion-detalle-title { font-size: 12px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
+.suscripcion-detalle-row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 0.5px solid #e8d0d8; }
+.suscripcion-detalle-row:first-child { padding-top: 0; }
+.suscripcion-detalle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.suscripcion-detalle-row span:first-child { color: #5a3040; }
+.suscripcion-detalle-row span:last-child { font-weight: 500; color: #5a1e37; }
 .security-text { font-size: 12px; color: #5a3040; line-height: 1.4; }
 .btn-pagar { width: 100%; background: #ef647c; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-pagar:hover { background: #d4537e; }
@@ -340,6 +397,7 @@ main.contacto .form-card { max-width: none; }
 .success-view { display: none; text-align: center; padding: 48px 32px; background: white; border-radius: 20px; border: 0.5px solid #e8d0d8; max-width: 480px; width: 100%; }
 .success-view.active { display: block; }
 .success-view .success-icon { width: 72px; height: 72px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.success-view .success-icon i { font-size: 32px; }
 .success-title { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
 .success-text { font-size: 14px; color: #5a3040; line-height: 1.7; margin-bottom: 28px; }
 .btn-ir-dashboard { background: #5a1e37; color: white; border: none; padding: 13px 32px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; }
@@ -349,16 +407,19 @@ main.contacto .form-card { max-width: none; }
 .legal-content h2 { font-size: 20px; font-weight: 500; color: #5a1e37; margin: 36px 0 12px; }
 .legal-content h2:first-child { margin-top: 0; }
 .legal-content p { font-size: 14px; color: #5a3040; line-height: 1.8; margin-bottom: 12px; }
+.legal-content a { color: #ef647c; }
 
 /* === CUENTA PENDIENTE === */
 .card { background: white; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 540px; border: 0.5px solid #e8d0d8; box-shadow: 0 4px 32px rgba(90,30,55,0.08); text-align: center; }
 .estado-icon { width: 80px; height: 80px; border-radius: 50%; background: #faeeda; border: 2px solid #e67e22; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+.estado-icon i { color: #e67e22; font-size: 36px; }
 .card-title { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 10px; }
 .card-sub { font-size: 15px; color: #5a3040; line-height: 1.7; margin-bottom: 32px; max-width: 420px; margin-left: auto; margin-right: auto; }
 .pasos { display: flex; flex-direction: column; gap: 0; margin-bottom: 32px; text-align: left; }
 .paso { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
 .paso:last-child { border-bottom: none; }
 .paso-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+.paso-num i { font-size: 13px; }
 .paso-num.done { background: #e1f5ee; color: #04342c; }
 .paso-num.current { background: #faeeda; color: #412402; }
 .paso-num.pending { background: #f7f0f3; color: #a9435d; }
@@ -366,18 +427,22 @@ main.contacto .form-card { max-width: none; }
 .paso-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }
 .paso-desc { font-size: 12px; color: #5a3040; line-height: 1.5; }
 .paso-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.paso-badge i { font-size: 10px; }
 .badge-done { background: #e1f5ee; color: #04342c; }
 .badge-current { background: #faeeda; color: #412402; }
 .badge-pending { background: #f7f0f3; color: #a9435d; }
 .info-box { background: #fdf0f3; border: 1px solid #f28b98; border-radius: 12px; padding: 16px 20px; margin-bottom: 28px; text-align: left; }
 .info-box-title { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.info-box-title i { color: #ef647c; font-size: 15px; }
 .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 0.5px solid #e8d0d8; }
 .info-row:last-child { border-bottom: none; }
 .info-label { color: #a9435d; }
 .info-value { font-weight: 500; color: #5a1e37; }
+.info-value.ok { color: #27ae60; }
 .acciones { display: flex; flex-direction: column; gap: 10px; }
 .btn-outline { background: white; color: #5a1e37; border: 1.5px solid #e8d0d8; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .note { font-size: 12px; color: #a9435d; margin-top: 8px; line-height: 1.5; }
+.note a { color: #ef647c; text-decoration: none; }
 .nav-right { display: flex; align-items: center; gap: 14px; }
 .nav-email { font-size: 13px; color: #f28b98; }
 .btn-logout { background: none; border: 1px solid rgba(255,255,255,0.2); color: #f28b98; padding: 7px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 5px; }
@@ -489,3 +554,7 @@ main.contacto .form-card { max-width: none; }
 .stat-num { font-size: 42px; font-weight: 500; color: #ef647c; }
 .stat-label { font-size: 14px; color: #f28b98; margin-top: 6px; line-height: 1.4; }
 .stat-source { font-size: 10px; color: rgba(242,139,152,0.6); margin-top: 6px; }
+
+/* === MODAL DE BIENVENIDA (index.html) === */
+.modal-bienvenida-parrafo { margin-bottom: 12px; line-height: 1.6; }
+.modal-bienvenida-legal { margin-top: 14px; padding-top: 12px; border-top: 0.5px solid #e8d0d8; font-size: 11px; line-height: 1.6; color: #a9435d; }
