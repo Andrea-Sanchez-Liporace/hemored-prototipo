@@ -665,7 +665,17 @@
     btnCancelar.classList.toggle('hidden', !bloqueado);
     btnEnviar.classList.toggle('hidden', bloqueado);
 
-    const faltantes = bloqueado ? [] : preguntasSinResponder();
+    // Corregido 2026-09-23, reportado por la usuaria: al principio este
+    // aviso se ocultaba si había alguna respuesta inhabilitante (`bloqueado
+    // ? [] : ...`) — pensado para no "duplicar" avisos, pero en la
+    // práctica escondía información real: si además de una respuesta
+    // inhabilitante también faltaban preguntas por contestar, esas
+    // preguntas faltantes recién aparecían DESPUÉS de corregir la
+    // inhabilitante y volver a intentar enviar — obligaba a revisar el
+    // formulario 2 veces en vez de una. Ahora los 2 avisos son
+    // independientes: se muestran juntos si ambas condiciones se dan a la
+    // vez, para poder corregir todo de una sola pasada.
+    const faltantes = preguntasSinResponder();
     const incompleto = faltantes.length > 0;
     const avisoIncompleto = document.getElementById('f2-aviso-incompleto');
     if (incompleto) {

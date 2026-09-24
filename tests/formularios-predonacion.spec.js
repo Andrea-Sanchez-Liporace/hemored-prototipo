@@ -335,6 +335,14 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       await expect(page.locator('#f2-aviso-inhabilitante')).toContainText('autoexcluye');
       await expect(page.locator('#btn-paso2')).toBeHidden();
       await expect(page.locator('#btn-cancelar-turno-f2')).toBeVisible();
+
+      // Agregado 2026-09-23, reportado por la usuaria: en este punto solo
+      // se contestaron 2 de las 34 preguntas — el aviso de "faltan
+      // preguntas" tiene que verse AL MISMO TIEMPO que el de inhabilitante,
+      // no recién después de corregir esta y volver a intentar enviar
+      // (obligaba a revisar el formulario 2 veces en vez de una).
+      await expect(page.locator('#f2-aviso-incompleto')).toBeVisible();
+      await expect(page.locator('#f2-incompleto-intro')).toContainText('32 preguntas');
     });
 
     await test.step('corregir la respuesta: el bloqueo se saca solo, sin recargar la página', async () => {
