@@ -234,10 +234,17 @@ Queda pendiente, a propósito, una vista de admin que liste estos mensajes — n
 
 **Límite conocido, no un bug de este test:** para las 4 cuentas demo (`donante@hemored.com` y las otras 3), este flujo actualiza `usuarios.json` pero el login de esas cuentas puntuales sigue mirando el objeto `USUARIOS` fijo de `sesion.js` primero — mismo límite ya documentado para `cambiarPasswordDonante`. Por eso el caso de ciclo completo usa un donante recién registrado, no una cuenta fija.
 
+**`dashboard-hospital.spec.js`** — dashboard de Hospital (`hospital/dashboard.html`), agregado 2026-09-24, el primer flujo conectado del rol Hospital. Era el flujo más barato según `docs/06` ("lectura silenciosa", solo faltaban los `id`), pero al mirarlo de cerca las 2 listas de abajo eran filas 100% hardcodeadas, no solo faltaban los 3 KPI:
+
+1. El nombre del hospital (sidebar + encabezado) y los 3 KPI (campañas activas, turnos hoy, donaciones del mes — estos dos últimos filtrados a la fecha/mes real, no a todo el historial) muestran datos reales.
+2. "Campañas recientes" renderiza las campañas reales del hospital, con badge según su estado (urgente/activa/pausada/cerrada).
+3. Sin turnos pendientes, se muestra un estado vacío en vez de filas fijas.
+4. Confirmar/rechazar un turno pendiente desde el dashboard (botones que antes no tenían ningún `onclick`) llama a las mismas funciones reales que ya usa `hospital/turnos.html` y actualiza la lista y los KPI en el momento.
+
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 
 Flujos que sabemos que faltan probar (porque todavía no están conectados a datos reales, no porque nos olvidamos):
-- Rechazo de turno por parte del hospital (el botón "Rechazar" existe pero no tiene test)
+- Rechazo de turno por parte del hospital desde `hospital/turnos.html` puntualmente (el botón existe y llama a la misma `rechazarTurno()` que ya cubre `dashboard-hospital.spec.js` desde el dashboard, pero ese archivo en sí no tiene test propio)
 - Registro de hospital → pago → aprobación por super admin (todo ese circuito está roto hoy, ver docs/04)
 - Cualquier flujo de Super Admin
 - El módulo de Profesional de salud (previsto para v2)

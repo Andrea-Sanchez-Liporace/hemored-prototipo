@@ -829,15 +829,21 @@ HemoRed.data = (function() {
     const campanas = HemoRed.db.where('campanas', 'hospital_id', hospital?.id);
     const turnos = HemoRed.db.where('turnos', 'hospital_id', hospital?.id);
     const donaciones = HemoRed.db.where('donaciones', 'hospital_id', hospital?.id);
+    const hoy = ahora();
+    const donacionesMes = donaciones.filter(d => {
+      const f = new Date(d.registrado_en);
+      return f.getMonth() === hoy.getMonth() && f.getFullYear() === hoy.getFullYear();
+    });
 
     _set('hospital-nombre', hospital?.nombre || '');
+    _set('hospital-nombre-sidebar', hospital?.nombre || '');
     _set('campanas-activas', campanas.filter(c => c.estado === 'activa').length);
-    _set('turnos-hoy', turnos.filter(t => t.fecha === ahora().toISOString().slice(0, 10)).length);
-    _set('donaciones-mes', donaciones.length);
+    _set('turnos-hoy', turnos.filter(t => t.fecha === hoy.toISOString().slice(0, 10)).length);
+    _set('donaciones-mes', donacionesMes.length);
 
     // Texto de bienvenida (antes fijo: "Hoy es jueves 15 de mayo de 2026...",
     // corregido 2026-09-22 junto con las otras fechas de ejemplo vencidas).
-    _set('bienvenida-fecha', ahora().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+    _set('bienvenida-fecha', hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
     _set('bienvenida-campanas', campanas.filter(c => c.estado === 'activa').length);
     _set('bienvenida-turnos-pendientes', turnos.filter(t => t.estado === 'pendiente').length);
 

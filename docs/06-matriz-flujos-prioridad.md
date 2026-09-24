@@ -60,7 +60,7 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 
 | Flujo | Desarrollo | Diseño | Qué falta | Esfuerzo | Prioridad | Enfoque |
 |---|---|---|---|---|---|---|
-| Ver dashboard | 🟡 | 🟢 | "Lectura silenciosa": la función ya trae los datos reales, el HTML no tiene los `id` para mostrarlos. | Bajo | Must (paso 1 de la hoja de ruta) | **Por partes** — agrupar con los otros 2 dashboards silenciosos (Admin, Profesional), es el mismo arreglo 3 veces. |
+| Ver dashboard | 🟢 | 🟢 | Cerrado 2026-09-24. Resultó ser más que "agregar ids": las 2 listas (campañas recientes, turnos pendientes) eran filas 100% hardcodeadas, no solo faltaban los ids de los 3 KPI. | — | — | — |
 | Crear campaña — paso 1 | 🔴 | 🟢 | El botón "Siguiente" ni navega (`alert()`). | Bajo | Must | **Por partes** — los 3 pasos del wizard son una sola unidad, no tiene sentido cerrar uno sin los otros dos (nada se guarda hasta el paso 3). |
 | Crear campaña — paso 2 | 🔴 | 🟢 | Sin ningún traspaso de datos entre pasos (cero `sessionStorage`). | Medio | Must | **Por partes** — ídem. |
 | Crear campaña — paso 3 (publicar) | 🔴 | 🟢 | "Publicar" no crea ningún registro real. | Medio | Must | **Por partes** — acá se cierra el wizard completo; recomendado encarar los 3 pasos juntos en una sola tarea. |
@@ -125,7 +125,7 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 
 Mismo orden que la "Hoja de ruta sugerida" de `docs/04`, con la razón resumida acá:
 
-1. **Los 3 dashboards "silenciosos"** (Hospital, Admin, Profesional) — esfuerzo bajo, la lectura ya funciona, solo falta HTML. El quick win más barato de todo el prototipo.
+1. ~~Los 3 dashboards "silenciosos" (Hospital, Admin, Profesional)~~ — **Hospital cerrado 2026-09-24** (resultó más laborioso de lo estimado: además de los ids, las 2 listas de la pantalla eran filas hardcodeadas, ver `docs/04`). Quedan Admin y Profesional, mismo patrón para replicar.
 2. **Núcleo Hospital (MVP):** crear campaña (3 pasos como bloque), ver/gestionar campañas, ver detalle de campaña. Sin esto, el "camino feliz" completo (donante busca → reserva → hospital gestiona) no se puede mostrar de punta a punta con datos que no sean 100% semilla.
 3. **Cadena Registro de hospital → Pago → Cuenta pendiente → Aprobación (Admin):** hoy las 4 piezas existen sueltas; conectarlas es más "cablear" que "construir".
 4. **Should Have:** historial/documentación clínica de Hospital (resultado + certificado, con el insert dual a `documentos`), facturación (las 3 pantallas — Hospital paga, Admin emite/marca pagada — como un bloque), mensajería Hospital↔HemoRed (necesita pasar por diseño primero, no existe la vista).

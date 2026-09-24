@@ -22,7 +22,7 @@
     <a href="../index.html">Hemo<span>red</span></a>
   </div>
   <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
+    <div class="sidebar-hospital-name" id="hospital-nombre-sidebar">—</div>
     <div style="font-size:12px;color:#f28b98;margin-top:2px;">admin@ramosmejia.gob.ar</div>
     <div class="sidebar-hospital-plan">
       <i class="ti ti-star" style="font-size:10px;" aria-hidden="true"></i>
@@ -102,11 +102,25 @@
 
     <!-- BIENVENIDA -->
     <div class="welcome">
-      <h1>Bienvenido, Hospital Ramos Mejía</h1>
+      <h1>Bienvenido, <span id="hospital-nombre">—</span></h1>
       <p>Hoy es <span id="bienvenida-fecha">—</span>. Tenés <span id="bienvenida-campanas">—</span> campañas activas y <span id="bienvenida-turnos-pendientes">—</span> turnos pendientes de confirmación.</p>
     </div>
 
-
+    <!-- KPIs -->
+    <div class="stats-row" id="dashboard-kpis">
+      <div class="stat-card">
+        <div class="stat-num" id="campanas-activas">—</div>
+        <div class="stat-label">Campañas activas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="turnos-hoy">—</div>
+        <div class="stat-label">Turnos hoy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="donaciones-mes">—</div>
+        <div class="stat-label">Donaciones este mes</div>
+      </div>
+    </div>
 
     <!-- ACCESOS RÁPIDOS -->
     <div class="section-title">Accesos rápidos</div>
@@ -200,89 +214,15 @@
           <div class="panel-title">Campañas recientes</div>
           <a class="panel-link" href="../hospital/campanas.html">Ver todas</a>
         </div>
-        <div class="campana-row">
-          <div class="campana-dot urgente"></div>
-          <div class="campana-info">
-            <div class="campana-nombre">Campaña paciente pediátrico</div>
-            <div class="campana-meta">Vence 20 may · 7/10 cupos</div>
-          </div>
-          <span class="campana-badge urgente">Urgente</span>
-        </div>
-        <div class="campana-row">
-          <div class="campana-dot activa"></div>
-          <div class="campana-info">
-            <div class="campana-nombre">Banco de sangre tipo A</div>
-            <div class="campana-meta">Vence 30 may · 4/10 cupos</div>
-          </div>
-          <span class="campana-badge activa">Activa</span>
-        </div>
-        <div class="campana-row">
-          <div class="campana-dot activa"></div>
-          <div class="campana-info">
-            <div class="campana-nombre">Reserva general mayo</div>
-            <div class="campana-meta">Vence 31 may · 2/8 cupos</div>
-          </div>
-          <span class="campana-badge activa">Activa</span>
-        </div>
-        <div class="campana-row">
-          <div class="campana-dot cerrada"></div>
-          <div class="campana-info">
-            <div class="campana-nombre">Campaña abril — tipo O</div>
-            <div class="campana-meta">Cerrada · 10/10 cupos</div>
-          </div>
-          <span class="campana-badge cerrada">Cerrada</span>
-        </div>
+        <div id="lista-campanas-recientes"></div>
       </div>
 
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">Turnos pendientes de confirmación</div>
-          <a class="panel-link" href="../hospital/campanas.html">Ver todos</a>
+          <a class="panel-link" href="../hospital/turnos.html">Ver todos</a>
         </div>
-        <div class="turno-row">
-          <div class="turno-avatar">ML</div>
-          <div class="turno-info">
-            <div class="turno-nombre">María López</div>
-            <div class="turno-meta">Hoy · 10:00hs · Campaña pediátrica</div>
-          </div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-ok">Confirmar</button>
-            <button class="btn-xs btn-xs-no">Rechazar</button>
-          </div>
-        </div>
-        <div class="turno-row">
-          <div class="turno-avatar">JG</div>
-          <div class="turno-info">
-            <div class="turno-nombre">Juan García</div>
-            <div class="turno-meta">Hoy · 11:30hs · Banco tipo A</div>
-          </div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-ok">Confirmar</button>
-            <button class="btn-xs btn-xs-no">Rechazar</button>
-          </div>
-        </div>
-        <div class="turno-row">
-          <div class="turno-avatar">SP</div>
-          <div class="turno-info">
-            <div class="turno-nombre">Sofía Páez</div>
-            <div class="turno-meta">Mañana · 08:00hs · Campaña pediátrica</div>
-          </div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-ok">Confirmar</button>
-            <button class="btn-xs btn-xs-no">Rechazar</button>
-          </div>
-        </div>
-        <div class="turno-row">
-          <div class="turno-avatar">AR</div>
-          <div class="turno-info">
-            <div class="turno-nombre">Ana Rodríguez</div>
-            <div class="turno-meta">Mañana · 09:30hs · Reserva general</div>
-          </div>
-          <div class="turno-actions">
-            <button class="btn-xs btn-xs-ok">Confirmar</button>
-            <button class="btn-xs btn-xs-no">Rechazar</button>
-          </div>
-        </div>
+        <div id="lista-turnos-pendientes"></div>
       </div>
 
     </div>
@@ -305,9 +245,124 @@
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
 <script>
+  const BADGE_CAMPANA = { activa: 'Activa', urgente: 'Urgente', pausada: 'Pausada', cerrada: 'Cerrada' };
+
+  function estadoVisualCampana(c) {
+    if (c.estado === 'cerrada' || c.estado === 'pausada') return c.estado;
+    return c.urgente ? 'urgente' : 'activa';
+  }
+
+  // "Hoy" / "Mañana" / dd/mm — mismo criterio de fecha real (HemoRed.data.ahora())
+  // que ya usa el resto del sitio, no una fecha fija.
+  function etiquetaFecha(fechaStr) {
+    const hoy = HemoRed.data.ahora();
+    const hoyStr = hoy.toISOString().slice(0, 10);
+    const manana = new Date(hoy);
+    manana.setDate(manana.getDate() + 1);
+    const mananaStr = manana.toISOString().slice(0, 10);
+    if (fechaStr === hoyStr) return 'Hoy';
+    if (fechaStr === mananaStr) return 'Mañana';
+    const [, m, d] = fechaStr.split('-');
+    return `${d}/${m}`;
+  }
+
+  function renderCampanasRecientes(campanas) {
+    const cont = document.getElementById('lista-campanas-recientes');
+    const recientes = [...campanas]
+      .filter(c => c.estado !== 'cerrada')
+      .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en))
+      .slice(0, 4);
+
+    if (recientes.length === 0) {
+      cont.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon"><i class="ti ti-speakerphone" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i></div>
+          <div class="empty-title">Todavía no tenés campañas activas</div>
+          <div class="empty-text">Creá tu primera campaña para empezar a recibir donantes.</div>
+        </div>`;
+      return;
+    }
+
+    cont.innerHTML = recientes.map(c => {
+      const estado = estadoVisualCampana(c);
+      const vence = new Date(c.fecha_cierre).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+      return `
+        <div class="campana-row">
+          <div class="campana-dot ${estado}"></div>
+          <div class="campana-info">
+            <div class="campana-nombre">${c.titulo}</div>
+            <div class="campana-meta">Vence ${vence} · ${c.unidades_obtenidas}/${c.unidades_requeridas} unidades</div>
+          </div>
+          <span class="campana-badge ${estado}">${BADGE_CAMPANA[estado]}</span>
+        </div>`;
+    }).join('');
+  }
+
+  function renderTurnosPendientes(turnos) {
+    const cont = document.getElementById('lista-turnos-pendientes');
+    const usuarios = HemoRed.db.all('usuarios');
+    const campanas = HemoRed.db.all('campanas');
+    const pendientes = turnos
+      .filter(t => t.estado === 'pendiente')
+      .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))
+      .slice(0, 4);
+
+    if (pendientes.length === 0) {
+      cont.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon"><i class="ti ti-calendar-check" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i></div>
+          <div class="empty-title">No hay turnos pendientes</div>
+          <div class="empty-text">Todos los turnos solicitados ya fueron confirmados o rechazados.</div>
+        </div>`;
+      return;
+    }
+
+    cont.innerHTML = pendientes.map(t => {
+      const donante = usuarios.find(u => u.id === t.usuario_id);
+      const campana = campanas.find(c => c.id === t.campana_id);
+      const nombre = donante ? `${donante.nombre} ${donante.apellido || ''}`.trim() : 'Donante';
+      const iniciales = donante ? ((donante.nombre[0] || '') + (donante.apellido?.[0] || '')).toUpperCase() : '?';
+      return `
+        <div class="turno-row">
+          <div class="turno-avatar">${iniciales}</div>
+          <div class="turno-info">
+            <div class="turno-nombre">${nombre}</div>
+            <div class="turno-meta">${etiquetaFecha(t.fecha)} · ${t.hora}hs · ${campana?.titulo || ''}</div>
+          </div>
+          <div class="turno-actions">
+            <button class="btn-xs btn-xs-ok" onclick="confirmarTurnoDashboard(${t.id})">Confirmar</button>
+            <button class="btn-xs btn-xs-no" onclick="rechazarTurnoDashboard(${t.id})">Rechazar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Mismo criterio que hospital/turnos.html (confirmarTurnoUI/rechazarTurnoUI):
+  // llaman a la función de negocio real y vuelven a pintar. Acá además hay
+  // que refrescar los KPIs de arriba (turnos-hoy, bienvenida-turnos-pendientes),
+  // por eso se vuelve a llamar todo cargarDashboardHospital().
+  async function confirmarTurnoDashboard(turnoId) {
+    HemoRed.data.confirmarTurno(turnoId);
+    HemoRed.ui.toast('Turno confirmado');
+    await refrescarDashboard();
+  }
+
+  async function rechazarTurnoDashboard(turnoId) {
+    const motivo = prompt('Motivo del rechazo (opcional):') || '';
+    HemoRed.data.rechazarTurno(turnoId, motivo);
+    HemoRed.ui.toast('Turno rechazado', 'error');
+    await refrescarDashboard();
+  }
+
+  async function refrescarDashboard() {
+    const { campanas, turnos } = await HemoRed.data.cargarDashboardHospital();
+    renderCampanasRecientes(campanas);
+    renderTurnosPendientes(turnos);
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('hospital');
-    await HemoRed.data.cargarDashboardHospital();
+    await refrescarDashboard();
   });
 </script>
 </body>
