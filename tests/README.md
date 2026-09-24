@@ -214,6 +214,11 @@ Ver `docs/04-estado-actual-prototipo.md`, sección "Confirmación automática y 
 7. **Agregado 2026-09-23 (4), rediseño de `.doc-card` pedido con capturas:** en mobile, la tarjeta de documento (compartida por las 3 pestañas de `mis_documentos.html`) va ícono → badge/botones (Ver/Descargar, más anchos que antes) → detalle (título/fecha), en ese orden — se prueba con posiciones reales (`order` de CSS cambia el orden visual, no el del DOM). Dentro del detalle de "Resultado de análisis", el bloque Donante/Grupo sanguíneo/Laboratorio/Nro. de bolsa pasa a un dato por fila.
 8. **Agregado 2026-09-23 (5):** dentro del detalle de un certificado, el header ("Hemored" + "Certificado de donación de sangre") no se pisa en mobile — comparte una fila en tablet/PC que no entraba a 320px.
 
+**`responsive-320-publico.spec.js`** — sin scroll horizontal en las 10 páginas públicas (`index.html` + las 9 de `publico/`) a 320px, agregado 2026-09-23 a pedido explícito de la usuaria de escanear el sitio público completo en busca de bugs. Mismo criterio que `responsive-320.spec.js`, aplicado acá al sitio público en vez de al rol Donante. Encontró un solo caso real: `.metodos` en `publico/pago.html` (grid de 3 columnas Tarjeta/Transferencia/Mercado Pago) no se achicaba lo suficiente a 320px porque "Transferencia" es una sola palabra sin espacios — mismo bug de fondo (`min-width:auto` sin overridear) que ya apareció varias veces en el rol Donante. Se corrigió con `min-width: 0` en `.metodo-opt` + `overflow-wrap: break-word` en `.metodo-name`.
+
+1. Las 10 páginas públicas no tienen scroll horizontal a 320px.
+2. Los 3 métodos de pago de `pago.html` entran dentro de la tarjeta sin desbordarla, el caso puntual que disparó el hallazgo.
+
 Estos tests prueban únicamente los caminos que ya conectamos. Para saber qué otros flujos del sistema están sin conectar (y por lo tanto no tiene sentido todavía escribirles un test, porque fallarían por diseño), mirá **`docs/04-estado-actual-prototipo.md`** — ahí está el detalle rol por rol de qué funciona y qué falta.
 
 Flujos que sabemos que faltan probar (porque todavía no están conectados a datos reales, no porque nos olvidamos):

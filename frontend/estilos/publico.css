@@ -300,11 +300,14 @@ main.contacto .form-card { max-width: none; }
 .form-section { font-size: 12px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; margin-top: 24px; }
 .form-section:first-of-type { margin-top: 0; }
 .metodos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-.metodo-opt { border: 1.5px solid #e8d0d8; border-radius: 10px; padding: 14px 10px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.metodo-opt { border: 1.5px solid #e8d0d8; border-radius: 10px; padding: 14px 10px; cursor: pointer; text-align: center; transition: all 0.15s; min-width: 0; }
 .metodo-opt:hover { border-color: #ef647c; }
 .metodo-opt.selected { border-color: #5a1e37; background: #fdf0f3; }
 .metodo-icon { font-size: 22px; margin-bottom: 6px; }
-.metodo-name { font-size: 12px; font-weight: 500; color: #5a1e37; }
+/* min-width:0 en .metodo-opt no alcanza solo: "Transferencia" es una
+   palabra sin espacios, así que sin overflow-wrap el texto igual fuerza
+   el ancho de la columna de grid y desborda en mobile (320px). */
+.metodo-name { font-size: 12px; font-weight: 500; color: #5a1e37; overflow-wrap: break-word; }
 .card-preview { background: linear-gradient(135deg, #5a1e37 0%, #782b46 100%); border-radius: 16px; padding: 22px; margin-bottom: 20px; position: relative; overflow: hidden; }
 .card-preview::before { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.06); }
 .card-preview::after { content: ''; position: absolute; bottom: -40px; right: 20px; width: 90px; height: 90px; border-radius: 50%; background: rgba(255,255,255,0.04); }
