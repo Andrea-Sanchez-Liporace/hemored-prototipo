@@ -101,5 +101,50 @@ for (const rol of ROLES) {
       }
     });
 
+    test('el indicador de scroll propio se mantiene visible (no se va con el contenido) al bajar el menú', async ({ page }) => {
+      // Fuerza un viewport bajo para que el menú de este rol necesite scroll
+      // sí o sí, sin depender de cuántos ítems tenga cada uno.
+      await page.setViewportSize({ width: 1280, height: 420 });
+      await login(page, rol);
+
+      const antesDeScrollear = await page.evaluate(() => {
+        const nav = document.querySelector('.sidebar-nav');
+        const wrap = document.querySelector('.sidebar-nav-wrap');
+        const track = document.querySelector('.sidebar-nav-scrollbar');
+        const thumb = document.querySelector('.sidebar-nav-scrollbar-thumb');
+        return {
+          existen: !!(nav && wrap && track && thumb),
+          // El track/thumb tienen que ser hijos de .sidebar-nav-wrap (hermanos
+          // de .sidebar-nav), NUNCA hijos de .sidebar-nav — si estuvieran
+          // adentro, scrollearían junto con el contenido y desaparecerían.
+          trackEsHijoDelWrap: track && track.parentElement === wrap,
+          navEsHijoDelWrap: nav && nav.parentElement === wrap,
+          necesitaScroll: nav.scrollHeight > nav.clientHeight + 1,
+          trackVisibleAntes: track.classList.contains('visible'),
+        };
+      });
+      expect(antesDeScrollear.existen).toBe(true);
+      expect(antesDeScrollear.trackEsHijoDelWrap).toBe(true);
+      expect(antesDeScrollear.navEsHijoDelWrap).toBe(true);
+
+      if (!antesDeScrollear.necesitaScroll) return; // menú corto, no aplica
+
+      expect(antesDeScrollear.trackVisibleAntes).toBe(true);
+
+      await page.locator('.sidebar-nav').evaluate(el => {
+        el.scrollTo(0, el.scrollHeight);
+        el.dispatchEvent(new Event('scroll'));
+      });
+
+      const trackBox = await page.locator('.sidebar-nav-scrollbar').boundingBox();
+      const thumbBox = await page.locator('.sidebar-nav-scrollbar-thumb').boundingBox();
+      // El thumb tiene que seguir dentro del área visible del track (no
+      // haberse ido de la vista al scrollear el menú).
+      expect(thumbBox.y).toBeGreaterThanOrEqual(trackBox.y - 1);
+      expect(thumbBox.y + thumbBox.height).toBeLessThanOrEqual(trackBox.y + trackBox.height + 1);
+      // Y tiene que haberse movido hacia abajo (no quedarse pegado arriba).
+      expect(thumbBox.y).toBeGreaterThan(trackBox.y + 1);
+    });
+
   });
 }

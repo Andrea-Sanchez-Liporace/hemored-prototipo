@@ -19,6 +19,50 @@ HemoRed.ui = (function() {
     document.getElementById('sidebar-overlay')?.classList.toggle('open', open);
   }
 
+  // Indicador de scroll propio del menú lateral — ver la nota larga en
+  // global.css (.sidebar-nav-scrollbar) sobre por qué no se usa el
+  // scrollbar nativo del navegador. Se cuelga solo de cualquier
+  // `.sidebar-nav` que encuentre en la página (los 4 roles comparten la
+  // misma clase), así que no hace falta llamarlo distinto por rol.
+  function initScrollSidebar() {
+    const nav = document.querySelector('.sidebar-nav');
+    if (!nav) return;
+
+    // El track/thumb NO puede vivir adentro de .sidebar-nav: al ser
+    // .sidebar-nav el propio elemento con overflow-y:auto, un hijo
+    // position:absolute anclado a su padding box scrollea junto con el
+    // resto del contenido (se va de la vista apenas se baja el menú) en
+    // vez de quedarse fijo en pantalla. Se envuelve .sidebar-nav en un
+    // wrapper que SÍ se queda quieto, y el indicador va ahí, como hermano
+    // del nav, no como hijo.
+    const wrap = document.createElement('div');
+    wrap.className = 'sidebar-nav-wrap';
+    nav.parentNode.insertBefore(wrap, nav);
+    wrap.appendChild(nav);
+
+    const track = document.createElement('div');
+    track.className = 'sidebar-nav-scrollbar';
+    const thumb = document.createElement('div');
+    thumb.className = 'sidebar-nav-scrollbar-thumb';
+    track.appendChild(thumb);
+    wrap.appendChild(track);
+
+    function actualizar() {
+      const necesitaScroll = nav.scrollHeight > nav.clientHeight + 1;
+      track.classList.toggle('visible', necesitaScroll);
+      if (!necesitaScroll) return;
+      const alturaThumb = Math.max((nav.clientHeight / nav.scrollHeight) * nav.clientHeight, 24);
+      const maxScroll = nav.scrollHeight - nav.clientHeight;
+      const posicion = maxScroll > 0 ? (nav.scrollTop / maxScroll) * (nav.clientHeight - alturaThumb) : 0;
+      thumb.style.height = alturaThumb + 'px';
+      thumb.style.transform = `translateY(${posicion}px)`;
+    }
+
+    nav.addEventListener('scroll', actualizar);
+    window.addEventListener('resize', actualizar);
+    actualizar();
+  }
+
   // ===== MODALES =====
   function abrirModal(id) {
     document.getElementById(id)?.classList.add('active');
@@ -312,6 +356,7 @@ HemoRed.ui = (function() {
   // ===== INIT GENERAL =====
   function init() {
     initSidebar();
+    initScrollSidebar();
     initFiltros();
     initTabs();
     mejorarSelects();
@@ -319,7 +364,7 @@ HemoRed.ui = (function() {
     HemoRed.sesion?.inyectarPerfil();
   }
 
-  return { init, initSidebar, abrirModal, cerrarModal, cerrarTodosModales, toast, initFiltros, initTabs, initFirma, limpiarFirma, mejorarSelects, mejorarPasswords };
+  return { init, initSidebar, initScrollSidebar, abrirModal, cerrarModal, cerrarTodosModales, toast, initFiltros, initTabs, initFirma, limpiarFirma, mejorarSelects, mejorarPasswords };
 })();
 
 // Auto-init on DOMContentLoaded

@@ -132,6 +132,29 @@ ul { list-style: none; }
 ::-webkit-scrollbar-thumb { background: var(--color-rosa-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-rosa-light); }
 
+/* Indicador de scroll propio del menú lateral (los 4 roles) — se inyecta
+   por JS (HemoRed.ui.init(), ver ui.js) dentro de cada `.sidebar-nav`, no
+   vive en el HTML de cada página. Reemplaza al scrollbar nativo (oculto a
+   propósito en cada CSS de rol, `.sidebar-nav::-webkit-scrollbar { display:
+   none }`) porque el nativo no es confiable: en Windows, Chrome/Edge
+   modernos usan scrollbars "overlay" que ignoran cualquier personalización
+   — este indicador, calculado a mano contra scrollTop/scrollHeight reales,
+   se ve y se comporta igual sin importar el navegador o su configuración.
+   Un solo lugar para los 4 roles: no hace falta un color por paleta, el
+   fondo es negro semitransparente (se ve "un tono más oscuro" sobre
+   cualquier fondo del sidebar) y la barra es el rosa de marca, que ya usan
+   los 4 roles para el ítem activo del menú (Admin incluido, pese a su
+   paleta navy). */
+/* Wrapper que toma el flex:1/min-height:0 que antes tenía .sidebar-nav
+   directamente — necesario para que el track (ver abajo) tenga un
+   contenedor propio, quieto, que no scrollea junto con el contenido del
+   menú (si el track fuera hijo de .sidebar-nav, se iría de la vista al
+   bajar el menú, porque .sidebar-nav es el elemento que scrollea). */
+.sidebar-nav-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.sidebar-nav-scrollbar { position: absolute; top: 0; right: 2px; bottom: 0; width: 4px; background: rgba(0,0,0,0.2); border-radius: 3px; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.sidebar-nav-scrollbar.visible { opacity: 1; }
+.sidebar-nav-scrollbar-thumb { position: absolute; top: 0; left: 0; right: 0; width: 4px; border-radius: 3px; background: #ef647c; }
+
 /* RESPONSIVE BASE */
 @media (max-width: 768px) {
   .hide-mobile { display: none !important; }
