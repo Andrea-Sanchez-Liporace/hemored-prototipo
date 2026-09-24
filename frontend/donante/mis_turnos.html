@@ -329,6 +329,7 @@
       : `<button class="btn-sm btn-sm-outline" onclick="window.location='../donante/campana_detalle.html?id=${campana?.id || ''}'">Ver campaña</button>
          <button class="btn-sm btn-sm-outline" onclick="abrirModal(${t.id})">Modificar</button>`;
 
+    const formulariosCompletos = t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado;
     const formularios = !esPasado ? `
       <div style="background:#fdf0f3;border-radius:10px;padding:12px 14px;border:0.5px solid #f28b98;">
         <div style="font-size:12px;font-weight:500;color:#5a1e37;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="ti ti-clipboard-list" style="font-size:13px;color:#ef647c;"></i>Formularios pre-donación</div>
@@ -337,7 +338,7 @@
           <span class="form-badge ${t.formulario_cuestionario_completado ? 'fb-completado' : 'fb-disponible'}"><i class="ti ti-${t.formulario_cuestionario_completado ? 'check' : 'pencil'}" style="font-size:10px;"></i>Cuestionario ${t.formulario_cuestionario_completado ? 'completado' : 'pendiente'}</span>
         </div>
         <button onclick="window.location='../donante/formularios_predonacion.html?turno_id=${t.id}'" style="margin-top:10px;background:#ef647c;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;">
-          <i class="ti ti-arrow-right" style="font-size:12px;"></i>Completar formularios
+          <i class="ti ti-${formulariosCompletos ? 'eye' : 'arrow-right'}" style="font-size:12px;"></i>${formulariosCompletos ? 'Ver formularios' : 'Completar formularios'}
         </button>
       </div>` : '';
 

@@ -130,6 +130,21 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       await expect(page.locator('#btn-paso2')).toBeDisabled();
       // Ninguna pregunta viene con un botón ya seleccionado al cargar.
       await expect(page.locator('.excl-btn.sel-si, .excl-btn.sel-no')).toHaveCount(0);
+      // El aviso de "preguntas sin responder" no debería aparecer todavía
+      // (nadie contestó nada, no tiene sentido listar las 34).
+      await expect(page.locator('#f2-aviso-incompleto')).toBeHidden();
+
+      // Agregado 2026-09-23, a pedido explícito de la usuaria: contestar
+      // solo una pregunta debe mostrar un aviso listando las que faltan
+      // (33), no solo dejar el botón deshabilitado sin explicación.
+      // "cancer" no es una pregunta invertida — "No" es una respuesta
+      // normal, no dispara el aviso de inhabilitante (ese tiene prioridad
+      // sobre el de incompleto, y taparía lo que este test quiere probar).
+      await page.locator('.excl-item[data-key="cancer"] .excl-btn', { hasText: 'No' }).click();
+      await expect(page.locator('#f2-aviso-inhabilitante')).toBeHidden();
+      await expect(page.locator('#f2-aviso-incompleto')).toBeVisible();
+      await expect(page.locator('#f2-incompleto-intro')).toContainText('33 preguntas');
+      await expect(page.locator('#f2-lista-incompletas li')).toHaveCount(33);
 
       // info_escrita_autoexclusion/comprendio_autoexclusion son preguntas de
       // comprensión del proceso, no de factor de riesgo: ahí "Sí" es la
@@ -146,6 +161,8 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       });
       await expect(page.locator('.excl-item[data-key="info_escrita_autoexclusion"] .excl-btn.sel-si')).toHaveText('Sí');
       await expect(page.locator('.excl-item[data-key="cancer"] .excl-btn.sel-no')).toHaveText('No');
+      // Con las 34 contestadas, el aviso de "faltan preguntas" desaparece.
+      await expect(page.locator('#f2-aviso-incompleto')).toBeHidden();
       await page.fill('#input-observaciones', 'Nota de prueba E2E.');
 
       // Contestadas las 34, todavía falta firmar F2.
@@ -190,6 +207,15 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       const turno = (overrides.turnos || []).find(t => t.id === formulario.turno_id);
       expect(turno.formulario_autoexclusion_completado).toBe(true);
       expect(turno.formulario_cuestionario_completado).toBe(true);
+    });
+
+    await test.step('en "Mis turnos", el botón pasa a decir "Ver formularios" en vez de "Completar formularios"', async () => {
+      // Agregado 2026-09-23, a pedido explícito de la usuaria: con ambos
+      // formularios ya completados, el turno queda en modo solo lectura si
+      // se reentra — "Completar" ya no describe la acción real.
+      await page.goto('/donante/mis_turnos.html');
+      await expect(page.locator('.turno-card button:has-text("Ver formularios")')).toBeVisible();
+      await expect(page.locator('.turno-card button:has-text("Completar formularios")')).toHaveCount(0);
     });
 
     await test.step('volver a entrar al mismo turno restaura lo ya completado, en solo lectura (no se puede regrabar)', async () => {

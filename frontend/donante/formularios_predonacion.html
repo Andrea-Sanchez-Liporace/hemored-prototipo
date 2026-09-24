@@ -348,6 +348,19 @@
       </div>
     </div>
 
+    <!-- Se muestra si todavía quedan preguntas sin responder y ninguna de
+         las ya respondidas autoexcluye (ver actualizarAvisoIncompleto()) —
+         antes el botón de enviar solo quedaba deshabilitado sin explicar
+         por qué, obligando a rastrear las 34 preguntas para encontrar
+         cuál faltaba. -->
+    <div class="aviso av-azul hidden" id="f2-aviso-incompleto">
+      <i class="ti ti-list-check" style="font-size:14px;flex-shrink:0;margin-top:1px;"></i>
+      <div>
+        <div id="f2-incompleto-intro"></div>
+        <ul id="f2-lista-incompletas" style="margin:8px 0;padding-left:18px;"></ul>
+      </div>
+    </div>
+
     <button class="btn-primary" id="btn-paso2" onclick="confirmarYEnviar()" disabled>
       <i class="ti ti-check"></i>Confirmar y enviar formularios
     </button>
@@ -608,6 +621,13 @@
     return preguntasInhabilitantes().length > 0;
   }
 
+  // Preguntas que todavía no tienen ninguna respuesta guardada — a
+  // diferencia de las inhabilitantes (una respuesta puntual autoexcluye),
+  // acá lo que falta es que no se contestó nada todavía.
+  function preguntasSinResponder() {
+    return Array.from(document.querySelectorAll('.excl-item')).filter(item => !respuestas[item.dataset.key]);
+  }
+
   // Si hay alguna respuesta que autoexcluye al donante, reemplaza el botón
   // de enviar por uno para cancelar el turno directamente — no tiene
   // sentido dejar completar y mandar un cuestionario que ya sabemos que
@@ -616,6 +636,13 @@
   // para que el donante no tenga que volver a scrollear los 34 ítems para
   // encontrar cuál la generó — ajuste pedido el mismo día, sacando el
   // scroll automático que había en la primera versión.
+  //
+  // Agregado 2026-09-23, a pedido explícito de la usuaria: si NO hay
+  // ninguna respuesta inhabilitante pero todavía faltan preguntas por
+  // contestar, el botón de enviar quedaba deshabilitado sin ninguna
+  // explicación — obligaba a rastrear las 34 preguntas para encontrar
+  // cuáles. Mismo patrón de aviso con lista por número, en un tono neutro
+  // (no es un problema de salud, solo falta terminar de contestar).
   function actualizarBloqueoInhabilitante() {
     if (soloLectura) return;
     const items = preguntasInhabilitantes();
@@ -637,6 +664,20 @@
     aviso.classList.toggle('hidden', !bloqueado);
     btnCancelar.classList.toggle('hidden', !bloqueado);
     btnEnviar.classList.toggle('hidden', bloqueado);
+
+    const faltantes = bloqueado ? [] : preguntasSinResponder();
+    const incompleto = faltantes.length > 0;
+    const avisoIncompleto = document.getElementById('f2-aviso-incompleto');
+    if (incompleto) {
+      document.getElementById('f2-incompleto-intro').textContent = faltantes.length === 1
+        ? 'Todavía te falta responder esta pregunta:'
+        : `Todavía te faltan responder ${faltantes.length} preguntas:`;
+      document.getElementById('f2-lista-incompletas').innerHTML = faltantes.map(item => {
+        const texto = item.querySelector('.excl-texto').textContent;
+        return `<li style="margin-bottom:6px;"><strong>Pregunta ${item.dataset.num}:</strong> ${texto}</li>`;
+      }).join('');
+    }
+    avisoIncompleto.classList.toggle('hidden', !incompleto);
   }
 
   // Numera las 34 preguntas del cuestionario (1 a 34, en el orden en que
