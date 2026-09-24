@@ -47,16 +47,52 @@ HemoRed.ui = (function() {
     track.appendChild(thumb);
     wrap.appendChild(track);
 
+    let alturaThumbActual = 0;
+
     function actualizar() {
       const necesitaScroll = nav.scrollHeight > nav.clientHeight + 1;
       track.classList.toggle('visible', necesitaScroll);
       if (!necesitaScroll) return;
       const alturaThumb = Math.max((nav.clientHeight / nav.scrollHeight) * nav.clientHeight, 24);
+      alturaThumbActual = alturaThumb;
       const maxScroll = nav.scrollHeight - nav.clientHeight;
       const posicion = maxScroll > 0 ? (nav.scrollTop / maxScroll) * (nav.clientHeight - alturaThumb) : 0;
       thumb.style.height = alturaThumb + 'px';
       thumb.style.transform = `translateY(${posicion}px)`;
     }
+
+    // Click sostenido + arrastre sobre el thumb, como cualquier scrollbar de
+    // verdad — la rueda del mouse y el teclado (flechas, con el foco en un
+    // link del menú) ya andaban por ser scroll nativo del navegador, pero
+    // arrastrar el thumb es un gesto que este indicador tiene que resolver
+    // a mano, no viene gratis por ser un div propio.
+    let arrastrando = false;
+    let arrastreInicioY = 0;
+    let arrastreInicioScroll = 0;
+
+    thumb.addEventListener('mousedown', (e) => {
+      arrastrando = true;
+      arrastreInicioY = e.clientY;
+      arrastreInicioScroll = nav.scrollTop;
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!arrastrando) return;
+      const recorridoThumb = nav.clientHeight - alturaThumbActual;
+      const maxScroll = nav.scrollHeight - nav.clientHeight;
+      if (recorridoThumb <= 0 || maxScroll <= 0) return;
+      const deltaScroll = ((e.clientY - arrastreInicioY) / recorridoThumb) * maxScroll;
+      nav.scrollTop = Math.max(0, Math.min(maxScroll, arrastreInicioScroll + deltaScroll));
+      actualizar();
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!arrastrando) return;
+      arrastrando = false;
+      document.body.style.userSelect = '';
+    });
 
     nav.addEventListener('scroll', actualizar);
     window.addEventListener('resize', actualizar);

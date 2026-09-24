@@ -39,7 +39,13 @@
    propiedades (ver admin.css). */
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: var(--color-rosa-light); font-size: 13px; text-decoration: none; transition: background var(--transition-base); text-align: left; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
-.nav-item.active { background: var(--color-borravino); color: white; }
+/* Blanco translúcido, no un color fijo: Donante/Hospital/Profesional NO
+   comparten el mismo fondo de sidebar propio (Donante usa el mismo tono
+   #5a1e37 que acá se usaba como "activo" — quedaba invisible ahí, aunque
+   se veía bien en Hospital, que tiene un fondo distinto). Un overlay
+   translúcido se adapta solo a cualquier fondo oscuro por detrás, mismo
+   criterio que ya usa :hover arriba (por eso ese nunca tuvo este bug). */
+.nav-item.active { background: rgba(255,255,255,0.14); color: white; }
 .nav-item i { font-size: 18px; flex-shrink: 0; }
 .nav-badge { background: var(--color-rosa); color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
 .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: white; padding: 12px 12px 4px; }

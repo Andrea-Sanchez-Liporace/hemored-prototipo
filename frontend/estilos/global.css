@@ -153,7 +153,14 @@ ul { list-style: none; }
 .sidebar-nav-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
 .sidebar-nav-scrollbar { position: absolute; top: 0; right: 2px; bottom: 0; width: 4px; background: rgba(0,0,0,0.2); border-radius: 3px; opacity: 0; transition: opacity 0.15s; pointer-events: none; }
 .sidebar-nav-scrollbar.visible { opacity: 1; }
-.sidebar-nav-scrollbar-thumb { position: absolute; top: 0; left: 0; right: 0; width: 4px; border-radius: 3px; background: #ef647c; }
+/* pointer-events:auto acá (se hereda "none" del track, arriba) a propósito:
+   el track no debe robarle el wheel-scroll a .sidebar-nav al pasar el mouse
+   por encima, pero el thumb sí tiene que poder agarrarse y arrastrarse con
+   el mouse como cualquier scrollbar real (reportado por la usuaria: con la
+   rueda o el teclado sí bajaba, pero clickeando y arrastrando el thumb no
+   pasaba nada). */
+.sidebar-nav-scrollbar-thumb { position: absolute; top: 0; left: 0; right: 0; width: 4px; border-radius: 3px; background: #ef647c; pointer-events: auto; cursor: grab; }
+.sidebar-nav-scrollbar-thumb:active { cursor: grabbing; }
 
 /* RESPONSIVE BASE */
 @media (max-width: 768px) {

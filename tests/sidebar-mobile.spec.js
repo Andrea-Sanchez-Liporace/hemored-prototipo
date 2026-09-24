@@ -146,5 +146,38 @@ for (const rol of ROLES) {
       expect(thumbBox.y).toBeGreaterThan(trackBox.y + 1);
     });
 
+    test('el thumb del indicador se puede arrastrar con click sostenido del mouse', async ({ page }) => {
+      // Reportado por la usuaria: con la rueda o el teclado el menú sí
+      // bajaba, pero clickeando y arrastrando el thumb no pasaba nada — el
+      // thumb heredaba pointer-events:none de su contenedor (el track,
+      // que sí necesita quedar "traspasable" para no robarle el wheel a
+      // .sidebar-nav) y nunca se armó el drag a mano.
+      await page.setViewportSize({ width: 1280, height: 420 });
+      await login(page, rol);
+
+      const necesitaScroll = await page.locator('.sidebar-nav').evaluate(
+        el => el.scrollHeight > el.clientHeight + 1
+      );
+      if (!necesitaScroll) return; // menú corto, no aplica
+
+      const thumbBox = await page.locator('.sidebar-nav-scrollbar-thumb').boundingBox();
+      const antes = await page.locator('.sidebar-nav').evaluate(el => el.scrollTop);
+      expect(antes).toBe(0);
+
+      await page.mouse.move(thumbBox.x + thumbBox.width / 2, thumbBox.y + thumbBox.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(thumbBox.x + thumbBox.width / 2, thumbBox.y + 300, { steps: 10 });
+      await page.mouse.up();
+
+      const despues = await page.locator('.sidebar-nav').evaluate(el => el.scrollTop);
+      expect(despues).toBeGreaterThan(antes);
+
+      // Soltar el mouse tiene que cortar el arrastre — mover el mouse
+      // después no debería seguir scrolleando el menú.
+      await page.mouse.move(50, 50);
+      const traSoltar = await page.locator('.sidebar-nav').evaluate(el => el.scrollTop);
+      expect(traSoltar).toBe(despues);
+    });
+
   });
 }
