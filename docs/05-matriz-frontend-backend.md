@@ -1,6 +1,6 @@
 # Matriz: qué es frontend puro y qué va a consumir el backend
 
-**Fecha:** 2026-09-23
+**Fecha:** 2026-09-23 · **Última actualización:** 2026-09-24 (modal de bienvenida y migración de estilos inline del sitio público)
 **Por qué existe esto:** hoy `frontend/` es un prototipo 100% estático (HTML/CSS/JS vanilla, sin build) que **simula** tener un backend: `frontend/js/db.js` lee los 20 JSON de `frontend/db/` y, desde que se agregaron `crear()`/`actualizar()`, además simula escrituras guardándolas en `localStorage` (ver "Capa de escritura propuesta" en `docs/04`). Cuando exista el backend real (Django REST + PostgreSQL, ver `docs/03`, sección "Arquitectura"), **no todo el código de `frontend/js/data.js` se tira** — una parte se queda tal cual en el cliente (React, en la versión final) y otra parte se reemplaza por un `fetch`/llamada a la API. Esta matriz separa una cosa de la otra para no perder tiempo el día que se conecte el backend de verdad, ni asumir por error que algo "ya está resuelto" porque hoy funciona en el prototipo.
 
 ## Cómo leer esto
@@ -28,6 +28,8 @@
 | Mostrar/ocultar contraseña en inputs | `HemoRed.ui.mejorarPasswords()` | Igual. |
 | Tooltips (`data-tooltip`) | `global.css` | Igual. |
 | Responsive (todo lo trabajado en esta sesión: `min-width:0`, colapso de sidebar, grillas a 1 columna en mobile, etc.) | Todos los `estilos/*.css` | El diseño responsive no tiene ninguna relación con de dónde vienen los datos. |
+| Estilos migrados de inline (`style="..."` en el HTML) a clases de `estilos/*.css` | Donante (de rebote, junto con el responsive) y todo el sitio público | Es una tarea de mantenibilidad del código, no cambia ningún comportamiento — sigue 100% del lado del cliente sea cual sea el backend. Hospital/Admin quedan pendientes a propósito hasta que se conecten de verdad. |
+| Modal de bienvenida (aviso de que el sitio es un prototipo académico) | `index.html`, `HemoRed.ui.abrirModal()` + `localStorage` | Se muestra una sola vez por navegador. No tiene ningún dato de negocio ni necesita nunca un backend. |
 | Cálculo de "elegibilidad para donar" mostrado ANTES de reservar (edad, peso, 90 días) | `verificarElegibilidadReserva()`, `campana_detalle.html`/`dashboard.html` | Esto es un caso mixto real: hoy la regla de negocio está calculada en el cliente porque no hay otro lugar donde calcularla. Con backend, **la validación que manda es la del servidor** (ver fila correspondiente en la sección 2) — pero tiene sentido dejar una copia liviana de la misma regla en el cliente para avisar al donante de entrada, sin que tenga que llenar todo el formulario y recién ahí enterarse. Por eso queda en las dos listas: la versión "seria" es 🔌, esta es la versión de UX inmediata. |
 
 ---

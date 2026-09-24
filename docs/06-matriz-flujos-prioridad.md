@@ -1,6 +1,6 @@
 # Matriz: flujos del sistema, estado y prioridad
 
-**Fecha:** 2026-09-23
+**Fecha:** 2026-09-23 · **Última actualización:** 2026-09-24 (se agrega el detalle de Donante, antes resumido en un párrafo, para tener el progreso de los 5 bloques — Público/Donante/Hospital/Super Admin/Profesional — en el mismo formato)
 
 **Por qué existe esto:** `docs/04-estado-actual-prototipo.md` ya tiene, flujo por flujo, si está conectado (🟢/🟡/🔴) y qué le falta técnicamente. Esta matriz toma esas mismas filas y les agrega la capa de planificación que todavía faltaba: **nivel de diseño** (independiente del nivel de desarrollo — un flujo puede estar 🔴 sin conectar y tener el diseño visual terminado, o viceversa), **esfuerzo estimado**, **prioridad** y **si conviene encararlo completo de una vez o de a partes**. Es la base para decidir qué se toca primero ahora que arranca la revisión de Hospital/Admin (hito 4 del correo al profesor).
 
@@ -27,14 +27,30 @@
 | Recuperar contraseña | Público | 🔴 | 🟢 | No valida email, no genera/compara código, no cambia contraseña. No incluye ni `db.js`/`sesion.js`. | Medio | Should | Completo |
 | Contacto / lead institucional | Público | 🔴 | 🟢 | No se lee ni se guarda el formulario. Tampoco existe una vista de admin que liste estos mensajes. | Bajo (form) / Medio (+vista admin) | Could | Completo |
 | Nosotros / Términos / Privacidad | Público | 🟢 | 🟢 | Contenido estático, no requiere lógica. | — | — | — |
+| Modal de bienvenida (aviso institucional) | Público | 🟢 | 🟢 | Se muestra una vez por navegador, explica que es un prototipo académico y su alcance real. | — | — | — |
 
 **Nota:** Registro de hospital → Pago → Cuenta pendiente → Aprobación por Super Admin es **una sola cadena de 4 pantallas en 2 roles** (Público/Hospital + Super Admin) que hoy existen cada una por separado sin tocarse entre sí — la propia documentación interna del sistema (`admin/documentacion.html`) ya describe el flujo correcto. Es el ejemplo más claro de "cableado faltante" del prototipo: no falta diseñar nada, falta conectar 4 piezas ya construidas.
+
+**Actualización 2026-09-23/24:** además de conectar lo que faltaba, este bloque pasó por una revisión completa de responsive (mobile 320-375px) y una migración de todos sus estilos inline a `publico.css` — ver `docs/04`, sección "Público / Onboarding", para el detalle de cada corrección. Ninguna cambia el estado 🟢/🔴 de las filas de arriba (son ajustes de calidad de código y de UI, no de conexión a datos), pero dejan el bloque en mejor estado del que sugiere esta tabla por sí sola.
 
 ---
 
 ## Donante — ya cerrado
 
-Las 10 filas de Donante (explorar campañas, reservar turno, F1/F2, mis turnos ver/cancelar, mis documentos, mis donaciones, F4, notificaciones, editar perfil) están 🟢 desarrollo y 🟢 diseño (incluido el pase de responsive de esta sesión). No van en el detalle de esta matriz porque no compiten por prioridad — ya están hechas. Ver `docs/04`, sección "Donante", para el historial completo.
+| Flujo | Vistas | Desarrollo | Diseño | Qué falta | Esfuerzo | Prioridad | Enfoque |
+|---|---|---|---|---|---|---|---|
+| Explorar campañas | `dashboard.html` | 🟢 | 🟢 | — | — | — | — |
+| Reservar turno | `campana_detalle.html` | 🟢 | 🟢 | — | — | — | — |
+| Completar formularios pre-donación (F1/F2) | `formularios_predonacion.html` | 🟢 | 🟢 | — | — | — | — |
+| Mis turnos — ver (próximos/historial/cancelados) | `mis_turnos.html` | 🟢 | 🟢 | — | — | — | — |
+| Mis turnos — cancelar / reprogramar | `mis_turnos.html` (modal) | 🟢 | 🟢 | — | — | — | — |
+| Mis documentos | `mis_documentos.html` | 🟢 | 🟢 | — | — | — | — |
+| Mis donaciones | `mis_donaciones.html` | 🟢 | 🟢 | — | — | — | — |
+| Formulario post-donación anónimo (F4) | `postdonacion_anonimo.html` | 🟢 | 🟢 | — | — | — | — |
+| Notificaciones | `notificaciones.html` | 🟢 | 🟢 | — | — | — | — |
+| Editar perfil (incl. Seguridad de la cuenta) | `perfil.html` | 🟢 | 🟢 | — | — | — | — |
+
+Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de responsive mobile y la migración de estilos inline a CSS de esta sesión) — no compiten por prioridad porque ya están hechas, se listan acá completas (a diferencia de la versión anterior de esta matriz, que las resumía en un párrafo) para que el progreso de los 5 bloques del sistema quede registrado con el mismo nivel de detalle. Ver `docs/04`, sección "Donante", para el historial técnico completo de cada fila.
 
 ---
 
