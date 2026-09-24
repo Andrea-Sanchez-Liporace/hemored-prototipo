@@ -43,15 +43,24 @@
    PROFESIONAL SIDEBAR + LAYOUT (compartido en todas las páginas)
    ============================================================ */
 body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
-.sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
-.sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+/* height (no min-height): fixed a la ventana, así .sidebar-nav puede
+   recortarse contra un alto real y scrollear — con min-height, al ser
+   position:fixed, el sidebar simplemente crecía más allá del viewport en
+   vez de scrollear (nada lo obligaba a quedarse dentro). */
+.sidebar { width: 240px; height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+.sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; }
 .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
 .sidebar-logo a span { color: #f28b98; }
-.sidebar-prof { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+.sidebar-close-btn { display: none; background: none; border: none; color: #f28b98; font-size: 22px; cursor: pointer; padding: 4px; line-height: 1; }
+.sidebar-close-btn:hover { color: white; }
+.sidebar-prof { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #ef647c; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: white; flex-shrink: 0; }
 .sidebar-prof-name { font-size: 13px; font-weight: 500; color: white; }
 .sidebar-prof-role { font-size: 11px; color: #f28b98; }
-.sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+/* min-height:0 + overflow-y:auto: sin esto, un hijo de flex-direction:column
+   nunca se achica más allá de su contenido (mismo patrón de min-width:0 ya
+   corregido varias veces en donante.css, acá en el eje vertical). */
+.sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; text-align: left; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
 .nav-item.active { background: #5a1e37; color: white; }
@@ -158,12 +167,20 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 
 /* === RESPONSIVE PROFESIONAL === */
 @media (max-width: 1024px) { .stats-row { grid-template-columns: 1fr 1fr; } .dato-grid { grid-template-columns: 1fr; } }
-@media (max-width: 768px) {
+/* El sidebar fijo se muestra completo hasta 1024px (antes se achicaba recién
+   a los 768px, dejando el contenido de tablet apretado contra un sidebar de
+   240px que no se podía cerrar) — mismo breakpoint y mismo motivo que ya se
+   corrigió en donante.css. Debajo de 1024px pasa a ser off-canvas: arranca
+   oculto y se abre con el botón del topbar. */
+@media (max-width: 1024px) {
   .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
   .sidebar.open { transform: translateX(0); }
   .sidebar-overlay.open { display: block; }
+  .sidebar-close-btn { display: block; }
   .main { margin-left: 0; }
   .mobile-topbar-btn { display: flex; }
+}
+@media (max-width: 768px) {
   .content { padding: 20px; }
   .turno-card { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: 1fr 1fr; }

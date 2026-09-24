@@ -284,6 +284,23 @@ A pedido de la usuaria ("todo el sitio de donante, no es responsive?"), se revis
 
 ---
 
+## Sidebar unificado en los 4 roles (2026-09-24)
+
+**Pedido explícito de la usuaria:** "me gusta más como están alineados y separados los ítems en el menú [de Hospital]... le falta el scroll, el botón para cerrarlo en mobile, que sea responsive... y después propagar todo eso a Donante, Profesional y Admin". Alcance: los 4 roles con sesión (Donante, Hospital, Profesional, Admin) — 37 archivos HTML en total, cada uno con su propia copia del sidebar (no hay templates/includes en este prototipo).
+
+**Primer hallazgo, antes de tocar nada:** la diferencia de "alineación" que se percibía en Hospital **no era CSS** — la regla `.nav-item` es (y era) prácticamente idéntica en los 4 roles (mismo padding/gap/font-size). La diferencia real estaba en el HTML de `donante/dashboard.html`: el ícono y el texto de cada ítem estaban en líneas separadas (`<i>...</i>\n      Texto`), y ese salto de línea colapsa a un espacio extra sumado al `gap` del flex — en Hospital/Profesional/Admin (y en el resto de los archivos de Donante, que ya estaban bien) el ícono y el texto están pegados en la misma línea. Se ajustó el único archivo que lo tenía así.
+
+**Lo que sí faltaba de verdad, y no existía en NINGÚN rol (ni siquiera Donante, que ya tenía el botón de cerrar y el breakpoint correcto):**
+1. **Scroll interno del menú.** `.sidebar` usaba `min-height: 100vh` — al ser `position: fixed`, eso permite que el sidebar CREZCA más allá del viewport en vez de quedar contenido y scrollear (min-height no es un tope). Se cambió a `height: 100vh` en los 4 roles, y `.sidebar-nav` pasó a `flex: 1; min-height: 0; overflow-y: auto` — el `min-height: 0` es imprescindible (mismo patrón que `min-width: 0` ya corregido muchas veces en este documento, acá en el eje vertical): sin él, un hijo de `flex-direction: column` nunca se achica más allá de su contenido, así que `overflow-y: auto` no tenía ningún alto real contra el cual activarse. Verificado forzando una ventana baja (420px de alto): antes el menú se cortaba contra el borde de la pantalla sin ninguna forma de llegar a los últimos ítems; ahora scrollea y el header/footer del sidebar quedan fijos (`flex-shrink: 0`).
+2. **Botón de cerrar (X) en mobile/tablet.** Ya existía en Donante (`.sidebar-close-btn`); se agregó a Hospital (16 archivos), Profesional (2) y Admin (9 — `admin/documentacion.html` quedó afuera a propósito, es una página de documentación interna con su propio sidebar distinto, `.app-sidebar`, no forma parte de este patrón).
+3. **Breakpoint de colapso a 1024px.** Hospital, Profesional y Admin colapsaban recién a los 768px (el mismo problema que ya se había corregido en Donante: entre 769-1024px el sidebar de 240px quedaba fijo apretando el contenido de tablet, sin forma de ocultarlo). Se separó el `@media` del sidebar del resto de las reglas responsive de cada archivo (que siguen en 768px, no relacionadas) y se llevó a 1024px, mismo criterio que Donante.
+
+**Caso particular de Admin — paleta propia, no tocada.** Admin usa fondo navy (`#1a1a2e`) y texto blanco translúcido (`rgba(255,255,255,0.5)`) en vez del rosa/borravino de los otros 3 roles — el botón de cerrar se armó con esos mismos tonos, no los de Donante/Hospital. Además, `.sidebar-logo` de Admin ya tenía un segundo contenido propio que no existe en los otros roles: el badge "Super Admin" (`.sidebar-badge`), pensado para wrappear en su propia línea debajo del logo. Copiar el `display:flex; justify-content:space-between` que usan los otros 3 roles para posicionar el botón de cerrar rompía ese wrap (el badge quedaba peleando por espacio con el botón, en la misma fila) — se resolvió dejando `.sidebar-logo` sin flex y posicionando el botón con `position: absolute` en su lugar, sin tocar el comportamiento del badge.
+
+Test: `tests/sidebar-mobile.spec.js` (reescrito para cubrir los 4 roles — antes solo cubría Donante), 4 casos por rol (desktop sin controles mobile, tablet abre/cierra con botón+X, mobile cierra con el overlay, el menú no excede la ventana y scrollea si hace falta).
+
+---
+
 ## Público / Onboarding
 
 | Flujo | Vistas | Estado | Qué hace hoy | Qué falta |

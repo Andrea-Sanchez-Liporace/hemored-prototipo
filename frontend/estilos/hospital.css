@@ -34,14 +34,25 @@
    HOSPITAL SIDEBAR + LAYOUT (compartido en todas las páginas)
    ============================================================ */
 body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; min-height: 100vh; display: flex; }
-.sidebar { width: 240px; min-height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
-.sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+/* height (no min-height): fixed a la ventana, así .sidebar-nav puede
+   recortarse contra un alto real y scrollear — con min-height, al ser
+   position:fixed, el sidebar simplemente crecía más allá del viewport en
+   vez de scrollear (nada lo obligaba a quedarse dentro). */
+.sidebar { width: 240px; height: 100vh; background: #3d0f20; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+.sidebar-logo { padding: 24px 24px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; }
 .sidebar-logo a { font-family: 'Lobster', cursive; font-size: 24px; color: white; text-decoration: none; }
 .sidebar-logo a span { color: #f28b98; }
-.sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+.sidebar-close-btn { display: none; background: none; border: none; color: #f28b98; font-size: 22px; cursor: pointer; padding: 4px; line-height: 1; }
+.sidebar-close-btn:hover { color: white; }
+.sidebar-hospital { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); flex-shrink: 0; }
 .sidebar-hospital-name { font-size: 13px; font-weight: 500; color: white; }
 .sidebar-hospital-plan { display: inline-flex; align-items: center; gap: 4px; background: rgba(239,100,124,0.2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #f28b98; margin-top: 4px; }
-.sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+/* min-height:0 + overflow-y:auto: sin esto, un hijo de flex-direction:column
+   nunca se achica más allá de su contenido (mismo patrón de min-width:0 ya
+   corregido varias veces en donante.css, acá en el eje vertical) — con 9+
+   ítems de menú más el footer, en una pantalla baja el nav se cortaba
+   contra el fondo sin ninguna forma de llegar a los últimos ítems. */
+.sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; color: #f28b98; font-size: 13px; text-decoration: none; transition: background 0.15s; text-align: left; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
 .nav-item.active { background: #5a1e37; color: white; }
@@ -49,7 +60,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: white; padding: 12px 12px 4px; }
 .sidebar-nav .nav-section-label ~ .nav-section-label { position: relative; padding-top: 20px; }
 .sidebar-nav .nav-section-label ~ .nav-section-label::before { content: ''; display: block; position: absolute; top: 6px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(242,139,152,0.5) 30%, rgba(242,139,152,0.5) 70%, transparent); }
-.sidebar-footer { padding: 14px 20px; border-top: 0.5px solid rgba(255,255,255,0.1); }
+.sidebar-footer { padding: 14px 20px; border-top: 0.5px solid rgba(255,255,255,0.1); flex-shrink: 0; }
 .plan-card-side { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; border: 0.5px solid rgba(255,255,255,0.12); }
 .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
 .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
@@ -375,12 +386,20 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 
 /* === RESPONSIVE HOSPITAL === */
 @media (max-width: 1024px) { .detail-layout { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr 1fr; } .accesos-grid { grid-template-columns: 1fr 1fr; } .two-col { grid-template-columns: 1fr; } .kpis { grid-template-columns: 1fr 1fr; } .charts-row, .charts-row-3 { grid-template-columns: 1fr; } }
-@media (max-width: 768px) {
+/* El sidebar fijo se muestra completo hasta 1024px (antes se achicaba recién
+   a los 768px, dejando el contenido de tablet apretado contra un sidebar de
+   240px que no se podía cerrar) — mismo breakpoint y mismo motivo que ya se
+   corrigió en donante.css. Debajo de 1024px pasa a ser off-canvas: arranca
+   oculto y se abre con el botón del topbar. */
+@media (max-width: 1024px) {
   .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
   .sidebar.open { transform: translateX(0); }
   .sidebar-overlay.open { display: block; }
+  .sidebar-close-btn { display: block; }
   .main { margin-left: 0; }
   .mobile-topbar-btn { display: flex; }
+}
+@media (max-width: 768px) {
   .content { padding: 20px; }
   .form-row { grid-template-columns: 1fr; }
   .accesos-grid { grid-template-columns: 1fr; }
