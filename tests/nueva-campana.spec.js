@@ -97,6 +97,33 @@ test.describe('Wizard "Crear campaña"', () => {
     await expect(page.locator('.campaign-card', { hasText: 'Necesitamos donantes 0- con urgencia.' })).toBeVisible();
   });
 
+  test('la vista previa de turnos del paso 2 se actualiza en vivo al cambiar cupo por turno o confirmación, sin navegar', async ({ page }) => {
+    // Reportado por la usuaria: cambiar "Donantes por turno" o "¿Requiere
+    // confirmación manual?" no disparaba ningún recálculo — se veía el
+    // valor viejo (turnos === cupos, como si el cupo fuera siempre 1)
+    // hasta irse de la pantalla y volver. Causa: esos 2 <select> eran los
+    // únicos controles del paso sin un listener que llamara a
+    // actualizarPreview() (días/duración/franjas sí lo tenían).
+    await loginHospital(page);
+    await irYEsperar(page, '/hospital/nueva_campana.html');
+    await page.fill('#c-titulo', 'Verificación cupo en vivo');
+    await page.fill('#c-fecha-cierre', fechaEnDias(30));
+    await page.fill('#c-unidades', '10');
+    await page.click('.form-actions .btn-primary');
+
+    await page.waitForURL('**/nueva_campana_paso2.html');
+    await page.waitForFunction(() => typeof hospitalActual !== 'undefined' && hospitalActual !== null);
+
+    const turnos = Number(await page.locator('#stat-turnos').textContent());
+    expect(turnos).toBeGreaterThan(0);
+
+    await page.selectOption('#c-cupo', '3');
+    await expect(page.locator('#stat-cupos')).toHaveText(String(turnos * 3));
+
+    await page.selectOption('#c-cupo', '1');
+    await expect(page.locator('#stat-cupos')).toHaveText(String(turnos));
+  });
+
   test('al llegar al límite de campañas activas del plan, publicar "ahora" queda bloqueado', async ({ page }) => {
     await loginHospital(page);
     await irYEsperar(page, '/hospital/nueva_campana.html');

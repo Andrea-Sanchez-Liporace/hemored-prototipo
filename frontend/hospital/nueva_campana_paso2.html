@@ -463,8 +463,15 @@
 
     // Los .horario-input de las 2 filas semilla del HTML también disparan
     // el recálculo del preview (los agregados dinámicos ya lo hacen desde
-    // agregarHorario()).
+    // agregarHorario()). "Donantes por turno" y "confirmación manual" no
+    // tienen su propio onclick como días/duración/franjas horarias —
+    // reportado por la usuaria: cambiarlos no actualizaba el preview hasta
+    // tocar alguna otra cosa (el número de cupos quedaba pegado al valor
+    // viejo, dando "turnos totales" == "cupos disponibles" como si el
+    // cupo por turno siempre fuera 1).
     document.querySelectorAll('#horarios-lista .horario-input').forEach(inp => inp.addEventListener('change', actualizarPreview));
+    document.getElementById('c-cupo').addEventListener('change', actualizarPreview);
+    document.getElementById('c-confirmacion').addEventListener('change', actualizarPreview);
 
     restaurarWip();
     actualizarPreview();
