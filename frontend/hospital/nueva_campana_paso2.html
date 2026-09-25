@@ -88,14 +88,14 @@
           </div>
           <div class="card-subtitle">Seleccioná los días de la semana en que los donantes pueden presentarse.</div>
 
-          <div class="dias-grid">
-            <div class="dia-opt" onclick="toggleDia(this)">Lun</div>
-            <div class="dia-opt selected" onclick="toggleDia(this)">Mar</div>
-            <div class="dia-opt selected" onclick="toggleDia(this)">Mié</div>
-            <div class="dia-opt selected" onclick="toggleDia(this)">Jue</div>
-            <div class="dia-opt selected" onclick="toggleDia(this)">Vie</div>
-            <div class="dia-opt" onclick="toggleDia(this)">Sáb</div>
-            <div class="dia-opt" onclick="toggleDia(this)">Dom</div>
+          <div class="dias-grid" id="dias-grid">
+            <div class="dia-opt" data-dow="1" onclick="toggleDia(this)">Lun</div>
+            <div class="dia-opt selected" data-dow="2" onclick="toggleDia(this)">Mar</div>
+            <div class="dia-opt selected" data-dow="3" onclick="toggleDia(this)">Mié</div>
+            <div class="dia-opt selected" data-dow="4" onclick="toggleDia(this)">Jue</div>
+            <div class="dia-opt selected" data-dow="5" onclick="toggleDia(this)">Vie</div>
+            <div class="dia-opt" data-dow="6" onclick="toggleDia(this)">Sáb</div>
+            <div class="dia-opt" data-dow="0" onclick="toggleDia(this)">Dom</div>
           </div>
           <p class="form-hint">Los días seleccionados son los que verán los donantes al elegir su turno.</p>
         </div>
@@ -153,11 +153,11 @@
 
           <div class="form-group">
             <label class="form-label">Duración de cada turno</label>
-            <div class="duracion-grid">
-              <div class="dur-opt" onclick="selDur(this)">15 min</div>
-              <div class="dur-opt selected" onclick="selDur(this)">30 min</div>
-              <div class="dur-opt" onclick="selDur(this)">45 min</div>
-              <div class="dur-opt" onclick="selDur(this)">60 min</div>
+            <div class="duracion-grid" id="duracion-grid">
+              <div class="dur-opt" data-min="15" onclick="selDur(this)">15 min</div>
+              <div class="dur-opt selected" data-min="30" onclick="selDur(this)">30 min</div>
+              <div class="dur-opt" data-min="45" onclick="selDur(this)">45 min</div>
+              <div class="dur-opt" data-min="60" onclick="selDur(this)">60 min</div>
             </div>
             <p class="form-hint">La duración determina cuántos turnos se generan automáticamente por franja horaria.</p>
           </div>
@@ -165,18 +165,18 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Donantes por turno</label>
-              <select class="form-input">
-                <option>1 donante por turno</option>
-                <option selected>2 donantes por turno</option>
-                <option>3 donantes por turno</option>
-                <option>Sin límite por turno</option>
+              <select class="form-input" id="c-cupo">
+                <option value="1">1 donante por turno</option>
+                <option value="2" selected>2 donantes por turno</option>
+                <option value="3">3 donantes por turno</option>
+                <option value="999">Sin límite por turno</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">¿Requiere confirmación manual?</label>
-              <select class="form-input">
-                <option selected>Sí — el hospital confirma cada turno</option>
-                <option>No — confirmación automática</option>
+              <select class="form-input" id="c-confirmacion">
+                <option value="manual" selected>Sí — el hospital confirma cada turno</option>
+                <option value="automatica">No — confirmación automática</option>
               </select>
               <p class="form-hint">Si activás confirmación automática, los turnos se confirman al instante.</p>
             </div>
@@ -192,50 +192,21 @@
           <div class="card-subtitle">Así se van a ver los turnos disponibles para los donantes. Se generan automáticamente según tu configuración.</div>
 
           <div class="preview-grilla">
-            <div class="preview-grilla-title">Semana del 19 al 23 de mayo</div>
-            <div class="grilla-dias">
-              <div class="grilla-dia">
-                <div class="grilla-dia-nombre">Mar 20</div>
-                <div class="grilla-turno">08:00 · 2 cupos</div>
-                <div class="grilla-turno">08:30 · 2 cupos</div>
-                <div class="grilla-turno">09:00 · 2 cupos</div>
-                <div style="font-size:10px;color:#a9435d;margin-top:4px;">+14 más</div>
-              </div>
-              <div class="grilla-dia">
-                <div class="grilla-dia-nombre">Mié 21</div>
-                <div class="grilla-turno">08:00 · 2 cupos</div>
-                <div class="grilla-turno">08:30 · 2 cupos</div>
-                <div class="grilla-turno">09:00 · 2 cupos</div>
-                <div style="font-size:10px;color:#a9435d;margin-top:4px;">+14 más</div>
-              </div>
-              <div class="grilla-dia">
-                <div class="grilla-dia-nombre">Jue 22</div>
-                <div class="grilla-turno">08:00 · 2 cupos</div>
-                <div class="grilla-turno">08:30 · 2 cupos</div>
-                <div class="grilla-turno">09:00 · 2 cupos</div>
-                <div style="font-size:10px;color:#a9435d;margin-top:4px;">+14 más</div>
-              </div>
-              <div class="grilla-dia">
-                <div class="grilla-dia-nombre">Vie 23</div>
-                <div class="grilla-turno">08:00 · 2 cupos</div>
-                <div class="grilla-turno">08:30 · 2 cupos</div>
-                <div class="grilla-turno">09:00 · 2 cupos</div>
-                <div style="font-size:10px;color:#a9435d;margin-top:4px;">+14 más</div>
-              </div>
-            </div>
+            <div class="preview-grilla-title" id="preview-grilla-title">—</div>
+            <div class="grilla-dias" id="grilla-dias"></div>
           </div>
 
           <div style="display:flex;gap:20px;margin-top:14px;padding:12px 14px;background:#fdf0f3;border-radius:9px;">
             <div style="text-align:center;">
-              <div style="font-size:22px;font-weight:500;color:#5a1e37;">68</div>
+              <div style="font-size:22px;font-weight:500;color:#5a1e37;" id="stat-turnos">0</div>
               <div style="font-size:11px;color:#a9435d;">turnos totales</div>
             </div>
             <div style="text-align:center;">
-              <div style="font-size:22px;font-weight:500;color:#5a1e37;">136</div>
+              <div style="font-size:22px;font-weight:500;color:#5a1e37;" id="stat-cupos">0</div>
               <div style="font-size:11px;color:#a9435d;">cupos disponibles</div>
             </div>
             <div style="text-align:center;">
-              <div style="font-size:22px;font-weight:500;color:#5a1e37;">4</div>
+              <div style="font-size:22px;font-weight:500;color:#5a1e37;" id="stat-dias">0</div>
               <div style="font-size:11px;color:#a9435d;">días activos</div>
             </div>
           </div>
@@ -243,7 +214,7 @@
 
         <!-- ACCIONES -->
         <div class="form-actions">
-          <button class="btn-draft">
+          <button class="btn-draft" onclick="guardarBorrador()">
             <i class="ti ti-file"></i>
             Guardar borrador
           </button>
@@ -266,28 +237,28 @@
             <div class="resumen-icon"><i class="ti ti-speakerphone" style="color:#ef647c;font-size:15px;"></i></div>
             <div>
               <div class="resumen-label">Campaña</div>
-              <div class="resumen-value">Paciente pediátrico · Urgente</div>
+              <div class="resumen-value" id="r-titulo">—</div>
             </div>
           </div>
           <div class="resumen-item">
             <div class="resumen-icon"><i class="ti ti-droplet" style="color:#ef647c;font-size:15px;"></i></div>
             <div>
               <div class="resumen-label">Tipo de sangre</div>
-              <div class="resumen-value">0- / 0+</div>
+              <div class="resumen-value" id="r-sangre">—</div>
             </div>
           </div>
           <div class="resumen-item">
             <div class="resumen-icon"><i class="ti ti-calendar" style="color:#ef647c;font-size:15px;"></i></div>
             <div>
               <div class="resumen-label">Fecha límite</div>
-              <div class="resumen-value">20 de mayo 2026</div>
+              <div class="resumen-value" id="r-fecha">—</div>
             </div>
           </div>
           <div class="resumen-item">
             <div class="resumen-icon"><i class="ti ti-users" style="color:#ef647c;font-size:15px;"></i></div>
             <div>
               <div class="resumen-label">Donantes necesarios</div>
-              <div class="resumen-value">10 donantes</div>
+              <div class="resumen-value" id="r-unidades">—</div>
             </div>
           </div>
         </div>
@@ -323,19 +294,39 @@
   </div>
 </div>
 
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+
 <script>
+  const WIP_KEY = 'hemored_nueva_campana';
+  const DIAS_LABEL = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
   let horCount = 2;
+  let hospitalActual = null;
+  let wip = {};
+
+  function cargarWip() {
+    try { return JSON.parse(sessionStorage.getItem(WIP_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function guardarWip(datos) {
+    sessionStorage.setItem(WIP_KEY, JSON.stringify(datos));
+  }
 
   function toggleDia(el) {
     el.classList.toggle('selected');
+    actualizarPreview();
   }
   function selDur(el) {
     document.querySelectorAll('.dur-opt').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
+    actualizarPreview();
   }
   function eliminarHorario(id) {
     const el = document.getElementById(id);
     if (el) el.remove();
+    actualizarPreview();
   }
   function agregarHorario() {
     const lista = document.getElementById('horarios-lista');
@@ -356,10 +347,129 @@
         <i class="ti ti-trash" style="font-size:16px;"></i>
       </button>`;
     lista.appendChild(div);
+    div.querySelectorAll('.horario-input').forEach(inp => inp.addEventListener('change', actualizarPreview));
+    actualizarPreview();
   }
+
+  // Junta lo elegido en este paso, tal como lo espera crearCampana().
+  function recolectarPaso2() {
+    const dias = [...document.querySelectorAll('.dia-opt.selected')].map(el => Number(el.dataset.dow));
+    const horarios = [...document.querySelectorAll('#horarios-lista .horario-row')].map(row => {
+      const inputs = row.querySelectorAll('.horario-input');
+      return { desde: inputs[0].value, hasta: inputs[1].value };
+    });
+    const dur = Number(document.querySelector('.dur-opt.selected')?.dataset.min) || 30;
+    return {
+      dias_atencion: dias,
+      horarios_atencion: horarios,
+      duracion_turno_min: dur,
+      cupo_por_turno: Number(document.getElementById('c-cupo').value) || 1,
+      confirmacion_automatica: document.getElementById('c-confirmacion').value === 'automatica',
+    };
+  }
+
+  function validarPaso2(datos) {
+    if (!datos.dias_atencion.length) return 'Elegí al menos un día de atención.';
+    if (!datos.horarios_atencion.length) return 'Agregá al menos una franja horaria.';
+    if (datos.horarios_atencion.some(h => !h.desde || !h.hasta || h.desde >= h.hasta)) return 'Alguna franja horaria tiene un horario inválido (el "hasta" tiene que ser posterior al "desde").';
+    return null;
+  }
+
+  // Recalcula la grilla de preview y los 3 totales con el MISMO motor
+  // (HemoRed.data.generarSlotsDisponibles) que después va a usar de verdad
+  // campana_detalle.html para armar los turnos del donante — así el
+  // hospital ve acá exactamente lo que se va a generar, no una estimación
+  // aparte que podría no coincidir.
+  function actualizarPreview() {
+    const datos = recolectarPaso2();
+    const campanaFake = { ...datos, fecha_cierre: wip.fecha_cierre };
+    const cupo = datos.cupo_por_turno;
+
+    const { dias: diasConTurnos, totalTurnos, totalCupos } = HemoRed.data.calcularStatsTurnos(campanaFake);
+    document.getElementById('stat-turnos').textContent = totalTurnos;
+    document.getElementById('stat-cupos').textContent = totalCupos;
+    document.getElementById('stat-dias').textContent = datos.dias_atencion.length;
+
+    const primeros4 = diasConTurnos.slice(0, 4);
+    document.getElementById('preview-grilla-title').textContent = primeros4.length
+      ? `Próximos días con turnos (de ${diasConTurnos.length} en total hasta la fecha límite)`
+      : 'Elegí días y horarios para ver la vista previa';
+    document.getElementById('grilla-dias').innerHTML = primeros4.map(d => {
+      const fecha = new Date(d.fechaISO + 'T00:00:00');
+      const nombre = `${DIAS_LABEL[fecha.getDay()]} ${fecha.getDate()}`;
+      const visibles = d.slots.slice(0, 3);
+      const resto = d.slots.length - visibles.length;
+      return `<div class="grilla-dia">
+        <div class="grilla-dia-nombre">${nombre}</div>
+        ${visibles.map(h => `<div class="grilla-turno">${h} · ${cupo} cupos</div>`).join('')}
+        ${resto > 0 ? `<div style="font-size:10px;color:#a9435d;margin-top:4px;">+${resto} más</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
   function irPaso3() {
+    const datos = recolectarPaso2();
+    const error = validarPaso2(datos);
+    if (error) { HemoRed.ui.toast(error, 'error'); return; }
+    guardarWip({ ...cargarWip(), ...datos });
     window.location.href = '../hospital/nueva_campana_paso3.html';
   }
+
+  function guardarBorrador() {
+    const datos = { ...cargarWip(), ...recolectarPaso2(), hospital_id: hospitalActual.id };
+    const res = HemoRed.data.guardarBorradorCampana(datos);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    guardarWip({ ...datos, id: res.campana.id });
+    HemoRed.ui.toast('Borrador guardado. Podés retomarlo desde "Campañas".');
+  }
+
+  function restaurarWip() {
+    if (wip.dias_atencion) {
+      document.querySelectorAll('.dia-opt').forEach(el => el.classList.toggle('selected', wip.dias_atencion.includes(Number(el.dataset.dow))));
+    }
+    if (wip.horarios_atencion && wip.horarios_atencion.length) {
+      document.getElementById('horarios-lista').innerHTML = '';
+      horCount = 0;
+      wip.horarios_atencion.forEach(() => agregarHorario());
+      const filas = document.querySelectorAll('#horarios-lista .horario-row');
+      wip.horarios_atencion.forEach((h, i) => {
+        const inputs = filas[i].querySelectorAll('.horario-input');
+        inputs[0].value = h.desde;
+        inputs[1].value = h.hasta;
+      });
+    }
+    if (wip.duracion_turno_min) {
+      const opt = document.querySelector(`.dur-opt[data-min="${wip.duracion_turno_min}"]`);
+      if (opt) selDur(opt);
+    }
+    if (wip.cupo_por_turno) document.getElementById('c-cupo').value = wip.cupo_por_turno;
+    if (wip.confirmacion_automatica != null) document.getElementById('c-confirmacion').value = wip.confirmacion_automatica ? 'automatica' : 'manual';
+
+    document.getElementById('r-titulo').textContent = wip.titulo ? `${wip.titulo}${wip.urgente ? ' · Urgente' : ''}` : '—';
+    document.getElementById('r-sangre').textContent = wip.tipo_sangre_requerida || 'Cualquier tipo';
+    document.getElementById('r-fecha').textContent = wip.fecha_cierre ? new Date(wip.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    document.getElementById('r-unidades').textContent = wip.unidades_requeridas ? `${wip.unidades_requeridas} donantes` : '—';
+  }
+
+  async function init() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    if (!s) return;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    hospitalActual = HemoRed.db.find('hospitales', usuario?.hospital_id);
+
+    wip = cargarWip();
+    if (!wip.titulo) { window.location.href = '../hospital/nueva_campana.html'; return; }
+
+    // Los .horario-input de las 2 filas semilla del HTML también disparan
+    // el recálculo del preview (los agregados dinámicos ya lo hacen desde
+    // agregarHorario()).
+    document.querySelectorAll('#horarios-lista .horario-input').forEach(inp => inp.addEventListener('change', actualizarPreview));
+
+    restaurarWip();
+    actualizarPreview();
+  }
+
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('sidebar-overlay').classList.add('open');
@@ -368,7 +478,8 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
-</script>
 
+  init();
+</script>
 </body>
 </html>

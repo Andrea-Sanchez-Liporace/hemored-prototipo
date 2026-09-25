@@ -61,10 +61,8 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 | Flujo | Desarrollo | Diseño | Qué falta | Esfuerzo | Prioridad | Enfoque |
 |---|---|---|---|---|---|---|
 | Ver dashboard | 🟢 | 🟢 | Cerrado 2026-09-24. Resultó ser más que "agregar ids": las 2 listas (campañas recientes, turnos pendientes) eran filas 100% hardcodeadas, no solo faltaban los ids de los 3 KPI. | — | — | — |
-| Crear campaña — paso 1 | 🔴 | 🟢 | El botón "Siguiente" ni navega (`alert()`). | Bajo | Must | **Por partes** — los 3 pasos del wizard son una sola unidad, no tiene sentido cerrar uno sin los otros dos (nada se guarda hasta el paso 3). |
-| Crear campaña — paso 2 | 🔴 | 🟢 | Sin ningún traspaso de datos entre pasos (cero `sessionStorage`). | Medio | Must | **Por partes** — ídem. |
-| Crear campaña — paso 3 (publicar) | 🔴 | 🟢 | "Publicar" no crea ningún registro real. | Medio | Must | **Por partes** — acá se cierra el wizard completo; recomendado encarar los 3 pasos juntos en una sola tarea. |
-| Ver/gestionar campañas | 🔴 | 🟡 | Filas fijas (8, la BD real tiene 4); ningún botón de acción tiene `onclick`. | Medio | Must | Completo — pero lógicamente depende de que "Crear campaña" ya exista (si no, no hay campañas propias que gestionar más allá de las semilla). |
+| Crear campaña (3 pasos) | 🟢 | 🟢 | Cerrado 2026-09-25. Los 3 pasos se encararon juntos como una sola tarea, tal cual se había recomendado acá. Alcance final más grande que la estimación original — a pedido explícito de la usuaria se construyó el motor de horarios real (antes decorativo) y el límite de plan pasó a bloquear de verdad, proyectado a la fecha de publicación. Ver detalle en `docs/04`. | — | — | — |
+| Ver/gestionar campañas | 🔴 | 🟡 | Filas fijas (8, la BD real tiene 4); ningún botón de acción tiene `onclick`. Ahora además es donde debería vivir la lista de borradores guardados desde el wizard (todavía sin conectar ahí). | Medio | Must | Completo — ya puede encararse: "Crear campaña" existe, hay campañas propias reales para gestionar más allá de las semilla. |
 | Ver detalle de campaña (hospital) | 🔴 | 🟡 | 100% estático, no lee `id` de la URL; sin acciones de confirmar/rechazar turno. | Medio | Must | Junto con "Ver/gestionar campañas". |
 | Gestionar turnos del día | 🟢 | 🟢 | — | — | — | — |
 | Registrar donación | 🟢 | 🟢 | — | — | — | — |
@@ -126,7 +124,7 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 Mismo orden que la "Hoja de ruta sugerida" de `docs/04`, con la razón resumida acá:
 
 1. ~~Los 3 dashboards "silenciosos" (Hospital, Admin, Profesional)~~ — **Hospital cerrado 2026-09-24** (resultó más laborioso de lo estimado: además de los ids, las 2 listas de la pantalla eran filas hardcodeadas, ver `docs/04`). Quedan Admin y Profesional, mismo patrón para replicar.
-2. **Núcleo Hospital (MVP):** crear campaña (3 pasos como bloque), ver/gestionar campañas, ver detalle de campaña. Sin esto, el "camino feliz" completo (donante busca → reserva → hospital gestiona) no se puede mostrar de punta a punta con datos que no sean 100% semilla.
+2. **Núcleo Hospital (MVP):** ~~crear campaña (3 pasos como bloque)~~ — **cerrado 2026-09-25**, ver/gestionar campañas, ver detalle de campaña. Sin esto, el "camino feliz" completo (donante busca → reserva → hospital gestiona) no se puede mostrar de punta a punta con datos que no sean 100% semilla.
 3. **Cadena Registro de hospital → Pago → Cuenta pendiente → Aprobación (Admin):** hoy las 4 piezas existen sueltas; conectarlas es más "cablear" que "construir".
 4. **Should Have:** historial/documentación clínica de Hospital (resultado + certificado, con el insert dual a `documentos`), facturación (las 3 pantallas — Hospital paga, Admin emite/marca pagada — como un bloque), mensajería Hospital↔HemoRed (necesita pasar por diseño primero, no existe la vista).
 5. **Podría esperar:** métricas con agregación real (hoy ya "funcionan" visualmente para una demo con datos de relleno), gestión de pacientes/profesionales de Hospital.

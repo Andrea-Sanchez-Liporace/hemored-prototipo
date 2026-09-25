@@ -103,7 +103,7 @@ HemoRed.data = (function() {
     const donante = HemoRed.db.find('usuarios', s.usuario_id);
     const turnos = HemoRed.db.where('turnos', 'usuario_id', s.usuario_id);
     const donaciones = HemoRed.db.where('donaciones', 'usuario_id', s.usuario_id);
-    const campanas = HemoRed.db.all('campanas').filter(c => c.estado === 'activa');
+    const campanas = HemoRed.db.all('campanas').filter(c => esCampanaActiva(c));
 
     // Inyectar nombre
     _set('donante-nombre', donante?.nombre || '');
@@ -837,17 +837,193 @@ HemoRed.data = (function() {
 
     _set('hospital-nombre', hospital?.nombre || '');
     _set('hospital-nombre-sidebar', hospital?.nombre || '');
-    _set('campanas-activas', campanas.filter(c => c.estado === 'activa').length);
+    _set('campanas-activas', campanas.filter(c => esCampanaActiva(c)).length);
     _set('turnos-hoy', turnos.filter(t => t.fecha === hoy.toISOString().slice(0, 10)).length);
     _set('donaciones-mes', donacionesMes.length);
 
     // Texto de bienvenida (antes fijo: "Hoy es jueves 15 de mayo de 2026...",
     // corregido 2026-09-22 junto con las otras fechas de ejemplo vencidas).
     _set('bienvenida-fecha', hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
-    _set('bienvenida-campanas', campanas.filter(c => c.estado === 'activa').length);
+    _set('bienvenida-campanas', campanas.filter(c => esCampanaActiva(c)).length);
     _set('bienvenida-turnos-pendientes', turnos.filter(t => t.estado === 'pendiente').length);
 
     return { hospital, campanas, turnos, donaciones };
+  }
+
+  // ===== CAMPAÑAS (rol Hospital) =====
+
+  // "Activa" de verdad: el estado guardado ya es 'activa', o es 'programada'
+  // y la fecha de publicación elegida ya llegó (no hay cron que la pase a
+  // mano — se calcula al leer, mismo criterio que el resto de las fechas
+  // "hoy" del prototipo, ver HemoRed.data.ahora()). Única fuente de verdad:
+  // antes el dashboard de Hospital, el de Donante y el buscador de campañas
+  // filtraban `estado === 'activa'` cada uno por su cuenta y ninguno sabía
+  // nada de campañas programadas (agregado 2026-09-25 junto con el wizard
+  // "Crear campaña").
+  function esCampanaActiva(c, fechaRef) {
+    fechaRef = fechaRef || ahora();
+    if (c.estado === 'activa') return true;
+    if (c.estado === 'programada' && c.fecha_publicacion && new Date(c.fecha_publicacion) <= fechaRef) return true;
+    return false;
+  }
+
+  function obtenerPlanHospital(hospitalId) {
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    if (!hospital) return null;
+    return HemoRed.db.find('planes', hospital.plan_id);
+  }
+
+  // Cuenta "activas ahora" para mostrar en pantalla (ej. checklist del
+  // wizard) — mismo criterio que esCampanaActiva(), sin proyectar a futuro.
+  // Para el bloqueo real al publicar/programar, ver cupoOcupadoEn.
+  function contarCampanasActivas(hospitalId) {
+    return HemoRed.db.where('campanas', 'hospital_id', hospitalId).filter(c => esCampanaActiva(c)).length;
+  }
+
+  // Cuántas campañas de este hospital van a seguir "ocupando cupo" del plan
+  // en `fechaRef` — a diferencia de esCampanaActiva(), acá SÍ importa
+  // `fecha_cierre`: una campaña `activa` cuyo cierre ya pasó para esa fecha
+  // deja de contar, aunque nadie la haya cerrado a mano todavía (no hay
+  // cron que la pase a `cerrada` sola). Es lo que permite programar una
+  // campaña nueva para dentro de 2 meses aunque HOY el plan esté al límite,
+  // si algo de lo activo hoy va a estar cerrado para esa fecha (pedido
+  // explícito de la usuaria, 2026-09-25: "si tiene 5 activas y programa una
+  // para cuando una de esas termine, debería poder"). Exportada (no
+  // interna) porque el wizard la reusa para mostrar en vivo, en el paso 3,
+  // si la fecha elegida libera o no el bloqueo — sin duplicar el criterio.
+  function cupoOcupadoEn(hospitalId, fechaRef, excluirCampanaId) {
+    return HemoRed.db.where('campanas', 'hospital_id', hospitalId).filter(c => {
+      if (c.id === excluirCampanaId) return false;
+      const cierre = c.fecha_cierre ? new Date(c.fecha_cierre) : null;
+      if (cierre && cierre < fechaRef) return false; // ya va a estar cerrada para esa fecha
+      return esCampanaActiva(c, fechaRef);
+    }).length;
+  }
+
+  // Arma los horarios candidatos (array de "HH:MM") de un día puntual a
+  // partir de la config real de la campaña (`horarios_atencion` +
+  // `duracion_turno_min`). Devuelve `null` si la campaña no tiene esa
+  // config (campañas viejas, de antes de este cambio) para que quien llama
+  // sepa que tiene que caer al comportamiento genérico de siempre — ver
+  // `campana_detalle.html`, que sigue funcionando igual que antes para esas.
+  function generarSlotsDisponibles(campana, fechaISO) {
+    if (!campana.horarios_atencion || !campana.duracion_turno_min) return null;
+    const dow = new Date(fechaISO + 'T00:00:00').getDay();
+    if (campana.dias_atencion && !campana.dias_atencion.includes(dow)) return [];
+    const slots = [];
+    const dur = campana.duracion_turno_min;
+    campana.horarios_atencion.forEach(({ desde, hasta }) => {
+      const [h, m] = desde.split(':').map(Number);
+      const [hf, mf] = hasta.split(':').map(Number);
+      let actual = h * 60 + m;
+      const fin = hf * 60 + mf;
+      while (actual + dur <= fin) {
+        const hh = String(Math.floor(actual / 60)).padStart(2, '0');
+        const mm = String(actual % 60).padStart(2, '0');
+        slots.push(`${hh}:${mm}`);
+        actual += dur;
+      }
+    });
+    return slots;
+  }
+
+  // Próximas `cantidad` fechas (ISO) en que la campaña atiende según
+  // `dias_atencion`, arrancando hoy, sin pasarse de `fecha_cierre`. Ventana
+  // de búsqueda acotada a 60 días para no colgarse si `dias_atencion`
+  // quedara vacío por algún error de carga. `null` = campaña sin esa
+  // config (cae al comportamiento genérico de siempre).
+  function fechasAtencionCampana(campana, cantidad) {
+    if (!campana.dias_atencion || !campana.dias_atencion.length) return null;
+    const base = ahora();
+    base.setHours(0, 0, 0, 0);
+    const cierre = campana.fecha_cierre ? new Date(campana.fecha_cierre + 'T00:00:00') : null;
+    const fechas = [];
+    for (let i = 0; i < 60 && fechas.length < cantidad; i++) {
+      const d = new Date(base);
+      d.setDate(d.getDate() + i);
+      if (cierre && d > cierre) break;
+      if (campana.dias_atencion.includes(d.getDay())) fechas.push(d.toISOString().slice(0, 10));
+    }
+    return fechas;
+  }
+
+  // Estadísticas de turnos que va a generar una campaña con esta config
+  // (mismo motor que generarSlotsDisponibles) — un solo lugar, usado tanto
+  // en el preview del paso 2 del wizard como en el resumen antes de
+  // publicar (paso 3), para no repetir el mismo cálculo en 2 pantallas.
+  function calcularStatsTurnos(campana) {
+    const hoy = ahora();
+    hoy.setHours(0, 0, 0, 0);
+    const cierre = campana.fecha_cierre ? new Date(campana.fecha_cierre + 'T00:00:00') : null;
+    const dias = [];
+    for (let i = 0; i < 60 && dias.length < 90; i++) {
+      const d = new Date(hoy);
+      d.setDate(d.getDate() + i);
+      if (cierre && d > cierre) break;
+      const fechaISO = d.toISOString().slice(0, 10);
+      const slots = generarSlotsDisponibles(campana, fechaISO) || [];
+      if (slots.length) dias.push({ fechaISO, slots });
+    }
+    const cupo = campana.cupo_por_turno || 1;
+    const totalTurnos = dias.reduce((acc, d) => acc + d.slots.length, 0);
+    return { dias, totalTurnos, totalCupos: totalTurnos * cupo };
+  }
+
+  // Crea (o publica) una campaña real. `datos.estado` es 'activa' (publicar
+  // ahora), 'programada' (con `fecha_publicacion` futura) o 'borrador'
+  // (guardar y seguir después). El límite de campañas del plan se valida
+  // acá, proyectado a la fecha en que la campaña realmente va a estar
+  // activa (hoy para 'activa', `fecha_publicacion` para 'programada') — no
+  // cuenta contra el límite si para esa fecha alguna de las activas
+  // actuales ya va a estar cerrada. Los borradores no cuentan nunca. Si
+  // `datos.id` viene con valor, actualiza esa campaña (borrador retomado)
+  // en vez de crear una nueva — así "Guardar borrador" varias veces sobre
+  // el mismo wizard no duplica filas.
+  function crearCampana(datos) {
+    const { estado } = datos;
+    if (estado === 'activa' || estado === 'programada') {
+      const fechaRef = estado === 'activa' ? ahora() : new Date(datos.fecha_publicacion);
+      const plan = obtenerPlanHospital(datos.hospital_id);
+      const ocupado = cupoOcupadoEn(datos.hospital_id, fechaRef, datos.id);
+      if (plan && ocupado >= plan.max_campanas_simultaneas) {
+        const cuando = estado === 'activa' ? 'ahora mismo' : 'para esa fecha';
+        return { ok: false, error: `Tu plan ${plan.nombre} permite hasta ${plan.max_campanas_simultaneas} campañas activas simultáneas, y ${cuando} ya tenés ese cupo ocupado. Pausá o cerrá una campaña existente antes de continuar.` };
+      }
+    }
+
+    const campo = {
+      hospital_id: datos.hospital_id,
+      paciente_id: datos.paciente_id ?? null,
+      titulo: datos.titulo,
+      descripcion: datos.descripcion || '',
+      tipo_sangre_requerida: datos.tipo_sangre_requerida ?? null,
+      unidades_requeridas: datos.unidades_requeridas,
+      unidades_obtenidas: datos.unidades_obtenidas ?? 0,
+      estado,
+      urgente: !!datos.urgente,
+      fecha_publicacion: estado === 'borrador' ? null : (datos.fecha_publicacion || ahora().toISOString()),
+      fecha_cierre: datos.fecha_cierre,
+      alcance: datos.alcance || 'local',
+      cupo_por_turno: datos.cupo_por_turno ?? 1,
+      confirmacion_automatica: !!datos.confirmacion_automatica,
+      dias_atencion: datos.dias_atencion || [],
+      horarios_atencion: datos.horarios_atencion || [],
+      duracion_turno_min: datos.duracion_turno_min || 30,
+      creado_en: datos.creado_en || new Date().toISOString(),
+    };
+
+    const campana = datos.id
+      ? HemoRed.db.actualizar('campanas', datos.id, campo)
+      : HemoRed.db.crear('campanas', campo);
+
+    return { ok: true, campana };
+  }
+
+  // Mismo crearCampana pero fuerza estado 'borrador' y no valida límite de
+  // plan (los borradores no cuentan) — separado para que el wizard no
+  // tenga que acordarse de pasar el estado a mano al guardar un borrador.
+  function guardarBorradorCampana(datos) {
+    return crearCampana({ ...datos, estado: 'borrador' });
   }
 
   async function cargarTurnosHoy() {
@@ -1092,6 +1268,15 @@ HemoRed.data = (function() {
     cambiarEmailDonante,
     eliminarCuentaDonante,
     cargarDashboardHospital,
+    esCampanaActiva,
+    obtenerPlanHospital,
+    contarCampanasActivas,
+    cupoOcupadoEn,
+    generarSlotsDisponibles,
+    fechasAtencionCampana,
+    calcularStatsTurnos,
+    crearCampana,
+    guardarBorradorCampana,
     cargarTurnosHoy,
     cargarProfesionalesHospital,
     registrarDonacion,

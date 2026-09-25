@@ -97,24 +97,24 @@
 
           <div class="form-group">
             <label class="form-label">Título de la campaña</label>
-            <input class="form-input" type="text" placeholder="Ej: Campaña urgente para paciente pediátrico">
+            <input class="form-input" type="text" id="c-titulo" placeholder="Ej: Campaña urgente para paciente pediátrico">
             <p class="form-hint">Este título aparece en el buscador de campañas. Sé claro y descriptivo.</p>
           </div>
 
           <div class="form-group">
             <label class="form-label">Descripción <span class="opcional">(opcional)</span></label>
-            <textarea class="form-input" placeholder="Describí el motivo de la campaña, quién necesita la donación y cualquier dato relevante para el donante..."></textarea>
+            <textarea class="form-input" id="c-descripcion" placeholder="Describí el motivo de la campaña, quién necesita la donación y cualquier dato relevante para el donante..."></textarea>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Fecha límite</label>
-              <input class="form-input" type="date">
+              <input class="form-input" type="date" id="c-fecha-cierre">
               <p class="form-hint">Fecha hasta la cual se aceptan donantes.</p>
             </div>
             <div class="form-group">
               <label class="form-label">Cantidad de donantes necesarios</label>
-              <input class="form-input" type="number" placeholder="Ej: 10" min="1">
+              <input class="form-input" type="number" id="c-unidades" placeholder="Ej: 10" min="1">
             </div>
           </div>
         </div>
@@ -127,16 +127,16 @@
           </div>
           <div class="card-subtitle">Seleccioná el tipo de sangre que necesita la campaña.</div>
 
-          <div class="sangre-grid">
-            <div class="sangre-opt" onclick="selSangre(this)">A+</div>
-            <div class="sangre-opt" onclick="selSangre(this)">A-</div>
-            <div class="sangre-opt" onclick="selSangre(this)">B+</div>
-            <div class="sangre-opt" onclick="selSangre(this)">B-</div>
-            <div class="sangre-opt" onclick="selSangre(this)">AB+</div>
-            <div class="sangre-opt" onclick="selSangre(this)">AB-</div>
-            <div class="sangre-opt" onclick="selSangre(this)">0+</div>
-            <div class="sangre-opt" onclick="selSangre(this)">0-</div>
-            <div class="sangre-opt todos" onclick="selSangre(this)">Todos los tipos</div>
+          <div class="sangre-grid" id="sangre-grid">
+            <div class="sangre-opt" data-valor="A+" onclick="selSangre(this)">A+</div>
+            <div class="sangre-opt" data-valor="A-" onclick="selSangre(this)">A-</div>
+            <div class="sangre-opt" data-valor="B+" onclick="selSangre(this)">B+</div>
+            <div class="sangre-opt" data-valor="B-" onclick="selSangre(this)">B-</div>
+            <div class="sangre-opt" data-valor="AB+" onclick="selSangre(this)">AB+</div>
+            <div class="sangre-opt" data-valor="AB-" onclick="selSangre(this)">AB-</div>
+            <div class="sangre-opt" data-valor="0+" onclick="selSangre(this)">0+</div>
+            <div class="sangre-opt" data-valor="0-" onclick="selSangre(this)">0-</div>
+            <div class="sangre-opt todos selected" data-valor="" onclick="selSangre(this)">Todos los tipos</div>
           </div>
         </div>
 
@@ -148,23 +148,24 @@
           </div>
           <div class="card-subtitle">Esto afecta cómo se muestra la campaña en el buscador.</div>
 
-          <div class="urgencia-grid">
-            <div class="urgencia-opt" onclick="selUrgencia(this)">
+          <div class="urgencia-grid" id="urgencia-grid">
+            <div class="urgencia-opt" data-valor="normal" onclick="selUrgencia(this)">
               <div class="urgencia-icon">🟢</div>
               <div class="urgencia-name">Normal</div>
               <div class="urgencia-desc">Campaña de banco de sangre general sin urgencia inmediata</div>
             </div>
-            <div class="urgencia-opt selected" onclick="selUrgencia(this)">
+            <div class="urgencia-opt selected" data-valor="moderada" onclick="selUrgencia(this)">
               <div class="urgencia-icon">🟡</div>
               <div class="urgencia-name">Moderada</div>
               <div class="urgencia-desc">Se necesitan donantes en los próximos días</div>
             </div>
-            <div class="urgencia-opt" onclick="selUrgencia(this)">
+            <div class="urgencia-opt" data-valor="urgente" onclick="selUrgencia(this)">
               <div class="urgencia-icon">🔴</div>
               <div class="urgencia-name">Urgente</div>
               <div class="urgencia-desc">Situación crítica, se necesitan donantes de inmediato</div>
             </div>
           </div>
+          <p class="form-hint">"Urgente" es lo único que cambia cómo se ve en el buscador del donante (aparece primero, con etiqueta destacada) — Normal y Moderada se muestran igual.</p>
         </div>
 
         <!-- PACIENTE ASOCIADO -->
@@ -188,11 +189,8 @@
           <div class="paciente-form" id="paciente-form">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Seleccionar paciente</label>
-              <select class="form-input">
-                <option value="" disabled selected>Buscá por nombre o ID</option>
-                <option>Juan Pérez — ID #0042</option>
-                <option>María García — ID #0038</option>
-                <option>Carlos López — ID #0051</option>
+              <select class="form-input" id="c-paciente">
+                <option value="" selected>Buscá por nombre o ID</option>
               </select>
               <p class="form-hint">Solo aparecen pacientes registrados en tu hospital. <a href="../hospital/pacientes.html" style="color:#ef647c;">Registrar nuevo paciente</a></p>
             </div>
@@ -206,7 +204,7 @@
 
         <!-- ACCIONES -->
         <div class="form-actions">
-          <button class="btn-draft">
+          <button class="btn-draft" onclick="guardarBorrador()">
             <i class="ti ti-file" aria-hidden="true"></i>
             Guardar borrador
           </button>
@@ -243,11 +241,9 @@
           </div>
         </div>
 
-        <div class="info-box">
+        <div class="info-box" id="plan-info-box">
           <i class="ti ti-alert-circle" style="color:#e67e22;font-size:18px;flex-shrink:0;" aria-hidden="true"></i>
-          <div class="info-box-text">
-            Tu plan <strong>Provincial</strong> permite hasta <strong>3 campañas activas simultáneas</strong>. Actualmente tenés 3/3 activas. Al publicar esta campaña deberás pausar o cerrar una existente.
-          </div>
+          <div class="info-box-text" id="plan-info-text">—</div>
         </div>
 
         <div class="preview-card">
@@ -281,11 +277,30 @@
   </div>
 </div>
 
-<script>
-  let pacienteOn = false;
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
 
-  function togglePaciente() {
-    pacienteOn = !pacienteOn;
+<script>
+  // Estado del wizard, compartido entre los 3 pasos vía sessionStorage (no
+  // hay SPA ni backend real acá — mismo criterio que registro→pago). Nada
+  // se crea en `campanas` hasta "Publicar" en el paso 3 (o "Guardar
+  // borrador" en cualquier paso).
+  const WIP_KEY = 'hemored_nueva_campana';
+  let pacienteOn = false;
+  let hospitalActual = null;
+
+  function cargarWip() {
+    try { return JSON.parse(sessionStorage.getItem(WIP_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function guardarWip(datos) {
+    sessionStorage.setItem(WIP_KEY, JSON.stringify(datos));
+  }
+
+  function togglePaciente(forzado) {
+    pacienteOn = forzado != null ? forzado : !pacienteOn;
     const toggle = document.getElementById('toggle-paciente');
     const form = document.getElementById('paciente-form');
     toggle.classList.toggle('on', pacienteOn);
@@ -302,8 +317,96 @@
     el.classList.add('selected');
   }
 
+  // Junta lo tipeado/elegido en el paso 1, tal como lo espera crearCampana()
+  // (data.js) — se reusa tanto para "Siguiente" como para "Guardar borrador".
+  function recolectarPaso1() {
+    const sangreSel = document.querySelector('.sangre-opt.selected');
+    const urgenciaSel = document.querySelector('.urgencia-opt.selected');
+    return {
+      titulo: document.getElementById('c-titulo').value.trim(),
+      descripcion: document.getElementById('c-descripcion').value.trim(),
+      fecha_cierre: document.getElementById('c-fecha-cierre').value,
+      unidades_requeridas: Number(document.getElementById('c-unidades').value) || null,
+      tipo_sangre_requerida: sangreSel?.dataset.valor || null,
+      urgente: urgenciaSel?.dataset.valor === 'urgente',
+      paciente_id: pacienteOn ? (Number(document.getElementById('c-paciente').value) || null) : null,
+    };
+  }
+
+  function validarPaso1(datos) {
+    if (!datos.titulo) return 'Falta el título de la campaña.';
+    if (!datos.fecha_cierre) return 'Falta la fecha límite.';
+    if (!datos.unidades_requeridas || datos.unidades_requeridas < 1) return 'Falta la cantidad de donantes necesarios.';
+    return null;
+  }
+
   function irPaso2() {
-    alert('Paso 2: Turnos y disponibilidad — próxima pantalla');
+    const datos = recolectarPaso1();
+    const error = validarPaso1(datos);
+    if (error) { HemoRed.ui.toast(error, 'error'); return; }
+    guardarWip({ ...cargarWip(), ...datos });
+    window.location.href = '../hospital/nueva_campana_paso2.html';
+  }
+
+  function guardarBorrador() {
+    const datos = { ...cargarWip(), ...recolectarPaso1(), hospital_id: hospitalActual.id };
+    const res = HemoRed.data.guardarBorradorCampana(datos);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    guardarWip({ ...datos, id: res.campana.id });
+    HemoRed.ui.toast('Borrador guardado. Podés retomarlo desde "Campañas".');
+  }
+
+  // Repuebla el formulario si venís de "Volver" del paso 2, o si estás
+  // retomando un borrador guardado antes.
+  function restaurarWip() {
+    const wip = cargarWip();
+    if (!wip || !Object.keys(wip).length) return;
+    if (wip.titulo) document.getElementById('c-titulo').value = wip.titulo;
+    if (wip.descripcion) document.getElementById('c-descripcion').value = wip.descripcion;
+    if (wip.fecha_cierre) document.getElementById('c-fecha-cierre').value = wip.fecha_cierre;
+    if (wip.unidades_requeridas) document.getElementById('c-unidades').value = wip.unidades_requeridas;
+    if (wip.tipo_sangre_requerida) {
+      const opt = document.querySelector(`.sangre-opt[data-valor="${wip.tipo_sangre_requerida}"]`);
+      if (opt) selSangre(opt);
+    }
+    const nivelUrgencia = wip.urgente ? 'urgente' : 'moderada';
+    const urgOpt = document.querySelector(`.urgencia-opt[data-valor="${nivelUrgencia}"]`);
+    if (urgOpt) selUrgencia(urgOpt);
+    if (wip.paciente_id) {
+      togglePaciente(true);
+      document.getElementById('c-paciente').value = wip.paciente_id;
+    }
+  }
+
+  async function init() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    if (!s) return;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    hospitalActual = HemoRed.db.find('hospitales', usuario?.hospital_id);
+
+    const pacientes = HemoRed.db.where('pacientes', 'hospital_id', hospitalActual.id).filter(p => p.activo);
+    const select = document.getElementById('c-paciente');
+    pacientes.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.nombre} ${p.apellido} — ID #${String(p.id).padStart(4, '0')}`;
+      select.appendChild(opt);
+    });
+
+    const activas = HemoRed.data.contarCampanasActivas(hospitalActual.id);
+    const plan = HemoRed.data.obtenerPlanHospital(hospitalActual.id);
+    const box = document.getElementById('plan-info-box');
+    const texto = document.getElementById('plan-info-text');
+    if (plan) {
+      texto.innerHTML = `Tu plan <strong>${plan.nombre}</strong> permite hasta <strong>${plan.max_campanas_simultaneas} campañas activas simultáneas</strong>. Actualmente tenés ${activas}/${plan.max_campanas_simultaneas} activas.` +
+        (activas >= plan.max_campanas_simultaneas ? ' Al publicar esta campaña deberás pausar o cerrar una existente (o programarla para una fecha en la que tengas cupo libre).' : '');
+      box.style.display = activas >= plan.max_campanas_simultaneas - 1 ? 'flex' : 'none';
+    } else {
+      box.style.display = 'none';
+    }
+
+    restaurarWip();
   }
 
   function abrirSidebar() {
@@ -314,11 +417,8 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
-</script>
 
-  <script src="../js/db.js"></script>
-  <script src="../js/sesion.js"></script>
-  <script src="../js/ui.js"></script>
-  <script src="../js/data.js"></script>
+  init();
+</script>
 </body>
 </html>

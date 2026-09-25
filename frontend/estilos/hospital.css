@@ -569,6 +569,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .check-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .check-icon.ok { background: #e1f5ee; }
 .check-icon.warn { background: #faeeda; }
+.check-icon.danger { background: var(--color-danger-bg); }
 .check-text { flex: 1; font-size: 13px; color: #5a3040; }
 .check-text strong { color: #5a1e37; }
 .check-edit { font-size: 12px; color: #ef647c; cursor: pointer; text-decoration: none; white-space: nowrap; }

@@ -86,40 +86,35 @@
           <div class="preview-campana">
             <div class="preview-campana-header">
               <div>
-                <div class="preview-campana-title">Campaña paciente pediátrico</div>
-                <div class="preview-campana-hospital">Hospital Ramos Mejía · CABA</div>
+                <div class="preview-campana-title" id="pv-titulo">—</div>
+                <div class="preview-campana-hospital" id="pv-hospital">—</div>
               </div>
-              <span class="badge-urgente">Urgente</span>
+              <span class="badge-urgente hidden" id="pv-badge-urgente">Urgente</span>
             </div>
             <div class="preview-campana-body">
               <div class="preview-meta">
                 <div class="meta-item">
                   <div class="meta-label">Tipo de sangre</div>
-                  <div class="meta-value">0- / 0+</div>
+                  <div class="meta-value" id="pv-sangre">—</div>
                 </div>
                 <div class="meta-item">
                   <div class="meta-label">Fecha límite</div>
-                  <div class="meta-value">20 de mayo 2026</div>
+                  <div class="meta-value" id="pv-fecha">—</div>
                 </div>
                 <div class="meta-item">
                   <div class="meta-label">Donantes necesarios</div>
-                  <div class="meta-value">10 donantes</div>
+                  <div class="meta-value" id="pv-unidades">—</div>
                 </div>
                 <div class="meta-item">
                   <div class="meta-label">Turnos disponibles</div>
-                  <div class="meta-value">68 turnos · 136 cupos</div>
+                  <div class="meta-value" id="pv-turnos">—</div>
                 </div>
               </div>
               <div class="preview-desc-title">Descripción</div>
-              <div class="preview-desc-text">Paciente pediátrico de 8 años requiere transfusiones de sangre para cirugía cardíaca programada para el 22 de mayo. Cualquier persona en buenas condiciones de salud puede presentarse a donar.</div>
+              <div class="preview-desc-text" id="pv-descripcion">—</div>
               <div class="preview-turnos-title">Días disponibles</div>
-              <div class="preview-dias">
-                <span class="preview-dia-chip">Mar — 08:00 a 12:00 / 14:00 a 17:00</span>
-                <span class="preview-dia-chip">Mié — 08:00 a 12:00 / 14:00 a 17:00</span>
-                <span class="preview-dia-chip">Jue — 08:00 a 12:00 / 14:00 a 17:00</span>
-                <span class="preview-dia-chip">Vie — 08:00 a 12:00 / 14:00 a 17:00</span>
-              </div>
-              <div class="progress-bar"><div class="progress-fill"></div></div>
+              <div class="preview-dias" id="pv-dias"></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%;"></div></div>
             </div>
           </div>
 
@@ -141,17 +136,17 @@
             </div>
             <div class="check-row">
               <div class="check-icon ok"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i></div>
-              <div class="check-text"><strong>Fecha límite</strong> establecida: 20 de mayo 2026</div>
+              <div class="check-text"><strong>Fecha límite</strong> establecida: <span id="ck-fecha">—</span></div>
               <a class="check-edit" href="../hospital/nueva_campana.html">Editar</a>
             </div>
             <div class="check-row">
               <div class="check-icon ok"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i></div>
-              <div class="check-text"><strong>68 turnos</strong> generados en 4 días de atención</div>
+              <div class="check-text"><strong><span id="ck-turnos">0</span> turnos</strong> generados en <span id="ck-dias">0</span> días de atención</div>
               <a class="check-edit" href="../hospital/nueva_campana_paso2.html">Editar</a>
             </div>
-            <div class="check-row">
-              <div class="check-icon warn"><i class="ti ti-alert" style="color:#e67e22;font-size:14px;"></i></div>
-              <div class="check-text"><strong>Atención:</strong> Tenés 3/3 campañas activas en tu plan. Al publicar esta campaña deberás pausar o cerrar una existente.</div>
+            <div class="check-row hidden" id="ck-limite-row">
+              <div class="check-icon warn" id="ck-limite-icon"><i class="ti ti-alert" style="color:#e67e22;font-size:14px;"></i></div>
+              <div class="check-text" id="ck-limite-texto">—</div>
               <a class="check-edit" href="../hospital/campanas.html">Ver campañas</a>
             </div>
           </div>
@@ -163,12 +158,12 @@
               ¿Cuándo querés publicar?
             </div>
             <div class="pub-options">
-              <div class="pub-opt selected" onclick="selPub('ahora', this)">
+              <div class="pub-opt selected" data-tipo="ahora" onclick="selPub('ahora', this)">
                 <div class="pub-opt-icon">🚀</div>
                 <div class="pub-opt-title">Publicar ahora</div>
                 <div class="pub-opt-desc">La campaña queda visible para los donantes de inmediato</div>
               </div>
-              <div class="pub-opt" onclick="selPub('programar', this)">
+              <div class="pub-opt" data-tipo="programar" onclick="selPub('programar', this)">
                 <div class="pub-opt-icon">📅</div>
                 <div class="pub-opt-title">Programar publicación</div>
                 <div class="pub-opt-desc">Elegís la fecha y hora en que se publica automáticamente</div>
@@ -176,13 +171,14 @@
             </div>
             <div class="fecha-prog" id="fecha-prog">
               <label class="form-label">Fecha y hora de publicación</label>
-              <input class="form-input" type="datetime-local">
+              <input class="form-input" type="datetime-local" id="c-fecha-publicacion">
+              <p class="form-hint">La campaña no aparece en el buscador de donantes hasta esa fecha y hora.</p>
             </div>
           </div>
 
           <!-- ACCIONES -->
           <div class="form-actions">
-            <button class="btn-draft">
+            <button class="btn-draft" onclick="guardarBorrador()">
               <i class="ti ti-file"></i>
               Guardar borrador
             </button>
@@ -204,35 +200,35 @@
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Campaña</span>
-              <span class="side-stat-value">Paciente pediátrico</span>
+              <span class="side-stat-value" id="s-titulo">—</span>
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Urgencia</span>
-              <span class="side-stat-value" style="color:#c0392b;">Urgente</span>
+              <span class="side-stat-value" id="s-urgencia" style="color:#c0392b;">—</span>
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Tipo de sangre</span>
-              <span class="side-stat-value">0- / 0+</span>
+              <span class="side-stat-value" id="s-sangre">—</span>
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Fecha límite</span>
-              <span class="side-stat-value">20 may 2026</span>
+              <span class="side-stat-value" id="s-fecha">—</span>
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Turnos generados</span>
-              <span class="side-stat-value">68 turnos</span>
+              <span class="side-stat-value" id="s-turnos">—</span>
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Cupos totales</span>
-              <span class="side-stat-value">136 cupos</span>
+              <span class="side-stat-value" id="s-cupos">—</span>
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Días activos</span>
-              <span class="side-stat-value">Mar / Mié / Jue / Vie</span>
+              <span class="side-stat-value" id="s-dias">—</span>
             </div>
             <div class="side-stat">
               <span class="side-stat-label">Confirmación</span>
-              <span class="side-stat-value">Manual</span>
+              <span class="side-stat-value" id="s-confirmacion">—</span>
             </div>
           </div>
 
@@ -271,27 +267,27 @@
       <div class="exito-icon">
         <i class="ti ti-speakerphone" style="color:white;font-size:32px;"></i>
       </div>
-      <div class="exito-title">¡Campaña publicada!</div>
-      <div class="exito-text">Tu campaña ya está visible para los donantes en HemoRed. Te notificaremos cuando los primeros turnos sean solicitados.</div>
+      <div class="exito-title" id="exito-titulo-principal">¡Campaña publicada!</div>
+      <div class="exito-text" id="exito-texto">Tu campaña ya está visible para los donantes en HemoRed. Te notificaremos cuando los primeros turnos sean solicitados.</div>
 
       <div style="background:white;border-radius:14px;padding:20px 28px;border:0.5px solid #e8d0d8;max-width:480px;margin:0 auto 28px;text-align:left;">
         <div style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:12px;">Datos de la campaña publicada</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:8px;border-bottom:0.5px solid #f0e0e6;">
             <span style="color:#5a3040;">Campaña</span>
-            <span style="font-weight:500;color:#5a1e37;">Paciente pediátrico</span>
+            <span style="font-weight:500;color:#5a1e37;" id="ex-titulo">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:8px;border-bottom:0.5px solid #f0e0e6;">
             <span style="color:#5a3040;">Turnos disponibles</span>
-            <span style="font-weight:500;color:#5a1e37;">68 turnos · 136 cupos</span>
+            <span style="font-weight:500;color:#5a1e37;" id="ex-turnos">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:8px;border-bottom:0.5px solid #f0e0e6;">
             <span style="color:#5a3040;">Fecha límite</span>
-            <span style="font-weight:500;color:#5a1e37;">20 de mayo 2026</span>
+            <span style="font-weight:500;color:#5a1e37;" id="ex-fecha">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:13px;">
             <span style="color:#5a3040;">ID de campaña</span>
-            <span style="font-weight:500;color:#5a1e37;">#CMP-20260515-0089</span>
+            <span style="font-weight:500;color:#5a1e37;" id="ex-id">—</span>
           </div>
         </div>
       </div>
@@ -314,20 +310,175 @@
   </div>
 </div>
 
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+
 <script>
+  const WIP_KEY = 'hemored_nueva_campana';
+  const DIAS_LABEL = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
+  let wip = {};
+  let hospitalActual = null;
+
+  function cargarWip() {
+    try { return JSON.parse(sessionStorage.getItem(WIP_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function guardarWip(datos) {
+    sessionStorage.setItem(WIP_KEY, JSON.stringify(datos));
+  }
+
+  // El objeto "campaña" tal como lo espera crearCampana()/calcularStatsTurnos(),
+  // armado con lo que se juntó en los pasos 1 y 2 más la opción de
+  // publicación elegida acá.
+  function armarCampana() {
+    const tipo = document.querySelector('.pub-opt.selected')?.dataset.tipo || 'ahora';
+    const estado = tipo === 'programar' ? 'programada' : 'activa';
+    const fechaPublicacionInput = document.getElementById('c-fecha-publicacion').value;
+    return {
+      ...wip,
+      hospital_id: hospitalActual.id,
+      estado,
+      fecha_publicacion: estado === 'programada' ? fechaPublicacionInput : new Date().toISOString(),
+    };
+  }
+
   function selPub(tipo, el) {
     document.querySelectorAll('.pub-opt').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
-    const fechaProg = document.getElementById('fecha-prog');
-    fechaProg.classList.toggle('visible', tipo === 'programar');
+    document.getElementById('fecha-prog').classList.toggle('visible', tipo === 'programar');
+    actualizarChecklistLimite();
+  }
+
+  // Recalcula en vivo la fila de "límite de plan" del checklist cada vez
+  // que cambia la opción de publicación o la fecha programada — el cupo se
+  // proyecta a la fecha en que la campaña va a estar realmente activa (hoy,
+  // o la fecha elegida si se programa), así el hospital puede ver que
+  // programarla para más adelante libera el bloqueo sin tener que
+  // intentarlo primero.
+  function actualizarChecklistLimite() {
+    const campana = armarCampana();
+    const plan = HemoRed.data.obtenerPlanHospital(hospitalActual.id);
+    const row = document.getElementById('ck-limite-row');
+    const icon = document.getElementById('ck-limite-icon');
+    const texto = document.getElementById('ck-limite-texto');
+    if (!plan) { row.classList.add('hidden'); return; }
+
+    const fechaRef = campana.estado === 'activa' ? HemoRed.data.ahora() : new Date(campana.fecha_publicacion || Date.now());
+    const activasAhora = HemoRed.data.contarCampanasActivas(hospitalActual.id);
+
+    if (campana.estado === 'programada' && !campana.fecha_publicacion) {
+      row.classList.remove('hidden');
+      icon.className = 'check-icon warn';
+      icon.innerHTML = '<i class="ti ti-alert" style="color:#e67e22;font-size:14px;"></i>';
+      texto.innerHTML = 'Elegí la fecha y hora de publicación para poder continuar.';
+      return;
+    }
+
+    // Mismo criterio que usa crearCampana() para bloquear de verdad al
+    // publicar — acá solo se muestra en vivo, sin crear nada todavía.
+    const ocupadoProyectado = HemoRed.data.cupoOcupadoEn(hospitalActual.id, fechaRef, wip.id);
+
+    if (ocupadoProyectado >= plan.max_campanas_simultaneas) {
+      row.classList.remove('hidden');
+      icon.className = 'check-icon danger';
+      icon.innerHTML = '<i class="ti ti-ban" style="color:var(--color-danger);font-size:14px;"></i>';
+      const cuando = campana.estado === 'activa' ? 'Ahora mismo' : 'Para esa fecha';
+      texto.innerHTML = `<strong>Bloqueado:</strong> tu plan ${plan.nombre} permite hasta ${plan.max_campanas_simultaneas} campañas activas simultáneas. ${cuando} ya tenés ese cupo ocupado — pausá/cerrá una existente, o elegí otra fecha de publicación.`;
+    } else if (activasAhora >= plan.max_campanas_simultaneas - 1) {
+      row.classList.remove('hidden');
+      icon.className = 'check-icon warn';
+      icon.innerHTML = '<i class="ti ti-alert" style="color:#e67e22;font-size:14px;"></i>';
+      texto.innerHTML = `Tenés ${activasAhora}/${plan.max_campanas_simultaneas} campañas activas en tu plan ${plan.nombre}. Con esta opción de publicación todavía entra, pero estás cerca del límite.`;
+    } else {
+      row.classList.add('hidden');
+    }
+  }
+
+  function pintarResumen() {
+    const stats = HemoRed.data.calcularStatsTurnos(wip);
+    const fechaLimiteTxt = wip.fecha_cierre ? new Date(wip.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    const fechaLimiteCorta = wip.fecha_cierre ? new Date(wip.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    const diasTxt = (wip.dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ') || '—';
+
+    // Preview principal
+    document.getElementById('pv-titulo').textContent = wip.titulo || '—';
+    document.getElementById('pv-hospital').textContent = `${hospitalActual.nombre} · ${hospitalActual.ciudad}`;
+    document.getElementById('pv-badge-urgente').classList.toggle('hidden', !wip.urgente);
+    document.getElementById('pv-sangre').textContent = wip.tipo_sangre_requerida || 'Cualquier tipo';
+    document.getElementById('pv-fecha').textContent = fechaLimiteTxt;
+    document.getElementById('pv-unidades').textContent = `${wip.unidades_requeridas} donantes`;
+    document.getElementById('pv-turnos').textContent = `${stats.totalTurnos} turnos · ${stats.totalCupos} cupos`;
+    document.getElementById('pv-descripcion').textContent = wip.descripcion || 'Sin descripción.';
+    document.getElementById('pv-dias').innerHTML = (wip.horarios_atencion || []).length && (wip.dias_atencion || []).length
+      ? wip.dias_atencion.map(d => `<span class="preview-dia-chip">${DIAS_LABEL[d]} — ${wip.horarios_atencion.map(h => `${h.desde} a ${h.hasta}`).join(' / ')}</span>`).join('')
+      : '';
+
+    // Checklist
+    document.getElementById('ck-fecha').textContent = fechaLimiteTxt;
+    document.getElementById('ck-turnos').textContent = stats.totalTurnos;
+    document.getElementById('ck-dias').textContent = (wip.dias_atencion || []).length;
+
+    // Resumen lateral
+    document.getElementById('s-titulo').textContent = wip.titulo || '—';
+    document.getElementById('s-urgencia').textContent = wip.urgente ? 'Urgente' : 'Normal / Moderada';
+    document.getElementById('s-sangre').textContent = wip.tipo_sangre_requerida || 'Cualquier tipo';
+    document.getElementById('s-fecha').textContent = fechaLimiteCorta;
+    document.getElementById('s-turnos').textContent = `${stats.totalTurnos} turnos`;
+    document.getElementById('s-cupos').textContent = `${stats.totalCupos} cupos`;
+    document.getElementById('s-dias').textContent = diasTxt;
+    document.getElementById('s-confirmacion').textContent = wip.confirmacion_automatica ? 'Automática' : 'Manual';
+
+    actualizarChecklistLimite();
   }
 
   function publicar() {
+    const campana = armarCampana();
+    const res = HemoRed.data.crearCampana(campana);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+
+    sessionStorage.removeItem(WIP_KEY);
+
+    const c = res.campana;
+    const stats = HemoRed.data.calcularStatsTurnos(c);
+    const programada = c.estado === 'programada';
+    document.getElementById('exito-titulo-principal').textContent = programada ? '¡Campaña programada!' : '¡Campaña publicada!';
+    document.getElementById('exito-texto').textContent = programada
+      ? `Se va a publicar sola el ${new Date(c.fecha_publicacion).toLocaleString('es-AR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Hasta entonces no aparece en el buscador de donantes.`
+      : 'Tu campaña ya está visible para los donantes en HemoRed. Te notificaremos cuando los primeros turnos sean solicitados.';
+    document.getElementById('ex-titulo').textContent = c.titulo;
+    document.getElementById('ex-turnos').textContent = `${stats.totalTurnos} turnos · ${stats.totalCupos} cupos`;
+    document.getElementById('ex-fecha').textContent = new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('ex-id').textContent = `#CMP-${c.id}`;
+
     document.getElementById('form-view').style.display = 'none';
     document.getElementById('steps-bar').style.display = 'none';
     document.getElementById('exito-view').classList.add('active');
-    document.getElementById('topbar-title').textContent = '¡Campaña publicada!';
+    document.getElementById('topbar-title').textContent = document.getElementById('exito-titulo-principal').textContent;
     window.scrollTo(0, 0);
+  }
+
+  function guardarBorrador() {
+    const datos = { ...wip, hospital_id: hospitalActual.id };
+    const res = HemoRed.data.guardarBorradorCampana(datos);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    guardarWip({ ...datos, id: res.campana.id });
+    HemoRed.ui.toast('Borrador guardado. Podés retomarlo desde "Campañas".');
+  }
+
+  async function init() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    if (!s) return;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    hospitalActual = HemoRed.db.find('hospitales', usuario?.hospital_id);
+
+    wip = cargarWip();
+    if (!wip.titulo || !wip.dias_atencion) { window.location.href = '../hospital/nueva_campana.html'; return; }
+
+    document.getElementById('c-fecha-publicacion').addEventListener('change', actualizarChecklistLimite);
+    pintarResumen();
   }
 
   function abrirSidebar() {
@@ -338,6 +489,8 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
+
+  init();
 </script>
 
 </body>
