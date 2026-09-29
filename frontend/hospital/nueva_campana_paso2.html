@@ -212,14 +212,29 @@
           </div>
         </div>
 
+        <!-- TURNOS QUE BLOQUEAN LA EDICIÓN (solo aparece editando una
+             campaña que ya tiene turnos reales, y el cambio de días/
+             horarios/duración dejaría a alguno sin encajar) -->
+        <div class="form-card" id="bloqueantes-card" style="display:none;border:1.5px solid #e67e22;">
+          <div class="card-title">
+            <i class="ti ti-alert-triangle" style="color:#e67e22;"></i>
+            Estos turnos ya no encajan con la nueva configuración
+          </div>
+          <div class="card-subtitle">Para guardar los cambios, primero hay que cancelarlos — quedaron pactados en un día u horario que esta campaña ya no va a tener.</div>
+          <div id="bloqueantes-lista" style="display:flex;flex-direction:column;gap:8px;margin:12px 0;"></div>
+          <button class="btn-secondary" style="border-color:#e67e22;color:#e67e22;" onclick="cancelarTurnosBloqueantes()">
+            <i class="ti ti-x"></i> Cancelar estos turnos y continuar
+          </button>
+        </div>
+
         <!-- ACCIONES -->
         <div class="form-actions">
-          <button class="btn-draft" onclick="guardarBorrador()">
+          <button class="btn-draft" id="btn-guardar-borrador" onclick="guardarBorrador()">
             <i class="ti ti-file"></i>
             Guardar borrador
           </button>
           <button class="btn-secondary" onclick="window.location='../hospital/nueva_campana.html'">Volver</button>
-          <button class="btn-primary" onclick="irPaso3()">
+          <button class="btn-primary" id="btn-siguiente" onclick="irPaso3()">
             Siguiente <i class="ti ti-arrow-right"></i>
           </button>
         </div>
@@ -405,14 +420,74 @@
         ${resto > 0 ? `<div style="font-size:10px;color:#a9435d;margin-top:4px;">+${resto} más</div>` : ''}
       </div>`;
     }).join('');
+
+    actualizarBloqueantes(datos);
+  }
+
+  // Solo aplica editando una campaña que ya tiene turnos reales — pedido
+  // explícito de la usuaria (2026-09-29): si el nuevo día/horario/duración
+  // deja a algún turno existente sin encajar, hay que poder cancelarlo acá
+  // mismo para destrabar el guardado. rechazarTurno() (no cancelarTurno())
+  // a propósito: es un rechazo administrativo del hospital, sin ventana de
+  // tiempo y sin que la confirmación automática de la campaña entre en
+  // juego — esas 2 cosas no tienen nada que ver con este caso.
+  function actualizarBloqueantes(datos) {
+    const card = document.getElementById('bloqueantes-card');
+    if (!wip.editando || !wip.id || wip.estadoOriginal === 'borrador') { card.style.display = 'none'; return; }
+    const campanaFake = { ...datos, fecha_cierre: wip.fecha_cierre };
+    const bloqueantes = HemoRed.data.turnosQueBloqueanEdicion(wip.id, campanaFake);
+    if (!bloqueantes.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    document.getElementById('bloqueantes-lista').innerHTML = bloqueantes.map(t => {
+      const nombre = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+      const fecha = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#fdf0f3;border-radius:8px;font-size:13px;">
+        <span>${nombre} — ${fecha} · ${t.hora}hs</span>
+      </div>`;
+    }).join('');
+  }
+
+  async function cancelarTurnosBloqueantes() {
+    const datos = recolectarPaso2();
+    const campanaFake = { ...datos, fecha_cierre: wip.fecha_cierre };
+    const bloqueantes = HemoRed.data.turnosQueBloqueanEdicion(wip.id, campanaFake);
+    if (!bloqueantes.length) return;
+    if (!confirm(`¿Cancelar ${bloqueantes.length} turno${bloqueantes.length !== 1 ? 's' : ''}? No se puede deshacer.`)) return;
+    bloqueantes.forEach(t => HemoRed.data.rechazarTurno(t.id, 'La campaña cambió sus días/horarios de atención.'));
+    HemoRed.ui.toast('Turnos cancelados');
+    actualizarBloqueantes(datos);
   }
 
   function irPaso3() {
     const datos = recolectarPaso2();
     const error = validarPaso2(datos);
     if (error) { HemoRed.ui.toast(error, 'error'); return; }
+
+    // Editando una campaña que ya se publicó (no un borrador): se guarda
+    // directo acá, sin pasar por el paso 3 — ese paso es sobre CUÁNDO
+    // publicar, una decisión que ya no aplica (la campaña ya está
+    // publicada, esto no le cambia el estado).
+    if (wip.editando && wip.estadoOriginal !== 'borrador') {
+      guardarCambios(datos);
+      return;
+    }
+
     guardarWip({ ...cargarWip(), ...datos });
     window.location.href = '../hospital/nueva_campana_paso3.html';
+  }
+
+  function guardarCambios(datos) {
+    const campanaFake = { ...datos, fecha_cierre: wip.fecha_cierre };
+    const bloqueantes = HemoRed.data.turnosQueBloqueanEdicion(wip.id, campanaFake);
+    if (bloqueantes.length) {
+      HemoRed.ui.toast('Primero cancelá los turnos que ya no encajan con la nueva configuración.', 'error');
+      return;
+    }
+    const res = HemoRed.data.crearCampana({ ...wip, ...datos, id: wip.id, estado: wip.estadoOriginal, hospital_id: hospitalActual.id });
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    sessionStorage.removeItem(WIP_KEY);
+    HemoRed.ui.toast('Cambios guardados');
+    window.location.href = '../hospital/campana_detalle.html?id=' + wip.id;
   }
 
   function guardarBorrador() {
@@ -472,6 +547,11 @@
     document.querySelectorAll('#horarios-lista .horario-input').forEach(inp => inp.addEventListener('change', actualizarPreview));
     document.getElementById('c-cupo').addEventListener('change', actualizarPreview);
     document.getElementById('c-confirmacion').addEventListener('change', actualizarPreview);
+
+    if (wip.editando && wip.estadoOriginal !== 'borrador') {
+      document.getElementById('btn-siguiente').innerHTML = 'Guardar cambios <i class="ti ti-check"></i>';
+      document.getElementById('btn-guardar-borrador').style.display = 'none';
+    }
 
     restaurarWip();
     actualizarPreview();

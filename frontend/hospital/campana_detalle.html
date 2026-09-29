@@ -53,13 +53,9 @@
         <i class="ti ti-arrow-left"></i>Campañas
       </a>
       <span class="topbar-sep">/</span>
-      <span class="topbar-title">Campaña paciente pediátrico</span>
+      <span class="topbar-title" id="d-topbar-titulo">—</span>
     </div>
-    <div class="topbar-actions">
-      <button class="btn-sm-action btn-editar"><i class="ti ti-pencil"></i><span>Editar</span></button>
-      <button class="btn-sm-action btn-pausar"><i class="ti ti-player-pause"></i><span>Pausar</span></button>
-      <button class="btn-sm-action btn-cerrar"><i class="ti ti-x"></i><span>Cerrar</span></button>
-    </div>
+    <div class="topbar-actions" id="topbar-acciones"></div>
   </div>
 
   <div class="content">
@@ -71,30 +67,30 @@
           <div class="camp-header-top">
             <div>
               <div class="camp-title">
-                Campaña paciente pediátrico
-                <span class="camp-urgente-tag"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span>
+                <span id="d-titulo">—</span>
+                <span class="camp-urgente-tag hidden" id="d-urgente-tag"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span>
               </div>
-              <div class="camp-hospital">Hospital Ramos Mejía · CABA · Publicada hace 2 días</div>
+              <div class="camp-hospital" id="d-hospital-linea">—</div>
             </div>
-            <span class="estado-badge estado-activa">● Activa</span>
+            <span class="estado-badge" id="d-estado-badge">—</span>
           </div>
           <div class="camp-meta">
             <div class="camp-meta-item">
               <div class="camp-meta-label">Tipo de sangre</div>
-              <div class="camp-meta-value">0- / 0+</div>
+              <div class="camp-meta-value" id="d-sangre">—</div>
             </div>
             <div class="camp-meta-item">
               <div class="camp-meta-label">Fecha límite</div>
-              <div class="camp-meta-value">20 may 2026</div>
+              <div class="camp-meta-value" id="d-fecha-limite">—</div>
             </div>
             <div class="camp-meta-item">
               <div class="camp-meta-label">Donantes cubiertos</div>
-              <div class="camp-meta-value">7 / 10</div>
-              <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
+              <div class="camp-meta-value" id="d-cubiertos">—</div>
+              <div class="progress-bar"><div class="progress-fill" id="d-cubiertos-fill" style="width:0%;"></div></div>
             </div>
-            <div class="camp-meta-item">
+            <div class="camp-meta-item" id="d-paciente-item" style="display:none;">
               <div class="camp-meta-label">Paciente</div>
-              <div class="camp-meta-value">Juan Pérez</div>
+              <div class="camp-meta-value" id="d-paciente">—</div>
             </div>
           </div>
         </div>
@@ -111,16 +107,7 @@
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title">Turnos solicitados</div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <select style="padding:6px 10px;border:1px solid #e8d0d8;border-radius:7px;font-size:12px;color:#5a1e37;outline:none;font-family:'Inter',sans-serif;background:white;">
-                  <option>Todos los estados</option>
-                  <option>Pendientes</option>
-                  <option>Confirmados</option>
-                  <option>Cancelados</option>
-                  <option>Completados</option>
-                </select>
-                <span class="panel-count">12 turnos</span>
-              </div>
+              <span class="panel-count" id="d-turnos-count">0 turnos</span>
             </div>
             <div class="turnos-table-header">
               <div class="th">Donante</div>
@@ -130,104 +117,10 @@
               <div class="th"></div>
             </div>
 
-            <div class="turno-row">
-              <div class="turno-donante">
-                <div class="turno-avatar">ML</div>
-                <div>
-                  <div class="turno-nombre">María López</div>
-                  <div class="turno-dni">DNI 28.456.789</div>
-                </div>
-              </div>
-              <div class="td">Hoy · 10:00hs</div>
-              <div class="td hide-sm"><span class="turno-badge tb-pendiente">Pendiente</span></div>
-              <div class="td hide-sm">hace 1h</div>
-              <div class="turno-actions">
-                <button class="btn-xs btn-xs-ok">Confirmar</button>
-                <button class="btn-xs btn-xs-no">Rechazar</button>
-              </div>
+            <div id="d-turnos-lista"></div>
+            <div id="d-turnos-vacio" class="empty-state" style="display:none;">
+              <div class="empty-title">Sin turnos todavía</div>
             </div>
-
-            <div class="turno-row">
-              <div class="turno-donante">
-                <div class="turno-avatar">JG</div>
-                <div>
-                  <div class="turno-nombre">Juan García</div>
-                  <div class="turno-dni">DNI 32.123.456</div>
-                </div>
-              </div>
-              <div class="td">Hoy · 11:30hs</div>
-              <div class="td hide-sm"><span class="turno-badge tb-pendiente">Pendiente</span></div>
-              <div class="td hide-sm">hace 3h</div>
-              <div class="turno-actions">
-                <button class="btn-xs btn-xs-ok">Confirmar</button>
-                <button class="btn-xs btn-xs-no">Rechazar</button>
-              </div>
-            </div>
-
-            <div class="turno-row">
-              <div class="turno-donante">
-                <div class="turno-avatar">SP</div>
-                <div>
-                  <div class="turno-nombre">Sofía Páez</div>
-                  <div class="turno-dni">DNI 12.345.678</div>
-                </div>
-              </div>
-              <div class="td">Mañana · 08:00hs</div>
-              <div class="td hide-sm"><span class="turno-badge tb-confirmado">Confirmado</span></div>
-              <div class="td hide-sm">ayer</div>
-              <div class="turno-actions">
-                <button class="btn-xs btn-xs-outline">Ver perfil</button>
-              </div>
-            </div>
-
-            <div class="turno-row">
-              <div class="turno-donante">
-                <div class="turno-avatar">AR</div>
-                <div>
-                  <div class="turno-nombre">Ana Rodríguez</div>
-                  <div class="turno-dni">DNI 35.789.012</div>
-                </div>
-              </div>
-              <div class="td">Mañana · 09:30hs</div>
-              <div class="td hide-sm"><span class="turno-badge tb-confirmado">Confirmado</span></div>
-              <div class="td hide-sm">hace 2 días</div>
-              <div class="turno-actions">
-                <button class="btn-xs btn-xs-outline">Ver perfil</button>
-              </div>
-            </div>
-
-            <div class="turno-row">
-              <div class="turno-donante">
-                <div class="turno-avatar">CM</div>
-                <div>
-                  <div class="turno-nombre">Carlos Méndez</div>
-                  <div class="turno-dni">DNI 29.654.321</div>
-                </div>
-              </div>
-              <div class="td">19 may · 14:00hs</div>
-              <div class="td hide-sm"><span class="turno-badge tb-completado">Donación realizada</span></div>
-              <div class="td hide-sm">hace 3 días</div>
-              <div class="turno-actions">
-                <button class="btn-xs btn-xs-outline">Ver resultado</button>
-              </div>
-            </div>
-
-            <div class="turno-row">
-              <div class="turno-donante">
-                <div class="turno-avatar">LP</div>
-                <div>
-                  <div class="turno-nombre">Laura Pérez</div>
-                  <div class="turno-dni">DNI 41.234.567</div>
-                </div>
-              </div>
-              <div class="td">18 may · 10:00hs</div>
-              <div class="td hide-sm"><span class="turno-badge tb-cancelado">Cancelado</span></div>
-              <div class="td hide-sm">hace 4 días</div>
-              <div class="turno-actions">
-                <button class="btn-xs btn-xs-outline">Ver motivo</button>
-              </div>
-            </div>
-
           </div>
         </div>
 
@@ -236,35 +129,35 @@
           <div class="desc-grid">
             <div class="desc-item">
               <div class="desc-item-label">Tipo de sangre</div>
-              <div class="desc-item-value">0- / 0+</div>
+              <div class="desc-item-value" id="dd-sangre">—</div>
             </div>
             <div class="desc-item">
               <div class="desc-item-label">Urgencia</div>
-              <div class="desc-item-value" style="color:#c0392b;">🔴 Urgente</div>
+              <div class="desc-item-value" id="dd-urgencia">—</div>
             </div>
             <div class="desc-item">
               <div class="desc-item-label">Fecha límite</div>
-              <div class="desc-item-value">20 de mayo 2026</div>
+              <div class="desc-item-value" id="dd-fecha-limite">—</div>
             </div>
-            <div class="desc-item">
+            <div class="desc-item" id="dd-paciente-item" style="display:none;">
               <div class="desc-item-label">Paciente asociado</div>
-              <div class="desc-item-value">Juan Pérez</div>
-              <div class="desc-item-sub">ID #0042 · Pediatría</div>
+              <div class="desc-item-value" id="dd-paciente">—</div>
+              <div class="desc-item-sub" id="dd-paciente-sub"></div>
             </div>
             <div class="desc-item">
               <div class="desc-item-label">Días de atención</div>
-              <div class="desc-item-value">Mar / Mié / Jue / Vie</div>
-              <div class="desc-item-sub">08:00–12:00 y 14:00–17:00</div>
+              <div class="desc-item-value" id="dd-dias">—</div>
+              <div class="desc-item-sub" id="dd-horarios"></div>
             </div>
             <div class="desc-item">
               <div class="desc-item-label">Duración por turno</div>
-              <div class="desc-item-value">30 minutos</div>
-              <div class="desc-item-sub">2 donantes por turno · Confirmación manual</div>
+              <div class="desc-item-value" id="dd-duracion">—</div>
+              <div class="desc-item-sub" id="dd-cupo-confirmacion"></div>
             </div>
           </div>
           <div class="desc-full">
             <div class="desc-item-label" style="margin-bottom:10px;">Descripción</div>
-            <div class="desc-full-text">Paciente pediátrico de 8 años requiere transfusiones de sangre para cirugía cardíaca programada para el 22 de mayo. El banco de sangre del hospital necesita cubrir la reserva mínima para la operación. Cualquier persona en buenas condiciones de salud puede presentarse a donar.</div>
+            <div class="desc-full-text" id="dd-descripcion">—</div>
           </div>
         </div>
 
@@ -273,37 +166,9 @@
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title">Donantes con turno confirmado</div>
-              <span class="panel-count">5 donantes</span>
+              <span class="panel-count" id="d-donantes-count">0 donantes</span>
             </div>
-            <div style="padding:0 20px;">
-              <div class="turno-row" style="grid-template-columns:1.5fr 1fr 1fr 100px;">
-                <div class="turno-donante">
-                  <div class="turno-avatar">SP</div>
-                  <div><div class="turno-nombre">Sofía Páez</div><div class="turno-dni">DNI 12.345.678</div></div>
-                </div>
-                <div class="td">Mañana · 08:00hs</div>
-                <div class="td"><span class="turno-badge tb-confirmado">Confirmado</span></div>
-                <div class="turno-actions"><button class="btn-xs btn-xs-outline">Ver perfil</button></div>
-              </div>
-              <div class="turno-row" style="grid-template-columns:1.5fr 1fr 1fr 100px;">
-                <div class="turno-donante">
-                  <div class="turno-avatar">AR</div>
-                  <div><div class="turno-nombre">Ana Rodríguez</div><div class="turno-dni">DNI 35.789.012</div></div>
-                </div>
-                <div class="td">Mañana · 09:30hs</div>
-                <div class="td"><span class="turno-badge tb-confirmado">Confirmado</span></div>
-                <div class="turno-actions"><button class="btn-xs btn-xs-outline">Ver perfil</button></div>
-              </div>
-              <div class="turno-row" style="grid-template-columns:1.5fr 1fr 1fr 100px;">
-                <div class="turno-donante">
-                  <div class="turno-avatar">CM</div>
-                  <div><div class="turno-nombre">Carlos Méndez</div><div class="turno-dni">DNI 29.654.321</div></div>
-                </div>
-                <div class="td">19 may · 14:00hs</div>
-                <div class="td"><span class="turno-badge tb-completado">Donación realizada</span></div>
-                <div class="turno-actions"><button class="btn-xs btn-xs-outline">Ver resultado</button></div>
-              </div>
-            </div>
+            <div id="d-donantes-lista" style="padding:0 20px;"></div>
           </div>
         </div>
 
@@ -313,55 +178,259 @@
       <div class="sidebar-right">
         <div class="side-card">
           <div class="side-title"><i class="ti ti-chart-pie" style="color:#ef647c;font-size:16px;"></i>Resumen</div>
-          <div class="side-stat"><span class="side-stat-label">Turnos solicitados</span><span class="side-stat-value">12</span></div>
-          <div class="side-stat"><span class="side-stat-label">Confirmados</span><span class="side-stat-value" style="color:#27ae60;">5</span></div>
-          <div class="side-stat"><span class="side-stat-label">Pendientes</span><span class="side-stat-value" style="color:#e67e22;">2</span></div>
-          <div class="side-stat"><span class="side-stat-label">Cancelados</span><span class="side-stat-value" style="color:#c0392b;">1</span></div>
-          <div class="side-stat"><span class="side-stat-label">Completados</span><span class="side-stat-value" style="color:#782b46;">4</span></div>
-          <div class="side-stat"><span class="side-stat-label">Cupos libres</span><span class="side-stat-value">3 de 10</span></div>
+          <div class="side-stat"><span class="side-stat-label">Turnos solicitados</span><span class="side-stat-value" id="r-solicitados">0</span></div>
+          <div class="side-stat"><span class="side-stat-label">Confirmados</span><span class="side-stat-value" style="color:#27ae60;" id="r-confirmados">0</span></div>
+          <div class="side-stat"><span class="side-stat-label">Pendientes</span><span class="side-stat-value" style="color:#e67e22;" id="r-pendientes">0</span></div>
+          <div class="side-stat"><span class="side-stat-label">Cancelados</span><span class="side-stat-value" style="color:#c0392b;" id="r-cancelados">0</span></div>
+          <div class="side-stat"><span class="side-stat-label">Completados</span><span class="side-stat-value" style="color:#782b46;" id="r-completados">0</span></div>
+          <div class="side-stat"><span class="side-stat-label">Cupos libres</span><span class="side-stat-value" id="r-cupos-libres">—</span></div>
         </div>
 
         <div class="side-card">
           <div class="side-title"><i class="ti ti-settings" style="color:#ef647c;font-size:16px;"></i>Acciones</div>
-          <div class="side-actions">
-            <button class="btn-action btn-action-primary">
-              <i class="ti ti-check-all"></i>Confirmar todos los pendientes
-            </button>
-            <button class="btn-action btn-action-outline">
-              <i class="ti ti-pencil"></i>Editar campaña
-            </button>
-            <button class="btn-action btn-action-warn">
-              <i class="ti ti-player-pause"></i>Pausar campaña
-            </button>
-            <button class="btn-action btn-action-danger">
-              <i class="ti ti-x"></i>Cerrar campaña
-            </button>
-          </div>
+          <div class="side-actions" id="side-acciones"></div>
         </div>
 
         <div class="side-card">
           <div class="side-title"><i class="ti ti-calendar" style="color:#ef647c;font-size:16px;"></i>Próximos turnos</div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:0.5px solid #f0e0e6;">
-              <span style="color:#5a3040;">Hoy 10:00hs</span>
-              <span style="color:#e67e22;font-weight:500;">2 pendientes</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:0.5px solid #f0e0e6;">
-              <span style="color:#5a3040;">Mañana 08:00hs</span>
-              <span style="color:#27ae60;font-weight:500;">Confirmado</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;">
-              <span style="color:#5a3040;">Mañana 09:30hs</span>
-              <span style="color:#27ae60;font-weight:500;">Confirmado</span>
-            </div>
-          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="d-proximos-turnos"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+
 <script>
+  const ESTADO_INFO = {
+    activa:     { badge: 'estado-activa',     icon: '●', label: 'Activa' },
+    programada: { badge: 'estado-programada', icon: '◷', label: 'Programada' },
+    pausada:    { badge: 'estado-pausada',     icon: '⏸', label: 'Pausada' },
+    cerrada:    { badge: 'estado-cerrada',     icon: '✓', label: 'Cerrada' },
+    borrador:   { badge: 'estado-borrador',    icon: '✎', label: 'Borrador' },
+  };
+  const TURNO_INFO = {
+    pendiente:  { badge: 'tb-pendiente',  label: 'Pendiente' },
+    confirmado: { badge: 'tb-confirmado', label: 'Confirmado' },
+    completado: { badge: 'tb-completado', label: 'Donación realizada' },
+    cancelado:  { badge: 'tb-cancelado',  label: 'Cancelado' },
+    no_apto:    { badge: 'tb-cancelado',  label: 'No apto' },
+  };
+  const DIAS_LABEL = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
+
+  let _campanaId = null;
+  let _detalle = null;
+
+  function hace(fechaISO) {
+    const dias = Math.floor((HemoRed.data.ahora() - new Date(fechaISO)) / 86400000);
+    if (dias <= 0) return 'hoy';
+    if (dias === 1) return 'hace 1 día';
+    if (dias < 7) return `hace ${dias} días`;
+    return `hace ${Math.floor(dias / 7)} semana${Math.floor(dias / 7) > 1 ? 's' : ''}`;
+  }
+
+  function etiquetaFechaHora(fechaStr, hora) {
+    const hoy = HemoRed.data.ahora();
+    const hoyStr = hoy.toISOString().slice(0, 10);
+    const manana = new Date(hoy); manana.setDate(manana.getDate() + 1);
+    const mananaStr = manana.toISOString().slice(0, 10);
+    let dia;
+    if (fechaStr === hoyStr) dia = 'Hoy';
+    else if (fechaStr === mananaStr) dia = 'Mañana';
+    else dia = new Date(fechaStr + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+    return `${dia} · ${hora}hs`;
+  }
+
+  function verPerfilNoDisponible() { HemoRed.ui.toast('Ver perfil del donante todavía no está disponible en este prototipo.', 'error'); }
+  function verResultadoNoDisponible() { HemoRed.ui.toast('El resultado de análisis todavía no está disponible — "Cargar resultado" sigue sin conectar.', 'error'); }
+  function verMotivo(turnoId) {
+    const t = HemoRed.db.find('turnos', turnoId);
+    alert(t?.motivo_rechazo ? `Motivo: ${t.motivo_rechazo}` : 'No se especificó un motivo.');
+  }
+
+  function filaTurno(t) {
+    const nombre = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+    const iniciales = t.donante?.avatar_iniciales || '—';
+    const dni = t.donante?.numero_documento ? `DNI ${t.donante.numero_documento}` : '—';
+    const info = TURNO_INFO[t.estado] || { badge: 'tb-pendiente', label: t.estado };
+    let acciones = '';
+    if (t.estado === 'pendiente') {
+      acciones = `<button class="btn-xs btn-xs-ok" onclick="accionConfirmarTurno(${t.id})">Confirmar</button><button class="btn-xs btn-xs-no" onclick="accionRechazarTurno(${t.id})">Rechazar</button>`;
+    } else if (t.estado === 'confirmado') {
+      acciones = `<button class="btn-xs btn-xs-outline" onclick="verPerfilNoDisponible()">Ver perfil</button>`;
+    } else if (t.estado === 'completado') {
+      acciones = `<button class="btn-xs btn-xs-outline" onclick="verResultadoNoDisponible()">Ver resultado</button>`;
+    } else if (t.estado === 'cancelado' || t.estado === 'no_apto') {
+      acciones = `<button class="btn-xs btn-xs-outline" onclick="verMotivo(${t.id})">Ver motivo</button>`;
+    }
+    return `<div class="turno-row">
+      <div class="turno-donante"><div class="turno-avatar">${iniciales}</div><div><div class="turno-nombre">${nombre}</div><div class="turno-dni">${dni}</div></div></div>
+      <div class="td">${etiquetaFechaHora(t.fecha, t.hora)}</div>
+      <div class="td hide-sm"><span class="turno-badge ${info.badge}">${info.label}</span></div>
+      <div class="td hide-sm">${t.creado_en ? hace(t.creado_en) : '—'}</div>
+      <div class="turno-actions">${acciones}</div>
+    </div>`;
+  }
+
+  async function accionConfirmarTurno(turnoId) {
+    HemoRed.data.confirmarTurno(turnoId);
+    HemoRed.ui.toast('Turno confirmado');
+    await recargar();
+  }
+  async function accionRechazarTurno(turnoId) {
+    const motivo = prompt('Motivo del rechazo (opcional):') || '';
+    HemoRed.data.rechazarTurno(turnoId, motivo);
+    HemoRed.ui.toast('Turno rechazado', 'error');
+    await recargar();
+  }
+  async function accionConfirmarTodosPendientes() {
+    _detalle.turnos.filter(t => t.estado === 'pendiente').forEach(t => HemoRed.data.confirmarTurno(t.id));
+    HemoRed.ui.toast('Turnos confirmados');
+    await recargar();
+  }
+  async function accionPausar() {
+    const res = HemoRed.data.pausarCampana(_campanaId);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Campaña pausada');
+    await recargar();
+  }
+  async function accionReactivar() {
+    const res = HemoRed.data.reactivarCampana(_campanaId);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Campaña reactivada');
+    await recargar();
+  }
+  async function accionCerrar() {
+    if (!confirm('¿Cerrar esta campaña? No se puede reabrir después.')) return;
+    const res = HemoRed.data.cerrarCampana(_campanaId);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Campaña cerrada');
+    await recargar();
+  }
+  function irAEditar() {
+    window.location = '../hospital/nueva_campana.html?id=' + _campanaId;
+  }
+
+  function botonesAccionPorEstado(estado) {
+    // Mismas acciones, en 2 lugares (topbar chico + sidebar de "Acciones"):
+    // cada estado habilita solo lo que tiene sentido — no se puede pausar
+    // algo ya cerrado, ni reactivar algo que nunca se pausó.
+    // topbarCls usa las clases de color que ya existen en hospital.css
+    // para el topbar chico; sideCls las del botón grande del sidebar.
+    const partes = [];
+    if (estado === 'activa') {
+      partes.push({ icon: 'ti-pencil', label: 'Editar campaña', topbarCls: 'btn-editar', sideCls: 'outline', fn: 'irAEditar()' });
+      partes.push({ icon: 'ti-player-pause', label: 'Pausar campaña', topbarCls: 'btn-pausar', sideCls: 'warn', fn: 'accionPausar()' });
+      partes.push({ icon: 'ti-x', label: 'Cerrar campaña', topbarCls: 'btn-cerrar', sideCls: 'danger', fn: 'accionCerrar()' });
+    } else if (estado === 'pausada') {
+      partes.push({ icon: 'ti-pencil', label: 'Editar campaña', topbarCls: 'btn-editar', sideCls: 'outline', fn: 'irAEditar()' });
+      partes.push({ icon: 'ti-player-play', label: 'Reactivar campaña', topbarCls: 'btn-editar', sideCls: 'outline', fn: 'accionReactivar()' });
+      partes.push({ icon: 'ti-x', label: 'Cerrar campaña', topbarCls: 'btn-cerrar', sideCls: 'danger', fn: 'accionCerrar()' });
+    } else if (estado === 'programada' || estado === 'borrador') {
+      partes.push({ icon: 'ti-pencil', label: 'Editar campaña', topbarCls: 'btn-editar', sideCls: 'outline', fn: 'irAEditar()' });
+      partes.push({ icon: 'ti-x', label: 'Cerrar campaña', topbarCls: 'btn-cerrar', sideCls: 'danger', fn: 'accionCerrar()' });
+    }
+    // cerrada: sin acciones de estado, ya es terminal.
+    return partes;
+  }
+
+  function renderAcciones(estado) {
+    const partes = botonesAccionPorEstado(estado);
+    document.getElementById('topbar-acciones').innerHTML = partes.map(p =>
+      `<button class="btn-sm-action ${p.topbarCls}" onclick="${p.fn}"><i class="ti ${p.icon}"></i><span>${p.label}</span></button>`
+    ).join('');
+    const conConfirmar = [{ icon: 'ti-check-all', label: 'Confirmar todos los pendientes', sideCls: 'primary', fn: 'accionConfirmarTodosPendientes()' }, ...partes];
+    document.getElementById('side-acciones').innerHTML = conConfirmar.map(p =>
+      `<button class="btn-action btn-action-${p.sideCls}" onclick="${p.fn}"><i class="ti ${p.icon}"></i>${p.label}</button>`
+    ).join('');
+  }
+
+  function pintar() {
+    const { campana: c, hospital, paciente, turnos } = _detalle;
+    const info = ESTADO_INFO[c.estado] || ESTADO_INFO.borrador;
+    const pct = c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0;
+
+    document.getElementById('d-topbar-titulo').textContent = c.titulo;
+    document.getElementById('d-titulo').textContent = c.titulo;
+    document.getElementById('d-urgente-tag').classList.toggle('hidden', !c.urgente);
+    document.getElementById('d-hospital-linea').textContent = `${hospital?.nombre || 'Hospital'} · ${hospital?.ciudad || ''} · ${c.estado === 'programada' ? 'Se publica el ' + new Date(c.fecha_publicacion).toLocaleDateString('es-AR') : 'Publicada ' + hace(c.creado_en)}`;
+    const badge = document.getElementById('d-estado-badge');
+    badge.className = 'estado-badge ' + info.badge;
+    badge.textContent = `${info.icon} ${info.label}`;
+    document.getElementById('d-sangre').textContent = c.tipo_sangre_requerida || 'Cualquier tipo';
+    document.getElementById('d-fecha-limite').textContent = c.fecha_cierre ? new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    document.getElementById('d-cubiertos').textContent = `${c.unidades_obtenidas} / ${c.unidades_requeridas}`;
+    document.getElementById('d-cubiertos-fill').style.width = pct + '%';
+    document.getElementById('d-paciente-item').style.display = paciente ? '' : 'none';
+    if (paciente) document.getElementById('d-paciente').textContent = `${paciente.nombre} ${paciente.apellido}`;
+
+    // Tab turnos
+    document.getElementById('d-turnos-count').textContent = `${turnos.length} turno${turnos.length !== 1 ? 's' : ''}`;
+    document.getElementById('d-turnos-lista').innerHTML = turnos.map(filaTurno).join('');
+    document.getElementById('d-turnos-vacio').style.display = turnos.length ? 'none' : 'block';
+
+    // Tab descripción
+    document.getElementById('dd-sangre').textContent = c.tipo_sangre_requerida || 'Cualquier tipo';
+    document.getElementById('dd-urgencia').innerHTML = c.urgente ? '🔴 Urgente' : '🟢 Normal / Moderada';
+    document.getElementById('dd-fecha-limite').textContent = c.fecha_cierre ? new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    document.getElementById('dd-paciente-item').style.display = paciente ? '' : 'none';
+    if (paciente) {
+      document.getElementById('dd-paciente').textContent = `${paciente.nombre} ${paciente.apellido}`;
+      document.getElementById('dd-paciente-sub').textContent = `ID #${String(paciente.id).padStart(4, '0')}`;
+    }
+    const dias = (c.dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ');
+    document.getElementById('dd-dias').textContent = dias || '—';
+    document.getElementById('dd-horarios').textContent = (c.horarios_atencion || []).map(h => `${h.desde}–${h.hasta}`).join(' y ');
+    document.getElementById('dd-duracion').textContent = c.duracion_turno_min ? `${c.duracion_turno_min} minutos` : '—';
+    document.getElementById('dd-cupo-confirmacion').textContent = `${c.cupo_por_turno || 1} donante${(c.cupo_por_turno || 1) !== 1 ? 's' : ''} por turno · Confirmación ${c.confirmacion_automatica ? 'automática' : 'manual'}`;
+    document.getElementById('dd-descripcion').textContent = c.descripcion || 'Sin descripción.';
+
+    // Tab donantes confirmados (confirmado + completado)
+    const confirmados = turnos.filter(t => t.estado === 'confirmado' || t.estado === 'completado');
+    document.getElementById('d-donantes-count').textContent = `${confirmados.length} donante${confirmados.length !== 1 ? 's' : ''}`;
+    document.getElementById('d-donantes-lista').innerHTML = confirmados.map(filaTurno).join('') || '<div class="empty-state"><div class="empty-title">Todavía nadie confirmado</div></div>';
+
+    // Sidebar resumen
+    const porEstado = e => turnos.filter(t => t.estado === e).length;
+    document.getElementById('r-solicitados').textContent = turnos.length;
+    document.getElementById('r-confirmados').textContent = porEstado('confirmado');
+    document.getElementById('r-pendientes').textContent = porEstado('pendiente');
+    document.getElementById('r-cancelados').textContent = porEstado('cancelado') + porEstado('no_apto');
+    document.getElementById('r-completados').textContent = porEstado('completado');
+    document.getElementById('r-cupos-libres').textContent = `${Math.max(0, c.unidades_requeridas - c.unidades_obtenidas)} de ${c.unidades_requeridas}`;
+
+    // Próximos turnos (no cancelados, ordenados, los 3 más cercanos)
+    const proximos = turnos.filter(t => t.estado !== 'cancelado' && t.estado !== 'no_apto').slice(0, 3);
+    document.getElementById('d-proximos-turnos').innerHTML = proximos.length
+      ? proximos.map((t, i) => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;${i < proximos.length - 1 ? 'border-bottom:0.5px solid #f0e0e6;' : ''}">
+          <span style="color:#5a3040;">${etiquetaFechaHora(t.fecha, t.hora)}</span>
+          <span style="color:${t.estado === 'confirmado' ? '#27ae60' : '#e67e22'};font-weight:500;">${t.estado === 'confirmado' ? 'Confirmado' : 'Pendiente'}</span>
+        </div>`).join('')
+      : '<div style="font-size:12px;color:#a9435d;">Sin turnos próximos.</div>';
+
+    renderAcciones(c.estado);
+  }
+
+  async function recargar() {
+    _detalle = HemoRed.data.cargarDetalleCampana(_campanaId);
+    if (!_detalle) { window.location = '../hospital/campanas.html'; return; }
+    pintar();
+  }
+
+  async function init() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    if (!s) return;
+    const params = new URLSearchParams(window.location.search);
+    _campanaId = Number(params.get('id'));
+    if (!_campanaId) { window.location = '../hospital/campanas.html'; return; }
+    await recargar();
+  }
+
   function cambiarTab(tab, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
@@ -378,11 +447,9 @@
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
+
+  init();
 </script>
 
-  <script src="../js/db.js"></script>
-  <script src="../js/sesion.js"></script>
-  <script src="../js/ui.js"></script>
-  <script src="../js/data.js"></script>
 </body>
 </html>

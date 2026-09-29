@@ -1026,6 +1026,84 @@ HemoRed.data = (function() {
     return crearCampana({ ...datos, estado: 'borrador' });
   }
 
+  // Listado real para hospital/campanas.html — cada campaña ya trae
+  // unidades_obtenidas/unidades_requeridas (cupos) directo del registro,
+  // no hace falta recalcular nada contra turnos para esa columna.
+  function cargarCampanasHospital(hospitalId) {
+    return HemoRed.db.where('campanas', 'hospital_id', hospitalId)
+      .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en));
+  }
+
+  // Pausar/reactivar/cerrar: son cambios de ESTADO, separados a propósito
+  // de "Editar" (que toca contenido) — pedido explícito de la usuaria,
+  // 2026-09-29. Pausada/cerrada no cuentan contra el límite del plan
+  // (esCampanaActiva() ya las excluye). Reactivar SÍ vuelve a validar el
+  // límite: si mientras tanto el hospital llegó al tope con otras
+  // campañas, no puede reactivar esta sin pausar/cerrar alguna primero.
+  function pausarCampana(id) {
+    const c = HemoRed.db.actualizar('campanas', id, { estado: 'pausada' });
+    return c ? { ok: true, campana: c } : { ok: false, error: 'Campaña no encontrada.' };
+  }
+
+  function reactivarCampana(id) {
+    const campana = HemoRed.db.find('campanas', id);
+    if (!campana) return { ok: false, error: 'Campaña no encontrada.' };
+    const plan = obtenerPlanHospital(campana.hospital_id);
+    const ocupado = cupoOcupadoEn(campana.hospital_id, ahora(), id);
+    if (plan && ocupado >= plan.max_campanas_simultaneas) {
+      return { ok: false, error: `Tu plan ${plan.nombre} permite hasta ${plan.max_campanas_simultaneas} campañas activas simultáneas, y ese cupo ya está ocupado. Pausá o cerrá otra antes de reactivar esta.` };
+    }
+    return { ok: true, campana: HemoRed.db.actualizar('campanas', id, { estado: 'activa' }) };
+  }
+
+  function cerrarCampana(id) {
+    const c = HemoRed.db.actualizar('campanas', id, { estado: 'cerrada' });
+    return c ? { ok: true, campana: c } : { ok: false, error: 'Campaña no encontrada.' };
+  }
+
+  // Borra de verdad (no es un cambio de estado) — solo permitido en
+  // borrador: una campaña que ya estuvo activa/programada no se "borra",
+  // se cierra (cerrarCampana), para no perder el historial de algo que
+  // pudo haber tenido turnos reales.
+  function eliminarBorrador(id) {
+    const campana = HemoRed.db.find('campanas', id);
+    if (!campana) return { ok: false, error: 'Campaña no encontrada.' };
+    if (campana.estado !== 'borrador') return { ok: false, error: 'Solo se pueden eliminar borradores — esta campaña ya está publicada.' };
+    HemoRed.db.eliminar('campanas', id);
+    return { ok: true };
+  }
+
+  // Detalle real para hospital/campana_detalle.html — campaña + sus
+  // turnos con el donante ya resuelto (nombre/documento), para las 3
+  // pestañas (turnos / descripción / donantes confirmados).
+  function cargarDetalleCampana(id) {
+    const campana = HemoRed.db.find('campanas', id);
+    if (!campana) return null;
+    const hospital = HemoRed.db.find('hospitales', campana.hospital_id);
+    const paciente = campana.paciente_id ? HemoRed.db.find('pacientes', campana.paciente_id) : null;
+    const turnos = HemoRed.db.where('turnos', 'campana_id', id)
+      .map(t => ({ ...t, donante: HemoRed.db.find('usuarios', t.usuario_id) }))
+      .sort((a, b) => `${a.fecha}${a.hora}`.localeCompare(`${b.fecha}${b.hora}`));
+    return { campana, hospital, paciente, turnos };
+  }
+
+  // Qué turnos reales de esta campaña dejarían de encajar si se guardara
+  // `nuevaConfig` (dias_atencion/horarios_atencion/duracion_turno_min) —
+  // para el flujo de "Editar" cuando la campaña ya tiene turnos: la
+  // usuaria pidió explícitamente (2026-09-29) poder cancelarlos a mano
+  // ahí mismo para destrabar el guardado, sin que la ventana de tiempo ni
+  // `confirmacion_automatica` entren en juego (por eso esto no usa
+  // cancelarTurno() del donante — un rechazo administrativo del hospital
+  // usa rechazarTurno(), que no tiene ninguna de esas dos restricciones).
+  function turnosQueBloqueanEdicion(campanaId, nuevaConfig) {
+    const turnos = HemoRed.db.where('turnos', 'campana_id', campanaId)
+      .filter(t => t.estado !== 'cancelado');
+    return turnos.filter(t => {
+      const slots = generarSlotsDisponibles(nuevaConfig, t.fecha);
+      return !slots || !slots.includes(t.hora);
+    }).map(t => ({ ...t, donante: HemoRed.db.find('usuarios', t.usuario_id) }));
+  }
+
   async function cargarTurnosHoy() {
     const db = await HemoRed.db.init();
     const s = HemoRed.sesion.get();
@@ -1277,6 +1355,13 @@ HemoRed.data = (function() {
     calcularStatsTurnos,
     crearCampana,
     guardarBorradorCampana,
+    cargarCampanasHospital,
+    pausarCampana,
+    reactivarCampana,
+    cerrarCampana,
+    eliminarBorrador,
+    cargarDetalleCampana,
+    turnosQueBloqueanEdicion,
     cargarTurnosHoy,
     cargarProfesionalesHospital,
     registrarDonacion,

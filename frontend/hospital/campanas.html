@@ -80,27 +80,27 @@
     <!-- STATS CHIPS — clickeables como filtro -->
     <div class="stats-row">
       <div class="stat-chip active-filter" onclick="filtrarEstado('todas', this)">
-        <div class="stat-chip-num">8</div>
+        <div class="stat-chip-num" id="stat-todas">—</div>
         <div class="stat-chip-label">Todas</div>
       </div>
       <div class="stat-chip" onclick="filtrarEstado('activa', this)">
-        <div class="stat-chip-num" style="color:#27ae60;">3</div>
+        <div class="stat-chip-num" style="color:#27ae60;" id="stat-activa">—</div>
         <div class="stat-chip-label"><div class="estado-dot dot-activa"></div>Activas</div>
       </div>
       <div class="stat-chip" onclick="filtrarEstado('programada', this)">
-        <div class="stat-chip-num" style="color:#7f77dd;">1</div>
+        <div class="stat-chip-num" style="color:#7f77dd;" id="stat-programada">—</div>
         <div class="stat-chip-label"><div class="estado-dot dot-programada"></div>Programadas</div>
       </div>
       <div class="stat-chip" onclick="filtrarEstado('pausada', this)">
-        <div class="stat-chip-num" style="color:#e67e22;">1</div>
+        <div class="stat-chip-num" style="color:#e67e22;" id="stat-pausada">—</div>
         <div class="stat-chip-label"><div class="estado-dot dot-pausada"></div>Pausadas</div>
       </div>
       <div class="stat-chip" onclick="filtrarEstado('cerrada', this)">
-        <div class="stat-chip-num" style="color:#a9435d;">2</div>
+        <div class="stat-chip-num" style="color:#a9435d;" id="stat-cerrada">—</div>
         <div class="stat-chip-label"><div class="estado-dot dot-cerrada"></div>Cerradas</div>
       </div>
       <div class="stat-chip" onclick="filtrarEstado('borrador', this)">
-        <div class="stat-chip-num" style="color:#888;">1</div>
+        <div class="stat-chip-num" style="color:#888;" id="stat-borrador">—</div>
         <div class="stat-chip-label"><div class="estado-dot dot-borrador"></div>Borradores</div>
       </div>
     </div>
@@ -138,191 +138,112 @@
         <div class="th"></div>
       </div>
 
-      <!-- ACTIVA URGENTE -->
-      <div class="table-row" data-nombre="campaña paciente pediátrico" data-sangre="0- 0+">
-        <div>
-          <div class="camp-name">Campaña paciente pediátrico <span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span></div>
-          <div class="camp-sub">Paciente: Juan Pérez · Creada hace 2 días</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-activa">● Activa</span>
-        </div>
-        <div class="td hide-md">0- / 0+</div>
-        <div class="td hide-md">
-          7/10
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:70%;"></div></div>
-        </div>
-        <div class="td">20 may 2026</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/campana_detalle.html'">Ver</button>
-          <button class="btn-xs btn-xs-pause">Pausar</button>
-        </div>
-      </div>
-
-      <!-- ACTIVA -->
-      <div class="table-row" data-nombre="banco de sangre tipo a" data-sangre="A+ A-">
-        <div>
-          <div class="camp-name">Banco de sangre tipo A</div>
-          <div class="camp-sub">Campaña genérica · Creada hace 5 días</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-activa">● Activa</span>
-        </div>
-        <div class="td hide-md">A+ / A-</div>
-        <div class="td hide-md">
-          4/10
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:40%;"></div></div>
-        </div>
-        <div class="td">30 may 2026</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline">Ver</button>
-          <button class="btn-xs btn-xs-pause">Pausar</button>
-        </div>
-      </div>
-
-      <!-- ACTIVA -->
-      <div class="table-row" data-nombre="reserva general mayo" data-sangre="todos">
-        <div>
-          <div class="camp-name">Reserva general mayo</div>
-          <div class="camp-sub">Campaña genérica · Creada hace 1 semana</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-activa">● Activa</span>
-        </div>
-        <div class="td hide-md">Todos</div>
-        <div class="td hide-md">
-          2/8
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:25%;"></div></div>
-        </div>
-        <div class="td">31 may 2026</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline">Ver</button>
-          <button class="btn-xs btn-xs-pause">Pausar</button>
-        </div>
-      </div>
-
-      <!-- PROGRAMADA -->
-      <div class="table-row" data-nombre="campaña junio tipo b" data-sangre="B+ B-">
-        <div>
-          <div class="camp-name">Campaña junio — tipo B</div>
-          <div class="camp-sub">Se publica el 1 jun 2026 a las 08:00hs</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-programada">◷ Programada</span>
-        </div>
-        <div class="td hide-md">B+ / B-</div>
-        <div class="td hide-md">
-          0/12
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:0%;"></div></div>
-        </div>
-        <div class="td">30 jun 2026</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline">Ver</button>
-          <button class="btn-xs btn-xs-outline">Editar</button>
-        </div>
-      </div>
-
-      <!-- PAUSADA -->
-      <div class="table-row" data-nombre="campaña banco ab" data-sangre="AB+ AB-">
-        <div>
-          <div class="camp-name">Campaña banco AB</div>
-          <div class="camp-sub">Pausada hace 3 días</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-pausada">⏸ Pausada</span>
-        </div>
-        <div class="td hide-md">AB+ / AB-</div>
-        <div class="td hide-md">
-          3/6
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:50%;"></div></div>
-        </div>
-        <div class="td">15 jun 2026</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline">Ver</button>
-          <button class="btn-xs btn-xs-activate">Reactivar</button>
-        </div>
-      </div>
-
-      <!-- BORRADOR -->
-      <div class="table-row" data-estado="borrador" data-nombre="banco de sangre tipo o junio" data-sangre="0+">
-        <div>
-          <div class="camp-name">Banco de sangre tipo O — junio</div>
-          <div class="camp-sub">Borrador · Última edición hace 1 día</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-borrador">✎ Borrador</span>
-        </div>
-        <div class="td hide-md">0+</div>
-        <div class="td hide-md">
-          0/10
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:0%;"></div></div>
-        </div>
-        <div class="td">—</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline">Editar</button>
-          <button class="btn-xs btn-xs-danger">Eliminar</button>
-        </div>
-      </div>
-
-      <!-- CERRADA -->
-      <div class="table-row" data-nombre="campaña abril tipo o" data-sangre="0+ 0-">
-        <div>
-          <div class="camp-name">Campaña abril — tipo O</div>
-          <div class="camp-sub">Cerrada el 30 abr 2026 · Cupo completo</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-cerrada">✓ Cerrada</span>
-        </div>
-        <div class="td hide-md">0+ / 0-</div>
-        <div class="td hide-md">
-          10/10
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:100%;background:#27ae60;"></div></div>
-        </div>
-        <div class="td">30 abr 2026</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline">Ver métricas</button>
-        </div>
-      </div>
-
-      <!-- CERRADA -->
-      <div class="table-row" data-nombre="campaña marzo general" data-sangre="todos">
-        <div>
-          <div class="camp-name">Campaña marzo — general</div>
-          <div class="camp-sub">Cerrada el 31 mar 2026 · Fecha vencida</div>
-        </div>
-        <div class="td">
-          <span class="estado-badge estado-cerrada">✓ Cerrada</span>
-        </div>
-        <div class="td hide-md">Todos</div>
-        <div class="td hide-md">
-          6/8
-          <div class="progress-mini"><div class="progress-mini-fill" style="width:75%;"></div></div>
-        </div>
-        <div class="td">31 mar 2026</div>
-        <div class="row-actions">
-          <button class="btn-xs btn-xs-outline">Ver métricas</button>
-        </div>
-      </div>
+      <div id="filas-campanas"></div>
 
       <div id="sin-resultados-camp" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
     </div>
 
-    <!-- PAGINACIÓN -->
+    <!-- PAGINACIÓN: sin paginado real todavía (pocas campañas por hospital
+         en este prototipo) — se deja el conteo real, sin las páginas. -->
     <div class="pagination">
-      <div class="pag-info" id="pag-info-camp">Mostrando 8 de 8 campañas</div>
-      <div class="pag-btns">
-        <div class="pag-btn"><i class="ti ti-chevron-left" style="font-size:14px;"></i></div>
-        <div class="pag-btn active">1</div>
-        <div class="pag-btn">2</div>
-        <div class="pag-btn"><i class="ti ti-chevron-right" style="font-size:14px;"></i></div>
-      </div>
+      <div class="pag-info" id="pag-info-camp">Mostrando 0 de 0 campañas</div>
     </div>
 
   </div>
 </div>
 
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+
 <script>
   var _filtroEstadoCamp = 'todas';
+  var _campanas = [];
+  var _pacienteFiltroId = null;
+
+  const ESTADO_INFO = {
+    activa:     { badge: 'estado-activa',     icon: '●', label: 'Activa' },
+    programada: { badge: 'estado-programada', icon: '◷', label: 'Programada' },
+    pausada:    { badge: 'estado-pausada',     icon: '⏸', label: 'Pausada' },
+    cerrada:    { badge: 'estado-cerrada',     icon: '✓', label: 'Cerrada' },
+    borrador:   { badge: 'estado-borrador',    icon: '✎', label: 'Borrador' },
+  };
+
+  function hace(fechaISO) {
+    const dias = Math.floor((HemoRed.data.ahora() - new Date(fechaISO)) / 86400000);
+    if (dias <= 0) return 'hoy';
+    if (dias === 1) return 'hace 1 día';
+    if (dias < 7) return `hace ${dias} días`;
+    if (dias < 14) return 'hace 1 semana';
+    return `hace ${Math.floor(dias / 7)} semanas`;
+  }
+
+  function subtextoCampana(c, paciente) {
+    const quien = paciente ? `Paciente: ${paciente.nombre} ${paciente.apellido}` : 'Campaña genérica';
+    if (c.estado === 'borrador') return `Borrador · Última edición ${hace(c.creado_en)}`;
+    if (c.estado === 'programada') {
+      const f = new Date(c.fecha_publicacion);
+      return `Se publica el ${f.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} a las ${f.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}hs`;
+    }
+    return `${quien} · Creada ${hace(c.creado_en)}`;
+  }
+
+  function accionesCampana(c) {
+    switch (c.estado) {
+      case 'borrador': return `
+        <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/nueva_campana.html?id=${c.id}'">Editar</button>
+        <button class="btn-xs btn-xs-danger" onclick="accionEliminar(${c.id})">Eliminar</button>`;
+      case 'programada': return `
+        <button class="btn-xs btn-xs-outline" onclick="verCampana(${c.id})">Ver</button>
+        <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/nueva_campana.html?id=${c.id}'">Editar</button>`;
+      case 'activa': return `
+        <button class="btn-xs btn-xs-outline" onclick="verCampana(${c.id})">Ver</button>
+        <button class="btn-xs btn-xs-pause" onclick="accionPausar(${c.id})">Pausar</button>`;
+      case 'pausada': return `
+        <button class="btn-xs btn-xs-outline" onclick="verCampana(${c.id})">Ver</button>
+        <button class="btn-xs btn-xs-activate" onclick="accionReactivar(${c.id})">Reactivar</button>`;
+      case 'cerrada': return `
+        <button class="btn-xs btn-xs-outline" onclick="verCampana(${c.id})">Ver</button>`;
+      default: return '';
+    }
+  }
+
+  function verCampana(id) {
+    window.location = '../hospital/campana_detalle.html?id=' + id;
+  }
+
+  function filaCampana(c) {
+    const paciente = c.paciente_id ? HemoRed.db.find('pacientes', c.paciente_id) : null;
+    const info = ESTADO_INFO[c.estado] || ESTADO_INFO.borrador;
+    const pct = c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0;
+    const fechaLimite = c.fecha_cierre ? new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    const urgenteTag = c.urgente ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span>` : '';
+    const sangreTexto = c.tipo_sangre_requerida || 'Todos';
+    return `<div class="table-row" data-estado="${c.estado}" data-nombre="${c.titulo.toLowerCase()}" data-sangre="${sangreTexto.toLowerCase()}">
+      <div>
+        <div class="camp-name">${c.titulo}${urgenteTag}</div>
+        <div class="camp-sub">${subtextoCampana(c, paciente)}</div>
+      </div>
+      <div class="td"><span class="estado-badge ${info.badge}">${info.icon} ${info.label}</span></div>
+      <div class="td hide-md">${sangreTexto}</div>
+      <div class="td hide-md">${c.unidades_obtenidas}/${c.unidades_requeridas}<div class="progress-mini"><div class="progress-mini-fill" style="width:${pct}%;"></div></div></div>
+      <div class="td">${fechaLimite}</div>
+      <div class="row-actions">${accionesCampana(c)}</div>
+    </div>`;
+  }
+
+  function renderCampanas() {
+    let lista = _pacienteFiltroId ? _campanas.filter(c => c.paciente_id === _pacienteFiltroId) : _campanas;
+
+    document.getElementById('stat-todas').textContent = lista.length;
+    ['activa', 'programada', 'pausada', 'cerrada', 'borrador'].forEach(estado => {
+      document.getElementById('stat-' + estado).textContent = lista.filter(c => c.estado === estado).length;
+    });
+
+    document.getElementById('filas-campanas').innerHTML = lista.map(filaCampana).join('');
+    aplicarFiltrosCampanas();
+  }
 
   function filtrarEstado(estado, el) {
     document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active-filter'));
@@ -338,19 +259,11 @@
     const rows = document.querySelectorAll('.table-row');
     let visibles = 0;
     rows.forEach(row => {
-      const badge = row.querySelector('.estado-badge');
-      const texto = badge ? badge.textContent.toLowerCase() : '';
-      const nombre = (row.dataset.nombre || '').toLowerCase();
-      const sangreRow = (row.dataset.sangre || '').toLowerCase();
-      const matchEstado =
-        _filtroEstadoCamp === 'todas' ||
-        (_filtroEstadoCamp === 'activa' && texto.includes('activa')) ||
-        (_filtroEstadoCamp === 'programada' && texto.includes('programada')) ||
-        (_filtroEstadoCamp === 'pausada' && texto.includes('pausada')) ||
-        (_filtroEstadoCamp === 'cerrada' && texto.includes('cerrada')) ||
-        (_filtroEstadoCamp === 'borrador' && texto.includes('borrador'));
+      const matchEstado = _filtroEstadoCamp === 'todas' || row.dataset.estado === _filtroEstadoCamp;
+      const nombre = (row.dataset.nombre || '');
+      const sangreRow = (row.dataset.sangre || '');
       const matchBusqueda = !busqueda || nombre.includes(busqueda);
-      const matchSangre = !sangre || sangreRow.includes(sangre.toLowerCase()) || sangreRow === 'todos';
+      const matchSangre = !sangre || sangreRow === sangre.toLowerCase() || sangreRow === 'todos';
       const mostrar = matchEstado && matchBusqueda && matchSangre;
       row.style.display = mostrar ? '' : 'none';
       if (mostrar) visibles++;
@@ -358,8 +271,57 @@
     const sr = document.getElementById('sin-resultados-camp');
     if (sr) sr.style.display = visibles === 0 ? 'block' : 'none';
     const pi = document.getElementById('pag-info-camp');
-    if (pi) pi.textContent = 'Mostrando ' + visibles + ' de 8 campañas';
+    if (pi) pi.textContent = `Mostrando ${visibles} de ${rows.length} campañas`;
   }
+
+  async function accionPausar(id) {
+    const res = HemoRed.data.pausarCampana(id);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Campaña pausada');
+    recargar();
+  }
+  async function accionReactivar(id) {
+    const res = HemoRed.data.reactivarCampana(id);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Campaña reactivada');
+    recargar();
+  }
+  async function accionEliminar(id) {
+    if (!confirm('¿Eliminar este borrador? No se puede deshacer.')) return;
+    const res = HemoRed.data.eliminarBorrador(id);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Borrador eliminado');
+    recargar();
+  }
+
+  function recargar() {
+    _campanas = HemoRed.data.cargarCampanasHospital(_hospitalId);
+    renderCampanas();
+  }
+
+  var _hospitalId = null;
+
+  async function init() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    if (!s) return;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    _hospitalId = usuario?.hospital_id;
+
+    const params = new URLSearchParams(window.location.search);
+    const pacienteNombre = params.get('paciente');
+    const pacienteId = params.get('id');
+    if (pacienteNombre) {
+      _pacienteFiltroId = Number(pacienteId) || null;
+      const banner = document.getElementById('paciente-banner');
+      banner.style.display = 'flex';
+      document.getElementById('banner-titulo').textContent = 'Campañas de ' + pacienteNombre;
+      document.getElementById('banner-sub').textContent = pacienteId ? 'ID #' + pacienteId + ' · Solo campañas asociadas a este paciente' : 'Solo campañas asociadas a este paciente';
+    }
+
+    recargar();
+  }
+
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('sidebar-overlay').classList.add('open');
@@ -369,27 +331,12 @@
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
 
-  // Detectar parámetro paciente en URL
-  (function() {
-    const params = new URLSearchParams(window.location.search);
-    const paciente = params.get('paciente');
-    const id = params.get('id');
-    if (paciente) {
-      const banner = document.getElementById('paciente-banner');
-      banner.style.display = 'flex';
-      document.getElementById('banner-titulo').textContent = 'Campañas de ' + paciente;
-      document.getElementById('banner-sub').textContent = id ? 'ID #' + id + ' · Solo campañas asociadas a este paciente' : 'Solo campañas asociadas a este paciente';
-    }
-  })();
-
   function volverPaciente() {
     window.history.back();
   }
+
+  init();
 </script>
 
-  <script src="../js/db.js"></script>
-  <script src="../js/sesion.js"></script>
-  <script src="../js/ui.js"></script>
-  <script src="../js/data.js"></script>
 </body>
 </html>

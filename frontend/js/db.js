@@ -105,13 +105,27 @@ HemoRed.db = (function() {
     return row;
   }
 
+  // Borra un registro por id y persiste. A diferencia de actualizar() con
+  // un estado tipo 'cancelado'/'cerrada', esto saca la fila de verdad —
+  // pensado para casos como eliminar un borrador que nunca se publicó, no
+  // para "dar de baja" algo que ya tuvo actividad real (eso es un cambio
+  // de estado, no un borrado).
+  function eliminar(tabla, id) {
+    if (!data[tabla]) return false;
+    const antes = data[tabla].length;
+    data[tabla] = data[tabla].filter(r => r.id !== id);
+    const borrado = data[tabla].length < antes;
+    if (borrado) _persistir();
+    return borrado;
+  }
+
   // Borra todas las escrituras de esta sesión y vuelve a los JSON originales
   // (recargar la página después de llamar esto).
   function reset() {
     localStorage.removeItem(STORAGE_KEY);
   }
 
-  return { init, find, where, all, crear, actualizar, reset, nextId, data };
+  return { init, find, where, all, crear, actualizar, eliminar, reset, nextId, data };
 })();
 
 window.HemoRed = HemoRed;

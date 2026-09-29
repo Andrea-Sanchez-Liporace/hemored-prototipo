@@ -126,7 +126,11 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .table-wrap { background: white; border-radius: 14px; border: 0.5px solid #e8d0d8; overflow: hidden; }
 .table-header { display: grid; grid-template-columns: 2fr 1.4fr 0.9fr 1fr 0.8fr 170px; gap: 12px; padding: 12px 20px; border-bottom: 0.5px solid #e8d0d8; background: #fdf0f3; }
 .th { font-size: 11px; font-weight: 500; color: #a9435d; text-transform: uppercase; letter-spacing: .06em; }
-.table-row { display: grid; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; cursor: pointer; transition: background 0.1s; }
+/* grid-template-columns faltaba acá (bug preexistente, no de esta vuelta):
+   .table-row tenía display:grid sin ninguna columna definida, así que cada
+   celda caía en su propia fila en vez de alinearse con .table-header —
+   nunca se había notado porque esta tabla era 100% estática hasta ahora. */
+.table-row { display: grid; grid-template-columns: 2fr 1.4fr 0.9fr 1fr 0.8fr 170px; gap: 12px; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; cursor: pointer; transition: background 0.1s; }
 .table-row:last-child { border-bottom: none; }
 .table-row:hover { background: #fdf0f3; }
 .td { font-size: 13px; color: #5a3040; }
@@ -162,7 +166,9 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .tab.active { background: #5a1e37; color: white; }
 .tab:hover:not(.active) { background: #fdf0f3; }
 .panel-count { font-size: 12px; color: #a9435d; }
-.turnos-table-header { display: grid; padding: 10px 20px; background: #fdf0f3; border-bottom: 0.5px solid #e8d0d8; }
+/* Mismo bug preexistente que .table-row: sin grid-template-columns acá,
+   los th caían apilados en vez de alinearse con .turno-row de abajo. */
+.turnos-table-header { display: grid; grid-template-columns: 2fr 1.4fr 0.9fr 1fr 0.8fr 170px; gap: 12px; padding: 10px 20px; background: #fdf0f3; border-bottom: 0.5px solid #e8d0d8; }
 .turno-row { display: grid; grid-template-columns: 2fr 1.4fr 0.9fr 1fr 0.8fr 170px; gap: 12px; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; }
 .turno-row:last-child { border-bottom: none; }
 .turno-row:hover { background: #fdf0f3; }
@@ -395,13 +401,14 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .accesos-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .td.hide-sm, .th.hide-sm { display: none; }
+  .turnos-table-header, .turno-row { grid-template-columns: 2fr 1.4fr 170px; }
 }
 @media (max-width: 1024px) {
   .td.hide-md, .th.hide-md { display: none; }
   /* Sin esto, ocultar 3 de las 6 columnas del grid (fecha/estado/solicitado)
      deja sus fracciones (fr) de ancho reservadas como espacio vacío, aunque
      no haya nada dentro — el grid solo queda con Donante/Campaña/Acciones. */
-  .table-header, .turno-row { grid-template-columns: 2fr 1.4fr 170px; }
+  .table-header, .table-row, .turno-row { grid-template-columns: 2fr 1.4fr 170px; }
 }
 
 /* === MISSING STYLES RECOVERED FROM ORIGINALS === */

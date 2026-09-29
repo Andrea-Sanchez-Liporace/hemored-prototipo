@@ -394,16 +394,42 @@
       select.appendChild(opt);
     });
 
-    const activas = HemoRed.data.contarCampanasActivas(hospitalActual.id);
-    const plan = HemoRed.data.obtenerPlanHospital(hospitalActual.id);
+    // "Editar campaña": ?id= solo en la entrada al wizard (el link de
+    // campanas.html/campana_detalle.html) — carga esa campaña real en el
+    // wip y de ahí en más el flujo sigue como siempre por sessionStorage,
+    // incluido "Volver" desde el paso 2 (que no repite el ?id en la URL).
+    const params = new URLSearchParams(window.location.search);
+    const editId = Number(params.get('id'));
+    if (editId) {
+      const campana = HemoRed.db.find('campanas', editId);
+      if (campana && campana.hospital_id === hospitalActual.id) {
+        guardarWip({ ...campana, editando: true, estadoOriginal: campana.estado });
+      }
+    }
+    const wipActual = cargarWip();
+    const editando = !!wipActual.editando;
+
     const box = document.getElementById('plan-info-box');
-    const texto = document.getElementById('plan-info-text');
-    if (plan) {
-      texto.innerHTML = `Tu plan <strong>${plan.nombre}</strong> permite hasta <strong>${plan.max_campanas_simultaneas} campañas activas simultáneas</strong>. Actualmente tenés ${activas}/${plan.max_campanas_simultaneas} activas.` +
-        (activas >= plan.max_campanas_simultaneas ? ' Al publicar esta campaña deberás pausar o cerrar una existente (o programarla para una fecha en la que tengas cupo libre).' : '');
-      box.style.display = activas >= plan.max_campanas_simultaneas - 1 ? 'flex' : 'none';
-    } else {
+    if (editando) {
+      document.querySelector('.topbar-title').textContent = 'Editar campaña';
+      document.title = 'HemoRed — Editar campaña';
       box.style.display = 'none';
+      // Guardar como borrador solo tiene sentido si YA era un borrador —
+      // una campaña que ya se publicó no "vuelve" a borrador al editarla.
+      if (wipActual.estadoOriginal !== 'borrador') {
+        document.querySelector('.btn-draft').style.display = 'none';
+      }
+    } else {
+      const activas = HemoRed.data.contarCampanasActivas(hospitalActual.id);
+      const plan = HemoRed.data.obtenerPlanHospital(hospitalActual.id);
+      const texto = document.getElementById('plan-info-text');
+      if (plan) {
+        texto.innerHTML = `Tu plan <strong>${plan.nombre}</strong> permite hasta <strong>${plan.max_campanas_simultaneas} campañas activas simultáneas</strong>. Actualmente tenés ${activas}/${plan.max_campanas_simultaneas} activas.` +
+          (activas >= plan.max_campanas_simultaneas ? ' Al publicar esta campaña deberás pausar o cerrar una existente (o programarla para una fecha en la que tengas cupo libre).' : '');
+        box.style.display = activas >= plan.max_campanas_simultaneas - 1 ? 'flex' : 'none';
+      } else {
+        box.style.display = 'none';
+      }
     }
 
     restaurarWip();
