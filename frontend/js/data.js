@@ -1128,19 +1128,6 @@ HemoRed.data = (function() {
     }));
   }
 
-  // Profesionales activos vinculados al hospital logueado — para el select
-  // de "Registrar donación" (antes tenía 4 nombres hardcodeados, 3 de los
-  // cuales ni siquiera existían en `profesionales.json`).
-  async function cargarProfesionalesHospital() {
-    const db = await HemoRed.db.init();
-    const s = HemoRed.sesion.get();
-    const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
-    const hospitalId = usuario?.hospital_id;
-    const vinculos = HemoRed.db.all('profesional_hospital').filter(ph => ph.hospital_id === hospitalId && ph.activo);
-    const profesionales = HemoRed.db.all('profesionales');
-    return vinculos.map(v => profesionales.find(p => p.id === v.profesional_id)).filter(Boolean);
-  }
-
   // Token de 6 caracteres para el formulario post-donación (F4) — sin
   // caracteres ambiguos (0/O, 1/I). No hace falta que sea criptográfico:
   // es solo un código corto que el donante lee/escanea, la seguridad real
@@ -1270,21 +1257,34 @@ HemoRed.data = (function() {
     const ph = HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id);
     const hospital_ids = ph.map(p => p.hospital_id);
 
+    // Pasados, presentes y futuros (pedido explícito de la usuaria,
+    // 2026-10-06) — antes se filtraba a `t.fecha === hoy`, mostrando solo
+    // "hoy" y perdiendo cualquier noción de "a quién atendí ayer" o "qué
+    // me queda esta semana". El stat "Turnos hoy" sigue siendo literal
+    // (hoy, nada más); el resto de los stats y la lista abajo cubren todo
+    // el rango, ordenado cronológicamente, para que el profesional (médico
+    // o enfermero) pueda ver su agenda completa, no solo el día de hoy.
     const hoy = ahora().toISOString().slice(0, 10);
-    const turnos = HemoRed.db.all('turnos').filter(t => hospital_ids.includes(t.hospital_id) && t.fecha === hoy);
+    const turnos = HemoRed.db.all('turnos').filter(t => hospital_ids.includes(t.hospital_id));
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
+    const donaciones = HemoRed.db.all('donaciones');
 
-    _set('stat-turnos-hoy', turnos.length);
-    _set('stat-completados', turnos.filter(t => t.estado === 'completado').length);
-    _set('stat-pendientes', turnos.filter(t => ['confirmado','en_curso'].includes(t.estado)).length);
-    _set('stat-no-aptos', turnos.filter(t => t.estado === 'no_apto').length);
+    const turnosConDonacion = turnos
+      .map(t => ({
+        ...t,
+        donante: usuarios.find(u => u.id === t.usuario_id),
+        campana: campanas.find(c => c.id === t.campana_id),
+        donacion: donaciones.find(d => d.turno_id === t.id) || null,
+      }))
+      .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
 
-    return turnos.map(t => ({
-      ...t,
-      donante: usuarios.find(u => u.id === t.usuario_id),
-      campana: campanas.find(c => c.id === t.campana_id),
-    }));
+    _set('stat-turnos-hoy', turnosConDonacion.filter(t => t.fecha === hoy).length);
+    _set('stat-completados', turnosConDonacion.filter(t => t.estado === 'completado' && t.donacion?.resultado_apto !== false).length);
+    _set('stat-pendientes', turnosConDonacion.filter(t => ['pendiente', 'confirmado'].includes(t.estado)).length);
+    _set('stat-no-aptos', turnosConDonacion.filter(t => t.donacion?.resultado_apto === false).length);
+
+    return turnosConDonacion.map(t => ({ ...t, tieneDonacionRegistrada: !!t.donacion }));
   }
 
   // ===== ADMIN =====
@@ -1363,7 +1363,6 @@ HemoRed.data = (function() {
     cargarDetalleCampana,
     turnosQueBloqueanEdicion,
     cargarTurnosHoy,
-    cargarProfesionalesHospital,
     registrarDonacion,
     validarTokenPostdonacion,
     guardarRespuestaPostdonacion,

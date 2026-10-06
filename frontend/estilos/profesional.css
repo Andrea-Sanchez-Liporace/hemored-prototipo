@@ -63,6 +63,9 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
 .topbar-date { font-size: 13px; color: #a9435d; }
+/* Título del apartado para cuando no entra junto al resto del topbar en
+   mobile (ver @media max-width:768px) — oculto el resto del tiempo. */
+.content-title-mobile { display: none; }
 .topbar-actions { display: flex; gap: 10px; align-items: center; }
 .topbar-btn { width: 36px; height: 36px; border-radius: 9px; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #782b46; position: relative; text-decoration: none; transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease; }
 .topbar-btn:hover { background: #f28b98; border-color: #ef647c; color: #5a1e37; }
@@ -82,9 +85,15 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .filtro-chip.active { background: #5a1e37; color: white; border-color: #5a1e37; }
 .filtro-chip:hover:not(.active) { border-color: #a9435d; }
 .turnos-list { display: flex; flex-direction: column; gap: 12px; }
-.turno-card { background: white; border-radius: 14px; padding: 18px 22px; border: 0.5px solid #e8d0d8; display: grid; grid-template-columns: 60px 1fr auto; gap: 16px; align-items: center; cursor: pointer; transition: border-color 0.15s; }
+/* 5 hijos (hora, separador, info, badge, acciones), no 3 — con solo 3
+   columnas el grid armaba una fila extra y desordenaba todo (nunca se
+   había notado: esta pantalla era 100% estática hasta 2026-09-29). */
+.turno-card { background: white; border-radius: 14px; padding: 18px 22px; border: 0.5px solid #e8d0d8; display: grid; grid-template-columns: auto auto 1fr auto auto; gap: 16px; align-items: center; cursor: pointer; transition: border-color 0.15s; }
 .turno-card:hover { border-color: #f28b98; }
-.turno-hora { text-align: center; }
+/* Hora y "hs" en una sola línea, en todas las medidas de pantalla
+   (pedido explícito de la usuaria) — antes quedaban apiladas en
+   desktop/tablet y solo en mobile iban en una línea. */
+.turno-hora { display: flex; align-items: baseline; gap: 4px; justify-content: center; }
 .turno-hora .h { font-size: 20px; font-weight: 500; color: #5a1e37; line-height: 1; }
 .turno-hora .sep { font-size: 10px; color: #a9435d; }
 .turno-sep { width: 1px; background: #e8d0d8; align-self: stretch; }
@@ -168,19 +177,70 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
   .sidebar-close-btn { display: block; }
   .main { margin-left: 0; }
   .mobile-topbar-btn { display: flex; }
+
+  /* Mobile y tablet (pedido explícito de la usuaria, 2026-09-30): la hora
+     va arriba a la derecha, a la altura del nombre del donante, no en su
+     propia fila separada. `.turno-sep` (el separador vertical del layout
+     de escritorio) ya no tiene sentido acá, se oculta. `.turno-info` sigue
+     siendo un solo bloque (nombre + meta adentro) — ocupa 2 filas de la
+     columna izquierda para que su primera línea (el nombre) quede a la
+     misma altura que la hora. */
+  .turno-card {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "info hora" "info ." "badge badge" "actions actions";
+    row-gap: 10px;
+  }
+  .turno-sep { display: none; }
+  /* justify-content (no text-align): .turno-hora es flex, no bloque de
+     texto, desde el ajuste de "una sola línea en todas las medidas". */
+  .turno-hora { grid-area: hora; align-self: start; justify-content: flex-end; }
+  /* min-width:0 es necesario para que el elipsis de .turno-meta-item (más
+     abajo) funcione de verdad: sin esto, el texto con white-space:nowrap
+     empuja el ancho MÍNIMO de la columna "1fr" del grid en vez de
+     truncarse — y como .main es flex (ver body{display:flex}) con su
+     propio min-width:auto, ese empuje se propaga hasta inflar el ancho de
+     toda la página (encontrado recién: el "elipsis" rompía el responsive
+     en vez de arreglarlo). */
+  .turno-info { grid-area: info; min-width: 0; }
+  .turno-badge { grid-area: badge; justify-self: start; }
+  .turno-actions { grid-area: actions; }
 }
 @media (max-width: 768px) {
   .content { padding: 20px; }
-  .turno-card { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: 1fr 1fr; }
   .form-row { grid-template-columns: 1fr; }
+
+  /* El topbar (hamburguesa + título + fecha) no entraba en una sola fila
+     a 375px sin que título Y fecha envolvieran a la vez, cada uno en 2
+     líneas — pedido explícito de la usuaria: el título del apartado baja
+     al content (ver "content-title-mobile" / <h2> antes de .stats-row en
+     el HTML) y el topbar queda liviano, solo hamburguesa + fecha. */
+  .topbar-title { display: none; }
+  .topbar-date { font-size: 11px; text-align: right; line-height: 1.3; }
+  .content-title-mobile { display: block; font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 16px; }
+
+  /* "Tipo de sangre" + "campaña" (dos .turno-meta-item dentro de
+     .turno-meta, flex con wrap) terminaban en 3 líneas desprolijas: el
+     título de la campaña es largo, no entra en el ancho angosto de
+     mobile, y se parte a mitad de palabra en cualquier lado. Pedido
+     explícito de la usuaria: todo en UNA sola línea — el tipo de sangre
+     siempre entero (es cortito, "0-"), la campaña truncada con "…" si
+     hace falta (es la que puede ser larga).*/
+  .turno-meta { flex-wrap: nowrap; gap: 8px; min-width: 0; }
+  .turno-meta-item { flex-shrink: 0; }
+  /* .turno-meta-campana es la única que puede truncarse — display:block
+     (no flex) porque así "overflow/text-overflow/white-space" truncan el
+     texto de verdad con "…"; con flex (ícono + texto como 2 cajas
+     separadas) el ellipsis no agarra el texto como corresponde. El gap
+     que daba `flex` se reemplaza por un margen fijo en el ícono. */
+  .turno-meta-campana { flex: 1 1 auto; min-width: 0; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .turno-meta-campana i { margin-right: 4px; }
 }
 
 /* === MISSING STYLES RECOVERED FROM ORIGINALS === */
-.turno-card.completado { opacity: 0.65; }
-.turno-card.en-curso { border-left: 3px solid #ef647c; background: #fdf9fb; }
-.turno-hora-num { font-size: 20px; font-weight: 500; color: #5a1e37; line-height: 1; }
-.turno-hora-label { font-size: 10px; color: #a9435d; margin-top: 2px; }
+.turno-card.en-curso, .turno-card.completado { border-left: 3px solid #ef647c; background: #fdf9fb; }
+.turno-hora-num { font-size: 16px; font-weight: 500; color: #5a1e37; line-height: 1; }
+.turno-hora-label { font-size: 10px; color: #a9435d; }
 .modal-actions { padding: 14px 24px; border-top: 0.5px solid #e8d0d8; display: flex; gap: 10px; position: sticky; bottom: 0; background: white; flex-shrink: 0; }
 .progress-step { flex: 1; height: 4px; border-radius: 2px; background: #f0e0e6; transition: background 0.3s; }
 .progress-step.done { background: #ef647c; }

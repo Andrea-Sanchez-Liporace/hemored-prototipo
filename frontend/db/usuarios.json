@@ -152,5 +152,20 @@
     "activo": true,
     "fecha_registro": "2026-01-05",
     "avatar_iniciales": "AR"
+  },
+  {
+    "id": 8,
+    "nombre": "Laura",
+    "apellido": "Vidal",
+    "email": "enfermera@hemored.com",
+    "password_hash": "demo_hash",
+    "rol": "profesional",
+    "tipo_documento_id": 1,
+    "numero_documento": "31890234",
+    "fecha_nacimiento": "1984-03-22",
+    "telefono": "11-5432-9087",
+    "activo": true,
+    "fecha_registro": "2026-02-01",
+    "avatar_iniciales": "LV"
   }
 ]

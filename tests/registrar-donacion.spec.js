@@ -1,7 +1,8 @@
 /**
- * Test E2E de "Registrar donación" (Hospital, `hospital/turnos.html`) y del
- * formulario post-donación anónimo F4 (`donante/postdonacion_anonimo.html`)
- * que ese registro dispara — son un solo flujo de punta a punta, no dos.
+ * Test E2E de "Registrar donación" (Profesional de salud,
+ * `profesional/dashboard.html`) y del formulario post-donación anónimo F4
+ * (`donante/postdonacion_anonimo.html`) que ese registro dispara — son un
+ * solo flujo de punta a punta, no dos.
  *
  * Contexto importante:
  * - Antes de esto, `registrarDonacion()` no existía: el botón "Confirmar
@@ -12,6 +13,15 @@
  *   antes). Ahora aparece cuando el turno está `confirmado` y el donante ya
  *   completó los 2 formularios pre-donación (F1/F2), y solo si todavía no
  *   existe una donación para ese turno.
+ * - 2026-09-29: esta acción vivía (mal) en la cuenta de Hospital
+ *   (`hospital/turnos.html`) — es una acción clínica, no administrativa, y
+ *   la hace el profesional que atendió, no el hospital. Se movió al módulo
+ *   de Profesional de salud (pedido explícito de la usuaria: "no lo
+ *   pierdas... pasalo al modulo de profesional de salud"). Ya no hay un
+ *   select para elegir quién atendió: el profesional queda identificado
+ *   por su propia sesión (`HemoRed.sesion`), resuelto contra
+ *   `profesionales.usuario_id`. Hospital conserva Confirmar/Rechazar turno
+ *   (eso sí es administrativo) pero ya no ofrece registrar la donación.
  * - Al registrar la donación se genera un token de un solo uso para F4 y se
  *   entrega por 2 canales, cada uno apropiado a su contexto (decisión
  *   explícita de la usuaria, ver docs/04): un QR en la pantalla del
@@ -144,33 +154,41 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await expect(page.locator('#step-3')).toHaveClass(/active/);
     });
 
-    await test.step('ahora sí aparece "Registrar donación" del lado del hospital', async () => {
+    await test.step('ahora sí aparece "Registrar donación" del lado del profesional (no del hospital)', async () => {
+      // Confirma que el hospital YA NO ofrece esta acción — se movió.
       await page.goto('/publico/login.html');
       await page.fill('#email', 'hospital@hemored.com');
       await page.fill('#password', 'hospital123');
       await page.click('.form-btn');
       await page.waitForURL('**/hospital/dashboard.html');
       await page.goto('/hospital/turnos.html');
+      const filaHospital = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
+      await expect(filaHospital.locator('.turno-actions')).not.toContainText('Registrar donación');
+      await expect(filaHospital.locator('.turno-actions')).toContainText('Listo para el profesional');
 
-      const fila = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
+      // Dr. Carlos Méndez (profesional@hemored.com) está vinculado al
+      // Hospital Ramos Mejía (hospital_id 1) en profesional_hospital.json —
+      // el mismo hospital de esta campaña — así que ve el turno acá.
+      await page.goto('/publico/login.html');
+      await page.fill('#email', 'profesional@hemored.com');
+      await page.fill('#password', 'prof123');
+      await page.click('.form-btn');
+      await page.waitForURL('**/profesional/dashboard.html');
+      // `_turnosProfesional` es `var` (queda colgado de `window`) — a
+      // diferencia de los `let`/`const` de otras páginas, no hace falta
+      // `eval()` acá. Sin esta espera, renderTurnosProfesional() puede
+      // seguir esperando las 23 fetches de HemoRed.db.init() cuando el
+      // locator de abajo ya empezó a buscar la tarjeta.
+      await page.waitForFunction(() => window._turnosProfesional && window._turnosProfesional.length > 0);
+
+      const fila = page.locator('.turno-card', { hasText: `${donanteNombre} ${donanteApellido}` });
+      await expect(fila).toBeVisible();
       await fila.locator('button:has-text("Registrar donación")').click();
       await expect(page.locator('#modal-donacion')).toBeVisible();
       await expect(page.locator('#modal-donacion-info-turno')).toContainText(`${donanteNombre} ${donanteApellido}`);
     });
 
-    await test.step('el select de profesionales trae datos reales (no los 4 nombres hardcodeados de antes)', async () => {
-      const opciones = await page.locator('#donacion-profesional option').allTextContents();
-      expect(opciones).toContain('Dr. Carlos Méndez');
-      expect(opciones).not.toContain('Dra. Ana Rodríguez'); // no existe en profesionales.json, era un nombre inventado
-    });
-
-    await test.step('confirmar sin elegir profesional se rechaza', async () => {
-      await page.click('button:has-text("Confirmar donación")');
-      await expect(page.locator('.toast')).toContainText('Seleccioná el profesional');
-    });
-
     await test.step('completar y confirmar registra la donación y muestra el QR', async () => {
-      await page.selectOption('#donacion-profesional', { label: 'Dr. Carlos Méndez' });
       await page.click('button:has-text("Confirmar donación")');
       await expect(page.locator('.toast')).toContainText('Donación registrada');
       await expect(page.locator('#modal-donacion-exito')).toBeVisible();
@@ -196,8 +214,8 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
 
     await test.step('cerrar el modal refresca la fila: ya no ofrece registrar de nuevo', async () => {
       await page.click('#modal-donacion-exito button:has-text("Listo")');
-      const fila = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
-      await expect(fila.locator('.turno-badge')).toHaveText('Donación realizada');
+      const fila = page.locator('.turno-card', { hasText: `${donanteNombre} ${donanteApellido}` });
+      await expect(fila.locator('.turno-badge')).toHaveText('Completado');
       await expect(fila.locator('.turno-actions')).not.toContainText('Registrar donación');
     });
 

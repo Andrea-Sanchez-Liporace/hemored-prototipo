@@ -31,16 +31,22 @@ test.describe('Modal "Detalle del turno" (dashboard)', () => {
       await page.click('.pt-btn'); // "Ver detalles"
       await expect(page.locator('#modal-turno')).toBeVisible();
       await expect(page.locator('#modal-turno-hospital')).toHaveText('Hospital Ramos Mejía');
-      await expect(page.locator('#modal-turno-dia')).toHaveText('30'); // turno id 5, fecha 2026-11-30 (ver frontend/db/turnos.json)
+      // turno id 5: su `fecha` en el seed se mantiene a mano pisada a "hoy"
+      // de tanto en tanto (ver memoria fecha-hoy-dinamica) — por eso el día
+      // esperado se calcula contra la fecha real, no un literal fijo que
+      // se rompería la próxima vez que se actualice el dato.
+      await expect(page.locator('#modal-turno-dia')).toHaveText(String(new Date().getDate()));
       await expect(page.locator('#modal-turno-fechahora')).toContainText('09:30hs');
       await expect(page.locator('#modal-turno-estado')).toHaveText('Confirmado');
       await expect(page.locator('#modal-turno-campana')).toHaveText('Banco de sangre general — Ramos Mejía');
       await expect(page.locator('#modal-turno-sangre')).toHaveText('Cualquier tipo'); // esta campaña no pide un tipo puntual
       await expect(page.locator('#modal-turno-numero')).toHaveText('#TRN-5');
-      // Ninguno de los 2 formularios está completo en el dato semilla de este turno.
-      await expect(page.locator('#modal-turno-formularios')).toContainText('Autoexclusión pendiente');
-      await expect(page.locator('#modal-turno-formularios')).toContainText('Cuestionario pendiente');
-      await expect(page.locator('#modal-turno-btn-cuestionario')).toBeVisible();
+      // 2026-09-30: los 2 formularios de este turno semilla pasaron a estar
+      // completos (para poder probar "Registrar donación" de Profesional
+      // con la cuenta demo sin crear un donante nuevo cada vez).
+      await expect(page.locator('#modal-turno-formularios')).toContainText('Autoexclusión completado');
+      await expect(page.locator('#modal-turno-formularios')).toContainText('Cuestionario completado');
+      await expect(page.locator('#modal-turno-btn-cuestionario')).toBeHidden();
     });
 
     await test.step('"Modificar turno" abre directo el modal de modificación del turno correcto (antes solo mandaba a la lista)', async () => {

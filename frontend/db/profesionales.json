@@ -2,6 +2,7 @@
   {
     "id": 1,
     "usuario_id": 4,
+    "tipo": "medico",
     "matricula": "45231",
     "especialidad": "Hematología",
     "titulo": "Dr.",
@@ -14,7 +15,8 @@
   },
   {
     "id": 2,
-    "usuario_id": null,
+    "usuario_id": 8,
+    "tipo": "enfermero",
     "matricula": "38901",
     "especialidad": "Hemoterapia",
     "titulo": "Dra.",

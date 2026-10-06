@@ -65,7 +65,6 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 | Ver/gestionar campañas | 🟢 | 🟢 | Cerrado 2026-09-29, junto con "Ver detalle de campaña". La lista de borradores guardados desde el wizard ya vive acá (filtro "Borradores"), con Eliminar real. | — | — | — |
 | Ver detalle de campaña (hospital) | 🟢 | 🟢 | Cerrado 2026-09-29. Incluye "Editar campaña" (reabre el wizard con `?id=`) — alcance más grande que la estimación original: para una campaña con turnos reales, cambiar días/horarios exige poder cancelar los que ya no encajan, ahí mismo (pedido explícito de la usuaria). Ver detalle en `docs/04`. | — | — | — |
 | Gestionar turnos del día | 🟢 | 🟢 | — | — | — | — |
-| Registrar donación | 🟢 | 🟢 | — | — | — | — |
 | Cargar resultado de análisis | 🔴 | 🟢 | "Cargar resultado" = "Cancelar" (no persiste). | Medio | Should | Completo — pero recordar el insert dual a `documentos` (si no, el donante nunca lo ve del lado suyo, que ya está conectado). |
 | Emitir certificado de donación | 🔴 | 🟢 | Mismo patrón que arriba. | Medio | Should | Completo, mismo motivo del insert dual. |
 | Revisar solicitudes de corrección | 🟢 | 🟢 | — | — | — | — |
@@ -111,8 +110,9 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 
 | Flujo | Desarrollo | Diseño | Qué falta | Esfuerzo | Prioridad | Enfoque |
 |---|---|---|---|---|---|---|
-| Turnos del día (dashboard) | 🟡 | 🟢 | Lectura silenciosa — la cadena `usuario→profesional→hospital→turnos` ya se resuelve bien en JS, falta el `id` en el HTML. | Bajo | Won't (v2) — pero si se toca algo de Profesional antes de tiempo, es esto, es igual de barato que los otros 2 dashboards silenciosos. | **Por partes**, agrupado con los otros dashboards. |
-| Atención clínica (F1→F4 + QR) | 🟡 | 🟢 | **Es la pantalla más desarrollada de todo el prototipo** (checklist, cuestionario de 42 preguntas, firma, signos vitales, decisión apto/no apto, QR) pero no persiste nada — cerrar el modal borra todo. | Alto | Won't (v2) | Completo — es grande pero autocontenido (4-5 funciones nuevas, 2 tablas), no tiene sentido partirlo por rol porque es un solo rol. Dejar para cuando se aborde v2 como bloque separado. |
+| Turnos del día (dashboard) | 🟢 | 🟢 | Cerrado 2026-09-29, junto con "Registrar donación". | — | — | — |
+| Registrar donación | 🟢 | 🟢 | Cerrado 2026-09-29 — movida desde Hospital (`hospital/turnos.html`), pedido explícito de la usuaria: es la acción del enfermero/extractor, no una acción administrativa. Ver detalle en `docs/04`. | — | — | — |
+| Atención clínica (F1→F4 + QR) | 🟡 | 🟢 | **Es la pantalla más desarrollada de todo el prototipo** (checklist, cuestionario de 42 preguntas, firma, signos vitales, decisión apto/no apto, QR) pero no persiste nada — cerrar el modal borra todo. Queda tal cual (2026-09-29): es la parte del médico clínico, todavía pendiente de diseño (ver hallazgo médico/enfermero en `docs/04`) — no se mezcló con "Registrar donación" (arriba), que es la acción del enfermero/extractor y ya está conectada. | Alto | Won't (v2) | Completo — es grande pero autocontenido (4-5 funciones nuevas, 2 tablas), no tiene sentido partirlo por rol porque es un solo rol. Dejar para cuando se aborde v2 como bloque separado. Requiere primero el campo `tipo` (`medico`/`enfermero`) en `profesionales` que separe las 2 facultades. |
 | Perfil y firma digital | 🔴 | 🟢 | El canvas de firma funciona y valida, pero nunca se guarda (`// Aquí se enviaría al servidor`). | Bajo | Won't (v2) | Completo |
 
 **Por qué v2 y no antes:** es contenido explícitamente fuera del alcance MVP (`docs/03`, MoSCoW "Won't Have"), aunque la UI ya esté construida con mucho detalle — el criterio de priorización acá no es "cuánto falta" sino "está en el alcance de esta entrega".
@@ -123,9 +123,9 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 
 Mismo orden que la "Hoja de ruta sugerida" de `docs/04`, con la razón resumida acá:
 
-1. ~~Los 3 dashboards "silenciosos" (Hospital, Admin, Profesional)~~ — **Hospital cerrado 2026-09-24** (resultó más laborioso de lo estimado: además de los ids, las 2 listas de la pantalla eran filas hardcodeadas, ver `docs/04`). Quedan Admin y Profesional, mismo patrón para replicar.
+1. ~~Los 3 dashboards "silenciosos" (Hospital, Admin, Profesional)~~ — **Hospital cerrado 2026-09-24** (resultó más laborioso de lo estimado: además de los ids, las 2 listas de la pantalla eran filas hardcodeadas, ver `docs/04`). **Profesional cerrado 2026-09-29**, junto con "Registrar donación" (se movió desde Hospital, ver `docs/04`). Queda Admin, mismo patrón para replicar.
 2. **Núcleo Hospital (MVP):** ~~crear campaña (3 pasos como bloque)~~ — **cerrado 2026-09-25** — ~~ver/gestionar campañas, ver detalle de campaña~~ — **cerrado 2026-09-29**. El "camino feliz" completo (donante busca → reserva → hospital gestiona) ya se puede mostrar de punta a punta con datos que no son 100% semilla.
 3. **Cadena Registro de hospital → Pago → Cuenta pendiente → Aprobación (Admin):** hoy las 4 piezas existen sueltas; conectarlas es más "cablear" que "construir".
 4. **Should Have:** historial/documentación clínica de Hospital (resultado + certificado, con el insert dual a `documentos`), facturación (las 3 pantallas — Hospital paga, Admin emite/marca pagada — como un bloque), mensajería Hospital↔HemoRed (necesita pasar por diseño primero, no existe la vista).
 5. **Podría esperar:** métricas con agregación real (hoy ya "funcionan" visualmente para una demo con datos de relleno), gestión de pacientes/profesionales de Hospital.
-6. **v2, al final y como bloque separado:** módulo de atención clínica del Profesional — grande pero autocontenido, y la UI ya está prácticamente lista.
+6. **v2, al final y como bloque separado:** el modal "Atención clínica" del Profesional (la parte del médico clínico: entrevista F1/F2 + decisión apto/no apto) — grande pero autocontenido, y la UI ya está prácticamente lista. Necesita primero el campo `tipo` (`medico`/`enfermero`) en `profesionales` para separar esa facultad de la del enfermero/extractor (ya conectada, ver punto 1).
