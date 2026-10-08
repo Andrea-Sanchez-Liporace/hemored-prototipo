@@ -154,8 +154,7 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await expect(page.locator('#step-3')).toHaveClass(/active/);
     });
 
-    await test.step('ahora sí aparece "Registrar donación" del lado del profesional (no del hospital)', async () => {
-      // Confirma que el hospital YA NO ofrece esta acción — se movió.
+    await test.step('el hospital YA NO ofrece "Registrar donación" — se movió a Profesional', async () => {
       await page.goto('/publico/login.html');
       await page.fill('#email', 'hospital@hemored.com');
       await page.fill('#password', 'hospital123');
@@ -165,10 +164,12 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       const filaHospital = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
       await expect(filaHospital.locator('.turno-actions')).not.toContainText('Registrar donación');
       await expect(filaHospital.locator('.turno-actions')).toContainText('Listo para el profesional');
+    });
 
-      // Dr. Carlos Méndez (profesional@hemored.com) está vinculado al
-      // Hospital Ramos Mejía (hospital_id 1) en profesional_hospital.json —
-      // el mismo hospital de esta campaña — así que ve el turno acá.
+    await test.step('el médico clínico hace la entrevista y da "apto" — recién ahí se habilita la extracción', async () => {
+      // Dr. Carlos Méndez (profesional@hemored.com, tipo:'medico') está
+      // vinculado al Hospital Ramos Mejía (hospital_id 1) en
+      // profesional_hospital.json — el mismo hospital de esta campaña.
       await page.goto('/publico/login.html');
       await page.fill('#email', 'profesional@hemored.com');
       await page.fill('#password', 'prof123');
@@ -179,6 +180,36 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       // `eval()` acá. Sin esta espera, renderTurnosProfesional() puede
       // seguir esperando las 23 fetches de HemoRed.db.init() cuando el
       // locator de abajo ya empezó a buscar la tarjeta.
+      await page.waitForFunction(() => window._turnosProfesional && window._turnosProfesional.length > 0);
+
+      const fila = page.locator('.turno-card', { hasText: `${donanteNombre} ${donanteApellido}` });
+      await expect(fila).toContainText('Esperando evaluación médica');
+      await fila.locator('button:has-text("Iniciar entrevista")').click();
+      await page.click('#f1 button:has-text("Siguiente")');
+      await page.click('#f2 button:has-text("Siguiente")');
+      await page.fill('#f3-presion', '120/80');
+      await page.fill('#f3-frecuencia', '72');
+      await page.fill('#f3-temperatura', '36.5');
+      await page.fill('#f3-glucosa', '90');
+      await page.fill('#f3-peso', '70');
+      await page.fill('#f3-hemoglobina', '13.5');
+      await page.click('#f3-apto');
+      // El canvas vive en el scroll interno del modal — scrollIntoView
+      // explícito, no alcanza con el scrollIntoViewIfNeeded de Playwright
+      // (ver tests/evaluacion-clinica.spec.js para el detalle completo).
+      await page.evaluate(() => document.getElementById('sig-f3').scrollIntoView({ block: 'center' }));
+      await page.waitForTimeout(100);
+      await firmar(page, '#sig-f3');
+      await page.click('#f3-btn-sig');
+      await expect(page.locator('.toast')).toContainText('apto para donar');
+    });
+
+    await test.step('ahora sí aparece "Registrar donación" — del lado del enfermero/extractor', async () => {
+      await page.goto('/publico/login.html');
+      await page.fill('#email', 'enfermera@hemored.com');
+      await page.fill('#password', 'enf123');
+      await page.click('.form-btn');
+      await page.waitForURL('**/profesional/dashboard.html');
       await page.waitForFunction(() => window._turnosProfesional && window._turnosProfesional.length > 0);
 
       const fila = page.locator('.turno-card', { hasText: `${donanteNombre} ${donanteApellido}` });
@@ -206,7 +237,10 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       expect(datos.donacion.numero_bolsa).toMatch(/^BLS-2026-\d{4}$/);
       expect(datos.donacion.volumen_ml).toBe(450);
       expect(datos.donacion.resultado_apto).toBe(true);
-      expect(datos.donacion.profesional_id).toBe(1);
+      // profesional_id 2 = Dra. Laura Vidal (enfermera/extractora, quien
+      // ahora registra la donación) — el médico (id 1) solo hizo la
+      // entrevista clínica previa, no la extracción.
+      expect(datos.donacion.profesional_id).toBe(2);
       expect(datos.turnoEstado).toBe('completado');
       expect(datos.f4.token).toMatch(/^[A-Z0-9]{6}$/);
       expect(datos.f4.token_usado).toBe(false);

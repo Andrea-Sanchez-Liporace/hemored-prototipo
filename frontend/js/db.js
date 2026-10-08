@@ -23,7 +23,8 @@ HemoRed.db = (function() {
     'campanas','turnos','donaciones','formulario_consentimiento',
     'formulario_postdonacion','resultado_analisis','certificado_donacion',
     'documentos','facturas','mensajes','hospital_plan_historial',
-    'solicitudes_correccion','notificaciones_donante','mensajes_contacto'
+    'solicitudes_correccion','notificaciones_donante','mensajes_contacto',
+    'evaluacion_clinica'
   ];
 
   let data = {};

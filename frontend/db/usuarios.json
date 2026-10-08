@@ -167,5 +167,30 @@
     "activo": true,
     "fecha_registro": "2026-02-01",
     "avatar_iniciales": "LV"
+  },
+  {
+    "id": 9,
+    "nombre": "Lucía",
+    "apellido": "Ibarra",
+    "email": "lucia.ibarra@gmail.com",
+    "password_hash": "demo_hash",
+    "rol": "donante",
+    "tipo_documento_id": 1,
+    "numero_documento": "36987654",
+    "fecha_nacimiento": "1997-05-11",
+    "telefono": "11-2345-6789",
+    "tipo_sangre": "B+",
+    "peso_kg": 64,
+    "experiencia_donante": "primera_vez",
+    "condiciones_medicas": null,
+    "ultima_donacion_fecha": null,
+    "ultima_donacion_fecha_aproximada": null,
+    "ultima_donacion_lugar": null,
+    "notif_recordatorio_turno": true,
+    "notif_resultado_analisis": true,
+    "notif_campanas_urgentes": false,
+    "activo": true,
+    "fecha_registro": "2026-10-01",
+    "avatar_iniciales": "LI"
   }
 ]

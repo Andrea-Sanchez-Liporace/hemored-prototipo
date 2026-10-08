@@ -172,6 +172,26 @@
           <div><div class="donante-nombre" id="f1-nom">Carlos Méndez</div><div class="donante-meta" id="f1-met">DNI · tipo de sangre · hora</div></div>
         </div>
 
+        <!-- Entrevista clínica real (médico, turno real): F1 no tiene
+             respuestas guardadas una por una — solo "completado" + firma —
+             así que acá se muestra un resumen de solo lectura en vez del
+             checklist de abajo (pensado para cuando el profesional ASISTE
+             al donante completándolo por primera vez, no para revisar uno
+             ya completado). El checklist completo queda disponible para
+             ese otro caso de uso, sin tocar. -->
+        <div id="f1-revision-resumen" style="display:none;background:#e1f5ee;border-radius:10px;padding:14px 16px;margin-bottom:14px;border:0.5px solid #27ae60;">
+          <div style="font-size:12px;color:#1a6b3a;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:6px;"><i class="ti ti-circle-check"></i>Formulario 1 — Autoexclusión</div>
+          <div style="font-size:13px;color:#04342c;" id="f1-revision-texto">Completado y firmado por el donante.</div>
+        </div>
+
+        <!-- Historial del donante en TODO el sistema (no solo este
+             hospital) — pedido explícito de la usuaria. -->
+        <div id="f1-historial" style="display:none;background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:14px;border:0.5px solid #e8d0d8;">
+          <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="ti ti-history"></i>Historial del donante</div>
+          <div id="f1-historial-cuerpo" style="font-size:13px;color:#5a3040;"></div>
+        </div>
+
+        <div id="f1-form-interactivo">
         <div class="sec-header">
           <div class="sec-title">¿Quién completa este formulario?</div>
           <div style="font-size:11px;color:#a9435d;" id="f1-fecha"></div>
@@ -252,6 +272,7 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
@@ -282,7 +303,7 @@
           <div class="sec-title" id="f2-resp-label" style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.08em;">Completado por el donante</div>
           <div style="display:flex;align-items:center;gap:8px;">
             <div style="font-size:11px;color:#a9435d;" id="f2-fecha"></div>
-            <button class="btn-mod" id="f2-bmod" style="display:none;" onclick="setMod(2)"><i class="ti ti-pencil" style="font-size:11px;"></i>Modificar</button>
+            <button class="btn-mod" id="f2-bmod" style="display:none;" onclick="habilitarEdicionCuestionario()"><i class="ti ti-pencil" style="font-size:11px;"></i>Modificar</button>
           </div>
         </div>
         <div class="aviso av-naranja" id="f2-av-prof" style="display:none;"><i class="ti ti-alert-circle" style="font-size:13px;flex-shrink:0;margin-top:1px;"></i>Completado por el profesional · Caso de seguimiento.</div>
@@ -469,6 +490,13 @@
             <div class="excl-text">¿Ha residido en algún otro país extranjero?</div>
             <div class="excl-sino"><div class="excl-btn" onclick="excl(this,'si')">Sí</div><div class="excl-btn sel-no" onclick="excl(this,'no')">No</div></div>
           </div>
+        </div>
+        <!-- Bug preexistente encontrado 2026-10-08: a #f2-items (arriba)
+             le faltaba este cierre — sin él, F3/F4/f-ok terminaban
+             anidados adentro de F2 (oculto, display:none), por eso nunca
+             se veían aunque goF(3) les pusiera display:block. Nunca se
+             había notado porque nada de esto estaba conectado hasta
+             ahora. -->
 
           <div class="sec-header"><div class="sec-title">Observaciones adicionales</div></div>
           <div class="form-group"><textarea class="form-input" style="resize:vertical;min-height:60px;" placeholder="Información adicional relevante..."></textarea></div>
@@ -539,22 +567,16 @@
 
         <div class="sec-header"><div class="sec-title">Signos vitales</div></div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Presión arterial</label><input class="form-input" type="text" placeholder="120/80 mmHg"><p class="form-hint">Apto: 90/60 – 180/100</p></div>
-          <div class="form-group"><label class="form-label">Frecuencia cardíaca</label><input class="form-input" type="text" placeholder="72 lpm"><p class="form-hint">Apto: 50 – 100 lpm</p></div>
+          <div class="form-group"><label class="form-label">Presión arterial</label><input class="form-input" type="text" id="f3-presion" placeholder="120/80 mmHg"><p class="form-hint">Apto: 90/60 – 180/100</p></div>
+          <div class="form-group"><label class="form-label">Frecuencia cardíaca</label><input class="form-input" type="text" id="f3-frecuencia" placeholder="72 lpm"><p class="form-hint">Apto: 50 – 100 lpm</p></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Temperatura</label><input class="form-input" type="text" placeholder="36.5 °C"><p class="form-hint">Apto: 36 – 37.5 °C</p></div>
-          <div class="form-group"><label class="form-label">Glucosa en sangre</label><input class="form-input" type="text" placeholder="90 mg/dL"><p class="form-hint">Apto: 70 – 200 mg/dL</p></div>
+          <div class="form-group"><label class="form-label">Temperatura</label><input class="form-input" type="text" id="f3-temperatura" placeholder="36.5 °C"><p class="form-hint">Apto: 36 – 37.5 °C</p></div>
+          <div class="form-group"><label class="form-label">Glucosa en sangre</label><input class="form-input" type="text" id="f3-glucosa" placeholder="90 mg/dL"><p class="form-hint">Apto: 70 – 200 mg/dL</p></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Peso (kg)</label><input class="form-input" type="number" placeholder="70"><p class="form-hint">Mínimo: 50 kg</p></div>
-          <div class="form-group"><label class="form-label">Hemoglobina (g/dL)</label><input class="form-input" type="text" placeholder="13.5"><p class="form-hint">Mín: 12.5(F) / 13.5(M)</p></div>
-        </div>
-
-        <div class="sec-header"><div class="sec-title">Control adicional</div></div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Última donación — lugar y fecha</label><input class="form-input" type="text" placeholder="Hospital Italiano · 12/03/2026"></div>
-          <div class="form-group"><label class="form-label">¿Reacciones post-donación anteriores?</label><select class="form-input"><option>No</option><option>Sí — mareo leve</option><option>Sí — desmayo</option><option>Sí — otro</option></select></div>
+          <div class="form-group"><label class="form-label">Peso (kg)</label><input class="form-input" type="number" id="f3-peso" placeholder="70"><p class="form-hint">Mínimo: 50 kg</p></div>
+          <div class="form-group"><label class="form-label">Hemoglobina (g/dL)</label><input class="form-input" type="text" id="f3-hemoglobina" placeholder="13.5"><p class="form-hint">Mín: 12.5(F) / 13.5(M)</p></div>
         </div>
 
         <div class="sec-header"><div class="sec-title">Decisión del profesional</div></div>
@@ -570,9 +592,9 @@
         </div>
         <div id="f3-motivo" style="display:none;margin-top:12px;">
           <div class="form-group"><label class="form-label">Motivo</label>
-            <select class="form-input"><option value="" disabled selected>Seleccioná</option><option>Presión arterial fuera de rango</option><option>Glucosa fuera de rango</option><option>Temperatura elevada</option><option>Hemoglobina baja</option><option>Peso insuficiente</option><option>Medicación incompatible</option><option>Período de espera no cumplido</option><option>Declaración de exclusión positiva</option><option>Otro</option></select>
+            <select class="form-input" id="f3-motivo-select"><option value="" disabled selected>Seleccioná</option><option>Presión arterial fuera de rango</option><option>Glucosa fuera de rango</option><option>Temperatura elevada</option><option>Hemoglobina baja</option><option>Peso insuficiente</option><option>Medicación incompatible</option><option>Período de espera no cumplido</option><option>Declaración de exclusión positiva</option><option>Otro</option></select>
           </div>
-          <div class="form-group"><label class="form-label">Observaciones</label><textarea class="form-input" style="resize:vertical;min-height:60px;" placeholder="Detalles..."></textarea></div>
+          <div class="form-group"><label class="form-label">Observaciones</label><textarea class="form-input" id="f3-observaciones" style="resize:vertical;min-height:60px;" placeholder="Detalles..."></textarea></div>
         </div>
 
         <div class="firma-section" style="margin-top:14px;">
@@ -726,6 +748,219 @@
     document.body.style.overflow = '';
   }
 
+  // ===== ENTREVISTA CLÍNICA (médico, turno real) =====
+  // Mismas 34 preguntas y mismo orden que donante/formularios_predonacion.html
+  // — el médico tiene que ver exactamente lo mismo que respondió el
+  // donante, no una versión distinta. Se arma el F2 acá dinámicamente (el
+  // HTML original de este modal no tenía data-key ni estaba conectado a
+  // datos reales) en vez de editar a mano las 34 filas existentes.
+  const PREGUNTAS_CUESTIONARIO = [
+    { sec: 'Comprensión de la información', key: 'info_escrita_autoexclusion', texto: '¿Se le ha proporcionado información escrita para su autoexclusión predonación?' },
+    { sec: null, key: 'comprendio_autoexclusion', texto: '¿Ha comprendido las situaciones descriptas en el formulario de autoexclusión? (en caso de dudas, consulte con el profesional que lo atenderá)' },
+    { sec: 'Precaución en las próximas 12 horas', key: 'actividad_riesgo_12h', texto: '¿Debe realizar alguna actividad laboral o deportiva de riesgo (trabajo en altura, escalada, etc.) o conducir un vehículo de transporte público?' },
+    { sec: 'Medicación', key: 'medicacion_actual', texto: '¿Está tomando o ha tomado en los últimos días algún medicamento?' },
+    { sec: null, key: 'etretinato_psoriasis', texto: '¿Ha tomado alguna vez Etretinato o alguna otra droga para psoriasis?' },
+    { sec: null, key: 'medicacion_prostata', texto: '¿Está tomando medicación para la próstata?' },
+    { sec: null, key: 'aspirina_3dias', texto: '¿Tomó aspirina o analgésicos en los últimos 3 días?' },
+    { sec: 'En las últimas 2 semanas', key: 'fiebre_2sem', texto: '¿Ha presentado fiebre, acompañada de dolor de cabeza y malestar general?' },
+    { sec: null, key: 'dentista_2sem', texto: '¿Ha visitado al dentista?' },
+    { sec: 'En el último mes', key: 'vacuna_1mes', texto: '¿Ha recibido alguna vacuna?' },
+    { sec: null, key: 'contacto_enfermo_1mes', texto: '¿Ha estado en contacto con alguna persona que padeciera una enfermedad?' },
+    { sec: 'En los últimos 3 meses', key: 'tatuaje_piercing_3m', texto: '¿Se realizó tatuajes, colocación de piercing, implantes dentales o acupuntura?' },
+    { sec: null, key: 'endoscopia_3m', texto: '¿Ha sido sometido a endoscopía (gastroscopía / colonoscopía)?' },
+    { sec: 'En los últimos 6 meses', key: 'consulta_hospitalizacion_6m', texto: '¿Ha asistido a la consulta de algún médico o ha estado hospitalizado?' },
+    { sec: null, key: 'cirugia_6m', texto: '¿Ha sido sometido a algún tipo de cirugía?' },
+    { sec: 'En los últimos 12 meses', key: 'practica_riesgo_12m', texto: '¿Tuvo alguna de las relaciones y/o prácticas sexuales de riesgo incrementado descriptas en el documento de autoexclusión?' },
+    { sec: null, key: 'contacto_sangre_fluidos_12m', texto: '¿Estuvo en contacto con sangre o fluidos corporales a través de piel o mucosas lesionadas?' },
+    { sec: null, key: 'recibio_sangre_trasplante_12m', texto: '¿Recibió sangre, componentes o algún trasplante?' },
+    { sec: null, key: 'convivio_hepatitis_ictericia', texto: '¿Convive o ha convivido con alguien que padeciera hepatitis o ictericia?' },
+    { sec: 'En alguna ocasión en el transcurso de su vida', key: 'enfermedad_grave_control', texto: '¿Ha padecido alguna enfermedad grave que exigió control médico periódico?' },
+    { sec: null, key: 'hepatitis_higado', texto: '¿Ha padecido hepatitis, ictericia o problemas de hígado?' },
+    { sec: null, key: 'enfermedad_pulmon_cerebro_rinon', texto: '¿Ha sufrido alguna enfermedad grave de pulmón, cerebro, riñón, tiroides, aparato digestivo u otras localizaciones?' },
+    { sec: null, key: 'corazon_presion', texto: '¿Ha padecido problemas de corazón o de la presión sanguínea?' },
+    { sec: null, key: 'diabetes_insulina_animal', texto: '¿Padece diabetes tratada con insulina de origen animal?' },
+    { sec: null, key: 'cancer', texto: '¿Ha padecido algún tipo de cáncer?' },
+    { sec: null, key: 'hemorragia_anemia_leucemia', texto: '¿Ha tenido hemorragias o alguna afección de la sangre como anemia o leucemia?' },
+    { sec: null, key: 'drogas_iv_cocaina', texto: '¿Se inyectó o se inyecta drogas intravenosas ilegales o aspiró cocaína regularmente?' },
+    { sec: null, key: 'hormona_crecimiento_humano', texto: '¿Ha recibido hormona de crecimiento de origen humano (antes de 1987)?' },
+    { sec: null, key: 'tejido_trasplante', texto: '¿Ha recibido tejido procedente de otra persona (duramadre, córnea u otros)?' },
+    { sec: null, key: 'creutzfeldt_jakob', texto: '¿Usted o algún familiar sufre o ha sufrido la enfermedad de Creutzfeldt-Jakob?' },
+    { sec: null, key: 'paludismo', texto: '¿Tuvo paludismo en los últimos 3 años o estuvo en el último año en áreas endémicas de la enfermedad?' },
+    { sec: null, key: 'analisis_positivo_previo', texto: '¿Le han dicho que tiene análisis positivos para VIH/SIDA, Hepatitis B o C, virus HTLV I-II, Chagas, brucelosis o sífilis?' },
+    { sec: 'Estancias en el extranjero', key: 'reino_unido_80_96', texto: '¿Ha estado durante más de un año (sumando los períodos de permanencia) en el Reino Unido entre 1980 y 1996?' },
+    { sec: null, key: 'residio_extranjero', texto: '¿Ha residido en algún otro país extranjero?' },
+  ];
+
+  var _turnoEntrevistaId = null;
+  var _cuestionarioModoEdicion = false;
+
+  function renderF2(respuestas) {
+    const html = PREGUNTAS_CUESTIONARIO.map(p => {
+      const encabezado = p.sec ? `<div class="sec-header"><div class="sec-title">${p.sec}</div></div>` : '';
+      const val = respuestas?.[p.key];
+      const claseSi = val === 'si' ? ' sel-si' : '';
+      const claseNo = val === 'no' ? ' sel-no' : '';
+      const disabled = _cuestionarioModoEdicion ? '' : ' style="pointer-events:none;opacity:0.85;"';
+      return `${encabezado}
+        <div class="excl-item" data-key="${p.key}">
+          <div class="excl-text">${p.texto}</div>
+          <div class="excl-sino"${disabled}><div class="excl-btn${claseSi}" onclick="exclCuestionario(this,'si')">Sí</div><div class="excl-btn${claseNo}" onclick="exclCuestionario(this,'no')">No</div></div>
+        </div>`;
+    }).join('');
+    document.getElementById('f2-items').innerHTML = html;
+  }
+
+  function exclCuestionario(btn, val) {
+    btn.parentElement.querySelectorAll('.excl-btn').forEach(b => b.className = 'excl-btn');
+    btn.className = 'excl-btn ' + (val === 'si' ? 'sel-si' : 'sel-no');
+  }
+
+  // Abre la entrevista para un turno REAL (confirmado, F1/F2 ya
+  // completados por el donante, sin evaluación clínica todavía) — pedido
+  // explícito de la usuaria. F1 muestra un resumen de solo lectura (no hay
+  // respuestas item por item guardadas de F1, solo "completado" + firma);
+  // F2 muestra las respuestas reales, con opción de corregir ("Modificar");
+  // F3 es nuevo, se persiste en evaluacion_clinica. No pasa nunca a F4 —
+  // eso es la extracción, ya cubierta por "Registrar donación" (enfermero).
+  function abrirEntrevistaClinica(turnoId) {
+    const rev = HemoRed.data.cargarRevisionClinica(turnoId);
+    if (!rev || !rev.turno) return;
+    const { turno, donante, campana, formulario } = rev;
+    _turnoEntrevistaId = turnoId;
+    _cuestionarioModoEdicion = false;
+    aptoDec = null;
+
+    const nombreCompleto = donante ? `${donante.nombre} ${donante.apellido}` : 'Donante';
+    const inic = donante ? ((donante.nombre?.[0] || '') + (donante.apellido?.[0] || '')).toUpperCase() : '—';
+    const dni = donante?.numero_documento ? `DNI ${donante.numero_documento}` : '';
+    ['f1', 'f2', 'f3'].forEach(f => {
+      const av = document.getElementById(f + '-av'); if (av) av.textContent = inic;
+      const nm = document.getElementById(f + '-nom'); if (nm) nm.textContent = nombreCompleto;
+    });
+    const met = document.getElementById('f1-met'); if (met) met.textContent = `${dni} · ${donante?.tipo_sangre || '—'} · ${turno.hora}hs`;
+
+    // F1: resumen de solo lectura (ver comentario junto a #f1-revision-resumen).
+    document.getElementById('f1-form-interactivo').style.display = 'none';
+    document.getElementById('f1-revision-resumen').style.display = 'block';
+    const fechaF1 = formulario?.autoexclusion_fecha
+      ? new Date(formulario.autoexclusion_fecha).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : '—';
+    document.getElementById('f1-revision-texto').textContent = `Completado y firmado por el donante el ${fechaF1}.`;
+
+    // Historial del donante en TODO el sistema, no solo este hospital.
+    if (turno.usuario_id) {
+      const historial = HemoRed.data.cargarHistorialDonante(turno.usuario_id);
+      const cuerpo = document.getElementById('f1-historial-cuerpo');
+      if (historial.donaciones.length === 0) {
+        cuerpo.innerHTML = 'Sin donaciones registradas en el sistema todavía.';
+      } else {
+        cuerpo.innerHTML = historial.donaciones.map(d => {
+          const fecha = new Date(d.registrado_en).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+          const resultado = d.resultado_apto === false
+            ? '<span style="color:#c0392b;">no apto</span>'
+            : '<span style="color:#1a6b3a;">apto</span>';
+          return `<div style="margin-bottom:4px;">${fecha} · ${d.hospital?.nombre || '—'} · ${d.volumen_ml}ml · ${resultado}</div>`;
+        }).join('');
+      }
+      document.getElementById('f1-historial').style.display = 'block';
+    }
+
+    // F2: respuestas reales, en modo lectura hasta que se toque "Modificar".
+    renderF2(formulario?.respuestas_cuestionario);
+    const f2RespLabel = document.getElementById('f2-resp-label');
+    const f2Bmod = document.getElementById('f2-bmod');
+    const f2AvMod = document.getElementById('f2-av-mod');
+    if (formulario?.cuestionario_modificado_por_profesional) {
+      if (f2RespLabel) { f2RespLabel.textContent = 'Modificado por el profesional'; f2RespLabel.style.color = '#c0392b'; }
+      if (f2AvMod) f2AvMod.style.display = 'flex';
+      if (f2Bmod) f2Bmod.style.display = 'none';
+    } else {
+      if (f2RespLabel) { f2RespLabel.textContent = 'Completado por el donante'; f2RespLabel.style.color = ''; }
+      if (f2AvMod) f2AvMod.style.display = 'none';
+      if (f2Bmod) f2Bmod.style.display = 'flex';
+    }
+    const f2Fecha = document.getElementById('f2-fecha');
+    if (f2Fecha) f2Fecha.textContent = formulario?.cuestionario_fecha ? new Date(formulario.cuestionario_fecha).toLocaleDateString('es-AR') : '';
+
+    // F3: limpio, listo para cargar — no se puede reingresar (una sola
+    // evaluación por turno, ver registrarEvaluacionClinica()).
+    ['f3-presion', 'f3-frecuencia', 'f3-temperatura', 'f3-glucosa', 'f3-peso', 'f3-hemoglobina', 'f3-observaciones'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('f3-apto').className = 'apto-opt';
+    document.getElementById('f3-no').className = 'apto-opt';
+    document.getElementById('f3-motivo').style.display = 'none';
+    const btn = document.getElementById('f3-btn-sig');
+    btn.innerHTML = 'Confirmar evaluación <i class="ti ti-arrow-right"></i>';
+    btn.onclick = () => finalizarEvaluacionClinica();
+
+    document.getElementById('modal-titulo').textContent = 'Entrevista clínica';
+    goF(1);
+    document.getElementById('modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(initPads, 150);
+  }
+
+  function habilitarEdicionCuestionario() {
+    _cuestionarioModoEdicion = true;
+    renderF2(_ultimasRespuestasCuestionario());
+    setMod(2);
+  }
+
+  function _ultimasRespuestasCuestionario() {
+    const respuestas = {};
+    document.querySelectorAll('#f2-items .excl-item').forEach(item => {
+      const sel = item.querySelector('.excl-btn.sel-si, .excl-btn.sel-no');
+      if (sel) respuestas[item.dataset.key] = sel.classList.contains('sel-si') ? 'si' : 'no';
+    });
+    return respuestas;
+  }
+
+  function finalizarEvaluacionClinica() {
+    if (!aptoDec) {
+      HemoRed.ui.toast('Elegí si el donante queda apto o no antes de confirmar.', 'error');
+      return;
+    }
+    if (pads['sig-f3']?.isEmpty()) {
+      HemoRed.ui.toast('Falta la firma del profesional.', 'error');
+      return;
+    }
+
+    // Si se tocó "Modificar" en F2, persistir las respuestas corregidas
+    // antes de la evaluación — quedan auditadas (modificado_por_profesional
+    // + fecha), no se pisa el original del donante sin dejar rastro.
+    if (_cuestionarioModoEdicion) {
+      const resultado = HemoRed.data.corregirRespuestasCuestionario(_turnoEntrevistaId, _ultimasRespuestasCuestionario());
+      if (!resultado.ok) {
+        HemoRed.ui.toast(resultado.error, 'error');
+        return;
+      }
+    }
+
+    const resultado = HemoRed.data.registrarEvaluacionClinica(_turnoEntrevistaId, {
+      profesionalId: _profesionalActualId,
+      resultado: aptoDec === 'apto' ? 'apto' : 'no_apto',
+      motivoNoApto: document.getElementById('f3-motivo-select')?.value || null,
+      observaciones: document.getElementById('f3-observaciones')?.value?.trim() || null,
+      signosVitales: {
+        presionArterial: document.getElementById('f3-presion')?.value || null,
+        frecuenciaCardiaca: document.getElementById('f3-frecuencia')?.value || null,
+        temperatura: document.getElementById('f3-temperatura')?.value || null,
+        glucosa: document.getElementById('f3-glucosa')?.value || null,
+        pesoKg: document.getElementById('f3-peso')?.value || null,
+        hemoglobina: document.getElementById('f3-hemoglobina')?.value || null,
+      },
+    });
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+
+    HemoRed.ui.toast(aptoDec === 'apto' ? 'Evaluación registrada — apto para donar' : 'Evaluación registrada — no apto');
+    cerrarModal();
+    renderTurnosProfesional();
+  }
+
   function goF(n) {
     ['f1','f2','f3','f4','f-ok'].forEach(id => {
       const el = document.getElementById(id); if (el) el.style.display = 'none';
@@ -797,23 +1032,24 @@
     btn.className = 'excl-btn ' + (val==='si' ? 'sel-si' : 'sel-no');
   }
 
-  // APTO
+  // APTO — el botón de abajo siempre confirma la evaluación y termina acá
+  // (ver finalizarEvaluacionClinica()); nunca pasa a F4, esa es la
+  // facultad del enfermero/extractor, no la del médico clínico.
   function setApto(tipo) {
     aptoDec = tipo;
     document.getElementById('f3-apto').className = 'apto-opt' + (tipo==='apto' ? ' sel-apto' : '');
     document.getElementById('f3-no').className = 'apto-opt' + (tipo==='no' ? ' sel-no' : '');
     document.getElementById('f3-motivo').style.display = tipo==='no' ? 'block' : 'none';
-    const btn = document.getElementById('f3-btn-sig');
-    const meta = document.getElementById('f4-apto');
-    if (tipo==='no') {
-      btn.innerHTML = 'Finalizar sin extracción';
-      btn.onclick = () => { document.getElementById('ok-bolsa').textContent = 'N/A — No apto'; goF('ok'); };
-      if (meta) { meta.innerHTML = '<i class="ti ti-heart-off" style="font-size:12px;"></i> No apto'; meta.style.color = '#c0392b'; }
-    } else {
-      btn.innerHTML = 'Registrar extracción <i class="ti ti-arrow-right"></i>';
-      btn.onclick = () => goF(4);
-      if (meta) { meta.innerHTML = '<i class="ti ti-heart-check" style="font-size:12px;"></i> Apto para donar'; meta.style.color = '#27ae60'; }
-    }
+    // Mostrar/ocultar "Motivo" corre el resto del layout hacia abajo — la
+    // firma de F3 queda más abajo. initPads() ya había fijado el tamaño
+    // en píxeles del canvas ANTES de este corrimiento (apenas se entra a
+    // F3, bien antes de elegir apto/no apto), así que sin volver a
+    // inicializarlo el mapeo de coordenadas del mouse/dedo queda
+    // desalineado con la posición real — se puede "firmar" sin que quede
+    // ningún trazo. Se fuerza un reinicio (sigue sin firma todavía en
+    // este punto del flujo, no se pierde nada real).
+    delete pads['sig-f3'];
+    setTimeout(initPads, 50);
   }
 
   function finalizar() {
@@ -829,6 +1065,7 @@
   // (sin selector: el profesional ya está identificado por HemoRed.sesion).
   var _turnosProfesional = [];
   var _profesionalActualId = null;
+  var _profesionalActualTipo = null; // 'medico' | 'enfermero'
   var _turnoDonacionId = null;
 
   function iniciales(nombre, apellido) {
@@ -865,14 +1102,36 @@
       let extraMeta = '';
       let acciones = '<span style="font-size:12px;color:#a9435d;">Esperando confirmación del hospital</span>';
 
-      if (t.estado === 'confirmado' && !(t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado)) {
+      const f1f2listos = t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado;
+
+      if (t.estado === 'confirmado' && !f1f2listos) {
         badgeTexto = 'Esperando formularios';
         acciones = '<span style="font-size:12px;color:#a9435d;">Esperando F1/F2 del donante</span>';
-      } else if (t.estado === 'confirmado' && t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado && !t.tieneDonacionRegistrada) {
+      } else if (t.estado === 'confirmado' && f1f2listos && !t.tieneEvaluacionClinica) {
+        // Gate del médico clínico: entrevista + decisión apto/no apto.
+        // Todavía no pasó nadie por acá.
+        cardClase = 'en-curso';
+        badgeClase = 'tb-en-curso';
+        badgeTexto = '● Esperando evaluación médica';
+        acciones = _profesionalActualTipo === 'medico'
+          ? `<button class="btn-atender" onclick="abrirEntrevistaClinica(${t.id})"><i class="ti ti-stethoscope"></i>Iniciar entrevista</button>`
+          : '<span style="font-size:12px;color:#a9435d;">Esperando evaluación médica</span>';
+      } else if (t.estado === 'confirmado' && f1f2listos && t.tieneEvaluacionClinica && !t.tieneDonacionRegistrada) {
+        // El médico ya dio apto (si hubiera dado no apto, el turno ya
+        // estaría en estado "no_apto", otra rama) — le toca al enfermero.
         cardClase = 'en-curso';
         badgeClase = 'tb-en-curso';
         badgeTexto = '● Lista para donar';
-        acciones = `<button class="btn-atender" onclick="abrirModalDonacion(${t.id})"><i class="ti ti-clipboard-check"></i>Registrar donación</button>`;
+        acciones = _profesionalActualTipo === 'enfermero'
+          ? `<button class="btn-atender" onclick="abrirModalDonacion(${t.id})"><i class="ti ti-clipboard-check"></i>Registrar donación</button>`
+          : '<span style="font-size:12px;color:#a9435d;">Apto — esperando extracción</span>';
+      } else if (t.estado === 'no_apto') {
+        // Cortado por el médico en la evaluación clínica — no llega nunca
+        // al enfermero, no hay donación, no se genera F4.
+        dataEstado = 'no-apto';
+        badgeClase = 'tb-no-apto';
+        badgeTexto = 'No apto';
+        acciones = `<button class="btn-outline-sm" onclick="verRegistroEvaluacion(${t.id})">Ver evaluación</button>`;
       } else if (t.estado === 'completado') {
         cardClase = 'completado';
         if (t.donacion?.resultado_apto === false) {
@@ -979,6 +1238,40 @@
     document.body.style.overflow = '';
   }
 
+  // Mismo modal de "Ver registro" de arriba, pero para la evaluación
+  // clínica de un turno que el médico marcó "no apto" — se corta ahí, no
+  // llega a tener donación, así que no tiene sentido reusar ese otro flujo.
+  function verRegistroEvaluacion(turnoId) {
+    const t = _turnosProfesional.find(x => x.id === turnoId);
+    const e = t?.evaluacion;
+    if (!t || !e) return;
+
+    const nombreCompleto = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+    const prof = HemoRed.db.find('profesionales', e.profesional_id);
+    const fechaRegistro = e.registrado_en
+      ? new Date(e.registrado_en).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : '—';
+    const fechaTurno = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+
+    document.getElementById('ver-registro-body').innerHTML = `
+      <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
+        <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO</div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;">${nombreCompleto}</div>
+        <div style="font-size:13px;color:#5a3040;margin-top:3px;">${fechaTurno} · ${t.hora}hs · ${t.campana?.titulo || '—'}</div>
+      </div>
+      <div class="dato-grid" style="margin-bottom:16px;">
+        <div><div class="dato-label">Resultado</div><div class="dato-value" style="color:#c0392b;">No apto</div></div>
+        <div><div class="dato-label">Motivo</div><div class="dato-value">${e.motivo_no_apto || '—'}</div></div>
+        <div><div class="dato-label">Evaluado por</div><div class="dato-value">${prof?.nombre_completo || '—'}</div></div>
+        <div><div class="dato-label">Evaluado el</div><div class="dato-value">${fechaRegistro}</div></div>
+      </div>
+      ${e.observaciones ? `<div style="margin-bottom:20px;"><div class="dato-label">Observaciones</div><div class="dato-value" style="font-weight:400;">${e.observaciones}</div></div>` : ''}
+      <button onclick="cerrarModalVerRegistro()" style="width:100%;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cerrar</button>
+    `;
+    document.getElementById('modal-ver-registro').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
   async function confirmarDonacionUI() {
     const volumenMl = Number(document.getElementById('donacion-volumen').value) || 450;
     const resultadoApto = document.getElementById('donacion-resultado').value === 'apto';
@@ -1033,6 +1326,7 @@
     const s = HemoRed.sesion.get();
     const prof = HemoRed.db.where('profesionales', 'usuario_id', s?.usuario_id)[0];
     _profesionalActualId = prof?.id || null;
+    _profesionalActualTipo = prof?.tipo || null;
 
     // Antes fijo ("Dr. Carlos Méndez" / "Hematología · Ramos Mejía") —
     // no importaba mientras hubiera un solo profesional con login, pero

@@ -452,6 +452,101 @@ HemoRed.data = (function() {
     return { ok: true, formulario };
   }
 
+  // ===== EVALUACIÓN CLÍNICA (F3, médico clínico) =====
+  // El médico revisa F1/F2 — con posibilidad de corregir una respuesta si
+  // hace falta repreguntar algo — y deja registrada acá la decisión de
+  // aptitud. Es el gate real del camino feliz: si da "no apto", el turno
+  // se corta y el enfermero/extractor no lo ve como disponible para
+  // registrar la donación (ver registrarEvaluacionClinica() más abajo).
+
+  // Todo lo que necesita la pantalla de revisión del médico: el turno, el
+  // donante, lo que respondió en F1/F2 de verdad (no un resumen), y si ya
+  // hay una evaluación cargada para este turno (reingreso).
+  function cargarRevisionClinica(turnoId) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return null;
+    const donante = HemoRed.db.find('usuarios', turno.usuario_id);
+    const campana = HemoRed.db.find('campanas', turno.campana_id);
+    const formulario = HemoRed.db.where('formulario_consentimiento', 'turno_id', turnoId)[0] || null;
+    const evaluacion = HemoRed.db.where('evaluacion_clinica', 'turno_id', turnoId)[0] || null;
+    return { turno, donante, campana, formulario, evaluacion };
+  }
+
+  // El médico corrige una respuesta del cuestionario durante la entrevista
+  // (el donante entendió mal algo y quiere cambiarla) — a diferencia de
+  // guardarFormularioConsentimiento() (que usa el donante para completar
+  // F1/F2 por primera vez), esto siempre marca "modificado por el
+  // profesional", con fecha, para que quede auditado qué cambió y cuándo
+  // (campo ya reservado en el esquema desde el diseño original, sin usar
+  // hasta ahora).
+  function corregirRespuestasCuestionario(turnoId, respuestas) {
+    const existente = HemoRed.db.where('formulario_consentimiento', 'turno_id', turnoId)[0];
+    if (!existente) return { ok: false, error: 'Todavía no existe el formulario F1/F2 de este turno.' };
+    const formulario = HemoRed.db.actualizar('formulario_consentimiento', existente.id, {
+      respuestas_cuestionario: respuestas,
+      cuestionario_modificado_por_profesional: true,
+      cuestionario_modificacion_fecha: ahora().toISOString(),
+    });
+    return { ok: true, formulario };
+  }
+
+  function registrarEvaluacionClinica(turnoId, { profesionalId, resultado, motivoNoApto, signosVitales, observaciones }) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+    if (turno.estado !== 'confirmado') return { ok: false, error: 'Este turno no está en condiciones de evaluar.' };
+    if (!turno.formulario_autoexclusion_completado || !turno.formulario_cuestionario_completado) {
+      return { ok: false, error: 'El donante todavía no completó los formularios pre-donación (F1/F2).' };
+    }
+    if (HemoRed.db.where('evaluacion_clinica', 'turno_id', turnoId).length > 0) {
+      return { ok: false, error: 'Ya existe una evaluación clínica registrada para este turno.' };
+    }
+    if (!profesionalId) return { ok: false, error: 'Falta identificar al profesional que evalúa.' };
+    if (resultado !== 'apto' && resultado !== 'no_apto') return { ok: false, error: 'Resultado inválido.' };
+
+    const evaluacion = HemoRed.db.crear('evaluacion_clinica', {
+      turno_id: turnoId,
+      usuario_id: turno.usuario_id,
+      profesional_id: profesionalId,
+      presion_arterial: signosVitales?.presionArterial || null,
+      frecuencia_cardiaca: signosVitales?.frecuenciaCardiaca || null,
+      temperatura: signosVitales?.temperatura || null,
+      glucosa: signosVitales?.glucosa || null,
+      peso_kg: signosVitales?.pesoKg || null,
+      hemoglobina: signosVitales?.hemoglobina || null,
+      resultado,
+      motivo_no_apto: resultado === 'no_apto' ? (motivoNoApto || null) : null,
+      observaciones: observaciones || null,
+      registrado_en: ahora().toISOString(),
+    });
+
+    // Gate real: "no apto" corta el camino acá — el turno no vuelve a
+    // aparecer como disponible para registrar la donación.
+    if (resultado === 'no_apto') {
+      HemoRed.db.actualizar('turnos', turnoId, { estado: 'no_apto' });
+    }
+
+    return { ok: true, evaluacion };
+  }
+
+  // Historial completo de UN donante puntual, para que el médico clínico
+  // lo vea al atenderlo (turnos y donaciones en TODO el sistema, no solo
+  // de este hospital) — pedido explícito de la usuaria: "tiene que poder
+  // ver la historia de donación del donante si existe en el sistema".
+  // Mismo patrón de solo-lectura que cargarMisDonaciones(), pero por
+  // usuario_id en vez de la sesión activa (acá el que mira es el
+  // profesional, no el propio donante).
+  function cargarHistorialDonante(usuarioId) {
+    const hospitales = HemoRed.db.all('hospitales');
+    const campanas = HemoRed.db.all('campanas');
+    const turnos = HemoRed.db.where('turnos', 'usuario_id', usuarioId)
+      .map(t => ({ ...t, campana: campanas.find(c => c.id === t.campana_id), hospital: hospitales.find(h => h.id === t.hospital_id) }))
+      .sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+    const donaciones = HemoRed.db.where('donaciones', 'usuario_id', usuarioId)
+      .map(d => ({ ...d, hospital: hospitales.find(h => h.id === d.hospital_id) }))
+      .sort((a, b) => new Date(b.registrado_en) - new Date(a.registrado_en));
+    return { turnos, donaciones };
+  }
+
   // Solo lectura: historial de donaciones reales del donante, con el
   // hospital ya resuelto (mismo patrón de join que cargarMisTurnos()).
   async function cargarMisDonaciones() {
@@ -1269,6 +1364,7 @@ HemoRed.data = (function() {
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
     const donaciones = HemoRed.db.all('donaciones');
+    const evaluaciones = HemoRed.db.all('evaluacion_clinica');
 
     const turnosConDonacion = turnos
       .map(t => ({
@@ -1276,15 +1372,21 @@ HemoRed.data = (function() {
         donante: usuarios.find(u => u.id === t.usuario_id),
         campana: campanas.find(c => c.id === t.campana_id),
         donacion: donaciones.find(d => d.turno_id === t.id) || null,
+        evaluacion: evaluaciones.find(e => e.turno_id === t.id) || null,
       }))
       .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
 
     _set('stat-turnos-hoy', turnosConDonacion.filter(t => t.fecha === hoy).length);
     _set('stat-completados', turnosConDonacion.filter(t => t.estado === 'completado' && t.donacion?.resultado_apto !== false).length);
     _set('stat-pendientes', turnosConDonacion.filter(t => ['pendiente', 'confirmado'].includes(t.estado)).length);
-    _set('stat-no-aptos', turnosConDonacion.filter(t => t.donacion?.resultado_apto === false).length);
+    // "No apto" tiene 2 orígenes posibles: la evaluación clínica del médico
+    // (turno.estado pasa a 'no_apto', corta el camino antes de la
+    // extracción) o, más raro, un resultado_apto:false cargado directo en
+    // "Registrar donación" (el enfermero marcando el resultado de la
+    // extracción en sí).
+    _set('stat-no-aptos', turnosConDonacion.filter(t => t.estado === 'no_apto' || t.donacion?.resultado_apto === false).length);
 
-    return turnosConDonacion.map(t => ({ ...t, tieneDonacionRegistrada: !!t.donacion }));
+    return turnosConDonacion.map(t => ({ ...t, tieneDonacionRegistrada: !!t.donacion, tieneEvaluacionClinica: !!t.evaluacion }));
   }
 
   // ===== ADMIN =====
@@ -1367,6 +1469,10 @@ HemoRed.data = (function() {
     validarTokenPostdonacion,
     guardarRespuestaPostdonacion,
     cargarTurnosProfesional,
+    cargarRevisionClinica,
+    corregirRespuestasCuestionario,
+    registrarEvaluacionClinica,
+    cargarHistorialDonante,
     cargarDashboardAdmin,
   };
 })();
