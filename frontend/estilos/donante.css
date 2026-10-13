@@ -622,6 +622,18 @@ select.form-input { cursor: pointer; }
 .logo { font-family: 'Lobster', cursive; font-size: 32px; color: white; }
 .logo span { color: #f28b98; }
 .logo-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+/* .logo/.logo-sub de arriba están pensados para un fondo oscuro (igual que
+   el logo blanco del <nav> público) — la única pantalla que los usa,
+   postdonacion_anonimo.html, no tiene ese fondo oscuro detrás (está
+   directo sobre el body claro, fuera de la .card), así que quedaban
+   invisibles. Mismo criterio de color que .form-logo (publico.css) para
+   logo sobre fondo claro. De paso, body.postdonacion centra el .wrap —
+   el body:flex de más arriba está pensado para el layout con sidebar del
+   resto del rol Donante, esta pantalla no tiene sidebar. */
+body.postdonacion { justify-content: center; align-items: center; padding: 40px 20px; }
+.postdonacion .logo { color: #5a1e37; }
+.postdonacion .logo-sub { color: #a9435d; }
+.postdonacion .page-footer { color: #a9435d; }
 .card-header { background: #5a1e37; padding: 24px; }
 .card-sub { font-size: 13px; color: #f28b98; line-height: 1.5; }
 .card-body { padding: 28px; }
