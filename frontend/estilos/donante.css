@@ -549,7 +549,11 @@ footer { padding: 20px 32px; background: #3d0f20; text-align: center; }
 .notif-item.unread .notif-title { color: #3d0f20; }
 .notif-desc { font-size: 13px; color: #5a3040; line-height: 1.5; margin-bottom: 6px; }
 .notif-time { font-size: 11px; color: #a9435d; }
-.notif-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+/* align-self:center (no en .notif-item) a propósito: el ícono sigue
+   arriba del todo (align-items:flex-start en .notif-item, ver esa regla),
+   pero .notif-right solo, sin el puntito de "no leída" arriba del botón,
+   quedaba pegado arriba en vez de centrado contra el resto de la fila. */
+.notif-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; align-self: center; }
 .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef647c; }
 .notif-action { padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
 .notif-action-primary { background: #ef647c; color: white; border: none; }
