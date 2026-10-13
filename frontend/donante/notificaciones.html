@@ -115,6 +115,21 @@
     if (!s) return;
     await HemoRed.data.verificarPerfilIncompleto();
     notificacionesActuales = await HemoRed.data.cargarNotificacionesDonante();
+
+    // El F4 se responde en una pestaña nueva, sin pasar por el click en la
+    // fila (el botón hace stopPropagation) — sin esto, el puntito de "no
+    // leída" quedaba para siempre aunque ya no hubiera nada pendiente.
+    notificacionesActuales
+      .filter(n => !n.leido && (n.accion_url || '').includes('postdonacion_anonimo.html'))
+      .forEach(n => {
+        const tok = tokenDeAccionUrl(n.accion_url);
+        const f = tok ? HemoRed.db.all('formulario_postdonacion').find(x => x.token === tok) : null;
+        if (f?.completado_en) {
+          HemoRed.data.marcarNotificacionLeida(n.id);
+          n.leido = true;
+        }
+      });
+
     renderNotificaciones();
   }
 
@@ -144,7 +159,7 @@
 
     let accionHTML = '';
     if (esF4 && f4YaRespondido) {
-      accionHTML = `<button class="notif-action notif-action-outline" onclick="event.stopPropagation();verRespuestaF4('${tokenF4}')">Ver</button>`;
+      accionHTML = `<button class="notif-action notif-action-primary" onclick="event.stopPropagation();verRespuestaF4('${tokenF4}')">Ver</button>`;
     } else if (esF4) {
       // Abre en pestaña nueva: es un flujo sin sesión, pensado para volver
       // a la app (que sigue abierta en esta pestaña) apenas se completa.
