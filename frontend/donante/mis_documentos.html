@@ -342,24 +342,19 @@
     if (!d) return;
     const don = d.donacion;
     document.getElementById('evaluacion-contenido').innerHTML = `
-      <div class="doc-header">
-        <div class="doc-header-icon resultado"><i class="ti ti-stethoscope" style="color:#ef647c;font-size:24px;" aria-hidden="true"></i></div>
-        <div class="doc-header-info">
-          <div class="doc-header-title">Evaluación clínica</div>
-          <div class="doc-header-meta">${d.hospital?.nombre || '—'} · ${d.profesional?.nombre_completo || '—'} · ${fechaLarga(d.fecha)}</div>
+      <div class="card">
+        <div class="resultado-header">
+          <div>
+            <div class="resultado-title">Evaluación clínica</div>
+            <div class="resultado-sub">${d.hospital?.nombre || '—'} · ${fechaLarga(d.fecha)}</div>
+          </div>
+          <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-heart-check" style="font-size:11px;"></i>${don?.resultado_apto ? 'Apto para donar' : '—'}</span>
         </div>
-      </div>
-      <div class="aviso-medico">
-        <i class="ti ti-alert-circle" style="color:#e67e22;font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
-        <div>
-          <div style="font-size:13px;font-weight:500;color:#412402;margin-bottom:4px;">Información de carácter médico</div>
-          <div style="font-size:13px;color:#633806;line-height:1.5;">Estos valores son orientativos y corresponden al momento de la evaluación previa a tu donación. Ante cualquier duda sobre tus valores clínicos, consultá con un profesional de la salud.</div>
-        </div>
-      </div>
-      <div style="background:white;border-radius:14px;padding:24px;border:0.5px solid #e8d0d8;margin-top:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div style="font-size:14px;font-weight:500;color:#5a1e37;">Resultado de la evaluación</div>
-          <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:4px;"><i class="ti ti-heart-check" style="font-size:11px;"></i>${don?.resultado_apto ? 'Apto para donar' : '—'}</span>
+        <div class="resultado-meta">
+          <div class="meta-item"><div class="meta-label">Donante</div><div class="meta-value">${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}</div></div>
+          <div class="meta-item"><div class="meta-label">Evaluado por</div><div class="meta-value">${d.profesional?.nombre_completo || '—'}</div></div>
+          <div class="meta-item"><div class="meta-label">Especialidad</div><div class="meta-value">${d.profesional?.especialidad || '—'}</div></div>
+          <div class="meta-item"><div class="meta-label">Matrícula</div><div class="meta-value">${d.profesional?.matricula || '—'}</div></div>
         </div>
         <div class="signos-vitales-grid" style="gap:14px;margin-bottom:16px;">
           ${signoVital('Presión arterial', don?.presion_arterial, 'mmHg', 'Rango normal: 90/60 – 180/100')}
@@ -369,10 +364,12 @@
           ${signoVital('Peso', don?.peso_kg, 'kg', 'Mínimo: 50 kg')}
           ${signoVital('Hemoglobina', don?.hemoglobina, 'g/dL', 'Mínimo: 12.5(F) / 13.5(M)')}
         </div>
-        <div style="padding-top:14px;border-top:0.5px solid #f0e0e6;">
-          <div style="font-size:11px;color:#a9435d;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Evaluado por</div>
-          <div style="font-size:14px;font-weight:500;color:#5a1e37;">${d.profesional?.nombre_completo || '—'} · ${d.profesional?.especialidad || ''} · Mat. ${d.profesional?.matricula || '—'}</div>
-          <div style="font-size:12px;color:#a9435d;margin-top:2px;">${d.hospital?.nombre || '—'} · ${fechaLarga(d.fecha)} · ${don?.hora_inicio || ''}hs</div>
+        <div class="aviso-medico">
+          <i class="ti ti-alert-circle" style="color:#e67e22;font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#412402;margin-bottom:4px;">Información de carácter médico</div>
+            <div style="font-size:13px;color:#633806;line-height:1.5;">Estos valores son orientativos y corresponden al momento de la evaluación previa a tu donación. Ante cualquier duda sobre tus valores clínicos, consultá con un profesional de la salud.</div>
+          </div>
         </div>
       </div>`;
     mostrarVista('view-evaluacion', 'Evaluación clínica');

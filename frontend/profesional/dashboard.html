@@ -29,7 +29,7 @@
     </div>
   </div>
   <nav class="sidebar-nav">
-    <a class="nav-item active" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Mis turnos<span class="nav-badge">4</span></a>
+    <a class="nav-item active" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos<span class="nav-badge" id="nav-badge-turnos">0</span></a>
     <a class="nav-item" href="../profesional/perfil.html"><i class="ti ti-user"></i>Mi perfil</a>
     <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
   </nav>
@@ -40,13 +40,13 @@
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:12px;">
       <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
-      <div class="topbar-title">Mis turnos</div>
+      <div class="topbar-title">Turnos</div>
     </div>
     <div class="topbar-date" id="topbar-date"></div>
   </div>
 
   <div class="content">
-    <h2 class="content-title-mobile">Mis turnos</h2>
+    <h2 class="content-title-mobile">Turnos</h2>
     <div class="stats-row">
       <div class="stat"><div class="stat-num" id="stat-turnos-hoy">0</div><div class="stat-label">Turnos hoy</div></div>
       <div class="stat"><div class="stat-num" id="stat-completados" style="color:#27ae60;">0</div><div class="stat-label">Completados</div></div>
@@ -55,14 +55,19 @@
     </div>
 
     <div class="filtros">
-      <button class="filtro-chip active" onclick="filtrar('todos',this)">Todos</button>
-      <button class="filtro-chip" onclick="filtrar('pendiente',this)">Pendientes</button>
-      <button class="filtro-chip" onclick="filtrar('completado',this)">Completados</button>
-      <button class="filtro-chip" onclick="filtrar('no-apto',this)">No aptos</button>
+      <div class="tabs">
+        <button class="tab" onclick="filtrarPeriodo('pasado',this)">Pasados</button>
+        <button class="tab active" onclick="filtrarPeriodo('presente',this)">Presentes (hoy)</button>
+        <button class="tab" onclick="filtrarPeriodo('futuro',this)">Futuros</button>
+      </div>
+      <label class="filtro-check" id="filtro-pendientes-wrap">
+        <input type="checkbox" id="filtro-pendientes" onchange="aplicarFiltros()">
+        Solo pendientes
+      </label>
     </div>
 
     <div class="turnos-list" id="turnos-list"></div>
-    <p id="sin-turnos" style="display:none;color:#a9435d;font-size:13px;padding:8px 2px;">No hay turnos para hoy.</p>
+    <p id="sin-turnos" style="display:none;color:#a9435d;font-size:13px;padding:8px 2px;">No hay turnos para este filtro.</p>
   </div>
 </div>
 
@@ -75,7 +80,7 @@
      estilo inline dijera display:flex. Ponerlo antes evita el problema
      sin tener que auditar ese modal entero. -->
 <div id="modal-donacion" class="modal-overlay" style="display:none;">
-  <div class="modal" style="max-width:440px;">
+  <div class="modal" style="max-width:480px;">
     <div class="modal-header">
       <div class="modal-title" id="modal-donacion-titulo">Registrar donación realizada</div>
       <button class="modal-close" onclick="cerrarModalDonacion()"><i class="ti ti-x"></i></button>
@@ -88,22 +93,43 @@
       <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;" id="modal-donacion-info-turno">
       </div>
 
-      <!-- Volumen -->
+      <!-- ¿Se realizó la donación? -->
       <div style="margin-bottom:16px;">
-        <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Volumen donado (ml)</label>
-        <input type="number" id="donacion-volumen" value="450" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+        <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">¿Se realizó la donación?</label>
+        <div class="apto-grid">
+          <div class="apto-opt sel-apto" id="donacion-si" onclick="setRealizoDonacion(true)">
+            <div class="apto-icon" style="background:#e1f5ee;"><i class="ti ti-droplet" style="font-size:22px;color:#27ae60;"></i></div>
+            <div class="apto-label" style="color:#27ae60;">Se realizó</div>
+          </div>
+          <div class="apto-opt" id="donacion-no" onclick="setRealizoDonacion(false)">
+            <div class="apto-icon" style="background:#fde8e8;"><i class="ti ti-droplet-off" style="font-size:22px;color:#c0392b;"></i></div>
+            <div class="apto-label" style="color:#c0392b;">No se realizó</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Resultado -->
-      <div style="margin-bottom:16px;">
-        <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Resultado</label>
-        <select id="donacion-resultado" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;background:white;">
-          <option value="apto" selected>Apto para donar</option>
-          <option value="no_apto">No apto — observaciones</option>
-        </select>
+      <!-- Campos que solo aplican si se realizó: bolsa(s), cada una con su
+           propio volumen — no todas las bolsas de una misma extracción
+           terminan con el mismo ml (ej. la primera se cambió a mitad de
+           camino con menos volumen que la que la reemplazó). -->
+      <div id="donacion-campos-realizada">
+        <div style="margin-bottom:16px;">
+          <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Bolsa(s)</label>
+          <div id="donacion-bolsas-list">
+            <div class="donacion-bolsa-row" style="display:flex;gap:8px;">
+              <input type="text" class="donacion-bolsa-input" placeholder="Ej: BLS-2026-0001" style="flex:2;min-width:0;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+              <input type="number" class="donacion-bolsa-ml-input" value="450" placeholder="ml" style="flex:1;min-width:0;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+            </div>
+          </div>
+          <!-- Puede haber más de una bolsa en la misma extracción (ej. se
+               cambió de bolsa a mitad de camino) — pedido explícito de la
+               usuaria. La primera es la que ancla el token de F4. -->
+          <button type="button" onclick="agregarCampoBolsa()" style="margin-top:8px;background:none;border:none;color:#ef647c;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:4px;padding:0;"><i class="ti ti-plus" style="font-size:12px;"></i>Agregar otra bolsa</button>
+        </div>
       </div>
 
-      <!-- Observaciones -->
+      <!-- Observaciones: siempre visible — si no se realizó, es donde
+           queda registrado qué pasó (reacción del donante, etc.). -->
       <div style="margin-bottom:20px;">
         <label style="font-size:13px;font-weight:500;color:#5a1e37;margin-bottom:6px;display:block;">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
         <textarea id="donacion-observaciones" style="width:100%;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;resize:vertical;min-height:70px;" placeholder="Alguna observación clínica relevante..."></textarea>
@@ -111,7 +137,7 @@
 
       <div style="display:flex;gap:10px;">
         <button onclick="cerrarModalDonacion()" style="flex:1;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cancelar</button>
-        <button onclick="confirmarDonacionUI()" style="flex:1;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Confirmar donación</button>
+        <button onclick="confirmarDonacionUI()" id="donacion-btn-principal" style="flex:1;background:#ef647c;color:white;border:none;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Confirmar donación</button>
       </div>
     </div>
 
@@ -845,7 +871,9 @@
     const fechaF1 = formulario?.autoexclusion_fecha
       ? new Date(formulario.autoexclusion_fecha).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
       : '—';
-    document.getElementById('f1-revision-texto').textContent = `Completado y firmado por el donante el ${fechaF1}.`;
+    document.getElementById('f1-revision-texto').textContent = formulario?.autoexclusion_fecha
+      ? `Completado y firmado por el donante el ${fechaF1}.`
+      : 'El donante todavía no completó este formulario.';
 
     // Historial del donante en TODO el sistema, no solo este hospital.
     if (turno.usuario_id) {
@@ -866,11 +894,18 @@
     }
 
     // F2: respuestas reales, en modo lectura hasta que se toque "Modificar".
+    // Sin formulario todavía (turno en "Esperando formularios"), no hay nada
+    // que corregir — se oculta "Modificar" en vez de ofrecer una acción que
+    // corregirRespuestasCuestionario() rechazaría igual.
     renderF2(formulario?.respuestas_cuestionario);
     const f2RespLabel = document.getElementById('f2-resp-label');
     const f2Bmod = document.getElementById('f2-bmod');
     const f2AvMod = document.getElementById('f2-av-mod');
-    if (formulario?.cuestionario_modificado_por_profesional) {
+    if (!formulario) {
+      if (f2RespLabel) { f2RespLabel.textContent = 'Todavía no completado'; f2RespLabel.style.color = ''; }
+      if (f2AvMod) f2AvMod.style.display = 'none';
+      if (f2Bmod) f2Bmod.style.display = 'none';
+    } else if (formulario?.cuestionario_modificado_por_profesional) {
       if (f2RespLabel) { f2RespLabel.textContent = 'Modificado por el profesional'; f2RespLabel.style.color = '#c0392b'; }
       if (f2AvMod) f2AvMod.style.display = 'flex';
       if (f2Bmod) f2Bmod.style.display = 'none';
@@ -1095,18 +1130,38 @@
       const grupo = t.donante?.tipo_sangre ? `<span class="turno-meta-item"><i class="ti ti-droplet" style="font-size:11px;"></i>${t.donante.tipo_sangre}</span>` : '';
       const campana = `<span class="turno-meta-item turno-meta-campana"><i class="ti ti-speakerphone" style="font-size:11px;"></i>${t.campana?.titulo || '—'}</span>`;
 
-      let dataEstado = 'pendiente';
       let cardClase = '';
       let badgeClase = 'tb-pendiente';
       let badgeTexto = 'Pendiente';
       let extraMeta = '';
       let acciones = '<span style="font-size:12px;color:#a9435d;">Esperando confirmación del hospital</span>';
+      // "Cerrado" = ya no hay nada más por hacer CON ESTE ROL hoy — se usa
+      // para el check "Solo pendientes" dentro del filtro "Presentes".
+      // Depende de qué profesional está mirando: para el médico, su parte
+      // termina al cargar la evaluación clínica (apto o no apto) — el turno
+      // sigue "vivo" para el enfermero (extracción), pero no para él. Antes
+      // esto solo miraba turnos.estado, que no cambia hasta que el enfermero
+      // extrae — un turno marcado apto por el médico nunca desaparecía de
+      // su "Solo pendientes", aunque ya no tuviera nada pendiente para él.
+      const cerrado = _profesionalActualTipo === 'medico'
+        ? t.tieneEvaluacionClinica || t.estado === 'cancelado'
+        : t.tieneDonacionRegistrada || ['no_apto', 'cancelado', 'incompleta'].includes(t.estado);
+      const periodo = t.fecha < hoyISO ? 'pasado' : (t.fecha > hoyISO ? 'futuro' : 'presente');
 
       const f1f2listos = t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado;
 
       if (t.estado === 'confirmado' && !f1f2listos) {
         badgeTexto = 'Esperando formularios';
-        acciones = '<span style="font-size:12px;color:#a9435d;">Esperando F1/F2 del donante</span>';
+        // Pedido explícito de la usuaria: el médico tiene que poder entrar
+        // igual (aunque el donante todavía no haya terminado F1/F2) para
+        // ver el historial y lo que ya haya — reusa el mismo modal que
+        // "Iniciar entrevista", que ya maneja con cuidado el caso de
+        // formulario incompleto/inexistente (abrirEntrevistaClinica()).
+        // "Confirmar evaluación" sigue bloqueado server-side hasta que F1/F2
+        // estén listos (registrarEvaluacionClinica() ya valida esto).
+        acciones = _profesionalActualTipo === 'medico'
+          ? `<button class="btn-outline-sm" onclick="abrirEntrevistaClinica(${t.id})"><i class="ti ti-eye"></i>Ver turno</button>`
+          : '<span style="font-size:12px;color:#a9435d;">Esperando F1/F2 del donante</span>';
       } else if (t.estado === 'confirmado' && f1f2listos && !t.tieneEvaluacionClinica) {
         // Gate del médico clínico: entrevista + decisión apto/no apto.
         // Todavía no pasó nadie por acá.
@@ -1128,32 +1183,36 @@
       } else if (t.estado === 'no_apto') {
         // Cortado por el médico en la evaluación clínica — no llega nunca
         // al enfermero, no hay donación, no se genera F4.
-        dataEstado = 'no-apto';
         badgeClase = 'tb-no-apto';
         badgeTexto = 'No apto';
         acciones = `<button class="btn-outline-sm" onclick="verRegistroEvaluacion(${t.id})">Ver evaluación</button>`;
       } else if (t.estado === 'completado') {
         cardClase = 'completado';
         if (t.donacion?.resultado_apto === false) {
-          dataEstado = 'no-apto';
           badgeClase = 'tb-no-apto';
           badgeTexto = 'No apto';
         } else {
-          dataEstado = 'completado';
           badgeClase = 'tb-completado';
           badgeTexto = 'Completado';
           extraMeta = t.donacion ? `<span class="turno-meta-item"><i class="ti ti-test-pipe" style="font-size:11px;"></i>${t.donacion.volumen_ml}ml</span>` : '';
         }
         acciones = `<button class="btn-atender" onclick="abrirModalVerRegistro(${t.id})"><i class="ti ti-eye"></i>Ver registro</button>`;
       } else if (t.estado === 'cancelado') {
-        dataEstado = 'cancelado';
         badgeClase = 'tb-no-apto';
         badgeTexto = 'Cancelado';
         acciones = '';
+      } else if (t.estado === 'incompleta') {
+        // Se intentó la extracción pero no se completó (reacción del
+        // donante, vena colapsada, etc.) — no hay donación real, no se
+        // genera F4. Distinto de "no_apto" (ahí el médico nunca habilitó
+        // la extracción) y de "completado" (bolsa usable).
+        badgeClase = 'tb-no-apto';
+        badgeTexto = 'Donación incompleta';
+        acciones = `<button class="btn-outline-sm" onclick="verAtencionIncompleta(${t.id})">Ver detalle</button>`;
       }
 
       return `
-        <div class="turno-card ${cardClase}" data-estado="${dataEstado}">
+        <div class="turno-card ${cardClase}" data-periodo="${periodo}" data-cerrado="${cerrado}">
           <div class="turno-hora"><div class="turno-hora-num">${t.hora}</div><div class="turno-hora-label">hs</div></div>
           <div class="turno-sep"></div>
           <div class="turno-info">
@@ -1165,7 +1224,7 @@
         </div>`;
     }).join('');
 
-    document.getElementById('sin-turnos').style.display = turnos.length === 0 ? 'block' : 'none';
+    aplicarFiltros();
   }
 
   async function abrirModalDonacion(turnoId) {
@@ -1179,15 +1238,40 @@
       <div style="font-size:14px;font-weight:500;color:#5a1e37;">${nombreCompleto}</div>
       <div style="font-size:13px;color:#5a3040;margin-top:3px;">${t.fecha} · ${t.hora}hs · ${t.campana?.titulo || '—'}</div>`;
 
-    document.getElementById('donacion-volumen').value = 450;
-    document.getElementById('donacion-resultado').value = 'apto';
+    document.getElementById('donacion-bolsas-list').innerHTML = `
+      <div class="donacion-bolsa-row" style="display:flex;gap:8px;">
+        <input type="text" class="donacion-bolsa-input" placeholder="Ej: BLS-2026-0001" style="flex:2;min-width:0;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+        <input type="number" class="donacion-bolsa-ml-input" value="450" placeholder="ml" style="flex:1;min-width:0;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+      </div>`;
     document.getElementById('donacion-observaciones').value = '';
+    setRealizoDonacion(true);
     document.getElementById('modal-donacion-titulo').textContent = 'Registrar donación realizada';
     document.getElementById('modal-donacion-form').style.display = 'block';
     document.getElementById('modal-donacion-exito').style.display = 'none';
 
     document.getElementById('modal-donacion').style.display = 'flex';
     document.body.style.overflow = 'hidden';
+  }
+
+  var _donacionRealizada = true;
+
+  function setRealizoDonacion(si) {
+    _donacionRealizada = si;
+    document.getElementById('donacion-si').className = 'apto-opt' + (si ? ' sel-apto' : '');
+    document.getElementById('donacion-no').className = 'apto-opt' + (!si ? ' sel-no' : '');
+    document.getElementById('donacion-campos-realizada').style.display = si ? 'block' : 'none';
+    document.getElementById('donacion-btn-principal').textContent = si ? 'Confirmar donación' : 'Guardar';
+  }
+
+  function agregarCampoBolsa() {
+    const wrap = document.getElementById('donacion-bolsas-list');
+    const row = document.createElement('div');
+    row.className = 'donacion-bolsa-row';
+    row.style.cssText = 'display:flex;gap:8px;margin-top:8px;';
+    row.innerHTML = `<input type="text" class="donacion-bolsa-input" placeholder="Ej: BLS-2026-0002" style="flex:2;min-width:0;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+      <input type="number" class="donacion-bolsa-ml-input" placeholder="ml" style="flex:1;min-width:0;padding:10px 14px;border:1px solid #e8d0d8;border-radius:9px;font-size:14px;color:#1a0a0f;outline:none;font-family:'Inter',sans-serif;">
+      <button type="button" onclick="this.parentElement.remove()" style="background:white;border:1.5px solid #e8d0d8;border-radius:9px;width:40px;cursor:pointer;color:#a9435d;flex-shrink:0;"><i class="ti ti-x" style="font-size:14px;"></i></button>`;
+    wrap.appendChild(row);
   }
 
   function cerrarModalDonacion() {
@@ -1212,15 +1296,23 @@
     const estadoF4 = !f4 ? '—' : f4.token_usado ? 'Completado por el donante' : 'Pendiente (token sin usar todavía)';
 
     const fechaTurno = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+    // `bolsas` es el dato nuevo (cada una con su propio volumen) — los
+    // registros semilla viejos solo tienen numero_bolsa/volumen_ml sueltos,
+    // se arma una lista de 1 bolsa para esos casos.
+    const bolsasList = d.bolsas?.length ? d.bolsas : [{ numero: d.numero_bolsa, volumenMl: d.volumen_ml }];
+    const bolsasHtml = bolsasList.map(b => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid #f0e0e6;"><span style="color:#5a3040;">${b.numero}</span><span style="font-weight:500;color:#5a1e37;">${b.volumenMl}ml</span></div>`).join('');
     document.getElementById('ver-registro-body').innerHTML = `
       <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
         <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO</div>
         <div style="font-size:14px;font-weight:500;color:#5a1e37;">${nombreCompleto}</div>
         <div style="font-size:13px;color:#5a3040;margin-top:3px;">${fechaTurno} · ${t.hora}hs · ${t.campana?.titulo || '—'}</div>
       </div>
+      <div style="margin-bottom:16px;">
+        <div class="dato-label" style="margin-bottom:4px;">Bolsa${bolsasList.length > 1 ? 's' : ''}</div>
+        ${bolsasHtml}
+      </div>
       <div class="dato-grid" style="margin-bottom:16px;">
-        <div><div class="dato-label">Nro. de bolsa</div><div class="dato-value">${d.numero_bolsa}</div></div>
-        <div><div class="dato-label">Volumen</div><div class="dato-value">${d.volumen_ml} ml</div></div>
+        <div><div class="dato-label">Volumen total</div><div class="dato-value">${d.volumen_ml} ml</div></div>
         <div><div class="dato-label">Resultado</div><div class="dato-value" style="color:${d.resultado_apto ? '#1a6b3a' : '#c0392b'};">${d.resultado_apto ? 'Apto para donar' : 'No apto'}</div></div>
         <div><div class="dato-label">Registrado por</div><div class="dato-value">${prof?.nombre_completo || '—'}</div></div>
         <div><div class="dato-label">Registrado el</div><div class="dato-value">${fechaRegistro}</div></div>
@@ -1272,12 +1364,65 @@
     document.body.style.overflow = 'hidden';
   }
 
+  // Mismo modal de "Ver registro" de arriba, para un turno guardado como
+  // "no se realizó la donación" — no tiene `donacion` ni `evaluacion`, los
+  // datos quedan directo en el turno (registrarAtencionSinDonacion()).
+  function verAtencionIncompleta(turnoId) {
+    const t = _turnosProfesional.find(x => x.id === turnoId);
+    if (!t) return;
+
+    const nombreCompleto = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+    const prof = HemoRed.db.find('profesionales', t.atencion_registrada_por);
+    const fechaRegistro = t.atencion_registrada_en
+      ? new Date(t.atencion_registrada_en).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : '—';
+    const fechaTurno = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+
+    document.getElementById('ver-registro-body').innerHTML = `
+      <div style="background:#fdf0f3;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #f28b98;">
+        <div style="font-size:12px;color:#a9435d;font-weight:500;margin-bottom:6px;">TURNO</div>
+        <div style="font-size:14px;font-weight:500;color:#5a1e37;">${nombreCompleto}</div>
+        <div style="font-size:13px;color:#5a3040;margin-top:3px;">${fechaTurno} · ${t.hora}hs · ${t.campana?.titulo || '—'}</div>
+      </div>
+      <div class="dato-grid" style="margin-bottom:16px;">
+        <div><div class="dato-label">Resultado</div><div class="dato-value" style="color:#c0392b;">Donación no realizada</div></div>
+        <div><div class="dato-label">Registrado por</div><div class="dato-value">${prof?.nombre_completo || '—'}</div></div>
+        <div><div class="dato-label">Registrado el</div><div class="dato-value">${fechaRegistro}</div></div>
+      </div>
+      ${t.atencion_observaciones ? `<div style="margin-bottom:20px;"><div class="dato-label">Observaciones</div><div class="dato-value" style="font-weight:400;">${t.atencion_observaciones}</div></div>` : ''}
+      <button onclick="cerrarModalVerRegistro()" style="width:100%;background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Cerrar</button>
+    `;
+    document.getElementById('modal-ver-registro').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
   async function confirmarDonacionUI() {
-    const volumenMl = Number(document.getElementById('donacion-volumen').value) || 450;
-    const resultadoApto = document.getElementById('donacion-resultado').value === 'apto';
     const observaciones = document.getElementById('donacion-observaciones').value.trim();
 
-    const resultado = HemoRed.data.registrarDonacion(_turnoDonacionId, { profesionalId: _profesionalActualId, volumenMl, resultadoApto, observaciones });
+    if (!_donacionRealizada) {
+      const resultado = HemoRed.data.registrarAtencionSinDonacion(_turnoDonacionId, { profesionalId: _profesionalActualId, observaciones });
+      if (!resultado.ok) {
+        HemoRed.ui.toast(resultado.error, 'error');
+        return;
+      }
+      HemoRed.ui.toast('Atención guardada');
+      cerrarModalDonacion();
+      return;
+    }
+
+    // Cada bolsa con su propio volumen — no siempre coinciden (ej. la
+    // primera se cambió a mitad de camino con menos ml que la que la
+    // reemplazó). El volumen total de la donación es la suma de todas.
+    const bolsas = Array.from(document.querySelectorAll('.donacion-bolsa-row')).map(row => ({
+      numero: row.querySelector('.donacion-bolsa-input').value.trim(),
+      volumenMl: Number(row.querySelector('.donacion-bolsa-ml-input').value) || 0,
+    })).filter(b => b.numero);
+    if (bolsas.length === 0) {
+      HemoRed.ui.toast('Ingresá el número de bolsa.', 'error');
+      return;
+    }
+
+    const resultado = HemoRed.data.registrarDonacion(_turnoDonacionId, { profesionalId: _profesionalActualId, bolsas, observaciones });
     if (!resultado.ok) {
       HemoRed.ui.toast(resultado.error, 'error');
       return;
@@ -1296,13 +1441,31 @@
     HemoRed.ui.toast('Donación registrada');
   }
 
-  // FILTROS
-  function filtrar(estado, el) {
-    document.querySelectorAll('.filtro-chip').forEach(c => c.classList.remove('active'));
+  // FILTROS — el primario es temporal (pasados/presentes/futuros, pedido
+  // explícito de la usuaria: el médico necesita ver las 3 franjas, no un
+  // recorte por estado). Dentro de "Presentes" se puede sumar un check
+  // para ocultar los turnos de hoy que ya están cerrados (completado/no
+  // apto/cancelado) y quedarse solo con los que todavía requieren acción.
+  var _filtroPeriodoActual = 'presente';
+
+  function filtrarPeriodo(periodo, el) {
+    _filtroPeriodoActual = periodo;
+    document.querySelectorAll('.tabs .tab').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
+    document.getElementById('filtro-pendientes-wrap').style.display = periodo === 'presente' ? 'flex' : 'none';
+    if (periodo !== 'presente') document.getElementById('filtro-pendientes').checked = false;
+    aplicarFiltros();
+  }
+
+  function aplicarFiltros() {
+    const soloPendientes = _filtroPeriodoActual === 'presente' && document.getElementById('filtro-pendientes').checked;
+    let visibles = 0;
     document.querySelectorAll('.turno-card').forEach(c => {
-      c.style.display = estado==='todos' || c.dataset.estado===estado ? '' : 'none';
+      const ok = c.dataset.periodo === _filtroPeriodoActual && (!soloPendientes || c.dataset.cerrado === 'false');
+      c.style.display = ok ? '' : 'none';
+      if (ok) visibles++;
     });
+    document.getElementById('sin-turnos').style.display = visibles === 0 ? 'block' : 'none';
   }
 
   function genToken() {

@@ -80,10 +80,15 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .stat { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e8d0d8; }
 .stat-num { font-size: 28px; font-weight: 500; color: #3d0f20; }
 .stat-label { font-size: 12px; color: #5a3040; margin-top: 3px; }
-.filtros { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-.filtro-chip { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid #e8d0d8; background: white; color: #a9435d; font-family: 'Inter', sans-serif; transition: all 0.15s; }
-.filtro-chip.active { background: #5a1e37; color: white; border-color: #5a1e37; }
-.filtro-chip:hover:not(.active) { border-color: #a9435d; }
+.filtros { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+/* Mismo componente .tabs/.tab que ya usan Donante y Hospital (pill-track
+   blanco, activa en bordó sólido) — no existía todavía en Profesional. */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; max-width: 100%; }
+.tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+.tab.active { background: #5a1e37; color: white; }
+.tab:hover:not(.active) { background: #fdf0f3; }
+.filtro-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5a3040; cursor: pointer; }
+.filtro-check input { accent-color: #5a1e37; cursor: pointer; }
 .turnos-list { display: flex; flex-direction: column; gap: 12px; }
 /* 5 hijos (hora, separador, info, badge, acciones), no 3 — con solo 3
    columnas el grid armaba una fila extra y desordenaba todo (nunca se
@@ -112,6 +117,11 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.active { display: flex; }
 .modal { background: white; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; }
+/* Modal "Entrevista clínica" (F1→F3 del médico): tiene mucho más contenido
+   que el resto (historial, 34 preguntas, grilla de signos vitales) — el
+   ancho genérico de .modal le quedaba angosto en PC. width:100% ya lo
+   achica solo en mobile, no hace falta un media query aparte. */
+#modal-inner { max-width: 720px; }
 .modal-header { padding: 20px 24px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 10; flex-shrink: 0; }
 .modal-title { font-size: 16px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
 .modal-subtitle { font-size: 13px; color: #a9435d; }

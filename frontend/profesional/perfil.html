@@ -21,14 +21,14 @@
   <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a>
     <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
   <div class="sidebar-prof">
-    <div class="sidebar-avatar">CM</div>
+    <div class="sidebar-avatar" id="sidebar-avatar">CM</div>
     <div>
-      <div class="sidebar-prof-name">Dr. Carlos Méndez</div>
-      <div class="sidebar-prof-role">Hematología · Ramos Mejía</div>
+      <div class="sidebar-prof-name" id="sidebar-prof-name">Dr. Carlos Méndez</div>
+      <div class="sidebar-prof-role" id="sidebar-prof-role">Hematología · Ramos Mejía</div>
     </div>
   </div>
   <nav class="sidebar-nav">
-    <a class="nav-item" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos del día</a>
+    <a class="nav-item" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos</a>
     <a class="nav-item active" href="../profesional/perfil.html"><i class="ti ti-user"></i>Mi perfil</a>
     <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
   </nav>
@@ -47,13 +47,13 @@
 
     <!-- HEADER -->
     <div class="prof-header">
-      <div class="prof-avatar-lg">CM</div>
+      <div class="prof-avatar-lg" id="prof-avatar-lg">CM</div>
       <div>
-        <div class="prof-name">Dr. Carlos Méndez</div>
-        <div class="prof-sub">Hematología · Hospital Ramos Mejía</div>
+        <div class="prof-name" id="prof-name">Dr. Carlos Méndez</div>
+        <div class="prof-sub" id="prof-sub">Hematología · Hospital Ramos Mejía</div>
         <div class="prof-badges">
-          <span class="prof-badge badge-mat"><i class="ti ti-id-badge" style="font-size:10px;"></i>Mat. 45.231</span>
-          <span class="prof-badge badge-hosp"><i class="ti ti-building-hospital" style="font-size:10px;"></i>Hospital Ramos Mejía</span>
+          <span class="prof-badge badge-mat"><i class="ti ti-id-badge" style="font-size:10px;"></i><span id="prof-badge-mat">Mat. 45.231</span></span>
+          <span class="prof-badge badge-hosp"><i class="ti ti-building-hospital" style="font-size:10px;"></i><span id="prof-badge-hosp">Hospital Ramos Mejía</span></span>
         </div>
       </div>
     </div>
@@ -64,12 +64,12 @@
         <i class="ti ti-user" style="color:#ef647c;"></i>Datos profesionales
       </div>
       <div class="dato-grid">
-        <div><div class="dato-label">Nombre completo</div><div class="dato-value">Dr. Carlos Méndez</div></div>
-        <div><div class="dato-label">Matrícula</div><div class="dato-value">45.231</div></div>
-        <div><div class="dato-label">Especialidad</div><div class="dato-value">Hematología</div></div>
-        <div><div class="dato-label">Hospital</div><div class="dato-value">Hospital Ramos Mejía</div></div>
-        <div><div class="dato-label">Email institucional</div><div class="dato-value">c.mendez@ramosmejia.gob.ar</div></div>
-        <div><div class="dato-label">Teléfono / interno</div><div class="dato-value">011 4127-0200 int. 205</div></div>
+        <div><div class="dato-label">Nombre completo</div><div class="dato-value" id="dato-nombre">Dr. Carlos Méndez</div></div>
+        <div><div class="dato-label">Matrícula</div><div class="dato-value" id="dato-matricula">45.231</div></div>
+        <div><div class="dato-label">Especialidad</div><div class="dato-value" id="dato-especialidad">Hematología</div></div>
+        <div><div class="dato-label">Hospital</div><div class="dato-value" id="dato-hospital">Hospital Ramos Mejía</div></div>
+        <div><div class="dato-label">Email institucional</div><div class="dato-value" id="dato-email">c.mendez@ramosmejia.gob.ar</div></div>
+        <div><div class="dato-label">Teléfono / interno</div><div class="dato-value" id="dato-telefono">011 4127-0200 int. 205</div></div>
       </div>
       <div class="readonly-note">
         <i class="ti ti-lock" style="font-size:12px;"></i>
@@ -95,7 +95,7 @@
         <div class="firma-estado">
           <div>
             <span class="firma-badge fb-registrada"><i class="ti ti-check" style="font-size:11px;"></i>Firma registrada</span>
-            <div class="firma-meta">Última actualización: 15 de enero 2026 · 09:42hs</div>
+            <div class="firma-meta" id="firma-meta">Última actualización: 15 de enero 2026 · 09:42hs</div>
           </div>
           <button class="btn-outline" onclick="mostrarActualizar()">
             <i class="ti ti-refresh"></i>Actualizar firma
@@ -111,9 +111,22 @@
             </svg>
           </div>
           <div class="firma-preview-toolbar">
-            <span class="firma-preview-label">Dr. Carlos Méndez · Mat. 45.231 · Hematología</span>
+            <span class="firma-preview-label" id="firma-preview-label">Dr. Carlos Méndez · Mat. 45.231 · Hematología</span>
             <span class="sig-badge firmado">✓ Guardada</span>
           </div>
+        </div>
+      </div>
+
+      <!-- SIN FIRMA TODAVÍA -->
+      <div id="vista-sin-firma" style="display:none;">
+        <div class="firma-estado">
+          <div>
+            <span class="firma-badge fb-sin-firma"><i class="ti ti-alert-circle" style="font-size:11px;"></i>Sin firma registrada</span>
+            <div class="firma-meta">Todavía no registraste tu firma — hacé "Registrar firma" para poder usarla en F1/F2.</div>
+          </div>
+          <button class="btn-outline" onclick="mostrarActualizar()">
+            <i class="ti ti-signature"></i>Registrar firma
+          </button>
         </div>
       </div>
 
@@ -147,7 +160,7 @@
     </div>
 
     <!-- HISTORIAL DE FIRMAS -->
-    <div class="card">
+    <div class="card" id="card-historial-firma">
       <div class="card-title">
         <i class="ti ti-history" style="color:#ef647c;"></i>Historial de firmas registradas
       </div>
@@ -155,18 +168,14 @@
         <div class="hist-dot" style="background:#27ae60;"></div>
         <div class="hist-info">
           <div class="hist-title">Firma vigente</div>
-          <div class="hist-meta">Registrada el 15 ene 2026 · 09:42hs · Aplicada en 47 formularios</div>
+          <div class="hist-meta" id="hist-meta-vigente">Registrada el 15 ene 2026 · 09:42hs</div>
         </div>
         <span style="font-size:11px;background:#e1f5ee;color:#04342c;padding:3px 8px;border-radius:20px;">Activa</span>
       </div>
-      <div class="hist-row">
-        <div class="hist-dot" style="background:#ccc;"></div>
-        <div class="hist-info">
-          <div class="hist-title" style="color:#999;">Firma anterior</div>
-          <div class="hist-meta">Registrada el 10 ene 2026 · 14:20hs · Aplicada en 3 formularios</div>
-        </div>
-        <span style="font-size:11px;background:#f5f5f5;color:#888;padding:3px 8px;border-radius:20px;">Archivada</span>
-      </div>
+      <!-- No hay una tabla real de historial de firmas (solo se guarda la
+           vigente, profesionales.firma_registrada_en) — no se inventa una
+           "firma anterior" con fecha/uso falsos; esta tarjeta se oculta
+           directamente si todavía no hay ninguna firma registrada. -->
     </div>
 
     <!-- SEGURIDAD -->
@@ -185,7 +194,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;">
           <div>
             <div style="font-size:14px;font-weight:500;color:#5a1e37;">Email de acceso</div>
-            <div style="font-size:12px;color:#a9435d;margin-top:2px;">c.mendez@ramosmejia.gob.ar · Verificado</div>
+            <div style="font-size:12px;color:#a9435d;margin-top:2px;" id="seguridad-email">c.mendez@ramosmejia.gob.ar · Verificado</div>
           </div>
           <button class="btn-outline">Cambiar email</button>
         </div>
@@ -258,6 +267,59 @@
     t.classList.add('visible');
     setTimeout(() => t.classList.remove('visible'), 3000);
   }
+
+  function fechaHoraFirma(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const fecha = d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${fecha} · ${hora}hs`;
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('profesional');
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
+    const prof = HemoRed.db.where('profesionales', 'usuario_id', s?.usuario_id)[0];
+    const vinculo = HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id).find(v => v.activo);
+    const hospitalProf = vinculo ? HemoRed.db.find('hospitales', vinculo.hospital_id) : null;
+
+    const nombre = prof?.nombre_completo || s?.nombre || '';
+    const rol = [prof?.especialidad, hospitalProf?.nombre].filter(Boolean).join(' · ');
+
+    document.getElementById('sidebar-avatar').textContent = s?.iniciales || '';
+    document.getElementById('sidebar-prof-name').textContent = nombre;
+    document.getElementById('sidebar-prof-role').textContent = rol;
+
+    document.getElementById('prof-avatar-lg').textContent = s?.iniciales || '';
+    document.getElementById('prof-name').textContent = nombre;
+    document.getElementById('prof-sub').textContent = rol;
+    document.getElementById('prof-badge-mat').textContent = 'Mat. ' + (prof?.matricula || '—');
+    document.getElementById('prof-badge-hosp').textContent = hospitalProf?.nombre || '—';
+
+    document.getElementById('dato-nombre').textContent = nombre;
+    document.getElementById('dato-matricula').textContent = prof?.matricula || '—';
+    document.getElementById('dato-especialidad').textContent = prof?.especialidad || '—';
+    document.getElementById('dato-hospital').textContent = hospitalProf?.nombre || '—';
+    document.getElementById('dato-email').textContent = usuario?.email || '—';
+    document.getElementById('dato-telefono').textContent = usuario?.telefono || '—';
+    document.getElementById('seguridad-email').textContent = (usuario?.email || '—') + ' · Verificado';
+
+    // La firma solo existe de verdad para quien ya la registró en el dato
+    // semilla (`profesionales.firma_digital_url`) — hoy el médico (Dr.
+    // Méndez) la tiene y la enfermera (Dra. Vidal) no, así que cada una ve
+    // un estado distinto en vez de la firma del otro profesional.
+    if (prof?.firma_digital_url) {
+      document.getElementById('firma-preview-label').textContent = `${nombre} · Mat. ${prof?.matricula || '—'} · ${prof?.especialidad || '—'}`;
+      document.getElementById('firma-meta').textContent = 'Última actualización: ' + fechaHoraFirma(prof.firma_registrada_en);
+      document.getElementById('hist-meta-vigente').textContent = 'Registrada el ' + fechaHoraFirma(prof.firma_registrada_en);
+    } else {
+      document.getElementById('vista-firma-guardada').style.display = 'none';
+      document.getElementById('vista-sin-firma').style.display = 'block';
+      document.getElementById('card-historial-firma').style.display = 'none';
+    }
+  });
 
   function abrirSidebar() {
     document.getElementById('sidebar').classList.add('open');

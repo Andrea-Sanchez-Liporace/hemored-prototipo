@@ -127,7 +127,7 @@ Playwright guarda automáticamente una captura de pantalla y un video del moment
 
 **`evaluacion-clinica.spec.js`** — "Entrevista clínica" del médico clínico (`profesional/dashboard.html`, modal "Atención clínica" recortado a F1→F3), agregado 2026-10-08 — cierra el hallazgo de dominio médico/enfermero documentado desde el 2026-09-29 (ver `docs/04`, sección Profesional de salud).
 
-1. Camino apto: el médico abre "Iniciar entrevista" sobre un turno real (`confirmado`, F1/F2 completos, sin evaluación todavía) — F1 se muestra como resumen de solo lectura, F2 trae las 34 respuestas reales del donante precargadas, F3 carga signos vitales + decisión "apto" + firma. Recién ahí, logueado como enfermero (`enfermera@hemored.com`/`enf123`), aparece "Registrar donación" para ese turno — antes no.
+1. Camino apto: el médico abre "Iniciar entrevista" sobre un turno real (`confirmado`, F1/F2 completos, sin evaluación todavía) — F1 se muestra como resumen de solo lectura, F2 trae las 34 respuestas reales del donante precargadas, F3 carga signos vitales + decisión "apto" + firma. Recién ahí, logueado como enfermero (`enfermeria@hemored.com`/`enf123`), aparece "Registrar donación" para ese turno — antes no.
 2. Camino no apto: misma entrevista, decisión "No apto" con motivo — el turno pasa a `estado: 'no_apto'` (terminal) y el enfermero nunca ve ninguna acción para él.
 3. El médico corrige una respuesta del cuestionario durante la entrevista ("Modificar") — se persiste con `cuestionario_modificado_por_profesional: true` y fecha, sin pisar el original sin dejar rastro.
 

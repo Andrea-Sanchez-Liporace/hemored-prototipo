@@ -78,6 +78,12 @@ async function responderCuestionario(page) {
 test.describe('Registrar donación (Hospital) + formulario post-donación anónimo (F4)', () => {
 
   test('camino completo: registrar/reservar/confirmar → F1/F2 → registrar donación → F4 anónimo', async ({ page }) => {
+    // Test largo de punta a punta (registro → reserva → confirmación →
+    // F1/F2 → entrevista médica F1→F3 → registrar donación → F4) — desde
+    // que se le sumó la entrevista médica (2026-10-08) quedó justo con el
+    // timeout global de 30s (playwright.config.js), sobre todo con
+    // HemoRed.db.init() cargando 24 tablas en cada uno de los ~6 logins.
+    test.slow();
     await test.step('donante nuevo se registra y reserva un turno para hoy', async () => {
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
@@ -206,7 +212,7 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
 
     await test.step('ahora sí aparece "Registrar donación" — del lado del enfermero/extractor', async () => {
       await page.goto('/publico/login.html');
-      await page.fill('#email', 'enfermera@hemored.com');
+      await page.fill('#email', 'enfermeria@hemored.com');
       await page.fill('#password', 'enf123');
       await page.click('.form-btn');
       await page.waitForURL('**/profesional/dashboard.html');
@@ -220,6 +226,9 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
     });
 
     await test.step('completar y confirmar registra la donación y muestra el QR', async () => {
+      // El número de bolsa ahora lo carga el enfermero a mano (antes se
+      // generaba solo) — ver [[profesional-facultades-medico-enfermero]].
+      await page.fill('.donacion-bolsa-input', 'BLS-TEST-0001');
       await page.click('button:has-text("Confirmar donación")');
       await expect(page.locator('.toast')).toContainText('Donación registrada');
       await expect(page.locator('#modal-donacion-exito')).toBeVisible();
@@ -234,7 +243,7 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
         const f4 = HemoRed.db.all('formulario_postdonacion').find(f => f.numero_bolsa === donacion.numero_bolsa);
         return { donacion, turnoEstado: turno.estado, f4 };
       });
-      expect(datos.donacion.numero_bolsa).toMatch(/^BLS-2026-\d{4}$/);
+      expect(datos.donacion.numero_bolsa).toBe('BLS-TEST-0001');
       expect(datos.donacion.volumen_ml).toBe(450);
       expect(datos.donacion.resultado_apto).toBe(true);
       // profesional_id 2 = Dra. Laura Vidal (enfermera/extractora, quien

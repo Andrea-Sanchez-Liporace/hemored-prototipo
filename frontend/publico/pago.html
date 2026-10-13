@@ -152,7 +152,7 @@
         <div class="security-text">Pago seguro con encriptación SSL. Tus datos de tarjeta nunca se almacenan en nuestros servidores.</div>
       </div>
 
-      <button class="btn-pagar" onclick="procesarPago()">
+      <button class="btn-pagar" id="btn-pagar" onclick="procesarPago()">
         <i class="ti ti-lock"></i>
         Pagar $15.000 / mes
       </button>
@@ -163,9 +163,9 @@
     <div class="resumen-card">
       <div class="resumen-title">Resumen del pedido</div>
       <div class="resumen-plan">
-        <div class="resumen-plan-name">Plan Provincial</div>
-        <div class="resumen-plan-price">$15.000 <span>/ mes + IVA</span></div>
-        <ul class="resumen-features">
+        <div class="resumen-plan-name" id="resumen-plan-name">Plan Provincial</div>
+        <div class="resumen-plan-price" id="resumen-plan-price">$15.000 <span>/ mes + IVA</span></div>
+        <ul class="resumen-features" id="resumen-plan-features">
           <li><i class="ti ti-check"></i>Campañas ilimitadas</li>
           <li><i class="ti ti-check"></i>Hasta 3 activas simultáneas</li>
           <li><i class="ti ti-check"></i>Alcance provincial</li>
@@ -173,10 +173,10 @@
           <li><i class="ti ti-check"></i>Documentación clínica</li>
         </ul>
       </div>
-      <div class="resumen-line"><span class="label">Subtotal</span><span>$15.000</span></div>
-      <div class="resumen-line"><span class="label">IVA (21%)</span><span>$3.150</span></div>
-      <div class="resumen-line total"><span class="label">Total mensual</span><span>$18.150</span></div>
-      <a class="cambiar-plan" href="../publico/registro.html">Cambiar de plan</a>
+      <div class="resumen-line"><span class="label">Subtotal</span><span id="resumen-subtotal">$15.000</span></div>
+      <div class="resumen-line"><span class="label">IVA (21%)</span><span id="resumen-iva">$3.150</span></div>
+      <div class="resumen-line total"><span class="label">Total mensual</span><span id="resumen-total">$18.150</span></div>
+      <a class="cambiar-plan" href="elegir_plan.html">Cambiar de plan</a>
     </div>
 
   </div>
@@ -187,17 +187,17 @@
       <i class="ti ti-check"></i>
     </div>
     <div class="success-title">¡Pago confirmado!</div>
-    <div class="success-text">Tu suscripción al Plan Provincial está activa. Ya podés empezar a publicar campañas y gestionar donaciones en HemoRed.</div>
+    <div class="success-text">Tu suscripción al <span id="success-plan-nombre">Plan Provincial</span> está activa. Ya podés empezar a publicar campañas y gestionar donaciones en HemoRed.</div>
     <div class="suscripcion-detalle">
       <div class="suscripcion-detalle-title">Detalles de la suscripción</div>
       <div class="suscripcion-detalle-row">
-        <span>Plan</span><span>Plan Provincial</span>
+        <span>Plan</span><span id="success-plan-nombre-2">Plan Provincial</span>
       </div>
       <div class="suscripcion-detalle-row">
         <span>Próximo cobro</span><span>15 de junio 2026</span>
       </div>
       <div class="suscripcion-detalle-row">
-        <span>Monto</span><span>$18.150 / mes</span>
+        <span>Monto</span><span id="success-plan-monto">$18.150 / mes</span>
       </div>
     </div>
     <button class="btn-ir-dashboard" onclick="window.location='../hospital/dashboard.html'">
@@ -246,6 +246,46 @@
     document.getElementById('success-view').classList.add('active');
     window.scrollTo(0, 0);
   }
+
+  // Los 2 planes y sus datos, para reflejar lo elegido en "elegir_plan.html"
+  // (guardado en sessionStorage, mismo mecanismo que ya usa el wizard de
+  // "Crear campaña" del hospital) sin tener que volver a cargar nada del
+  // formulario de registro.
+  const PLANES_PAGO = {
+    provincial: {
+      nombre: 'Plan Provincial', precio: 15000,
+      features: ['Campañas ilimitadas', 'Hasta 3 activas simultáneas', 'Alcance provincial', 'Dashboard de métricas', 'Documentación clínica'],
+    },
+    nacional: {
+      nombre: 'Plan Nacional', precio: 25000,
+      features: ['Campañas ilimitadas', 'Hasta 10 activas simultáneas', 'Alcance nacional', 'Dashboard de métricas avanzado', 'Documentación clínica', 'Soporte prioritario'],
+    },
+  };
+
+  function formatearMonto(n) {
+    return '$' + n.toLocaleString('es-AR');
+  }
+
+  function aplicarPlanElegido() {
+    const id = sessionStorage.getItem('hemored_plan_elegido') || 'provincial';
+    const plan = PLANES_PAGO[id] || PLANES_PAGO.provincial;
+    const iva = Math.round(plan.precio * 0.21);
+    const total = plan.precio + iva;
+
+    document.getElementById('resumen-plan-name').textContent = plan.nombre;
+    document.getElementById('resumen-plan-price').innerHTML = formatearMonto(plan.precio) + ' <span>/ mes + IVA</span>';
+    document.getElementById('resumen-plan-features').innerHTML = plan.features
+      .map(f => `<li><i class="ti ti-check"></i>${f}</li>`).join('');
+    document.getElementById('resumen-subtotal').textContent = formatearMonto(plan.precio);
+    document.getElementById('resumen-iva').textContent = formatearMonto(iva);
+    document.getElementById('resumen-total').textContent = formatearMonto(total);
+    document.getElementById('btn-pagar').innerHTML = `<i class="ti ti-lock"></i>Pagar ${formatearMonto(plan.precio)} / mes`;
+    document.getElementById('success-plan-nombre').textContent = plan.nombre;
+    document.getElementById('success-plan-nombre-2').textContent = plan.nombre;
+    document.getElementById('success-plan-monto').textContent = `${formatearMonto(total)} / mes`;
+  }
+
+  aplicarPlanElegido();
 </script>
 
 <!-- Esta página nunca cargó el framework de HemoRed (es un mockup estático,

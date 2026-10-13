@@ -1244,7 +1244,17 @@ HemoRed.data = (function() {
   // guardarRespuestaPostdonacion() más abajo. También le avisa al donante
   // por notificación in-app (con el link directo, no un QR: ver docs/04
   // para por qué QR solo tiene sentido del lado del profesional).
-  function registrarDonacion(turnoId, { profesionalId, volumenMl, resultadoApto, observaciones }) {
+  // `bolsas` ahora lo carga el enfermero a mano, una por una (antes era un
+  // solo número que se generaba solo + un volumen único para toda la
+  // donación) — puede haber más de una bolsa por extracción real (ej. se
+  // cambió de bolsa a mitad de camino), y cada una puede tener un volumen
+  // distinto (la que se interrumpió no necesariamente llegó a 450ml).
+  // La primera bolsa sigue siendo el ancla de `formulario_postdonacion`
+  // (el token de F4 nunca se ata a la identidad del donante, ver docs/01).
+  // `volumen_ml` del registro de la donación queda como la suma de todas,
+  // para no romper las pantallas que ya muestran un único total (Mis
+  // donaciones, Ver registro, etc.).
+  function registrarDonacion(turnoId, { profesionalId, bolsas, observaciones }) {
     const turno = HemoRed.db.find('turnos', turnoId);
     if (!turno) return { ok: false, error: 'Turno no encontrado.' };
     if (turno.estado !== 'confirmado') return { ok: false, error: 'Este turno no está en condiciones de registrar una donación.' };
@@ -1255,11 +1265,12 @@ HemoRed.data = (function() {
       return { ok: false, error: 'Ya existe una donación registrada para este turno.' };
     }
     if (!profesionalId) return { ok: false, error: 'Seleccioná el profesional que atendió la donación.' };
+    if (!bolsas?.length || !bolsas[0]?.numero) return { ok: false, error: 'Ingresá el número de bolsa.' };
 
-    const numeroBolsa = 'BLS-2026-' + String(HemoRed.db.nextId('donaciones')).padStart(4, '0');
     const [hh, mm] = turno.hora.split(':').map(Number);
     const finMin = mm + 20;
     const horaFin = `${String(hh + Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;
+    const volumenTotal = bolsas.reduce((sum, b) => sum + (b.volumenMl || 0), 0);
 
     const donacion = HemoRed.db.crear('donaciones', {
       turno_id: turnoId,
@@ -1267,8 +1278,9 @@ HemoRed.data = (function() {
       usuario_id: turno.usuario_id,
       hospital_id: turno.hospital_id,
       profesional_id: profesionalId,
-      numero_bolsa: numeroBolsa,
-      volumen_ml: volumenMl || 450,
+      numero_bolsa: bolsas[0].numero,
+      bolsas,
+      volumen_ml: volumenTotal || 450,
       hora_inicio: turno.hora,
       hora_fin: horaFin,
       tipo_bolsa: 'Fresenius Kabi 450ml',
@@ -1282,7 +1294,7 @@ HemoRed.data = (function() {
       glucosa: null,
       peso_kg: null,
       hemoglobina: null,
-      resultado_apto: resultadoApto !== false,
+      resultado_apto: true,
       reacciones: null,
       observaciones: observaciones || null,
       registrado_en: ahora().toISOString(),
@@ -1294,7 +1306,7 @@ HemoRed.data = (function() {
     // `ahora()` también es la hora real en todos lados, ver más arriba).
     const token = generarTokenPostdonacion();
     const formularioPostdonacion = HemoRed.db.crear('formulario_postdonacion', {
-      numero_bolsa: numeroBolsa,
+      numero_bolsa: bolsas[0].numero,
       token,
       token_expira_en: new Date(Date.now() + 24 * 3600000).toISOString(),
       token_usado: false,
@@ -1314,6 +1326,26 @@ HemoRed.data = (function() {
     });
 
     return { ok: true, donacion, token };
+  }
+
+  // La extracción se intentó pero no se completó (reacción del donante,
+  // vena colapsada, etc.) — pedido explícito de la usuaria: a diferencia de
+  // registrarDonacion(), esto NO crea un registro en `donaciones` (no hay
+  // bolsa real utilizable) ni genera F4. Deja el turno en un estado nuevo
+  // ('incompleta') para que no quede eternamente "Lista para donar".
+  function registrarAtencionSinDonacion(turnoId, { profesionalId, observaciones }) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+    if (turno.estado !== 'confirmado') return { ok: false, error: 'Este turno no está en condiciones de registrar esto.' };
+    if (!profesionalId) return { ok: false, error: 'Falta identificar al profesional.' };
+
+    const turnoActualizado = HemoRed.db.actualizar('turnos', turnoId, {
+      estado: 'incompleta',
+      atencion_observaciones: observaciones || null,
+      atencion_registrada_por: profesionalId,
+      atencion_registrada_en: ahora().toISOString(),
+    });
+    return { ok: true, turno: turnoActualizado };
   }
 
   // ===== FORMULARIO POST-DONACIÓN (F4, anónimo) =====
@@ -1377,6 +1409,7 @@ HemoRed.data = (function() {
       .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
 
     _set('stat-turnos-hoy', turnosConDonacion.filter(t => t.fecha === hoy).length);
+    _set('nav-badge-turnos', turnosConDonacion.filter(t => t.fecha === hoy).length);
     _set('stat-completados', turnosConDonacion.filter(t => t.estado === 'completado' && t.donacion?.resultado_apto !== false).length);
     _set('stat-pendientes', turnosConDonacion.filter(t => ['pendiente', 'confirmado'].includes(t.estado)).length);
     // "No apto" tiene 2 orígenes posibles: la evaluación clínica del médico
@@ -1466,6 +1499,7 @@ HemoRed.data = (function() {
     turnosQueBloqueanEdicion,
     cargarTurnosHoy,
     registrarDonacion,
+    registrarAtencionSinDonacion,
     validarTokenPostdonacion,
     guardarRespuestaPostdonacion,
     cargarTurnosProfesional,

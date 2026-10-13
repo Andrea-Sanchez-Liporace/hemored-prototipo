@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Elegir plan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../estilos/publico.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="../index.html">Hemo<span>red</span></a>
+  <div class="nav-public-links">
+    <a href="../index.html">Home</a>
+    <a href="nosotros.html">Nosotros</a>
+  </div>
+  <button class="burger-btn" onclick="document.getElementById('mobile-menu').classList.toggle('active')" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<main class="elegir-plan">
+  <div class="form-card">
+    <button class="form-back" onclick="window.location='pago.html'">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> Volver al pago
+    </button>
+    <div class="form-title">Elegí tu plan</div>
+    <div class="form-subtitle">Cambiá de plan sin perder los datos de tu institución ya cargados.</div>
+
+    <div class="planes-grid">
+
+      <div class="plan-card selectable" data-plan="provincial" onclick="seleccionarPlan('provincial', this)">
+        <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+        <div class="plan-name">Plan Provincial</div>
+        <div class="plan-price">$15.000 <span>/ mes + IVA</span></div>
+        <ul class="plan-features">
+          <li><i class="ti ti-check" aria-hidden="true"></i>Campañas ilimitadas</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Hasta 3 campañas activas simultáneas</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Alcance provincial</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Gestión de turnos, pacientes y profesionales</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Dashboard de métricas</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Carga de documentación clínica</li>
+        </ul>
+      </div>
+
+      <div class="plan-card selectable" data-plan="nacional" onclick="seleccionarPlan('nacional', this)">
+        <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+        <div class="plan-badge-top">Recomendado</div>
+        <div class="plan-name">Plan Nacional</div>
+        <div class="plan-price">$25.000 <span>/ mes + IVA</span></div>
+        <ul class="plan-features">
+          <li><i class="ti ti-check" aria-hidden="true"></i>Campañas ilimitadas</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Hasta 10 campañas activas simultáneas</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Alcance nacional</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Gestión de turnos, pacientes y profesionales</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Dashboard de métricas avanzado</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Carga de documentación clínica</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i>Soporte prioritario</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="plan-especial" onclick="window.location='contacto.html'">
+      <div class="plan-especial-info">
+        <div class="plan-especial-icon">
+          <i class="ti ti-message" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="plan-especial-title">¿Necesitás un plan especial?</div>
+          <div class="plan-especial-desc">Redes de hospitales, ministerios o necesidades particulares. Contactanos.</div>
+        </div>
+      </div>
+      <i class="ti ti-arrow-right" aria-hidden="true"></i>
+    </div>
+
+    <button class="form-btn" onclick="confirmarPlan()">Confirmar y volver al pago</button>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="footer-copy">© 2026 HemoRed</div>
+</footer>
+
+<script>
+  let planElegido = sessionStorage.getItem('hemored_plan_elegido') || 'provincial';
+
+  function marcarSeleccion(plan) {
+    document.querySelectorAll('.plan-card.selectable').forEach(c => {
+      c.classList.toggle('selected', c.dataset.plan === plan);
+    });
+  }
+
+  function seleccionarPlan(plan, el) {
+    planElegido = plan;
+    marcarSeleccion(plan);
+  }
+
+  function confirmarPlan() {
+    sessionStorage.setItem('hemored_plan_elegido', planElegido);
+    window.location = 'pago.html';
+  }
+
+  marcarSeleccion(planElegido);
+</script>
+</body>
+</html>

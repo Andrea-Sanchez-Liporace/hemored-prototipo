@@ -1,6 +1,6 @@
 # Matriz: flujos del sistema, estado y prioridad
 
-**Fecha:** 2026-09-23 · **Última actualización:** 2026-09-24 (se agrega el detalle de Donante, antes resumido en un párrafo, para tener el progreso de los 5 bloques — Público/Donante/Hospital/Super Admin/Profesional — en el mismo formato)
+**Fecha:** 2026-09-23 · **Última actualización:** 2026-10-08 (cierre del hallazgo médico/enfermero en Profesional — ver `docs/04`)
 
 **Por qué existe esto:** `docs/04-estado-actual-prototipo.md` ya tiene, flujo por flujo, si está conectado (🟢/🟡/🔴) y qué le falta técnicamente. Esta matriz toma esas mismas filas y les agrega la capa de planificación que todavía faltaba: **nivel de diseño** (independiente del nivel de desarrollo — un flujo puede estar 🔴 sin conectar y tener el diseño visual terminado, o viceversa), **esfuerzo estimado**, **prioridad** y **si conviene encararlo completo de una vez o de a partes**. Es la base para decidir qué se toca primero ahora que arranca la revisión de Hospital/Admin (hito 4 del correo al profesor).
 
@@ -110,8 +110,8 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 
 | Flujo | Desarrollo | Diseño | Qué falta | Esfuerzo | Prioridad | Enfoque |
 |---|---|---|---|---|---|---|
-| Turnos del día (dashboard) | 🟢 | 🟢 | Cerrado 2026-09-29, junto con "Registrar donación". | — | — | — |
-| Registrar donación | 🟢 | 🟢 | Cerrado 2026-09-29 — movida desde Hospital (`hospital/turnos.html`), pedido explícito de la usuaria: es la acción del enfermero/extractor, no una acción administrativa. Ver detalle en `docs/04`. | — | — | — |
+| Turnos del día (dashboard) | 🟢 | 🟢 | Cerrado 2026-10-06, junto con "Registrar donación". | — | — | — |
+| Registrar donación | 🟢 | 🟢 | Cerrado 2026-10-06 — movida desde Hospital (`hospital/turnos.html`), pedido explícito de la usuaria: es la acción del enfermero/extractor, no una acción administrativa. Ver detalle en `docs/04`. | — | — | — |
 | Entrevista clínica (F1→F3, médico clínico) | 🟢 | 🟢 | Cerrado 2026-10-08 — resuelve el hallazgo médico/enfermero. `profesionales.tipo` separa las 2 facultades; el médico ve F1 (resumen)/F2 (respuestas reales, con corrección) y carga F3 (signos vitales + apto/no apto, tabla nueva `evaluacion_clinica`) — gate real: "no apto" corta el turno antes de llegar al enfermero. F4 queda fuera de este flujo (ya es "Registrar donación", del enfermero). Ver detalle completo en `docs/04`. | — | — | — |
 | Perfil y firma digital | 🔴 | 🟢 | El canvas de firma funciona y valida, pero nunca se guarda (`// Aquí se enviaría al servidor`). | Bajo | Won't (v2) | Completo |
 
@@ -123,7 +123,7 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 
 Mismo orden que la "Hoja de ruta sugerida" de `docs/04`, con la razón resumida acá:
 
-1. ~~Los 3 dashboards "silenciosos" (Hospital, Admin, Profesional)~~ — **Hospital cerrado 2026-09-24** (resultó más laborioso de lo estimado: además de los ids, las 2 listas de la pantalla eran filas hardcodeadas, ver `docs/04`). **Profesional cerrado 2026-09-29**, junto con "Registrar donación" (se movió desde Hospital, ver `docs/04`). Queda Admin, mismo patrón para replicar.
+1. ~~Los 3 dashboards "silenciosos" (Hospital, Admin, Profesional)~~ — **Hospital cerrado 2026-09-24** (resultó más laborioso de lo estimado: además de los ids, las 2 listas de la pantalla eran filas hardcodeadas, ver `docs/04`). **Profesional cerrado 2026-10-06**, junto con "Registrar donación" (se movió desde Hospital, ver `docs/04`). Queda Admin, mismo patrón para replicar.
 2. **Núcleo Hospital (MVP):** ~~crear campaña (3 pasos como bloque)~~ — **cerrado 2026-09-25** — ~~ver/gestionar campañas, ver detalle de campaña~~ — **cerrado 2026-09-29**. El "camino feliz" completo (donante busca → reserva → hospital gestiona) ya se puede mostrar de punta a punta con datos que no son 100% semilla.
 3. **Cadena Registro de hospital → Pago → Cuenta pendiente → Aprobación (Admin):** hoy las 4 piezas existen sueltas; conectarlas es más "cablear" que "construir".
 4. **Should Have:** historial/documentación clínica de Hospital (resultado + certificado, con el insert dual a `documentos`), facturación (las 3 pantallas — Hospital paga, Admin emite/marca pagada — como un bloque), mensajería Hospital↔HemoRed (necesita pasar por diseño primero, no existe la vista).

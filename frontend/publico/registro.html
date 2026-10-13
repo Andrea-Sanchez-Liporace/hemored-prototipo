@@ -170,7 +170,7 @@
       </div>
       <div class="planes-grid">
 
-        <div class="plan-card selectable" onclick="seleccionarPlan('local', this)">
+        <div class="plan-card selectable" onclick="seleccionarPlan('provincial', this)">
           <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
           <div class="plan-name">Plan Provincial</div>
           <div class="plan-price">$15.000 <span>/ mes + IVA</span></div>
@@ -184,7 +184,7 @@
           </ul>
         </div>
 
-        <div class="plan-card selectable" onclick="seleccionarPlan('provincial', this)">
+        <div class="plan-card selectable" onclick="seleccionarPlan('nacional', this)">
           <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
           <div class="plan-badge-top">Recomendado</div>
           <div class="plan-name">Plan Nacional</div>
@@ -217,7 +217,7 @@
 
       <p class="plan-note">Tu cuenta quedará pendiente de aprobación. Te notificaremos por email cuando sea activada por el administrador.</p>
 
-      <button class="form-btn" onclick="window.location='../publico/pago.html'">Solicitar registro</button>
+      <button class="form-btn" onclick="continuarAPago()">Solicitar registro</button>
       <p class="form-login">¿Ya tenés cuenta? <a href="../publico/login.html">Iniciá sesión</a></p>
     </div>
   </div>
@@ -241,9 +241,18 @@
     document.getElementById('step-' + rol).classList.add('active');
     window.scrollTo(0, 0);
   }
+  // Por default coincide con el plan que pago.html ya daba por hardcodeado
+  // (Plan Provincial) para cuando se llega a "Solicitar registro" sin
+  // haber clickeado ninguna tarjeta.
+  let planElegido = 'provincial';
   function seleccionarPlan(plan, el) {
     document.querySelectorAll('.plan-card.selectable').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
+    planElegido = plan;
+  }
+  function continuarAPago() {
+    sessionStorage.setItem('hemored_plan_elegido', planElegido);
+    window.location = '../publico/pago.html';
   }
   function volver() {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));

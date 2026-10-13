@@ -47,11 +47,11 @@
     "turno_id": 5,
     "usuario_id": 1,
     "autoexclusion_completado_por": "donante",
-    "autoexclusion_fecha": "2026-10-08T08:15:00",
+    "autoexclusion_fecha": "2026-10-13T08:15:00",
     "autoexclusion_modificado_por_profesional": false,
     "autoexclusion_modificacion_fecha": null,
     "cuestionario_completado_por": "donante",
-    "cuestionario_fecha": "2026-10-08T08:20:00",
+    "cuestionario_fecha": "2026-10-13T08:20:00",
     "cuestionario_modificado_por_profesional": false,
     "cuestionario_modificacion_fecha": null,
     "firma_donante_autoexclusion_url": "assets/firmas/firma_donante_1_f1.png",
@@ -97,7 +97,7 @@
       "residio_extranjero": "no"
     },
     "observaciones": null,
-    "creado_en": "2026-10-06T08:20:00"
+    "creado_en": "2026-10-13T08:20:00"
   },
   {
     "id": 4,
@@ -105,11 +105,11 @@
     "turno_id": 8,
     "usuario_id": 7,
     "autoexclusion_completado_por": "donante",
-    "autoexclusion_fecha": "2026-10-08T10:15:00",
+    "autoexclusion_fecha": "2026-10-13T10:15:00",
     "autoexclusion_modificado_por_profesional": false,
     "autoexclusion_modificacion_fecha": null,
     "cuestionario_completado_por": "donante",
-    "cuestionario_fecha": "2026-10-08T10:20:00",
+    "cuestionario_fecha": "2026-10-13T10:20:00",
     "cuestionario_modificado_por_profesional": false,
     "cuestionario_modificacion_fecha": null,
     "firma_donante_autoexclusion_url": "assets/firmas/firma_donante_7_f1.png",
@@ -155,7 +155,7 @@
       "residio_extranjero": "no"
     },
     "observaciones": null,
-    "creado_en": "2026-10-08T10:20:00"
+    "creado_en": "2026-10-13T10:20:00"
   },
   {
     "id": 5,
@@ -163,11 +163,11 @@
     "turno_id": 9,
     "usuario_id": 6,
     "autoexclusion_completado_por": "donante",
-    "autoexclusion_fecha": "2026-10-08T09:15:00",
+    "autoexclusion_fecha": "2026-10-13T09:15:00",
     "autoexclusion_modificado_por_profesional": false,
     "autoexclusion_modificacion_fecha": null,
     "cuestionario_completado_por": "donante",
-    "cuestionario_fecha": "2026-10-08T09:20:00",
+    "cuestionario_fecha": "2026-10-13T09:20:00",
     "cuestionario_modificado_por_profesional": false,
     "cuestionario_modificacion_fecha": null,
     "firma_donante_autoexclusion_url": "assets/firmas/firma_donante_6_f1.png",
@@ -213,6 +213,6 @@
       "residio_extranjero": "no"
     },
     "observaciones": null,
-    "creado_en": "2026-10-08T09:20:00"
+    "creado_en": "2026-10-13T09:20:00"
   }
 ]

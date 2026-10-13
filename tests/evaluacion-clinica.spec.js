@@ -103,7 +103,7 @@ test.describe('Entrevista clínica (médico clínico)', () => {
 
     await test.step('recién ahí el enfermero ve "Registrar donación" para ese turno', async () => {
       await page.click('text=Cerrar sesión');
-      await loginProfesional(page, 'enfermera@hemored.com', 'enf123');
+      await loginProfesional(page, 'enfermeria@hemored.com', 'enf123');
       const filaEnfermera = page.locator('.turno-card', { hasText: 'Ana Rodríguez' }).filter({ hasText: '11:00' });
       await expect(filaEnfermera.locator('button:has-text("Registrar donación")')).toBeVisible();
     });
@@ -137,7 +137,7 @@ test.describe('Entrevista clínica (médico clínico)', () => {
     await test.step('el enfermero no ve ninguna acción para este turno (no llega a él)', async () => {
       await page.click('#modal-ver-registro button:has-text("Cerrar")');
       await page.click('text=Cerrar sesión');
-      await loginProfesional(page, 'enfermera@hemored.com', 'enf123');
+      await loginProfesional(page, 'enfermeria@hemored.com', 'enf123');
       const filaEnfermera = page.locator('.turno-card', { hasText: 'Roberto Fernández' }).filter({ hasText: '10:00' });
       await expect(filaEnfermera).toContainText('No apto');
       await expect(filaEnfermera.locator('button:has-text("Registrar donación")')).toHaveCount(0);
