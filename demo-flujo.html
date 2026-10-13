@@ -1,0 +1,260 @@
+<title>Demo 13.10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout: wordmark header, 5-card credential strip, numbered vertical
+     stepper for the 5-step camino feliz, each step tinted by role. */
+  :root {
+    --bg: #f7f0f3;
+    --surface: #ffffff;
+    --surface-sunken: #fdf0f3;
+    --border: #e8d0d8;
+    --ink: #1a0a0f;
+    --ink-soft: #5a3040;
+    --ink-muted: #a9435d;
+    --brand: #5a1e37;
+    --accent: #ef647c;
+    --accent-ink: #ffffff;
+    --success: #1a6b3a;
+    --success-bg: #e1f5ee;
+    --success-border: #27ae60;
+    --warn: #633806;
+    --warn-bg: #faeeda;
+    --warn-border: #e67e22;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c0a12;
+      --surface: #2a0f1c;
+      --surface-sunken: #331526;
+      --border: #4a2334;
+      --ink: #f7e9ee;
+      --ink-soft: #e3b9c7;
+      --ink-muted: #e8899f;
+      --brand: #f28b9f;
+      --accent: #f2829a;
+      --accent-ink: #2a0f1c;
+      --success: #6fd9a0;
+      --success-bg: #163726;
+      --success-border: #2f9e63;
+      --warn: #f0c27b;
+      --warn-bg: #3a2b10;
+      --warn-border: #c98a2e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c0a12;
+    --surface: #2a0f1c;
+    --surface-sunken: #331526;
+    --border: #4a2334;
+    --ink: #f7e9ee;
+    --ink-soft: #e3b9c7;
+    --ink-muted: #e8899f;
+    --brand: #f28b9f;
+    --accent: #f2829a;
+    --accent-ink: #2a0f1c;
+    --success: #6fd9a0;
+    --success-bg: #163726;
+    --success-border: #2f9e63;
+    --warn: #f0c27b;
+    --warn-bg: #3a2b10;
+    --warn-border: #c98a2e;
+    color-scheme: dark;
+  }
+
+  body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+  * { box-sizing: border-box; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 64px; }
+
+  header { margin-bottom: 36px; }
+  .logo { font-family: 'Lobster', cursive; font-size: 34px; color: var(--brand); display: flex; align-items: center; gap: 10px; }
+  .logo span { color: var(--accent); }
+  .logo svg { width: 30px; height: 30px; flex-shrink: 0; }
+  h1 { font-size: 26px; font-weight: 600; margin: 14px 0 4px; letter-spacing: -0.01em; }
+  .sub { font-size: 14px; color: var(--ink-muted); display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+  .env-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 20px; padding: 3px 11px; font-size: 12px; font-weight: 500; color: var(--brand); }
+  .env-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success-border); }
+
+  section { margin-bottom: 40px; }
+  .section-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); margin-bottom: 14px; }
+
+  /* credentials */
+  .cred-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .cred-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; min-width: 0; }
+  .cred-role { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--brand); margin-bottom: 10px; }
+  .cred-role .ic { width: 26px; height: 26px; border-radius: 8px; background: var(--surface-sunken); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .cred-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .cred-row:last-child { border-bottom: none; }
+  .cred-row .k { color: var(--ink-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
+  .cred-row .v { font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
+  .copy-btn { background: none; border: none; color: var(--ink-muted); cursor: pointer; padding: 2px; display: inline-flex; flex-shrink: 0; border-radius: 4px; }
+  .copy-btn:hover { color: var(--accent); }
+  .copy-btn svg { width: 14px; height: 14px; }
+  .copy-btn.copied { color: var(--success); }
+
+  /* stepper */
+  .steps { position: relative; }
+  .step { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-bottom: 28px; position: relative; }
+  .step:last-child { padding-bottom: 0; }
+  .step::before { content: ''; position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: var(--border); }
+  .step:last-child::before { display: none; }
+  .step-num { width: 40px; height: 40px; border-radius: 50%; background: var(--brand); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; flex-shrink: 0; z-index: 1; }
+  .step-body { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; min-width: 0; }
+  .step-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .step-title { font-size: 16px; font-weight: 600; }
+  .role-pill { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 20px; background: var(--surface-sunken); color: var(--brand); border: 1px solid var(--border); }
+  .actions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .actions li { display: flex; gap: 10px; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+  .actions li .bul { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+  .actions li .bul svg { width: 11px; height: 11px; color: var(--accent); }
+  .actions code { background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 12.5px; color: var(--brand); font-family: inherit; font-weight: 500; }
+  .extra { margin-top: 14px; background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: var(--warn); line-height: 1.5; display: flex; gap: 9px; }
+  .extra svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; }
+  .extra b { font-weight: 600; }
+
+  footer { font-size: 12px; color: var(--ink-muted); text-align: center; padding-top: 12px; }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 28px 16px 48px; }
+    .step { grid-template-columns: 32px 1fr; gap: 12px; }
+    .step-num { width: 32px; height: 32px; font-size: 13px; }
+    .step::before { left: 15px; top: 32px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C9 7 5 11.5 5 15.5a7 7 0 0 0 14 0C19 11.5 15 7 12 2z"/></svg>
+      Hemo<span>Red</span>
+    </div>
+    <h1>Demo 13.10</h1>
+    <div class="sub">
+      <span class="env-chip"><span class="dot"></span>localhost:8791</span>
+      <span>Donante → Hospital → Médico clínico → Enfermería</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-label">Usuarios de prueba</div>
+    <div class="cred-grid" id="cred-grid">
+      <!-- cards generadas por JS -->
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">Flujo, paso a paso</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-head"><span class="step-title">Un donante nuevo se registra, reserva y completa sus formularios</span><span class="role-pill">Donante</span></div>
+          <ul class="actions">
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span><code>Crear cuenta</code> → Soy donante → completar datos</span></li>
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span><code>Buscar campañas</code> → elegir <b>"Banco de sangre general — Ramos Mejía"</b> (confirmación automática, el turno nace confirmado — se salta el paso del hospital) → <code>Reservar turno</code> → elegir horario → confirmar</span></li>
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span><code>Mis turnos</code> → <code>Completar formularios</code> → F1 (tildar + firmar) → F2 (cuestionario + firmar) → confirmar</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-head"><span class="step-title">El médico clínico hace la entrevista</span><span class="role-pill">Profesional · médico</span></div>
+          <ul class="actions">
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span><code>Turnos</code> (pestaña Presentes) → <code>Iniciar entrevista</code></span></li>
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span>F1: resumen de autoexclusión + historial del donante</span></li>
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span>F2: revisar las 34 respuestas reales — mostrar <code>Modificar</code> para corregir una</span></li>
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span>F3: cargar signos vitales → Apto/No apto → firmar → <code>Confirmar evaluación</code></span></li>
+          </ul>
+          <div class="extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span><b>Para mostrar de más:</b> pestaña <code>Futuros</code> → turno sin F1/F2 todavía → igual entra con <code>Ver turno</code></span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-head"><span class="step-title">Enfermería registra la donación</span><span class="role-pill">Profesional · enfermería</span></div>
+          <ul class="actions">
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span>El turno marcado apto dice <code>Lista para donar</code> → <code>Registrar donación</code></span></li>
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span><code>Se realizó</code> → cargar número de bolsa + ml (<code>+ Agregar otra bolsa</code> para sumar una segunda) → <code>Confirmar donación</code> → se genera el QR de F4</span></li>
+          </ul>
+          <div class="extra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span><b>Para mostrar de más:</b> <code>No se realizó</code> en otro turno → queda como <code>Donación incompleta</code>, sin F4</span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-head"><span class="step-title">El donante cierra el círculo</span><span class="role-pill">Donante</span></div>
+          <ul class="actions">
+            <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span><code>Notificaciones</code> → completar el formulario post-donación anónimo (F4) desde el link, sin escanear el QR</span></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>HemoRed · Prácticas Profesionalizantes IV</footer>
+</div>
+
+<script>
+  const ROLES = [
+    { nombre: 'Donante', email: 'sanchesliporace.a@gmail.com', pass: '12345678' },
+    { nombre: 'Médico clínico', email: 'profesional@hemored.com', pass: 'prof123' },
+    { nombre: 'Enfermería', email: 'enfermeria@hemored.com', pass: 'enf123' },
+  ];
+
+  const ICONS = {
+    'Donante': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+    'Médico clínico': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v5a4 4 0 0 0 8 0V3M12 13v4M8 21h8"/><circle cx="19" cy="7" r="2"/></svg>',
+    'Enfermería': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v6a5 5 0 0 0 10 0V3M12 14v7"/><path d="M9 20h6"/></svg>',
+  };
+
+  const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+  const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 6"/></svg>';
+
+  async function copiar(texto, btn) {
+    try {
+      await navigator.clipboard.writeText(texto);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = texto;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e2) {}
+      document.body.removeChild(ta);
+    }
+    const original = btn.innerHTML;
+    btn.innerHTML = CHECK_ICON;
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1400);
+  }
+
+  const grid = document.getElementById('cred-grid');
+  grid.innerHTML = ROLES.map((r, i) => `
+    <div class="cred-card">
+      <div class="cred-role"><span class="ic">${ICONS[r.nombre]}</span>${r.nombre}</div>
+      <div class="cred-row">
+        <span class="k">Email</span>
+        <span class="v">${r.email}</span>
+      </div>
+      <div class="cred-row">
+        <span class="k">Contraseña</span>
+        <span class="v" style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">${r.pass}<button class="copy-btn" data-i="${i}" aria-label="Copiar contraseña">${COPY_ICON}</button></span>
+      </div>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => copiar(ROLES[Number(btn.dataset.i)].pass, btn));
+  });
+</script>
