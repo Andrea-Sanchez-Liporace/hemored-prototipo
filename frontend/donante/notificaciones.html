@@ -78,6 +78,20 @@
   </div>
 </div>
 
+<!-- Respuesta ya enviada al formulario post-donación (F4) — solo lectura.
+     No hay sesión/identidad vinculada a la respuesta en sí (es anónima, ver
+     docs/01), así que esto muestra lo guardado en formulario_postdonacion
+     buscando por token, el mismo dato que ya vive en la notificación. -->
+<div class="modal-overlay" id="modal-ver-f4">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Tu respuesta</div>
+      <button class="modal-close" onclick="HemoRed.ui.cerrarModal('modal-ver-f4')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="ver-f4-body"></div>
+  </div>
+</div>
+
 <script>
   let notificacionesActuales = [];
   let filtroActual = 'todas';
@@ -113,8 +127,32 @@
     return new Date(n.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) + ' · ' + horaCorta(n.fecha) + 'hs';
   }
 
+  // El token del formulario post-donación (F4) viaja en la propia accion_url
+  // (?token=...) — se usa tal cual para buscar si ya se respondió, sin
+  // necesitar ningún otro vínculo (la respuesta en sí es anónima).
+  function tokenDeAccionUrl(url) {
+    const m = /[?&]token=([^&]+)/.exec(url || '');
+    return m ? m[1] : null;
+  }
+
   function notifItemHTML(n) {
     const tono = TONOS_NOTIF[n.tono] || TONOS_NOTIF.rosa;
+    const esF4 = (n.accion_url || '').includes('postdonacion_anonimo.html');
+    const tokenF4 = esF4 ? tokenDeAccionUrl(n.accion_url) : null;
+    const f4Resp = tokenF4 ? HemoRed.db.all('formulario_postdonacion').find(f => f.token === tokenF4) : null;
+    const f4YaRespondido = !!f4Resp?.completado_en;
+
+    let accionHTML = '';
+    if (esF4 && f4YaRespondido) {
+      accionHTML = `<button class="notif-action notif-action-outline" onclick="event.stopPropagation();verRespuestaF4('${tokenF4}')">Ver</button>`;
+    } else if (esF4) {
+      // Abre en pestaña nueva: es un flujo sin sesión, pensado para volver
+      // a la app (que sigue abierta en esta pestaña) apenas se completa.
+      accionHTML = n.accion_texto ? `<button class="notif-action notif-action-primary" onclick="event.stopPropagation();window.open('${n.accion_url}','_blank')">${n.accion_texto}</button>` : '';
+    } else if (n.accion_texto) {
+      accionHTML = `<button class="notif-action notif-action-primary" onclick="event.stopPropagation();window.location='${n.accion_url}'">${n.accion_texto}</button>`;
+    }
+
     return `
       <div class="notif-item ${n.leido ? '' : 'unread'}" data-tipo="${n.tipo}" onclick="marcarLeidaUI(${n.id})">
         <div class="notif-icon" style="background:${tono.bg};border:${tono.border};">
@@ -127,9 +165,31 @@
         </div>
         <div class="notif-right">
           ${n.leido ? '' : '<div class="unread-dot"></div>'}
-          ${n.accion_texto ? `<button class="notif-action notif-action-primary" onclick="event.stopPropagation();window.location='${n.accion_url}'">${n.accion_texto}</button>` : ''}
+          ${accionHTML}
         </div>
       </div>`;
+  }
+
+  const MOTIVOS_DESCARTE = {
+    conducta_riesgo: 'Olvidó mencionar una conducta de riesgo reciente',
+    sintomas: 'Empezó a sentir síntomas (fiebre, malestar) al terminar',
+    medicacion: 'Tomó alguna sustancia o medicamento que no declaró',
+    presion: 'Vino a donar por presión de terceros, no fue voluntario',
+    otro: 'Otro motivo (sin especificar)',
+  };
+
+  function verRespuestaF4(token) {
+    const f = HemoRed.db.all('formulario_postdonacion').find(x => x.token === token);
+    if (!f) return;
+    const fecha = f.completado_en ? new Date(f.completado_en).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+    document.getElementById('ver-f4-body').innerHTML = `
+      <div class="dato-grid" style="margin-bottom:${f.usar_para_transfusion === false ? '16px' : '0'};">
+        <div><div class="dato-label">Tu respuesta</div><div class="dato-value" style="color:${f.usar_para_transfusion ? '#1a6b3a' : '#c0392b'};">${f.usar_para_transfusion ? 'Sí, puede usarse' : 'No, se descartó'}</div></div>
+        <div><div class="dato-label">Respondido el</div><div class="dato-value">${fecha}</div></div>
+      </div>
+      ${f.usar_para_transfusion === false ? `<div><div class="dato-label">Motivo</div><div class="dato-value" style="font-weight:400;">${MOTIVOS_DESCARTE[f.motivo_descarte] || 'Sin especificar'}</div></div>` : ''}
+    `;
+    HemoRed.ui.abrirModal('modal-ver-f4');
   }
 
   function renderNotificaciones() {

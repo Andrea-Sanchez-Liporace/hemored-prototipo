@@ -617,6 +617,12 @@ select.form-input { cursor: pointer; }
 .btn-danger-sm { background: white; color: #c0392b; border: 1.5px solid #e74c3c; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
 .empleador-item { display: flex; align-items: center; gap: 10px; background: white; border-radius: 10px; padding: 12px 14px; border: 0.5px solid #e8d0d8; }
 .empleador-item:hover { border-color: #f28b98; }
+/* Mismo patrón que ya usan hospital.css/profesional.css para modales de
+   "ver detalle" — no existía todavía en donante.css (notificaciones.html,
+   modal "Ver" de la respuesta al F4). */
+.dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dato-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.dato-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
 .wrap { width: 100%; max-width: 480px; }
 .logo-wrap { text-align: center; margin-bottom: 28px; }
 .logo { font-family: 'Lobster', cursive; font-size: 32px; color: white; }
