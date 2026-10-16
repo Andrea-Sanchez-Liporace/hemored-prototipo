@@ -187,9 +187,15 @@
     HemoRed.db.all('turnos')
       .filter(t => t.id !== turnoModal.id && t.hospital_id === turnoModal.hospital_id && t.fecha === fechaModal && t.estado !== 'cancelado')
       .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
+    // Mismo fix que campana_detalle.html (2026-10-17): un horario de hoy que
+    // ya pasó no se puede elegir al reprogramar.
+    const horaActual = (typeof HemoRed !== 'undefined' && fechaModal === hoy()) ? HemoRed.data.ahora().toTimeString().slice(0, 5) : null;
     cont.innerHTML = TIME_SLOTS.map(hora => {
       if ((conteoPorHora[hora] || 0) >= cupo) {
         return `<div class="turno-m ocp"><div class="th">${hora}</div><div class="ts ocp">Ocupado</div></div>`;
+      }
+      if (horaActual !== null && hora <= horaActual) {
+        return `<div class="turno-m ocp"><div class="th">${hora}</div><div class="ts ocp">No disponible</div></div>`;
       }
       return `<div class="turno-m" data-hora="${hora}"><div class="th">${hora}</div><div class="ts libre">Disponible</div></div>`;
     }).join('');

@@ -405,10 +405,21 @@
     HemoRed.db.all('turnos')
       .filter(t => t.hospital_id === campanaActual.hospital_id && t.fecha === fechaSeleccionada && t.estado !== 'cancelado')
       .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
+    // Si la fecha elegida es hoy, un horario que ya pasó no se puede
+    // reservar — antes esto no se filtraba (la grilla de "hoy" ofrecía
+    // 08:00 aunque ya fueran las 15hs), inofensivo mientras nada actuaba
+    // sobre un turno pendiente vencido; dejó de serlo al agregar el
+    // vencimiento automático (2026-10-16): ese turno nacía ya "vencido" y
+    // se cancelaba solo apenas se cargaba cualquier vista con turnos.
+    const horaActual = (typeof HemoRed !== 'undefined' && fechaSeleccionada === hoy()) ? HemoRed.data.ahora().toTimeString().slice(0, 5) : null;
     cont.innerHTML = TIME_SLOTS.map(hora => {
       const ocupado = (conteoPorHora[hora] || 0) >= cupo;
+      const yaPaso = horaActual !== null && hora <= horaActual;
       if (ocupado) {
         return `<div class="turno-opt ocupado"><div class="turno-hora">${hora}</div><div class="turno-estado ocupado">Ocupado</div></div>`;
+      }
+      if (yaPaso) {
+        return `<div class="turno-opt ocupado"><div class="turno-hora">${hora}</div><div class="turno-estado ocupado">No disponible</div></div>`;
       }
       return `<div class="turno-opt" data-hora="${hora}"><div class="turno-hora">${hora}</div><div class="turno-estado libre">Disponible</div></div>`;
     }).join('');

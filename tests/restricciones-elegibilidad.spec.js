@@ -169,6 +169,15 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
     await page.fill('#d-pass2', donantePassword);
     await page.click('#btn-crear-cuenta-donante');
     await page.waitForURL('**/donante/dashboard.html');
+    // Señal real de que cargarDashboardDonante() ya terminó (no un
+    // waitForTimeout fijo) — sin esto, el primer page.evaluate() de abajo
+    // podía correr en carrera con el propio init async de la página y
+    // Playwright perdía la promesa ("Resulting promise was garbage
+    // collected"), encontrado 2026-10-17 al investigar un fallo 100%
+    // reproducible acá (y en ningún otro test del archivo, porque todos
+    // los demás pasan por registrarYEntrarACampana(), que de paso navega
+    // una vez más y le da tiempo a este init de asentarse).
+    await expect(page.locator('#donante-primer-nombre')).toHaveText('Julieta');
 
     const fechaTurno = diasDesdeHoy(14);
     const fechaReprogramada = diasDesdeHoy(25);
