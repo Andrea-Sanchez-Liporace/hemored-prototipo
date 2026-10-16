@@ -17,73 +17,15 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button>
-  </div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name" id="hospital-nombre-sidebar">—</div>
-    <div style="font-size:12px;color:#f28b98;margin-top:2px;">admin@ramosmejia.gob.ar</div>
-    <div class="sidebar-hospital-plan">
-      <i class="ti ti-star" style="font-size:10px;" aria-hidden="true"></i>
-      Plan Provincial
-    </div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item active" href="../hospital/dashboard.html">
-      <i class="ti ti-layout-dashboard" aria-hidden="true"></i>Inicio
-    </a>
-    <a class="nav-item" href="../hospital/campanas.html">
-      <i class="ti ti-speakerphone" aria-hidden="true"></i>Campañas
-    </a>
-    <a class="nav-item" href="../hospital/turnos.html">
-      <i class="ti ti-calendar" aria-hidden="true"></i>Turnos
-    </a>
-    <a class="nav-item" href="../hospital/metricas.html">
-      <i class="ti ti-chart-bar" aria-hidden="true"></i>Métricas
-    </a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item" href="../hospital/pacientes.html">
-      <i class="ti ti-user-plus" aria-hidden="true"></i>Pacientes
-    </a>
-    <a class="nav-item" href="../hospital/profesionales.html">
-      <i class="ti ti-stethoscope" aria-hidden="true"></i>Profesionales
-    </a>
-    <a class="nav-item" href="../hospital/documentacion.html">
-      <i class="ti ti-file-text" aria-hidden="true"></i>Documentación
-    </a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html">
-      <i class="ti ti-building-hospital" aria-hidden="true"></i>Perfil del hospital
-    </a>
-    <a class="nav-item" href="../hospital/notificaciones.html">
-      <i class="ti ti-bell" aria-hidden="true"></i>Notificaciones
-    </a>
-    <a class="nav-item" href="../publico/login.html">
-      <i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión
-    </a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="plan-card-side">
-      <div class="plan-card-side-title">Plan Provincial</div>
-      <div class="plan-card-side-sub">3 de 3 campañas activas</div>
-      <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
-        <div style="height:100%;width:100%;background:#ef647c;border-radius:2px;"></div>
-      </div>
-      <div style="font-size:10px;color:#f28b98;margin-top:6px;">Límite alcanzado · <a href="../publico/pago.html" style="color:#ef647c;text-decoration:none;">Actualizar plan</a></div>
-    </div>
-  </div>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+      <button class="mobile-topbar-btn" aria-label="Menú">
         <span></span><span></span><span></span>
       </button>
       <div class="topbar-title">Inicio</div>
@@ -110,16 +52,31 @@
     <!-- KPIs -->
     <div class="stats-row" id="dashboard-kpis">
       <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-speakerphone" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-campanas"></span>
+        </div>
         <div class="stat-num" id="campanas-activas">—</div>
         <div class="stat-label">Campañas activas</div>
+        <div class="kpi-sub" id="sub-campanas">—</div>
       </div>
       <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-calendar" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-turnos"></span>
+        </div>
         <div class="stat-num" id="turnos-hoy">—</div>
         <div class="stat-label">Turnos hoy</div>
+        <div class="kpi-sub" id="sub-turnos">—</div>
       </div>
       <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-heart" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-donaciones"></span>
+        </div>
         <div class="stat-num" id="donaciones-mes">—</div>
         <div class="stat-label">Donaciones este mes</div>
+        <div class="kpi-sub" id="sub-donaciones">—</div>
       </div>
     </div>
 
@@ -231,20 +188,14 @@
 </div>
 
 <script>
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
-  }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
 </script>
 
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 <script>
   const BADGE_CAMPANA = { activa: 'Activa', urgente: 'Urgente', pausada: 'Pausada', cerrada: 'Cerrada' };
 
@@ -257,10 +208,10 @@
   // que ya usa el resto del sitio, no una fecha fija.
   function etiquetaFecha(fechaStr) {
     const hoy = HemoRed.data.ahora();
-    const hoyStr = hoy.toISOString().slice(0, 10);
+    const hoyStr = HemoRed.data.fechaISO(hoy);
     const manana = new Date(hoy);
     manana.setDate(manana.getDate() + 1);
-    const mananaStr = manana.toISOString().slice(0, 10);
+    const mananaStr = HemoRed.data.fechaISO(manana);
     if (fechaStr === hoyStr) return 'Hoy';
     if (fechaStr === mananaStr) return 'Mañana';
     const [, m, d] = fechaStr.split('-');
@@ -288,7 +239,7 @@
       const estado = estadoVisualCampana(c);
       const vence = new Date(c.fecha_cierre).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
       return `
-        <div class="campana-row">
+        <div class="campana-row-dash">
           <div class="campana-dot ${estado}"></div>
           <div class="campana-info">
             <div class="campana-nombre">${c.titulo}</div>
@@ -324,10 +275,10 @@
       const nombre = donante ? `${donante.nombre} ${donante.apellido || ''}`.trim() : 'Donante';
       const iniciales = donante ? ((donante.nombre[0] || '') + (donante.apellido?.[0] || '')).toUpperCase() : '?';
       return `
-        <div class="turno-row">
+        <div class="turno-row-dash">
           <div class="turno-avatar">${iniciales}</div>
           <div class="turno-info">
-            <div class="turno-nombre">${nombre}</div>
+            <div class="turno-nombre-row">${nombre}</div>
             <div class="turno-meta">${etiquetaFecha(t.fecha)} · ${t.hora}hs · ${campana?.titulo || ''}</div>
           </div>
           <div class="turno-actions">
@@ -359,6 +310,45 @@
     const { campanas, turnos } = await HemoRed.data.cargarDashboardHospital();
     renderCampanasRecientes(campanas);
     renderTurnosPendientes(turnos);
+    renderKpiExtras(campanas);
+  }
+
+  // Trend + sub-label reales de los 3 KPI de arriba — mismos cálculos que
+  // hospital/metricas.html (vía cargarMetricasHospital()), agregado
+  // 2026-10-14 junto con el resto del rediseño de tarjetas.
+  // El badge de "Campañas activas" mostraba la variación de campañas
+  // *creadas* este mes vs el anterior — un dato real, pero que casi
+  // siempre da "—" (crear una campaña nueva no es algo que pase seguido)
+  // y no queda claro qué mide a simple vista. Cambiado 2026-10-14 por
+  // cuántas de las activas son urgentes, mismo criterio que ya usa la
+  // tarjeta "Todas" de campanas.html.
+  function renderKpiExtras(campanas) {
+    const m = HemoRed.data.cargarMetricasHospital();
+    if (!m) return;
+    document.getElementById('sub-campanas').textContent = `${m.kpis.campanasTotal} campaña${m.kpis.campanasTotal === 1 ? '' : 's'} en total`;
+    const urgentes = (campanas || []).filter(c => c.urgente && HemoRed.data.esCampanaActiva(c)).length;
+    const trendCampanas = document.getElementById('trend-campanas');
+    if (urgentes > 0) {
+      trendCampanas.innerHTML = `<i class="ti ti-alert-triangle" style="font-size:10px;"></i>${urgentes} urgente${urgentes === 1 ? '' : 's'}`;
+      trendCampanas.className = 'kpi-trend down';
+    } else {
+      trendCampanas.innerHTML = '<i class="ti ti-check" style="font-size:10px;"></i>sin urgencias';
+      trendCampanas.className = 'kpi-trend up';
+    }
+
+    const pendientes = Number(document.getElementById('bienvenida-turnos-pendientes').textContent) || 0;
+    document.getElementById('sub-turnos').textContent = `${pendientes} pendiente${pendientes === 1 ? '' : 's'} de confirmar`;
+    const trendTurnos = document.getElementById('trend-turnos');
+    if (pendientes > 0) {
+      trendTurnos.innerHTML = `<i class="ti ti-alert-circle" style="font-size:10px;"></i>${pendientes} sin confirmar`;
+      trendTurnos.className = 'kpi-trend down';
+    } else {
+      trendTurnos.innerHTML = '<i class="ti ti-check" style="font-size:10px;"></i>al día';
+      trendTurnos.className = 'kpi-trend up';
+    }
+
+    document.getElementById('sub-donaciones').textContent = `vs ${m.kpis.donacionesMesAnterior} el mes anterior`;
+    HemoRed.ui.pintarTrend('trend-donaciones', m.kpis.donacionesMes, m.kpis.donacionesMesAnterior);
   }
 
   document.addEventListener('DOMContentLoaded', async () => {

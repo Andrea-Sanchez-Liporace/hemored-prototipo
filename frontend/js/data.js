@@ -97,6 +97,7 @@ HemoRed.data = (function() {
 
   async function cargarDashboardDonante() {
     const db = await HemoRed.db.init();
+    _procesarVencimientosTurnos();
     const s = HemoRed.sesion.get();
     if (!s) return;
 
@@ -167,6 +168,7 @@ HemoRed.data = (function() {
 
   async function cargarMisTurnos() {
     const db = await HemoRed.db.init();
+    _procesarVencimientosTurnos();
     const s = HemoRed.sesion.get();
     if (!s) return;
 
@@ -266,7 +268,7 @@ HemoRed.data = (function() {
   // campana_detalle.html (deshabilita "Reservar turno" de entrada, antes de
   // que el donante llegue a elegir fecha/hora).
   function verificarElegibilidadReserva(usuarioId) {
-    const hoy = ahora().toISOString().slice(0, 10);
+    const hoy = hoyISO();
     return _validarElegibilidadDonante(usuarioId, hoy);
   }
 
@@ -324,9 +326,77 @@ HemoRed.data = (function() {
     return new Date();
   }
 
+  // `d.toISOString().slice(0, 10)` (el patrón usado en todo el proyecto
+  // hasta 2026-10-16 para convertir una fecha a "YYYY-MM-DD") convierte a
+  // UTC antes de cortar la fecha — en Argentina (UTC-3) eso adelanta el
+  // calendario hasta 3hs cada noche: entre ~21:00 y medianoche hora local,
+  // "hoy" ya se calculaba como si fuera mañana. Esta versión arma el
+  // string con los getters LOCALES (getFullYear/getMonth/getDate), que sí
+  // respetan la zona horaria del navegador.
+  function fechaISO(d) {
+    const anio = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+  }
+
+  function hoyISO() {
+    return fechaISO(ahora());
+  }
+
   function horasHastaElTurno(turno) {
     const fechaTurno = new Date(`${turno.fecha}T${turno.hora}:00`);
     return (fechaTurno - ahora()) / 3600000;
+  }
+
+  // Un turno "pendiente" (esperando que el hospital lo confirme a mano —
+  // campanas.confirmacion_automatica:false) cuya fecha/hora ya pasó nunca
+  // va a poder confirmarse de verdad: nadie puede confirmar asistencia
+  // para un horario que ya ocurrió. Se resuelve solo como 'cancelado' (el
+  // mismo estado que ya usa rechazarTurno(), no uno nuevo), con un
+  // motivo_rechazo propio para distinguirlo de un rechazo manual. Esto NO
+  // toca turnos pendientes que todavía están en el futuro — esos siguen
+  // esperando confirmación/rechazo manual como siempre (pedido explícito
+  // de la usuaria, 2026-10-16). Se llama al principio de cualquier función
+  // que cargue turnos para mostrarlos (hospital o profesional), así queda
+  // resuelto para todos sin importar quién mire primero.
+  function _expirarTurnosPendientesVencidos() {
+    const ahoraMs = ahora().getTime();
+    HemoRed.db.all('turnos').forEach(t => {
+      if (t.estado !== 'pendiente') return;
+      if (new Date(`${t.fecha}T${t.hora}:00`).getTime() >= ahoraMs) return;
+      HemoRed.db.actualizar('turnos', t.id, {
+        estado: 'cancelado',
+        motivo_rechazo: 'Vencido: el hospital no lo confirmó antes de la fecha del turno.',
+      });
+    });
+  }
+
+  // Red de contención si el médico se olvidó de marcar "Ausente" a mano
+  // (marcarAusente()) — pedido explícito de la usuaria, 2026-10-16: el
+  // médico tiene todo el día de margen (puede atender a un donante que
+  // llega tarde), así que esto NO compara hora, solo fecha: recién actúa
+  // cuando el día del turno ya pasó del todo ("al cambiar el día"), nunca
+  // el mismo día aunque ya sea tarde. Solo toca 'confirmado' — un turno que
+  // llegó a 'en_curso' significa que el médico sí lo atendió, y queda como
+  // está para que lo resuelva él (no se le pisa la decisión).
+  function _marcarAusentesVencidos() {
+    const hoy = hoyISO();
+    HemoRed.db.all('turnos').forEach(t => {
+      if (t.estado !== 'confirmado') return;
+      if (t.fecha >= hoy) return;
+      HemoRed.db.actualizar('turnos', t.id, { estado: 'ausente' });
+    });
+  }
+
+  // Punto único que llaman todas las funciones que cargan turnos para
+  // mostrarlos — agrupa los dos vencimientos automáticos (pendiente
+  // vencido → cancelado, confirmado nunca atendido → ausente al otro día)
+  // para no tener que acordarse de enganchar las dos por separado en cada
+  // lugar nuevo.
+  function _procesarVencimientosTurnos() {
+    _expirarTurnosPendientesVencidos();
+    _marcarAusentesVencidos();
   }
 
   function datosContactoHospital(hospitalId) {
@@ -389,6 +459,20 @@ HemoRed.data = (function() {
   // El hospital rechaza la solicitud de turno (RF3).
   function rechazarTurno(turnoId, motivo) {
     return HemoRed.db.actualizar('turnos', turnoId, { estado: 'cancelado', motivo_rechazo: motivo || null });
+  }
+
+  // El médico clínico marca que el donante no se presentó (pedido explícito
+  // de la usuaria, 2026-10-16): es él quien puede constatarlo de verdad y
+  // quien maneja el período de gracia dentro del día (ej. el donante llega
+  // tarde y igual lo atiende) — por eso esto es una acción manual, no algo
+  // que el sistema decida apenas pasa la hora del turno. Si el médico se
+  // olvida de marcarlo, `_marcarAusentesVencidos()` lo hace solo, pero
+  // recién al otro día (ver nota ahí).
+  function marcarAusente(turnoId) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+    if (turno.estado !== 'confirmado') return { ok: false, error: 'Este turno no está en condiciones de marcarse como ausente.' };
+    return { ok: true, turno: HemoRed.db.actualizar('turnos', turnoId, { estado: 'ausente' }) };
   }
 
   // Guarda F1 (autoexclusión) + F2 (cuestionario médico) para un turno puntual.
@@ -490,10 +574,35 @@ HemoRed.data = (function() {
     return { ok: true, formulario };
   }
 
+  // El médico clickeó "Iniciar entrevista" sobre un turno listo para
+  // evaluar — pasa a 'en_curso' (estado ya reservado en el modelo desde
+  // el diseño original, nunca usado hasta ahora: se contaba como "activo"
+  // en _validarElegibilidadDonante() pero nada lo escribía). Sirve para
+  // que "En proceso" en el dashboard signifique "el médico está AHORA en
+  // la entrevista", no "está listo para empezar" — eso último es
+  // "Pendiente" (pedido explícito de la usuaria, 2026-10-16).
+  function iniciarEntrevistaClinica(turnoId) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno) return { ok: false, error: 'Turno no encontrado.' };
+    if (turno.estado !== 'confirmado') return { ok: false, error: 'Este turno no está listo para iniciar la entrevista.' };
+    return { ok: true, turno: HemoRed.db.actualizar('turnos', turnoId, { estado: 'en_curso' }) };
+  }
+
+  // El médico cerró/canceló el modal sin llegar a una decisión (apto/no
+  // apto) — vuelve a 'confirmado', como si nunca hubiera abierto la
+  // entrevista. No falla si el turno ya no está en_curso (ej. se llama
+  // también, sin efecto, después de un cierre exitoso — ver cerrarModal()
+  // en profesional/dashboard.html).
+  function cancelarEntrevistaClinica(turnoId) {
+    const turno = HemoRed.db.find('turnos', turnoId);
+    if (!turno || turno.estado !== 'en_curso') return { ok: false };
+    return { ok: true, turno: HemoRed.db.actualizar('turnos', turnoId, { estado: 'confirmado' }) };
+  }
+
   function registrarEvaluacionClinica(turnoId, { profesionalId, resultado, motivoNoApto, signosVitales, observaciones }) {
     const turno = HemoRed.db.find('turnos', turnoId);
     if (!turno) return { ok: false, error: 'Turno no encontrado.' };
-    if (turno.estado !== 'confirmado') return { ok: false, error: 'Este turno no está en condiciones de evaluar.' };
+    if (!['confirmado', 'en_curso'].includes(turno.estado)) return { ok: false, error: 'Este turno no está en condiciones de evaluar.' };
     if (!turno.formulario_autoexclusion_completado || !turno.formulario_cuestionario_completado) {
       return { ok: false, error: 'El donante todavía no completó los formularios pre-donación (F1/F2).' };
     }
@@ -520,10 +629,10 @@ HemoRed.data = (function() {
     });
 
     // Gate real: "no apto" corta el camino acá — el turno no vuelve a
-    // aparecer como disponible para registrar la donación.
-    if (resultado === 'no_apto') {
-      HemoRed.db.actualizar('turnos', turnoId, { estado: 'no_apto' });
-    }
+    // aparecer como disponible para registrar la donación. "Apto" vuelve
+    // a 'confirmado' (puede haber quedado en 'en_curso' si se abrió desde
+    // "Iniciar entrevista") — así queda disponible para el enfermero.
+    HemoRed.db.actualizar('turnos', turnoId, { estado: resultado === 'no_apto' ? 'no_apto' : 'confirmado' });
 
     return { ok: true, evaluacion };
   }
@@ -772,8 +881,8 @@ HemoRed.data = (function() {
   function cargarNotificacionesDonante() {
     const s = HemoRed.sesion.get();
     if (!s) return [];
-    const hoy = ahora().toISOString().slice(0, 10);
-    const ayer = new Date(ahora().getTime() - 86400000).toISOString().slice(0, 10);
+    const hoy = hoyISO();
+    const ayer = fechaISO(new Date(ahora().getTime() - 86400000));
     return HemoRed.db.where('notificaciones_donante', 'usuario_id', s.usuario_id)
       .map(n => {
         const dia = n.fecha.slice(0, 10);
@@ -916,6 +1025,7 @@ HemoRed.data = (function() {
   // ===== HOSPITAL =====
   async function cargarDashboardHospital() {
     const db = await HemoRed.db.init();
+    _procesarVencimientosTurnos();
     const s = HemoRed.sesion.get();
     if (!s) return;
 
@@ -933,7 +1043,7 @@ HemoRed.data = (function() {
     _set('hospital-nombre', hospital?.nombre || '');
     _set('hospital-nombre-sidebar', hospital?.nombre || '');
     _set('campanas-activas', campanas.filter(c => esCampanaActiva(c)).length);
-    _set('turnos-hoy', turnos.filter(t => t.fecha === hoy.toISOString().slice(0, 10)).length);
+    _set('turnos-hoy', turnos.filter(t => t.fecha === fechaISO(hoy)).length);
     _set('donaciones-mes', donacionesMes.length);
 
     // Texto de bienvenida (antes fijo: "Hoy es jueves 15 de mayo de 2026...",
@@ -943,6 +1053,225 @@ HemoRed.data = (function() {
     _set('bienvenida-turnos-pendientes', turnos.filter(t => t.estado === 'pendiente').length);
 
     return { hospital, campanas, turnos, donaciones };
+  }
+
+  // Pacientes del hospital logueado + si tienen o no una campaña activa
+  // asociada (campanas.paciente_id) — usado para la fila de métricas de
+  // hospital/pacientes.html, agregada 2026-10-14 junto con el resto del
+  // rediseño de tarjetas (antes esa página era 100% maqueta fija).
+  function cargarPacientesHospital() {
+    const s = HemoRed.sesion.get();
+    if (!s) return { pacientes: [], total: 0, conCampana: 0, sinCampana: 0 };
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    const hospitalId = usuario?.hospital_id;
+    const campanas = HemoRed.db.where('campanas', 'hospital_id', hospitalId);
+    const pacientes = HemoRed.db.where('pacientes', 'hospital_id', hospitalId)
+      .filter(p => p.activo)
+      .map(p => ({
+        ...p,
+        campanaActiva: campanas.find(c => c.paciente_id === p.id && esCampanaActiva(c)) || null,
+      }));
+    return {
+      pacientes,
+      total: pacientes.length,
+      conCampana: pacientes.filter(p => p.campanaActiva).length,
+      sinCampana: pacientes.filter(p => !p.campanaActiva).length,
+    };
+  }
+
+  // Profesionales vinculados al hospital logueado (vía profesional_hospital,
+  // ya que un mismo profesional puede trabajar en más de un hospital) —
+  // mismo motivo que cargarPacientesHospital().
+  function cargarProfesionalesHospital() {
+    const s = HemoRed.sesion.get();
+    if (!s) return { profesionales: [], total: 0, activos: 0, inactivos: 0 };
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    const hospitalId = usuario?.hospital_id;
+    const profesionales = HemoRed.db.where('profesional_hospital', 'hospital_id', hospitalId)
+      .filter(v => v.activo)
+      .map(v => HemoRed.db.find('profesionales', v.profesional_id))
+      .filter(Boolean)
+      .map(p => ({ ...p, usuario: HemoRed.db.find('usuarios', p.usuario_id) }));
+    return {
+      profesionales,
+      total: profesionales.length,
+      activos: profesionales.filter(p => p.activo).length,
+      inactivos: profesionales.filter(p => !p.activo).length,
+    };
+  }
+
+  // Agrega los datos del hospital logueado para hospital/metricas.html —
+  // esa página estaba 100% hardcodeada (KPIs, los 3 gráficos y las 2
+  // tablas) hasta 2026-10-14. "Efectividad por campaña" reusa el mismo
+  // unidades_obtenidas/unidades_requeridas que ya muestran campanas.html y
+  // campana_detalle.html (no se recalcula de otra forma, para no mostrar un
+  // número distinto al del resto del rol).
+  function cargarMetricasHospital() {
+    _procesarVencimientosTurnos();
+    const s = HemoRed.sesion.get();
+    if (!s) return null;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    const hospitalId = usuario?.hospital_id;
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+
+    const todasCampanas = HemoRed.db.where('campanas', 'hospital_id', hospitalId);
+    const todosTurnos = HemoRed.db.where('turnos', 'hospital_id', hospitalId);
+    const todasDonaciones = HemoRed.db.where('donaciones', 'hospital_id', hospitalId);
+    const todosUsuarios = HemoRed.db.all('usuarios');
+
+    const hoy = ahora();
+    const mesActual = hoy.getMonth();
+    const anioActual = hoy.getFullYear();
+
+    function esMismoMes(fechaStr, mes, anio) {
+      const f = new Date(fechaStr);
+      return f.getMonth() === mes && f.getFullYear() === anio;
+    }
+
+    const donacionesMes = todasDonaciones.filter(d => esMismoMes(d.registrado_en, mesActual, anioActual));
+    const mesAnteriorRef = new Date(anioActual, mesActual - 1, 1);
+    const donacionesMesAnterior = todasDonaciones.filter(d =>
+      esMismoMes(d.registrado_en, mesAnteriorRef.getMonth(), mesAnteriorRef.getFullYear()));
+    const trendDonaciones = donacionesMesAnterior.length
+      ? Math.round(((donacionesMes.length - donacionesMesAnterior.length) / donacionesMesAnterior.length) * 100)
+      : (donacionesMes.length > 0 ? 100 : 0);
+
+    const campanasActivas = todasCampanas.filter(c => esCampanaActiva(c));
+    const campanasEsteMes = todasCampanas.filter(c => esMismoMes(c.creado_en, mesActual, anioActual)).length;
+    const campanasMesAnterior = todasCampanas.filter(c =>
+      esMismoMes(c.creado_en, mesAnteriorRef.getMonth(), mesAnteriorRef.getFullYear())).length;
+
+    const turnosNoCancelados = todosTurnos.filter(t => t.estado !== 'cancelado');
+    const turnosConfirmadosOCompletados = todosTurnos.filter(t => ['confirmado', 'completado'].includes(t.estado));
+    const efectividadPromedio = turnosNoCancelados.length
+      ? Math.round((turnosConfirmadosOCompletados.length / turnosNoCancelados.length) * 100)
+      : 0;
+
+    function efectividadEnMes(mes, anio) {
+      const turnosDelMes = todosTurnos.filter(t => esMismoMes(t.creado_en, mes, anio) && t.estado !== 'cancelado');
+      if (!turnosDelMes.length) return null;
+      const confirmadosDelMes = turnosDelMes.filter(t => ['confirmado', 'completado'].includes(t.estado));
+      return Math.round((confirmadosDelMes.length / turnosDelMes.length) * 100);
+    }
+    const efectividadMesAnterior = efectividadEnMes(mesAnteriorRef.getMonth(), mesAnteriorRef.getFullYear());
+
+    const donantesIds = [...new Set(todosTurnos.map(t => t.usuario_id))];
+    const corteDelMes = new Date(anioActual, mesActual, 1);
+    const donantesIdsAntesDeEsteMes = [...new Set(
+      todosTurnos.filter(t => new Date(t.creado_en) < corteDelMes).map(t => t.usuario_id)
+    )];
+    const deltaDonantes = donantesIds.length - donantesIdsAntesDeEsteMes.length;
+
+    const nombresMes = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const donacionesPorMes = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(anioActual, mesActual - i, 1);
+      const mes = d.getMonth(), anio = d.getFullYear();
+      donacionesPorMes.push({
+        label: nombresMes[mes],
+        donaciones: todasDonaciones.filter(x => esMismoMes(x.registrado_en, mes, anio)).length,
+        turnosSolicitados: todosTurnos.filter(x => esMismoMes(x.creado_en, mes, anio)).length,
+      });
+    }
+
+    // Filtrado por creado_en de este mes para que coincida con el rótulo
+    // "Este mes" del gráfico de hospital/metricas.html.
+    const turnosEsteMes = todosTurnos.filter(t => esMismoMes(t.creado_en, mesActual, anioActual));
+    const estadoTurnos = {
+      confirmados: turnosEsteMes.filter(t => ['confirmado', 'completado'].includes(t.estado)).length,
+      pendientes: turnosEsteMes.filter(t => t.estado === 'pendiente').length,
+      cancelados: turnosEsteMes.filter(t => ['cancelado', 'no_apto', 'ausente'].includes(t.estado)).length,
+    };
+
+    const efectividadPorCampana = todasCampanas
+      .map(c => ({
+        id: c.id,
+        titulo: c.titulo,
+        urgente: c.urgente,
+        estado: c.estado,
+        obtenidas: c.unidades_obtenidas,
+        requeridas: c.unidades_requeridas,
+        pct: c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0,
+      }))
+      .sort((a, b) => b.pct - a.pct);
+
+    const conteoTipoSangre = {};
+    todasDonaciones.forEach(d => {
+      const donante = todosUsuarios.find(u => u.id === d.usuario_id);
+      const tipo = donante?.tipo_sangre || '?';
+      conteoTipoSangre[tipo] = (conteoTipoSangre[tipo] || 0) + 1;
+    });
+    const donacionesPorTipoSangre = Object.entries(conteoTipoSangre)
+      .map(([tipo, count]) => ({ tipo, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const conteoDias = [0, 0, 0, 0, 0, 0, 0];
+    todasDonaciones.forEach(d => { conteoDias[new Date(d.registrado_en).getDay()]++; });
+    const donacionesPorDia = [1, 2, 3, 4, 5, 6, 0].map(i => ({ label: diasSemana[i], count: conteoDias[i] }));
+
+    return {
+      hospital,
+      kpis: {
+        donacionesMes: donacionesMes.length,
+        donacionesMesAnterior: donacionesMesAnterior.length,
+        trendDonaciones,
+        campanasActivas: campanasActivas.length,
+        campanasTotal: todasCampanas.length,
+        campanasEsteMes,
+        campanasMesAnterior,
+        efectividadPromedio,
+        efectividadMesAnterior,
+        donantesRegistrados: donantesIds.length,
+        deltaDonantes,
+      },
+      donacionesPorMes,
+      estadoTurnos,
+      efectividadPorCampana,
+      donacionesPorTipoSangre,
+      donacionesPorDia,
+    };
+  }
+
+  // Las tabs "Resultados de análisis" y "Certificados" de
+  // hospital/documentacion.html estaban 100% hardcodeadas (donantes de
+  // ejemplo que no existían) — conectadas acá 2026-10-14, mismo día que el
+  // resto de las tarjetas. Usa la misma tabla `documentos` que ya usa
+  // donante/mis_documentos.html del lado del donante: un resultado/
+  // certificado está "pendiente" mientras no tenga `referencia_id`
+  // asignado (resultado_analisis.id / certificado_donacion.id).
+  function cargarDocumentacionHospital() {
+    const s = HemoRed.sesion.get();
+    if (!s) return { resultadosPendientes: [], resultadosCargados: [], certificadosSolicitados: [], certificadosEmitidos: [] };
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    const hospitalId = usuario?.hospital_id;
+    const usuarios = HemoRed.db.all('usuarios');
+    const campanas = HemoRed.db.all('campanas');
+
+    function donanteYCampana(donacionId, usuarioId) {
+      const donacion = HemoRed.db.find('donaciones', donacionId);
+      return {
+        donante: usuarios.find(u => u.id === usuarioId),
+        campana: donacion ? campanas.find(c => c.id === donacion.campana_id) : null,
+        fechaDonacion: donacion?.registrado_en,
+      };
+    }
+
+    const docsResultado = HemoRed.db.where('documentos', 'hospital_id', hospitalId).filter(d => d.tipo === 'resultado_analisis');
+    const resultadosPendientes = docsResultado.filter(d => !d.referencia_id)
+      .map(d => ({ ...d, ...donanteYCampana(d.donacion_id, d.usuario_id) }));
+    const resultadosCargados = docsResultado.filter(d => d.referencia_id)
+      .map(d => ({ ...d, ...donanteYCampana(d.donacion_id, d.usuario_id), analisis: HemoRed.db.find('resultado_analisis', d.referencia_id) }))
+      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    const docsCertificado = HemoRed.db.where('documentos', 'hospital_id', hospitalId).filter(d => d.tipo === 'certificado');
+    const certificadosSolicitados = docsCertificado.filter(d => !d.referencia_id)
+      .map(d => ({ ...d, ...donanteYCampana(d.donacion_id, d.usuario_id) }));
+    const certificadosEmitidos = docsCertificado.filter(d => d.referencia_id)
+      .map(d => ({ ...d, ...donanteYCampana(d.donacion_id, d.usuario_id), certificado: HemoRed.db.find('certificado_donacion', d.referencia_id) }))
+      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    return { resultadosPendientes, resultadosCargados, certificadosSolicitados, certificadosEmitidos };
   }
 
   // ===== CAMPAÑAS (rol Hospital) =====
@@ -1037,7 +1366,7 @@ HemoRed.data = (function() {
       const d = new Date(base);
       d.setDate(d.getDate() + i);
       if (cierre && d > cierre) break;
-      if (campana.dias_atencion.includes(d.getDay())) fechas.push(d.toISOString().slice(0, 10));
+      if (campana.dias_atencion.includes(d.getDay())) fechas.push(fechaISO(d));
     }
     return fechas;
   }
@@ -1055,9 +1384,9 @@ HemoRed.data = (function() {
       const d = new Date(hoy);
       d.setDate(d.getDate() + i);
       if (cierre && d > cierre) break;
-      const fechaISO = d.toISOString().slice(0, 10);
-      const slots = generarSlotsDisponibles(campana, fechaISO) || [];
-      if (slots.length) dias.push({ fechaISO, slots });
+      const fechaStr = fechaISO(d);
+      const slots = generarSlotsDisponibles(campana, fechaStr) || [];
+      if (slots.length) dias.push({ fechaISO: fechaStr, slots });
     }
     const cupo = campana.cupo_por_turno || 1;
     const totalTurnos = dias.reduce((acc, d) => acc + d.slots.length, 0);
@@ -1172,6 +1501,7 @@ HemoRed.data = (function() {
   // turnos con el donante ya resuelto (nombre/documento), para las 3
   // pestañas (turnos / descripción / donantes confirmados).
   function cargarDetalleCampana(id) {
+    _procesarVencimientosTurnos();
     const campana = HemoRed.db.find('campanas', id);
     if (!campana) return null;
     const hospital = HemoRed.db.find('hospitales', campana.hospital_id);
@@ -1191,6 +1521,7 @@ HemoRed.data = (function() {
   // cancelarTurno() del donante — un rechazo administrativo del hospital
   // usa rechazarTurno(), que no tiene ninguna de esas dos restricciones).
   function turnosQueBloqueanEdicion(campanaId, nuevaConfig) {
+    _procesarVencimientosTurnos();
     const turnos = HemoRed.db.where('turnos', 'campana_id', campanaId)
       .filter(t => t.estado !== 'cancelado');
     return turnos.filter(t => {
@@ -1201,11 +1532,12 @@ HemoRed.data = (function() {
 
   async function cargarTurnosHoy() {
     const db = await HemoRed.db.init();
+    _procesarVencimientosTurnos();
     const s = HemoRed.sesion.get();
     const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
     const hospital = HemoRed.db.find('hospitales', usuario?.hospital_id);
 
-    const hoy = ahora().toISOString().slice(0, 10);
+    const hoy = hoyISO();
     const turnos = HemoRed.db.all('turnos').filter(t => t.hospital_id === hospital?.id && t.fecha === hoy);
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
@@ -1379,6 +1711,7 @@ HemoRed.data = (function() {
   // ===== PROFESIONAL =====
   async function cargarTurnosProfesional() {
     const db = await HemoRed.db.init();
+    _procesarVencimientosTurnos();
     const s = HemoRed.sesion.get();
     const prof = HemoRed.db.where('profesionales', 'usuario_id', s?.usuario_id)[0];
     const ph = HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id);
@@ -1391,8 +1724,14 @@ HemoRed.data = (function() {
     // (hoy, nada más); el resto de los stats y la lista abajo cubren todo
     // el rango, ordenado cronológicamente, para que el profesional (médico
     // o enfermero) pueda ver su agenda completa, no solo el día de hoy.
-    const hoy = ahora().toISOString().slice(0, 10);
-    const turnos = HemoRed.db.all('turnos').filter(t => hospital_ids.includes(t.hospital_id));
+    const hoy = hoyISO();
+    // Pedido explícito de la usuaria: un turno todavía "pendiente" (el
+    // hospital nunca lo confirmó) no le aparece al profesional en ningún
+    // período — ni presente, ni futuro, ni como historial — porque nunca
+    // llegó a ser algo que él tuviera que esperar. "cancelado" SÍ puede
+    // seguir apareciendo: también cubre un turno que SÍ estuvo confirmado
+    // y el donante canceló después, y eso sí le atañe.
+    const turnos = HemoRed.db.all('turnos').filter(t => hospital_ids.includes(t.hospital_id) && t.estado !== 'pendiente');
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
     const donaciones = HemoRed.db.all('donaciones');
@@ -1408,16 +1747,59 @@ HemoRed.data = (function() {
       }))
       .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
 
-    _set('stat-turnos-hoy', turnosConDonacion.filter(t => t.fecha === hoy).length);
-    _set('nav-badge-turnos', turnosConDonacion.filter(t => t.fecha === hoy).length);
-    _set('stat-completados', turnosConDonacion.filter(t => t.estado === 'completado' && t.donacion?.resultado_apto !== false).length);
-    _set('stat-pendientes', turnosConDonacion.filter(t => ['pendiente', 'confirmado'].includes(t.estado)).length);
-    // "No apto" tiene 2 orígenes posibles: la evaluación clínica del médico
-    // (turno.estado pasa a 'no_apto', corta el camino antes de la
-    // extracción) o, más raro, un resultado_apto:false cargado directo en
-    // "Registrar donación" (el enfermero marcando el resultado de la
-    // extracción en sí).
-    _set('stat-no-aptos', turnosConDonacion.filter(t => t.estado === 'no_apto' || t.donacion?.resultado_apto === false).length);
+    const turnosHoy = turnosConDonacion.filter(t => t.fecha === hoy);
+
+    // Las 4 tarjetas de arriba del dashboard — a pedido explícito,
+    // acotadas al día de hoy (no todo el historial) y partidas según lo
+    // que de verdad le toca a CADA rol: para el médico, el turno es
+    // "suyo" desde que se agenda hasta que carga la evaluación clínica;
+    // para el enfermero, recién entra en juego cuando el médico ya dio el
+    // apto, y antes de eso cae en "Pendientes" (por eso esos números se
+    // van corriendo de una tarjeta a otra a medida que el médico evalúa,
+    // sin que el enfermero haga nada). Los 4 baldes son mutuamente
+    // excluyentes y suman el total de turnos de hoy.
+    let completados, cancelados, enProceso, pendientes;
+    if (prof?.tipo === 'medico') {
+      // "En proceso" = el médico tiene la entrevista ABIERTA ahora mismo
+      // (turno.estado === 'en_curso', puesto por iniciarEntrevistaClinica()
+      // al clickear "Iniciar entrevista" — no por estar simplemente listo
+      // para empezar, eso cae en "Pendiente"). Si cancela el modal sin
+      // terminar, cancelarEntrevistaClinica() lo vuelve a 'confirmado' y
+      // reaparece acá como pendiente.
+      cancelados = turnosHoy.filter(t => ['cancelado', 'ausente'].includes(t.estado));
+      completados = turnosHoy.filter(t => !!t.evaluacion && !cancelados.includes(t));
+      enProceso = turnosHoy.filter(t => t.estado === 'en_curso');
+    } else {
+      cancelados = turnosHoy.filter(t => ['no_apto', 'cancelado', 'ausente', 'incompleta'].includes(t.estado));
+      completados = turnosHoy.filter(t => !!t.donacion && !cancelados.includes(t));
+      enProceso = turnosHoy.filter(t => !completados.includes(t) && !cancelados.includes(t) && !!t.evaluacion);
+    }
+    pendientes = turnosHoy.filter(t => !completados.includes(t) && !cancelados.includes(t) && !enProceso.includes(t));
+
+    // El badge del menú muestra lo mismo que la tarjeta "En proceso": lo
+    // que de verdad le toca a este profesional accionar hoy (no
+    // "pendientes", que todavía no le corresponde). Antes contaba "todo
+    // lo no cerrado" (pendientes + en proceso juntos), lo que para el
+    // enfermero mostraba un número mayor al de la tarjeta "En proceso" y
+    // no explicaba nada — un médico con todo evaluado y un enfermero con
+    // todo extraído veían el mismo número sin que dijera qué les tocaba.
+    _set('nav-badge-turnos', enProceso.length);
+
+    const totalHoy = turnosHoy.length;
+    _set('stat-completados', completados.length);
+    _set('stat-en-proceso', enProceso.length);
+    _set('stat-pendientes', pendientes.length);
+    _set('stat-cancelados', cancelados.length);
+    if (typeof HemoRed !== 'undefined' && HemoRed.ui?.pintarPorcentaje) {
+      HemoRed.ui.pintarPorcentaje('trend-completados', completados.length, totalHoy, { bg: '#e1f5ee', color: '#27ae60' });
+      HemoRed.ui.pintarPorcentaje('trend-en-proceso', enProceso.length, totalHoy, { bg: '#efeefd', color: '#7f77dd' });
+      HemoRed.ui.pintarPorcentaje('trend-pendientes', pendientes.length, totalHoy, { bg: '#fdf3e8', color: '#e67e22' });
+      HemoRed.ui.pintarPorcentaje('trend-cancelados', cancelados.length, totalHoy, { bg: '#fde8e8', color: '#c0392b' });
+    }
+    _set('sub-completados', `${completados.length} de ${totalHoy} turnos hoy`);
+    _set('sub-en-proceso', `${enProceso.length} de ${totalHoy} turnos hoy`);
+    _set('sub-pendientes', `${pendientes.length} de ${totalHoy} turnos hoy`);
+    _set('sub-cancelados', `${cancelados.length} de ${totalHoy} turnos hoy`);
 
     return turnosConDonacion.map(t => ({ ...t, tieneDonacionRegistrada: !!t.donacion, tieneEvaluacionClinica: !!t.evaluacion }));
   }
@@ -1447,6 +1829,8 @@ HemoRed.data = (function() {
 
   return {
     ahora,
+    fechaISO,
+    hoyISO,
     crearMensajeContacto,
     restablecerPasswordPorEmail,
     CAMPOS_PERFIL_PERSONAL,
@@ -1460,6 +1844,7 @@ HemoRed.data = (function() {
     cancelarTurno,
     confirmarTurno,
     rechazarTurno,
+    marcarAusente,
     guardarFormularioConsentimiento,
     cargarMisTurnos,
     cargarMisDonaciones,
@@ -1481,6 +1866,10 @@ HemoRed.data = (function() {
     cambiarEmailDonante,
     eliminarCuentaDonante,
     cargarDashboardHospital,
+    cargarPacientesHospital,
+    cargarProfesionalesHospital,
+    cargarMetricasHospital,
+    cargarDocumentacionHospital,
     esCampanaActiva,
     obtenerPlanHospital,
     contarCampanasActivas,
@@ -1505,6 +1894,8 @@ HemoRed.data = (function() {
     cargarTurnosProfesional,
     cargarRevisionClinica,
     corregirRespuestasCuestionario,
+    iniciarEntrevistaClinica,
+    cancelarEntrevistaClinica,
     registrarEvaluacionClinica,
     cargarHistorialDonante,
     cargarDashboardAdmin,

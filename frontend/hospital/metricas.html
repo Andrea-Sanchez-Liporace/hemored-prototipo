@@ -18,38 +18,14 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button>
-  </div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
-    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
-    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
-    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item active" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
-    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
-    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
-    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <div class="topbar-title">Métricas</div>
     </div>
     <div class="topbar-actions">
@@ -73,38 +49,38 @@
       <div class="kpi">
         <div class="kpi-top">
           <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-heart" style="color:#ef647c;font-size:18px;"></i></div>
-          <span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+18%</span>
+          <span class="kpi-trend" id="kpi-trend-donaciones"></span>
         </div>
-        <div class="kpi-num">47</div>
+        <div class="kpi-num" id="kpi-donaciones">—</div>
         <div class="kpi-label">Donaciones realizadas</div>
-        <div class="kpi-sub">vs 40 el mes anterior</div>
+        <div class="kpi-sub" id="kpi-sub-donaciones">—</div>
       </div>
       <div class="kpi">
         <div class="kpi-top">
           <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-speakerphone" style="color:#ef647c;font-size:18px;"></i></div>
-          <span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+2</span>
+          <span class="kpi-trend" id="kpi-trend-campanas"></span>
         </div>
-        <div class="kpi-num">3</div>
+        <div class="kpi-num" id="kpi-campanas">—</div>
         <div class="kpi-label">Campañas activas</div>
-        <div class="kpi-sub">7 campañas en total</div>
+        <div class="kpi-sub" id="kpi-sub-campanas">—</div>
       </div>
       <div class="kpi">
         <div class="kpi-top">
           <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-target" style="color:#ef647c;font-size:18px;"></i></div>
-          <span class="kpi-trend up"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+5%</span>
+          <span class="kpi-trend" id="kpi-trend-efectividad"></span>
         </div>
-        <div class="kpi-num">78%</div>
+        <div class="kpi-num" id="kpi-efectividad">—</div>
         <div class="kpi-label">Efectividad promedio</div>
         <div class="kpi-sub">Turnos confirmados / solicitados</div>
       </div>
       <div class="kpi">
         <div class="kpi-top">
           <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-users" style="color:#ef647c;font-size:18px;"></i></div>
-          <span class="kpi-trend down"><i class="ti ti-arrow-down" style="font-size:10px;"></i>-3</span>
+          <span class="kpi-trend" id="kpi-trend-donantes"></span>
         </div>
-        <div class="kpi-num">124</div>
+        <div class="kpi-num" id="kpi-donantes">—</div>
         <div class="kpi-label">Donantes registrados</div>
-        <div class="kpi-sub">vs 127 el mes anterior</div>
+        <div class="kpi-sub" id="kpi-sub-donantes">Con turnos en este hospital</div>
       </div>
     </div>
 
@@ -154,57 +130,8 @@
             <div class="chart-sub">Donaciones / cupo objetivo</div>
           </div>
         </div>
-        <div class="campanas-table">
-          <div class="camp-row">
-            <div class="camp-info">
-              <div class="camp-name">Campaña pediátrica</div>
-              <div class="camp-meta">7 de 10 cupos · Urgente</div>
-            </div>
-            <div class="camp-efectividad">
-              <div class="efectividad-num">70%</div>
-              <div class="efectividad-bar"><div class="efectividad-fill" style="width:70%;"></div></div>
-            </div>
-          </div>
-          <div class="camp-row">
-            <div class="camp-info">
-              <div class="camp-name">Banco tipo A</div>
-              <div class="camp-meta">4 de 10 cupos</div>
-            </div>
-            <div class="camp-efectividad">
-              <div class="efectividad-num">40%</div>
-              <div class="efectividad-bar"><div class="efectividad-fill" style="width:40%;"></div></div>
-            </div>
-          </div>
-          <div class="camp-row">
-            <div class="camp-info">
-              <div class="camp-name">Reserva general mayo</div>
-              <div class="camp-meta">2 de 8 cupos</div>
-            </div>
-            <div class="camp-efectividad">
-              <div class="efectividad-num">25%</div>
-              <div class="efectividad-bar"><div class="efectividad-fill" style="width:25%;"></div></div>
-            </div>
-          </div>
-          <div class="camp-row">
-            <div class="camp-info">
-              <div class="camp-name">Campaña abril — tipo O</div>
-              <div class="camp-meta">10 de 10 cupos · Cerrada</div>
-            </div>
-            <div class="camp-efectividad">
-              <div class="efectividad-num" style="color:#27ae60;">100%</div>
-              <div class="efectividad-bar"><div class="efectividad-fill" style="width:100%;background:#27ae60;"></div></div>
-            </div>
-          </div>
-          <div class="camp-row">
-            <div class="camp-info">
-              <div class="camp-name">Campaña marzo — general</div>
-              <div class="camp-meta">6 de 8 cupos · Cerrada</div>
-            </div>
-            <div class="camp-efectividad">
-              <div class="efectividad-num">75%</div>
-              <div class="efectividad-bar"><div class="efectividad-fill" style="width:75%;"></div></div>
-            </div>
-          </div>
+        <div class="campanas-table" id="tabla-efectividad-campanas">
+          <!-- renderizado dinámico vía renderMetricas() -->
         </div>
       </div>
 
@@ -215,47 +142,8 @@
             <div class="chart-sub">Acumulado histórico</div>
           </div>
         </div>
-        <div class="sangre-list">
-          <div class="sangre-row">
-            <div class="sangre-tipo">0+</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:85%;"></div></div>
-            <div class="sangre-count">34</div>
-          </div>
-          <div class="sangre-row">
-            <div class="sangre-tipo">A+</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:70%;"></div></div>
-            <div class="sangre-count">28</div>
-          </div>
-          <div class="sangre-row">
-            <div class="sangre-tipo">0-</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:55%;"></div></div>
-            <div class="sangre-count">22</div>
-          </div>
-          <div class="sangre-row">
-            <div class="sangre-tipo">B+</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:40%;"></div></div>
-            <div class="sangre-count">16</div>
-          </div>
-          <div class="sangre-row">
-            <div class="sangre-tipo">AB+</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:25%;"></div></div>
-            <div class="sangre-count">10</div>
-          </div>
-          <div class="sangre-row">
-            <div class="sangre-tipo">A-</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:20%;"></div></div>
-            <div class="sangre-count">8</div>
-          </div>
-          <div class="sangre-row">
-            <div class="sangre-tipo">B-</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:12%;"></div></div>
-            <div class="sangre-count">5</div>
-          </div>
-          <div class="sangre-row">
-            <div class="sangre-tipo">AB-</div>
-            <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:8%;"></div></div>
-            <div class="sangre-count">3</div>
-          </div>
+        <div class="sangre-list" id="lista-tipos-sangre">
+          <!-- renderizado dinámico vía renderMetricas() -->
         </div>
       </div>
 
@@ -263,7 +151,7 @@
         <div class="chart-header">
           <div>
             <div class="chart-title">Donantes por día de la semana</div>
-            <div class="chart-sub">Promedio del último mes</div>
+            <div class="chart-sub">Acumulado histórico</div>
           </div>
         </div>
         <div class="chart-wrap" style="height:220px;">
@@ -277,97 +165,126 @@
 </div>
 
 <script>
-  // CHART — Donaciones por mes
-  const ctx1 = document.getElementById('chart-donaciones').getContext('2d');
-  new Chart(ctx1, {
-    type: 'bar',
-    data: {
-      labels: ['Dic', 'Ene', 'Feb', 'Mar', 'Abr', 'May'],
-      datasets: [
-        {
-          label: 'Donaciones',
-          data: [28, 32, 35, 38, 40, 47],
-          backgroundColor: '#ef647c',
-          borderRadius: 6,
-          borderSkipped: false,
+  // Toda esta página era 100% maqueta fija (los 4 KPI, los 3 gráficos y
+  // las 2 tablas) — conectada acá 2026-10-14 a
+  // HemoRed.data.cargarMetricasHospital(). Los trends (flechita + %) salen
+  // de HemoRed.ui.pintarTrend(): solo se muestran donde hay un dato real
+  // del período anterior para compararlos.
+  function renderMetricas() {
+    const m = HemoRed.data.cargarMetricasHospital();
+    if (!m) return;
+
+    // --- KPIs ---
+    document.getElementById('kpi-donaciones').textContent = m.kpis.donacionesMes;
+    document.getElementById('kpi-sub-donaciones').textContent = `vs ${m.kpis.donacionesMesAnterior} el mes anterior`;
+    HemoRed.ui.pintarTrend('kpi-trend-donaciones', m.kpis.donacionesMes, m.kpis.donacionesMesAnterior);
+
+    document.getElementById('kpi-campanas').textContent = m.kpis.campanasActivas;
+    document.getElementById('kpi-sub-campanas').textContent = `${m.kpis.campanasTotal} campaña${m.kpis.campanasTotal === 1 ? '' : 's'} en total`;
+    HemoRed.ui.pintarTrend('kpi-trend-campanas', m.kpis.campanasEsteMes, m.kpis.campanasMesAnterior);
+
+    document.getElementById('kpi-efectividad').textContent = `${m.kpis.efectividadPromedio}%`;
+    HemoRed.ui.pintarTrend('kpi-trend-efectividad', m.kpis.efectividadPromedio, m.kpis.efectividadMesAnterior, { permitirNulo: true });
+
+    document.getElementById('kpi-donantes').textContent = m.kpis.donantesRegistrados;
+    HemoRed.ui.pintarTrend('kpi-trend-donantes', m.kpis.donantesRegistrados, m.kpis.donantesRegistrados - m.kpis.deltaDonantes, { sufijo: '' });
+
+    // --- Efectividad por campaña ---
+    document.getElementById('tabla-efectividad-campanas').innerHTML = m.efectividadPorCampana.map(c => `
+      <div class="camp-row">
+        <div class="camp-info">
+          <div class="camp-name">${c.titulo}</div>
+          <div class="camp-meta">${c.obtenidas} de ${c.requeridas} cupos${c.urgente ? ' · Urgente' : ''}${c.estado === 'cerrada' ? ' · Cerrada' : ''}</div>
+        </div>
+        <div class="camp-efectividad">
+          <div class="efectividad-num" style="${c.pct >= 100 ? 'color:#27ae60;' : ''}">${c.pct}%</div>
+          <div class="efectividad-bar"><div class="efectividad-fill" style="width:${Math.min(c.pct, 100)}%;${c.pct >= 100 ? 'background:#27ae60;' : ''}"></div></div>
+        </div>
+      </div>`).join('') || '<div style="padding:20px;color:#a9435d;font-size:13px;">Todavía no hay campañas.</div>';
+
+    // --- Donaciones por tipo de sangre ---
+    const maxTipo = Math.max(1, ...m.donacionesPorTipoSangre.map(t => t.count));
+    document.getElementById('lista-tipos-sangre').innerHTML = m.donacionesPorTipoSangre.map(t => `
+      <div class="sangre-row">
+        <div class="sangre-tipo">${t.tipo}</div>
+        <div class="sangre-bar-wrap"><div class="sangre-bar" style="width:${Math.round((t.count / maxTipo) * 100)}%;"></div></div>
+        <div class="sangre-count">${t.count}</div>
+      </div>`).join('') || '<div style="padding:20px;color:#a9435d;font-size:13px;">Todavía no hay donaciones registradas.</div>';
+
+    // --- CHART: Donaciones por mes ---
+    new Chart(document.getElementById('chart-donaciones').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: m.donacionesPorMes.map(x => x.label),
+        datasets: [
+          { label: 'Donaciones', data: m.donacionesPorMes.map(x => x.donaciones), backgroundColor: '#ef647c', borderRadius: 6, borderSkipped: false },
+          { label: 'Turnos solicitados', data: m.donacionesPorMes.map(x => x.turnosSolicitados), backgroundColor: '#fdf0f3', borderRadius: 6, borderSkipped: false },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#a9435d' } },
+          y: { grid: { color: '#f0e0e6' }, ticks: { font: { size: 11 }, color: '#a9435d', precision: 0 } },
         },
-        {
-          label: 'Solicitados',
-          data: [35, 40, 42, 45, 50, 60],
-          backgroundColor: '#fdf0f3',
+      },
+    });
+
+    // --- CHART: Estado de turnos (este mes) ---
+    new Chart(document.getElementById('chart-estados').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Confirmados', 'Pendientes', 'Cancelados'],
+        datasets: [{
+          data: [m.estadoTurnos.confirmados, m.estadoTurnos.pendientes, m.estadoTurnos.cancelados],
+          backgroundColor: ['#27ae60', '#e67e22', '#c0392b'],
+          borderWidth: 0,
+          hoverOffset: 4,
+        }],
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } },
+    });
+
+    // --- CHART: Donantes por día de la semana ---
+    const maxDia = Math.max(1, ...m.donacionesPorDia.map(d => d.count));
+    new Chart(document.getElementById('chart-dias').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: m.donacionesPorDia.map(d => d.label),
+        datasets: [{
+          data: m.donacionesPorDia.map(d => d.count),
+          backgroundColor: m.donacionesPorDia.map(d => d.count === maxDia ? '#ef647c' : '#f28b98'),
           borderRadius: 6,
           borderSkipped: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#a9435d' } },
-        y: { grid: { color: '#f0e0e6' }, ticks: { font: { size: 11 }, color: '#a9435d' } }
-      }
-    }
-  });
-
-  // CHART — Estados (donut)
-  const ctx2 = document.getElementById('chart-estados').getContext('2d');
-  new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-      labels: ['Confirmados', 'Pendientes', 'Cancelados'],
-      datasets: [{
-        data: [47, 8, 5],
-        backgroundColor: ['#27ae60', '#e67e22', '#c0392b'],
-        borderWidth: 0,
-        hoverOffset: 4
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '65%',
-      plugins: { legend: { display: false } }
-    }
-  });
-
-  // CHART — Donantes por día
-  const ctx3 = document.getElementById('chart-dias').getContext('2d');
-  new Chart(ctx3, {
-    type: 'bar',
-    data: {
-      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-      datasets: [{
-        data: [4, 9, 8, 7, 6, 2, 0],
-        backgroundColor: ['#fdf0f3','#ef647c','#ef647c','#ef647c','#ef647c','#f28b98','#fdf0f3'],
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#a9435d' } },
-        y: { grid: { color: '#f0e0e6' }, ticks: { font: { size: 11 }, color: '#a9435d', stepSize: 2 } }
-      }
-    }
-  });
-
-  function cambiarPeriodo(periodo) { /* actualizar datos según periodo */ }
-
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#a9435d' } },
+          y: { grid: { color: '#f0e0e6' }, ticks: { font: { size: 11 }, color: '#a9435d', stepSize: 1, precision: 0 } },
+        },
+      },
+    });
   }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
+
+  function cambiarPeriodo(periodo) { /* el selector de período es visual por ahora — no hay un segundo corte de datos que mostrar */ }
+
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('hospital');
+    await HemoRed.db.init();
+    renderMetricas();
+  });
 </script>
 
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 </body>
 </html>

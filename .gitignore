@@ -144,3 +144,8 @@ vite.config.ts.timestamp-*
 
 # Claude Code
 .claude/
+
+# Playwright test output (capturas/videos de corridas, no versionado)
+test-results/
+tests/test-results/
+tests/playwright-report/

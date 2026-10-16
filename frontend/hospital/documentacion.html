@@ -16,36 +16,14 @@
 </head>
 <body>
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
-    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
-    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
-    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
-    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
-    <a class="nav-item active" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
-    <a class="nav-item" href="../hospital/facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <div class="topbar-title">Documentación</div>
     </div>
     <a class="topbar-btn" href="../hospital/notificaciones.html" data-tooltip="Ir a notificaciones">
@@ -56,14 +34,44 @@
 
   <div class="content">
 
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-test-pipe" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="doc-trend-resultados"></span>
+        </div>
+        <div class="stat-num" id="doc-stat-resultados">—</div>
+        <div class="stat-label">Resultados pendientes de carga</div>
+        <div class="kpi-sub" id="doc-sub-resultados">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-certificate" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="doc-trend-certificados"></span>
+        </div>
+        <div class="stat-num" id="doc-stat-certificados">—</div>
+        <div class="stat-label">Certificados solicitados</div>
+        <div class="kpi-sub" id="doc-sub-certificados">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-flag" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="doc-trend-solicitudes"></span>
+        </div>
+        <div class="stat-num" id="doc-stat-solicitudes">—</div>
+        <div class="stat-label">Solicitudes de corrección pendientes</div>
+        <div class="kpi-sub" id="doc-sub-solicitudes">—</div>
+      </div>
+    </div>
+
     <div class="tabs">
       <button class="tab active" onclick="cambiarTab('resultados', this)">
         <i class="ti ti-test-pipe" style="font-size:14px;"></i>Resultados de análisis
-        <span class="tab-badge">3</span>
+        <span class="tab-badge" id="badge-resultados">0</span>
       </button>
       <button class="tab" onclick="cambiarTab('certificados', this)">
         <i class="ti ti-certificate" style="font-size:14px;"></i>Certificados
-        <span class="tab-badge">2</span>
+        <span class="tab-badge" id="badge-certificados">0</span>
       </button>
       <button class="tab" onclick="cambiarTab('solicitudes', this)">
         <i class="ti ti-flag" style="font-size:14px;"></i>Solicitudes de corrección
@@ -79,7 +87,7 @@
             <i class="ti ti-test-pipe" style="color:white;font-size:20px;"></i>
           </div>
           <div>
-            <div class="pb-title">3 resultados pendientes de carga</div>
+            <div class="pb-title" id="resultados-pendientes-titulo">—</div>
             <div class="pb-sub">Donaciones realizadas que aún no tienen resultado de análisis cargado</div>
           </div>
         </div>
@@ -93,81 +101,7 @@
           <div class="th">Estado</div>
           <div class="th"></div>
         </div>
-
-        <!-- Pendientes -->
-        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
-          <div class="donante-info">
-            <div class="donante-avatar">CM</div>
-            <div>
-              <div class="donante-nombre">Carlos Méndez</div>
-              <div class="donante-sub">DNI 29.654.321</div>
-            </div>
-          </div>
-          <div class="td">Campaña pediátrica</div>
-          <div class="td hide-md">19 may 2026</div>
-          <div class="td"><span class="doc-badge badge-pendiente">Pendiente</span></div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-primary" onclick="abrirModalResultado()">
-              <i class="ti ti-upload" style="font-size:11px;"></i>Cargar resultado
-            </button>
-          </div>
-        </div>
-
-        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
-          <div class="donante-info">
-            <div class="donante-avatar">SP</div>
-            <div>
-              <div class="donante-nombre">Sofía Páez</div>
-              <div class="donante-sub">DNI 12.345.678</div>
-            </div>
-          </div>
-          <div class="td">Campaña pediátrica</div>
-          <div class="td hide-md">20 may 2026</div>
-          <div class="td"><span class="doc-badge badge-pendiente">Pendiente</span></div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-primary" onclick="abrirModalResultado()">
-              <i class="ti ti-upload" style="font-size:11px;"></i>Cargar resultado
-            </button>
-          </div>
-        </div>
-
-        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
-          <div class="donante-info">
-            <div class="donante-avatar">AR</div>
-            <div>
-              <div class="donante-nombre">Ana Rodríguez</div>
-              <div class="donante-sub">DNI 35.789.012</div>
-            </div>
-          </div>
-          <div class="td">Banco tipo A</div>
-          <div class="td hide-md">18 may 2026</div>
-          <div class="td"><span class="doc-badge badge-pendiente">Pendiente</span></div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-primary" onclick="abrirModalResultado()">
-              <i class="ti ti-upload" style="font-size:11px;"></i>Cargar resultado
-            </button>
-          </div>
-        </div>
-
-        <!-- Cargados -->
-        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
-          <div class="donante-info">
-            <div class="donante-avatar">ML</div>
-            <div>
-              <div class="donante-nombre">María López</div>
-              <div class="donante-sub">DNI 28.456.789</div>
-            </div>
-          </div>
-          <div class="td">Reserva general</div>
-          <div class="td hide-md">15 may 2026</div>
-          <div class="td"><span class="doc-badge badge-cargado">Cargado</span></div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-outline">
-              <i class="ti ti-eye" style="font-size:11px;"></i>Ver
-            </button>
-          </div>
-        </div>
-
+        <div id="lista-resultados"><!-- renderizado dinámico vía renderResultados() --></div>
       </div>
     </div>
 
@@ -179,7 +113,7 @@
             <i class="ti ti-certificate" style="color:white;font-size:20px;"></i>
           </div>
           <div>
-            <div class="pb-title">2 certificados solicitados por donantes</div>
+            <div class="pb-title" id="certificados-solicitados-titulo">—</div>
             <div class="pb-sub">Los donantes están esperando que emitas su certificado de donación</div>
           </div>
         </div>
@@ -188,68 +122,12 @@
       <div class="table-wrap">
         <div class="table-header" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
           <div class="th">Donante</div>
-          <div class="th">Emitido para</div>
+          <div class="th">Campaña</div>
           <div class="th hide-md">Fecha donación</div>
           <div class="th">Estado</div>
           <div class="th"></div>
         </div>
-
-        <!-- Solicitados -->
-        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
-          <div class="donante-info">
-            <div class="donante-avatar">SP</div>
-            <div>
-              <div class="donante-nombre">Sofía Páez</div>
-              <div class="donante-sub">DNI 12.345.678</div>
-            </div>
-          </div>
-          <div class="td">Ministerio de Salud CABA</div>
-          <div class="td hide-md">20 may 2026</div>
-          <div class="td"><span class="doc-badge badge-solicitado">Solicitado</span></div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-primary" onclick="abrirModalCertificado()">
-              <i class="ti ti-certificate" style="font-size:11px;"></i>Emitir
-            </button>
-          </div>
-        </div>
-
-        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
-          <div class="donante-info">
-            <div class="donante-avatar">CM</div>
-            <div>
-              <div class="donante-nombre">Carlos Méndez</div>
-              <div class="donante-sub">DNI 29.654.321</div>
-            </div>
-          </div>
-          <div class="td">Aysa SA</div>
-          <div class="td hide-md">19 may 2026</div>
-          <div class="td"><span class="doc-badge badge-solicitado">Solicitado</span></div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-primary" onclick="abrirModalCertificado()">
-              <i class="ti ti-certificate" style="font-size:11px;"></i>Emitir
-            </button>
-          </div>
-        </div>
-
-        <!-- Emitidos -->
-        <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
-          <div class="donante-info">
-            <div class="donante-avatar">ML</div>
-            <div>
-              <div class="donante-nombre">María López</div>
-              <div class="donante-sub">DNI 28.456.789</div>
-            </div>
-          </div>
-          <div class="td">Hospital San Martín</div>
-          <div class="td hide-md">15 may 2026</div>
-          <div class="td"><span class="doc-badge badge-cargado">Emitido</span></div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-outline">
-              <i class="ti ti-download" style="font-size:11px;"></i>Descargar
-            </button>
-          </div>
-        </div>
-
+        <div id="lista-certificados"><!-- renderizado dinámico vía renderCertificados() --></div>
       </div>
     </div>
 
@@ -487,6 +365,8 @@
 
     const pendientes = solicitudesActuales.filter(s => s.estado === 'pendiente').length;
     document.getElementById('badge-solicitudes').textContent = pendientes;
+    document.getElementById('doc-stat-solicitudes').textContent = pendientes;
+    pintarAlerta('doc-trend-solicitudes', pendientes);
     document.getElementById('solicitudes-pendientes-titulo').textContent = pendientes === 0
       ? 'No hay solicitudes pendientes'
       : `${pendientes} solicitud${pendientes === 1 ? '' : 'es'} pendiente${pendientes === 1 ? '' : 's'} de revisión`;
@@ -557,19 +437,98 @@
     cargarSolicitudes();
   }
 
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
+
+  // Tabs "Resultados de análisis" y "Certificados" — antes maqueta fija,
+  // conectadas acá 2026-10-14 a HemoRed.data.cargarDocumentacionHospital().
+  // El botón "Cargar resultado"/"Emitir" sigue sin guardar nada: esa acción
+  // (emitirCertificado(), cargar un resultado_analisis nuevo) todavía no
+  // existe del lado de datos, es una función aparte de lo pedido hoy.
+  function filaDocumento(d, columnas) {
+    const nombre = `${d.donante?.nombre || ''} ${d.donante?.apellido || ''}`.trim() || '—';
+    const iniciales = ((d.donante?.nombre?.[0] || '') + (d.donante?.apellido?.[0] || '')).toUpperCase() || '?';
+    return `
+      <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
+        <div class="donante-info">
+          <div class="donante-avatar">${iniciales}</div>
+          <div>
+            <div class="donante-nombre">${nombre}</div>
+            <div class="donante-sub">DNI ${d.donante?.numero_documento || '—'}</div>
+          </div>
+        </div>
+        <div class="td">${d.campana?.titulo || '—'}</div>
+        <div class="td hide-md">${fechaCorta(d.fechaDonacion)}</div>
+        ${columnas}
+      </div>`;
   }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
+
+  // Badge "alerta" compartido por las 3 tarjetas de arriba: rojo si hay
+  // algo pendiente de verdad, verde "al día" si no — nunca un hueco vacío.
+  function pintarAlerta(elId, n) {
+    const el = document.getElementById(elId);
+    if (n > 0) {
+      el.innerHTML = `<i class="ti ti-alert-circle" style="font-size:10px;"></i>${n} pendiente${n === 1 ? '' : 's'}`;
+      el.className = 'kpi-trend down';
+    } else {
+      el.innerHTML = '<i class="ti ti-check" style="font-size:10px;"></i>al día';
+      el.className = 'kpi-trend up';
+    }
+  }
+
+  function renderResultados() {
+    const { resultadosPendientes, resultadosCargados } = HemoRed.data.cargarDocumentacionHospital();
+    document.getElementById('doc-stat-resultados').textContent = resultadosPendientes.length;
+    document.getElementById('badge-resultados').textContent = resultadosPendientes.length;
+    document.getElementById('doc-sub-resultados').textContent = `${resultadosCargados.length} cargado${resultadosCargados.length === 1 ? '' : 's'}`;
+    pintarAlerta('doc-trend-resultados', resultadosPendientes.length);
+    document.getElementById('resultados-pendientes-titulo').textContent = resultadosPendientes.length === 0
+      ? 'No hay resultados pendientes de carga'
+      : `${resultadosPendientes.length} resultado${resultadosPendientes.length === 1 ? '' : 's'} pendiente${resultadosPendientes.length === 1 ? '' : 's'} de carga`;
+
+    const filasPendientes = resultadosPendientes.map(d => filaDocumento(d, `
+      <div class="td"><span class="doc-badge badge-pendiente">Pendiente</span></div>
+      <div class="row-actions">
+        <button class="btn-xs btn-xs-primary" onclick="abrirModalResultado()"><i class="ti ti-upload" style="font-size:11px;"></i>Cargar resultado</button>
+      </div>`));
+    const filasCargadas = resultadosCargados.map(d => filaDocumento(d, `
+      <div class="td"><span class="doc-badge badge-cargado">Cargado</span></div>
+      <div class="row-actions">
+        <button class="btn-xs btn-xs-outline" onclick="abrirModalResultado()"><i class="ti ti-eye" style="font-size:11px;"></i>Ver</button>
+      </div>`));
+    document.getElementById('lista-resultados').innerHTML = filasPendientes.join('') + filasCargadas.join('')
+      || '<div class="empty-state"><div class="empty-title">Todavía no hay resultados</div></div>';
+  }
+
+  function renderCertificados() {
+    const { certificadosSolicitados, certificadosEmitidos } = HemoRed.data.cargarDocumentacionHospital();
+    document.getElementById('doc-stat-certificados').textContent = certificadosSolicitados.length;
+    document.getElementById('badge-certificados').textContent = certificadosSolicitados.length;
+    document.getElementById('doc-sub-certificados').textContent = `${certificadosEmitidos.length} emitido${certificadosEmitidos.length === 1 ? '' : 's'}`;
+    pintarAlerta('doc-trend-certificados', certificadosSolicitados.length);
+    document.getElementById('certificados-solicitados-titulo').textContent = certificadosSolicitados.length === 0
+      ? 'No hay certificados solicitados'
+      : `${certificadosSolicitados.length} certificado${certificadosSolicitados.length === 1 ? '' : 's'} solicitado${certificadosSolicitados.length === 1 ? '' : 's'} por donantes`;
+
+    const filasSolicitados = certificadosSolicitados.map(d => filaDocumento(d, `
+      <div class="td"><span class="doc-badge badge-solicitado">Solicitado</span></div>
+      <div class="row-actions">
+        <button class="btn-xs btn-xs-primary" onclick="abrirModalCertificado()"><i class="ti ti-certificate" style="font-size:11px;"></i>Emitir</button>
+      </div>`));
+    const filasEmitidos = certificadosEmitidos.map(d => filaDocumento(d, `
+      <div class="td"><span class="doc-badge badge-cargado">Emitido</span></div>
+      <div class="row-actions">
+        <button class="btn-xs btn-xs-outline" onclick="abrirModalCertificado()"><i class="ti ti-download" style="font-size:11px;"></i>Descargar</button>
+      </div>`));
+    document.getElementById('lista-certificados').innerHTML = filasSolicitados.join('') + filasEmitidos.join('')
+      || '<div class="empty-state"><div class="empty-title">Todavía no hay certificados</div></div>';
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('hospital');
     await HemoRed.db.init();
     await cargarSolicitudes();
+    renderResultados();
+    renderCertificados();
+    document.getElementById('doc-sub-solicitudes').textContent = `${solicitudesActuales.filter(s => s.estado !== 'pendiente').length} resueltas`;
   });
 </script>
 
@@ -577,5 +536,7 @@
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 </body>
 </html>

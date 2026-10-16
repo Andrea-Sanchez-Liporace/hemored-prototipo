@@ -15,30 +15,13 @@
 
 </head>
 <body>
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><a href="../admin/dashboard.html">Hemo<span>red</span></a><div class="sidebar-badge"><i class="ti ti-shield" style="font-size:10px;"></i>Super Admin
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div></div>
-  <div class="sidebar-user"><div class="sidebar-avatar">SA</div><div><div class="sidebar-user-name">Admin HemoRed</div><div class="sidebar-user-role">Superadministrador</div></div></div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
-    <a class="nav-item" href="../admin/hospitales.html"><i class="ti ti-building-hospital"></i>Hospitales<span class="nav-badge">4</span></a>
-    <a class="nav-item active" href="../admin/donantes.html"><i class="ti ti-users"></i>Donantes</a>
-    <a class="nav-item" href="../admin/metricas.html"><i class="ti ti-chart-bar"></i>Métricas globales</a>
-    <div class="nav-section-label">Negocio</div>
-    <a class="nav-item" href="../admin/planes.html"><i class="ti ti-star"></i>Planes</a>
-    <a class="nav-item" href="../admin/facturacion.html"><i class="ti ti-receipt"></i>Facturación global<span class="nav-badge">2</span></a>
-    <div class="nav-section-label">Sistema</div>
-    <a class="nav-item" href="../admin/dashboard.html"><i class="ti ti-settings"></i>Configuración</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <a class="topbar-back" href="../admin/donantes.html"><i class="ti ti-arrow-left"></i>Donantes</a>
       <span class="topbar-sep">/</span>
       <span class="topbar-title">Sofía Páez</span>
@@ -179,12 +162,12 @@
       document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
     });
   }
-  function abrirSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
-  function cerrarSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
 </script>
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarAdmin());</script>
+
 </body>
 </html>

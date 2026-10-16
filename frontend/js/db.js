@@ -29,6 +29,7 @@ HemoRed.db = (function() {
 
   let data = {};
   let _initialized = false;
+  let _initPromise = null;
 
   const STORAGE_KEY = 'hemored_overrides';
 
@@ -55,20 +56,31 @@ HemoRed.db = (function() {
     }
   }
 
+  // Con el sidebar compartido (ui.js: montarSidebarHospital), una misma
+  // página puede llamar a init() desde dos lugares sin coordinarse entre
+  // sí (su propio DOMContentLoaded + el del montaje del sidebar) — sin
+  // este guard, las dos disparaban los 24 fetches por su cuenta a la vez
+  // (duplicado, y notablemente más lento con el servidor de dev de un
+  // solo hilo). _initPromise asegura que el segundo llamado en paralelo
+  // espere al mismo fetch en curso en vez de arrancar otro.
   async function init(basePath) {
     if (_initialized) return data;
+    if (_initPromise) return _initPromise;
     const base = basePath || BASE;
-    const promises = tablas.map(t =>
-      fetch(`${base}${t}.json`)
-        .then(r => r.json())
-        .then(d => { data[t] = d; })
-        .catch(() => { data[t] = []; console.warn(`No se pudo cargar ${t}.json`); })
-    );
-    await Promise.all(promises);
-    _restaurar();
-    _initialized = true;
-    console.log('✓ HemoRed DB cargada —', Object.keys(data).length, 'tablas');
-    return data;
+    _initPromise = (async () => {
+      const promises = tablas.map(t =>
+        fetch(`${base}${t}.json`)
+          .then(r => r.json())
+          .then(d => { data[t] = d; })
+          .catch(() => { data[t] = []; console.warn(`No se pudo cargar ${t}.json`); })
+      );
+      await Promise.all(promises);
+      _restaurar();
+      _initialized = true;
+      console.log('✓ HemoRed DB cargada —', Object.keys(data).length, 'tablas');
+      return data;
+    })();
+    return _initPromise;
   }
 
   // Helpers tipo ORM mínimo

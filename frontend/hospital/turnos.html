@@ -17,38 +17,14 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button>
-  </div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
-    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
-    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
-    <a class="nav-item active" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
-    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
-    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
-    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <div class="topbar-title">Gestión de turnos</div>
     </div>
     <div style="display:flex;gap:10px;">
@@ -61,24 +37,52 @@
 
   <div class="content">
 
-    <!-- STATS CLICKEABLES -->
+    <!-- STATS — solo informativas, el filtro está en las pestañas de abajo -->
     <div class="stats-row">
-      <div class="stat-card active-filter" onclick="filtrarEstado('todos', this)">
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-calendar-event" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-todos"></span>
+        </div>
         <div class="stat-num" id="stat-todos">—</div>
         <div class="stat-label">Todos los turnos de hoy</div>
+        <div class="kpi-sub" id="sub-todos">—</div>
       </div>
-      <div class="stat-card" onclick="filtrarEstado('pendiente', this)">
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf3e8;"><i class="ti ti-clock" style="color:#e67e22;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-pendientes"></span>
+        </div>
         <div class="stat-num" id="stat-pendientes" style="color:#e67e22;">—</div>
-        <div class="stat-label"><div class="estado-dot" style="background:#e67e22;"></div>Pendientes</div>
+        <div class="stat-label">Pendientes</div>
+        <div class="kpi-sub" id="sub-pendientes">—</div>
       </div>
-      <div class="stat-card" onclick="filtrarEstado('confirmado', this)">
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-circle-check" style="color:#27ae60;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-confirmados"></span>
+        </div>
         <div class="stat-num" id="stat-confirmados" style="color:#27ae60;">—</div>
-        <div class="stat-label"><div class="estado-dot" style="background:#27ae60;"></div>Confirmados</div>
+        <div class="stat-label">Confirmados</div>
+        <div class="kpi-sub" id="sub-confirmados">—</div>
       </div>
-      <div class="stat-card" onclick="filtrarEstado('completado', this)">
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-flag-check" style="color:#782b46;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-completados"></span>
+        </div>
         <div class="stat-num" id="stat-completados" style="color:#782b46;">—</div>
-        <div class="stat-label"><div class="estado-dot" style="background:#ef647c;"></div>Completados</div>
+        <div class="stat-label">Completados</div>
+        <div class="kpi-sub" id="sub-completados">—</div>
       </div>
+    </div>
+
+    <!-- FILTRO POR ESTADO — mismo componente .tabs que ya usa Documentación -->
+    <div class="tabs" id="tabs-estado-turno">
+      <button class="tab active" onclick="filtrarEstado('todos', this)">Todos<span class="tab-badge" id="tabbadge-todos">0</span></button>
+      <button class="tab" onclick="filtrarEstado('pendiente', this)">Pendientes<span class="tab-badge" id="tabbadge-pendientes">0</span></button>
+      <button class="tab" onclick="filtrarEstado('confirmado', this)">Confirmados<span class="tab-badge" id="tabbadge-confirmados">0</span></button>
+      <button class="tab" onclick="filtrarEstado('completado', this)">Completados<span class="tab-badge" id="tabbadge-completados">0</span></button>
     </div>
 
     <!-- BANNER PENDIENTES -->
@@ -230,6 +234,7 @@
     completado: { clase: 'tb-completado', texto: 'Donación realizada' },
     cancelado:  { clase: 'tb-cancelado',  texto: 'Cancelado' },
     no_apto:    { clase: 'tb-cancelado',  texto: 'No apto' },
+    ausente:    { clase: 'tb-cancelado',  texto: 'Ausente' },
   };
 
   function iniciales(nombre, apellido) {
@@ -242,10 +247,36 @@
     _totalTurnosHoy = turnos.length;
 
     const pendientes = turnos.filter(t => t.estado === 'pendiente');
+    const confirmados = turnos.filter(t => t.estado === 'confirmado');
+    const completados = turnos.filter(t => t.estado === 'completado');
+    const pct = n => turnos.length ? Math.round((n / turnos.length) * 100) : 0;
     document.getElementById('stat-todos').textContent = turnos.length;
     document.getElementById('stat-pendientes').textContent = pendientes.length;
-    document.getElementById('stat-confirmados').textContent = turnos.filter(t => t.estado === 'confirmado').length;
-    document.getElementById('stat-completados').textContent = turnos.filter(t => t.estado === 'completado').length;
+    document.getElementById('stat-confirmados').textContent = confirmados.length;
+    document.getElementById('stat-completados').textContent = completados.length;
+    document.getElementById('sub-todos').textContent = HemoRed.data.ahora().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+    document.getElementById('sub-pendientes').textContent = `${pct(pendientes.length)}% del total`;
+    document.getElementById('sub-confirmados').textContent = `${pct(confirmados.length)}% del total`;
+    document.getElementById('sub-completados').textContent = `${pct(completados.length)}% del total`;
+
+    // Badge de "Todos" = alerta real (pendientes sin confirmar) en vez de
+    // un % del total, que para la tarjeta "todos" no dice nada.
+    const trendTodos = document.getElementById('trend-todos');
+    if (pendientes.length > 0) {
+      trendTodos.innerHTML = `<i class="ti ti-alert-circle" style="font-size:10px;"></i>${pendientes.length} sin confirmar`;
+      trendTodos.className = 'kpi-trend down';
+    } else {
+      trendTodos.innerHTML = '<i class="ti ti-check" style="font-size:10px;"></i>al día';
+      trendTodos.className = 'kpi-trend up';
+    }
+    HemoRed.ui.pintarPorcentaje('trend-pendientes', pendientes.length, turnos.length, 'down');
+    HemoRed.ui.pintarPorcentaje('trend-confirmados', confirmados.length, turnos.length, 'up');
+    HemoRed.ui.pintarPorcentaje('trend-completados', completados.length, turnos.length, 'up');
+
+    document.getElementById('tabbadge-todos').textContent = turnos.length;
+    document.getElementById('tabbadge-pendientes').textContent = pendientes.length;
+    document.getElementById('tabbadge-confirmados').textContent = confirmados.length;
+    document.getElementById('tabbadge-completados').textContent = completados.length;
 
     const banner = document.getElementById('pendientes-banner');
     if (pendientes.length > 0) {
@@ -274,7 +305,7 @@
                      <button class="btn-xs btn-xs-no" onclick="rechazarTurnoUI(${t.id})">Rechazar</button>`;
       } else if (t.estado === 'confirmado' && t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado && !t.tieneDonacionRegistrada) {
         acciones = `<span style="font-size:12px;color:#a9435d;">Listo para el profesional</span>`;
-      } else if (t.estado === 'cancelado') {
+      } else if (t.estado === 'cancelado' || t.estado === 'no_apto' || t.estado === 'ausente') {
         acciones = `<button class="btn-xs btn-xs-outline" onclick="verMotivo(${t.id})">Ver motivo</button>`;
       }
 
@@ -321,8 +352,8 @@
   }
 
   function filtrarEstado(estado, el) {
-    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
-    el.classList.add('active-filter');
+    document.querySelectorAll('#tabs-estado-turno .tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
     _filtroEstadoTurno = estado;
     aplicarFiltrosTurnos();
   }
@@ -362,14 +393,6 @@
     document.getElementById('vista-calendario').style.display = vista === 'calendario' ? 'block' : 'none';
   }
 
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
-  }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
 
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('hospital');
@@ -382,5 +405,7 @@
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 </body>
 </html>

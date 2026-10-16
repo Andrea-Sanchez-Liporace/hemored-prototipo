@@ -19,6 +19,297 @@ HemoRed.ui = (function() {
     document.getElementById('sidebar-overlay')?.classList.toggle('open', open);
   }
 
+  // ===== SIDEBAR DEL HOSPITAL (único, compartido por las 16 páginas) =====
+  // Antes el <aside> entero (logo, nombre, plan, nav, tarjeta de plan del
+  // footer) estaba copiado y pegado en cada página de hospital/*.html —
+  // con el tiempo quedaron desincronizadas: algunas tenían "Facturación"
+  // en el menú y no "Notificaciones" (o viceversa), el nombre/email del
+  // hospital estaba hardcodeado en todas menos dashboard.html, y la
+  // tarjeta de plan del pie ("3 de 3 campañas activas") era texto fijo,
+  // nunca actualizado — podía (y terminó) contradiciendo el número real
+  // que se ve en Campañas. Centralizado acá 2026-10-14: cada página solo
+  // necesita `<aside class="sidebar" id="sidebar"></aside>` vacío + un
+  // `<script>` que llame a esto, y moverse/agregar un ítem de menú es un
+  // cambio en un solo lugar.
+  const NAV_HOSPITAL = [
+    { grupo: 'Principal', items: [
+      { href: 'dashboard.html', icon: 'layout-dashboard', label: 'Inicio' },
+      { href: 'campanas.html', icon: 'speakerphone', label: 'Campañas' },
+      { href: 'turnos.html', icon: 'calendar', label: 'Turnos' },
+      { href: 'metricas.html', icon: 'chart-bar', label: 'Métricas' },
+    ] },
+    { grupo: 'Gestión', items: [
+      { href: 'pacientes.html', icon: 'user-plus', label: 'Pacientes' },
+      { href: 'profesionales.html', icon: 'stethoscope', label: 'Profesionales' },
+      { href: 'documentacion.html', icon: 'file-text', label: 'Documentación' },
+    ] },
+    { grupo: 'Cuenta', items: [
+      { href: 'perfil.html', icon: 'building-hospital', label: 'Perfil del hospital' },
+      { href: 'facturacion.html', icon: 'receipt', label: 'Facturación' },
+      { href: 'notificaciones.html', icon: 'bell', label: 'Notificaciones' },
+      { href: '../publico/login.html', icon: 'logout', label: 'Cerrar sesión', absoluta: true },
+    ] },
+  ];
+
+  async function montarSidebarHospital() {
+    const el = document.getElementById('sidebar');
+    if (!el) return;
+
+    // El esqueleto (nav, botón de cerrar, listeners de abrir/cerrar) no
+    // depende de ningún dato real — se arma ya mismo, sincrónico, para
+    // que el botón de menú funcione desde el primer instante. El nombre
+    // del hospital y la tarjeta de plan (que sí son reales) se completan
+    // después de `await HemoRed.db.init()`, actualizando esos nodos
+    // puntuales en vez de reescribir el innerHTML entero (eso tiraría
+    // abajo los listeners ya enganchados).
+    const paginaActual = location.pathname.split('/').pop();
+    const navHTML = NAV_HOSPITAL.map(grupo => `
+      <div class="nav-section-label">${grupo.grupo}</div>
+      ${grupo.items.map(it => {
+        const href = it.absoluta ? it.href : `../hospital/${it.href}`;
+        const activo = !it.absoluta && it.href === paginaActual;
+        return `<a class="nav-item${activo ? ' active' : ''}" href="${href}"><i class="ti ti-${it.icon}" aria-hidden="true"></i>${it.label}</a>`;
+      }).join('')}
+    `).join('');
+
+    el.innerHTML = `
+      <div class="sidebar-logo">
+        <a href="../index.html">Hemo<span>red</span></a>
+        <button class="sidebar-close-btn" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+      <div class="sidebar-hospital">
+        <div class="sidebar-hospital-name" id="hospital-nombre-sidebar">—</div>
+        <div style="font-size:12px;color:#f28b98;margin-top:2px;" id="hospital-email-sidebar"></div>
+        <div class="sidebar-hospital-plan" id="hospital-plan-badge"><i class="ti ti-star" style="font-size:10px;" aria-hidden="true"></i>Plan —</div>
+      </div>
+      <nav class="sidebar-nav">${navHTML}</nav>
+      <div class="sidebar-footer">
+        <div class="plan-card-side">
+          <div class="plan-card-side-title" id="plan-card-title">Plan —</div>
+          <div class="plan-card-side-sub" id="plan-card-sub">—</div>
+          <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
+            <div style="height:100%;width:0%;background:#ef647c;border-radius:2px;" id="plan-card-bar"></div>
+          </div>
+          <div style="font-size:10px;color:#f28b98;margin-top:6px;" id="plan-card-limite"><a href="../publico/pago.html" style="color:#ef647c;text-decoration:none;">Actualizar plan</a></div>
+        </div>
+      </div>
+    `;
+
+    document.querySelector('.mobile-topbar-btn')?.addEventListener('click', () => toggleSidebar(true));
+    document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
+    el.querySelector('.sidebar-close-btn')?.addEventListener('click', () => toggleSidebar(false));
+
+    initScrollSidebar();
+
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    const usuario = s ? HemoRed.db.find('usuarios', s.usuario_id) : null;
+    const hospital = usuario ? HemoRed.db.find('hospitales', usuario.hospital_id) : null;
+    const plan = hospital ? HemoRed.data.obtenerPlanHospital(hospital.id) : null;
+    const campanasActivas = hospital ? HemoRed.data.contarCampanasActivas(hospital.id) : 0;
+    const max = plan?.max_campanas_simultaneas || 0;
+    const pctPlan = max ? Math.min(100, Math.round((campanasActivas / max) * 100)) : 0;
+    const alLimite = max > 0 && campanasActivas >= max;
+
+    document.getElementById('hospital-nombre-sidebar').textContent = hospital?.nombre || '—';
+    document.getElementById('hospital-email-sidebar').textContent = hospital?.email || '';
+    document.getElementById('hospital-plan-badge').innerHTML = `<i class="ti ti-star" style="font-size:10px;" aria-hidden="true"></i>Plan ${plan?.nombre || '—'}`;
+    document.getElementById('plan-card-title').textContent = `Plan ${plan?.nombre || '—'}`;
+    document.getElementById('plan-card-sub').textContent = `${campanasActivas} de ${max} campañas activas`;
+    document.getElementById('plan-card-bar').style.width = pctPlan + '%';
+    if (alLimite) {
+      document.getElementById('plan-card-limite').innerHTML =
+        'Límite alcanzado · <a href="../publico/pago.html" style="color:#ef647c;text-decoration:none;">Actualizar plan</a>';
+    }
+  }
+
+  // ===== SIDEBAR DEL PROFESIONAL (dashboard.html + perfil.html) =====
+  // Mismo motivo que montarSidebarHospital(): el <aside> estaba copiado en
+  // los 2 archivos, y el nombre/especialidad/hospital del profesional se
+  // recalculaban por separado en cada uno (de formas levemente distintas).
+  async function montarSidebarProfesional() {
+    const el = document.getElementById('sidebar');
+    if (!el) return;
+
+    const paginaActual = location.pathname.split('/').pop();
+    el.innerHTML = `
+      <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a>
+        <button class="sidebar-close-btn" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+      <div class="sidebar-prof">
+        <div class="sidebar-avatar" id="sidebar-avatar">—</div>
+        <div>
+          <div class="sidebar-prof-name" id="sidebar-prof-name">—</div>
+          <div class="sidebar-prof-role" id="sidebar-prof-role"></div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Principal</div>
+        <a class="nav-item${paginaActual === 'dashboard.html' ? ' active' : ''}" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos<span class="nav-badge" id="nav-badge-turnos"></span></a>
+        <div class="nav-section-label">Cuenta</div>
+        <a class="nav-item${paginaActual === 'perfil.html' ? ' active' : ''}" href="../profesional/perfil.html"><i class="ti ti-user"></i>Perfil</a>
+        <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
+      </nav>
+    `;
+
+    document.querySelector('.mobile-topbar-btn')?.addEventListener('click', () => toggleSidebar(true));
+    document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
+    el.querySelector('.sidebar-close-btn')?.addEventListener('click', () => toggleSidebar(false));
+    initScrollSidebar();
+
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    const usuario = s ? HemoRed.db.find('usuarios', s.usuario_id) : null;
+    const prof = usuario ? HemoRed.db.where('profesionales', 'usuario_id', usuario.id)[0] : null;
+    const hospitalProf = prof ? HemoRed.db.where('profesional_hospital', 'profesional_id', prof.id)[0] : null;
+    const hospital = hospitalProf ? HemoRed.db.find('hospitales', hospitalProf.hospital_id) : null;
+
+    document.getElementById('sidebar-avatar').textContent = s?.iniciales || '';
+    document.getElementById('sidebar-prof-name').textContent = prof?.nombre_completo || s?.nombre || '—';
+    document.getElementById('sidebar-prof-role').textContent = [prof?.especialidad, hospital?.nombre].filter(Boolean).join(' · ');
+
+    // Llena #nav-badge-turnos reusando la función real (ya hace su propio
+    // _set('nav-badge-turnos', ...) como efecto de lado) — hace falta
+    // llamarla de nuevo acá porque en perfil.html nadie más la llama, y en
+    // dashboard.html su propio DOMContentLoaded corre ANTES de que este
+    // mount cree el <span> del badge (si no, ese primer _set() le pega a
+    // un elemento que todavía no existe).
+    HemoRed.data?.cargarTurnosProfesional?.();
+  }
+
+  // ===== SIDEBAR DEL DONANTE (7 páginas con sesión) =====
+  // El nombre/iniciales ya se completaban solos vía los atributos
+  // [data-sesion-nombre]/[data-sesion-iniciales] que aplica sesion.js en
+  // cualquier página — eso no cambia acá. Lo que estaba duplicado 7 veces
+  // es el <nav> en sí (y por eso nunca se habían notado del todo parejos
+  // los 2 ítems de "Cuenta").
+  const NAV_DONANTE = [
+    { grupo: 'Principal', items: [
+      { href: 'dashboard.html', icon: 'search', label: 'Buscar campañas' },
+      { href: 'mis_turnos.html', icon: 'calendar', label: 'Mis turnos' },
+      { href: 'mis_donaciones.html', icon: 'heart', label: 'Mis donaciones' },
+      { href: 'mis_documentos.html', icon: 'file-text', label: 'Mis documentos' },
+    ] },
+    { grupo: 'Cuenta', items: [
+      { href: 'perfil.html', icon: 'user', label: 'Perfil' },
+      { href: 'notificaciones.html', icon: 'bell', label: 'Notificaciones' },
+      { href: '../publico/login.html', icon: 'logout', label: 'Cerrar sesión', absoluta: true },
+    ] },
+  ];
+
+  function montarSidebarDonante() {
+    const el = document.getElementById('sidebar');
+    if (!el) return;
+
+    const paginaActual = location.pathname.split('/').pop();
+    const navHTML = NAV_DONANTE.map(grupo => `
+      <div class="nav-section-label">${grupo.grupo}</div>
+      ${grupo.items.map(it => {
+        const href = it.absoluta ? it.href : `../donante/${it.href}`;
+        const activo = !it.absoluta && it.href === paginaActual;
+        return `<a class="nav-item${activo ? ' active' : ''}" href="${href}"><i class="ti ti-${it.icon}" aria-hidden="true"></i>${it.label}</a>`;
+      }).join('')}
+    `).join('');
+
+    el.innerHTML = `
+      <div class="sidebar-logo">
+        <a href="../index.html">Hemo<span>red</span></a>
+        <button class="sidebar-close-btn" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" data-sesion-iniciales></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name"><span data-sesion-nombre></span></div>
+          <div class="sidebar-user-role">Donante</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">${navHTML}</nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-alert hidden" id="sidebar-alerta-perfil">
+          <div class="sidebar-alert-title">⚠️ Perfil incompleto</div>
+          <div class="sidebar-alert-text">Completá tus datos personales y médicos para agilizar tu próxima donación.</div>
+          <a class="sidebar-alert-btn" href="../donante/perfil.html">Completar perfil</a>
+        </div>
+      </div>
+    `;
+
+    // HemoRed.ui.init() ya corrió inyectarPerfil() en el DOMContentLoaded
+    // general, pero en ese momento el <aside> todavía estaba vacío (este
+    // mount corre después) — sin este segundo llamado, el nombre/iniciales
+    // del sidebar se quedarían en blanco para siempre.
+    HemoRed.sesion?.inyectarPerfil();
+    document.querySelector('.mobile-topbar-btn')?.addEventListener('click', () => toggleSidebar(true));
+    document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
+    el.querySelector('.sidebar-close-btn')?.addEventListener('click', () => toggleSidebar(false));
+    initScrollSidebar();
+  }
+
+  // ===== SIDEBAR DEL ADMIN (9 páginas — documentacion.html usa su propio
+  // layout técnico, .app-sidebar, y queda afuera a propósito) =====
+  // Admin todavía no está conectado a datos reales en el resto del rol
+  // (ver memoria del proyecto), así que acá tampoco: se centraliza la
+  // estructura para no seguir copiándola, pero el nombre/avatar siguen
+  // siendo el mismo texto fijo que ya mostraban las 9 páginas. Los 2
+  // badges sí se calculan reales (son un conteo de una sola línea cada
+  // uno) en vez de quedar pisados con "4"/"2" para siempre.
+  const NAV_ADMIN = [
+    { grupo: 'Principal', items: [
+      { href: 'dashboard.html', icon: 'layout-dashboard', label: 'Dashboard' },
+      { href: 'hospitales.html', icon: 'building-hospital', label: 'Hospitales', badge: 'hospitales' },
+      { href: 'donantes.html', icon: 'users', label: 'Donantes' },
+      { href: 'metricas.html', icon: 'chart-bar', label: 'Métricas globales' },
+    ] },
+    { grupo: 'Negocio', items: [
+      { href: 'planes.html', icon: 'star', label: 'Planes' },
+      { href: 'facturacion.html', icon: 'receipt', label: 'Facturación global', badge: 'facturas' },
+    ] },
+    { grupo: 'Sistema', items: [
+      { href: 'dashboard.html', icon: 'settings', label: 'Configuración', noActivo: true },
+      { href: '../publico/login.html', icon: 'logout', label: 'Cerrar sesión', absoluta: true },
+    ] },
+  ];
+
+  async function montarSidebarAdmin() {
+    const el = document.getElementById('sidebar');
+    if (!el) return;
+
+    const paginaActual = location.pathname.split('/').pop();
+    const navHTML = NAV_ADMIN.map(grupo => `
+      <div class="nav-section-label">${grupo.grupo}</div>
+      ${grupo.items.map(it => {
+        const href = it.absoluta ? it.href : `../admin/${it.href}`;
+        const activo = !it.absoluta && !it.noActivo && it.href === paginaActual;
+        const badge = it.badge ? `<span class="nav-badge${activo ? ' active' : ''}" id="nav-badge-${it.badge}"></span>` : '';
+        return `<a class="nav-item${activo ? ' active' : ''}" href="${href}"><i class="ti ti-${it.icon}"></i>${it.label}${badge}</a>`;
+      }).join('')}
+    `).join('');
+
+    el.innerHTML = `
+      <div class="sidebar-logo">
+        <a href="../index.html">Hemo<span>red</span></a>
+        <div class="sidebar-badge"><i class="ti ti-shield" style="font-size:10px;"></i>Super Admin
+        <button class="sidebar-close-btn" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">SA</div>
+        <div>
+          <div class="sidebar-user-name">Admin HemoRed</div>
+          <div class="sidebar-user-role">Superadministrador</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">${navHTML}</nav>
+    `;
+
+    document.querySelector('.mobile-topbar-btn')?.addEventListener('click', () => toggleSidebar(true));
+    document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
+    el.querySelector('.sidebar-close-btn')?.addEventListener('click', () => toggleSidebar(false));
+    initScrollSidebar();
+
+    await HemoRed.db.init();
+    document.getElementById('nav-badge-hospitales').textContent = HemoRed.db.all('hospitales').length;
+    document.getElementById('nav-badge-facturas').textContent =
+      HemoRed.db.all('facturas').filter(f => f.estado === 'pendiente' || f.estado === 'vencida').length;
+  }
+
   // Indicador de scroll propio del menú lateral — ver la nota larga en
   // global.css (.sidebar-nav-scrollbar) sobre por qué no se usa el
   // scrollbar nativo del navegador. Se cuelga solo de cualquier
@@ -137,6 +428,111 @@ HemoRed.ui = (function() {
     t.style.background = tipo === 'ok' ? 'var(--color-borravino)' : 'var(--color-danger)';
     t.classList.add('visible');
     setTimeout(() => t.classList.remove('visible'), 3000);
+  }
+
+  // Reemplazo propio del sitio para window.confirm() (pedido explícito de
+  // la usuaria, 2026-10-16: no le gusta el popup nativo del navegador) —
+  // reusa las mismas clases del componente modal compartido
+  // (.modal-overlay/.modal/.modal-header/.btn-primary/.btn-secondary) para
+  // que salga ya con la paleta de cada rol, sin tener que armar un modal
+  // nuevo por página. Devuelve una Promise<boolean>: true = "Sí".
+  function confirmar(mensaje, { titulo = 'Confirmar', textoSi = 'Sí', textoNo = 'No' } = {}) {
+    return new Promise((resolve) => {
+      let overlay = document.getElementById('hemored-confirm-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'hemored-confirm-overlay';
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+          <div class="modal" style="max-width:380px;border-radius:var(--radius-md);overflow:hidden;">
+            <div class="modal-header" style="justify-content:center;">
+              <div class="modal-title" id="hemored-confirm-titulo" style="text-align:center;">Confirmar</div>
+            </div>
+            <div class="modal-body">
+              <p id="hemored-confirm-mensaje" style="font-size:14px;color:var(--color-text-secondary);line-height:1.5;margin:0;"></p>
+            </div>
+            <div class="modal-actions" style="gap:12px;">
+              <button class="btn btn-secondary" id="hemored-confirm-no" style="flex:1;padding:13px;font-size:15px;"></button>
+              <button class="btn btn-primary" id="hemored-confirm-si" style="flex:1;padding:13px;font-size:15px;"></button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+      }
+      document.getElementById('hemored-confirm-titulo').textContent = titulo;
+      document.getElementById('hemored-confirm-mensaje').textContent = mensaje;
+      const btnSi = document.getElementById('hemored-confirm-si');
+      const btnNo = document.getElementById('hemored-confirm-no');
+      btnSi.textContent = textoSi;
+      btnNo.textContent = textoNo;
+      overlay.classList.add('active');
+
+      const cerrar = (valor) => {
+        overlay.classList.remove('active');
+        btnSi.onclick = null;
+        btnNo.onclick = null;
+        resolve(valor);
+      };
+      btnSi.onclick = () => cerrar(true);
+      btnNo.onclick = () => cerrar(false);
+    });
+  }
+
+  // ===== TARJETAS DE MÉTRICAS (.kpi-trend) =====
+  // Pinta el badge de tendencia (flechita + %) de una tarjeta tipo
+  // hospital/metricas.html a partir de un valor real y su valor del
+  // período anterior — nunca inventa el número: si no hay valor anterior
+  // (y permitirNulo es true) deja el badge vacío en vez de mostrar algo
+  // falso. Compartido entre hospital/dashboard.html, metricas.html,
+  // pacientes.html, profesionales.html y documentacion.html (agregado
+  // 2026-10-14 para no repetir la misma lógica en cada página).
+  function pintarTrend(elId, actual, anterior, { permitirNulo = false, sufijo = '%' } = {}) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (permitirNulo && (anterior == null)) {
+      el.innerHTML = '<span>—</span>';
+      el.className = 'kpi-trend flat';
+      return;
+    }
+    if (!anterior) {
+      const hayAlgo = actual > 0;
+      el.innerHTML = hayAlgo ? '<i class="ti ti-arrow-up" style="font-size:10px;"></i>nuevo' : '<span>—</span>';
+      el.className = 'kpi-trend ' + (hayAlgo ? 'up' : 'flat');
+      return;
+    }
+    const delta = sufijo === '%'
+      ? Math.round(((actual - anterior) / anterior) * 100)
+      : actual - anterior;
+    if (delta === 0) {
+      el.innerHTML = '<span>—</span>';
+      el.className = 'kpi-trend flat';
+      return;
+    }
+    const sube = delta > 0;
+    el.innerHTML = `<i class="ti ti-arrow-${sube ? 'up' : 'down'}" style="font-size:10px;"></i>${sube ? '+' : ''}${delta}${sufijo === '%' ? '%' : ''}`;
+    el.className = 'kpi-trend ' + (sube ? 'up' : 'down');
+  }
+
+  // Variante de pintarTrend() para tarjetas que no tienen un "período
+  // anterior" real con el que compararse (ej. los filtros por estado de
+  // turnos/campañas) — en vez de una tendencia inventada, muestra qué
+  // porción real representan del total, con el mismo look de badge de
+  // color. `tono` es 'up'/'down' (usa los colores ya definidos en
+  // .kpi-trend); para un color propio (ej. para que el badge combine con
+  // el ícono de esa tarjeta) pasar { bg, color } en su lugar.
+  function pintarPorcentaje(elId, n, total, tono = 'up') {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const pct = total ? Math.round((n / total) * 100) : 0;
+    el.textContent = `${pct}%`;
+    if (typeof tono === 'object' && tono.bg) {
+      el.className = 'kpi-trend';
+      el.style.background = tono.bg;
+      el.style.color = tono.color || '#5a1e37';
+    } else {
+      el.className = 'kpi-trend ' + tono;
+      el.style.background = '';
+      el.style.color = '';
+    }
   }
 
   // ===== FILTROS =====
@@ -409,7 +805,7 @@ HemoRed.ui = (function() {
     HemoRed.sesion?.inyectarPerfil();
   }
 
-  return { init, initSidebar, initScrollSidebar, abrirModal, cerrarModal, cerrarTodosModales, toast, initFiltros, initTabs, initFirma, limpiarFirma, mejorarSelects, mejorarPasswords };
+  return { init, initSidebar, initScrollSidebar, montarSidebarHospital, montarSidebarProfesional, montarSidebarDonante, montarSidebarAdmin, abrirModal, cerrarModal, cerrarTodosModales, toast, confirmar, pintarTrend, pintarPorcentaje, initFiltros, initTabs, initFirma, limpiarFirma, mejorarSelects, mejorarPasswords };
 })();
 
 // Auto-init on DOMContentLoaded

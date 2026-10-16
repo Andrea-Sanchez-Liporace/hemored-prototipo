@@ -17,29 +17,14 @@
 </head>
 <body>
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
-  <div class="sidebar-prof">
-    <div class="sidebar-avatar" id="sidebar-avatar">CM</div>
-    <div>
-      <div class="sidebar-prof-name" id="sidebar-prof-name">Dr. Carlos Méndez</div>
-      <div class="sidebar-prof-role" id="sidebar-prof-role">Hematología · Ramos Mejía</div>
-    </div>
-  </div>
-  <nav class="sidebar-nav">
-    <a class="nav-item" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item active" href="../profesional/perfil.html"><i class="ti ti-user"></i>Mi perfil</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
-      <div class="topbar-title">Mi perfil</div>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Perfil</div>
     </div>
   </div>
 
@@ -321,18 +306,12 @@
     }
   });
 
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
-  }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
 </script>
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarProfesional());</script>
+
 </body>
 </html>

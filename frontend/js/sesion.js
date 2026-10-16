@@ -87,7 +87,7 @@ HemoRed.sesion = (function() {
       notif_resultado_analisis: true,
       notif_campanas_urgentes: false,
       activo: true,
-      fecha_registro: new Date().toISOString().slice(0, 10),
+      fecha_registro: HemoRed.data.hoyISO(),
       avatar_iniciales: iniciales,
     });
     const nombreCompleto = `${nombre} ${apellido}`.trim();

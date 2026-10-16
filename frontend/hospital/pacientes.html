@@ -16,36 +16,14 @@
 </head>
 <body>
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
-    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
-    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
-    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item active" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
-    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
-    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
-    <a class="nav-item" href="../hospital/facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <div class="topbar-title" id="topbar-title">Pacientes</div>
     </div>
     <div class="topbar-actions">
@@ -60,6 +38,36 @@
 
     <!-- VISTA LISTA -->
     <div class="view active" id="view-lista">
+      <div class="stats-row" id="pacientes-stats" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card">
+          <div class="kpi-top">
+            <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-users" style="color:#ef647c;font-size:18px;"></i></div>
+            <span class="kpi-trend" id="pac-trend-total"></span>
+          </div>
+          <div class="stat-num" id="pac-stat-total">—</div>
+          <div class="stat-label">Pacientes</div>
+          <div class="kpi-sub" id="pac-sub-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="kpi-top">
+            <div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-speakerphone" style="color:#27ae60;font-size:18px;"></i></div>
+            <span class="kpi-trend" id="pac-trend-con-campana"></span>
+          </div>
+          <div class="stat-num" id="pac-stat-con-campana" style="color:#27ae60;">—</div>
+          <div class="stat-label">Con campaña activa</div>
+          <div class="kpi-sub" id="pac-sub-con-campana">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="kpi-top">
+            <div class="kpi-icon" style="background:#f2f2f2;"><i class="ti ti-circle-minus" style="color:#888;font-size:18px;"></i></div>
+            <span class="kpi-trend" id="pac-trend-sin-campana"></span>
+          </div>
+          <div class="stat-num" id="pac-stat-sin-campana" style="color:#888;">—</div>
+          <div class="stat-label">Sin campaña activa</div>
+          <div class="kpi-sub" id="pac-sub-sin-campana">—</div>
+        </div>
+      </div>
+
       <div class="filtros">
         <div class="search-wrap">
           <i class="ti ti-search search-icon"></i>
@@ -85,65 +93,7 @@
           <div class="th"></div>
         </div>
 
-        <div class="pac-row" data-nombre="juan pérez" data-sangre="0-" data-campana="con" onclick="verDetalle('Juan Pérez')">
-          <div class="pac-donante">
-            <div class="pac-avatar">JP</div>
-            <div>
-              <div class="pac-nombre">Juan Pérez</div>
-              <div class="pac-id">ID #0042 · DNI 28.456.789</div>
-            </div>
-          </div>
-          <div class="td">0-</div>
-          <div class="td hide-md">Cirugía cardíaca</div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
-          </div>
-        </div>
-
-        <div class="pac-row" data-nombre="maría garcía" data-sangre="A+" data-campana="sin" onclick="verDetalle('María García')">
-          <div class="pac-donante">
-            <div class="pac-avatar">MG</div>
-            <div>
-              <div class="pac-nombre">María García</div>
-              <div class="pac-id">ID #0038 · DNI 35.123.456</div>
-            </div>
-          </div>
-          <div class="td">A+</div>
-          <div class="td hide-md">Anemia crónica</div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
-          </div>
-        </div>
-
-        <div class="pac-row" data-nombre="carlos lópez" data-sangre="B+" data-campana="sin" onclick="verDetalle('Carlos López')">
-          <div class="pac-donante">
-            <div class="pac-avatar">CL</div>
-            <div>
-              <div class="pac-nombre">Carlos López</div>
-              <div class="pac-id">ID #0051 · DNI 41.789.012</div>
-            </div>
-          </div>
-          <div class="td">B+</div>
-          <div class="td hide-md">Politraumatismo</div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
-          </div>
-        </div>
-
-        <div class="pac-row" data-nombre="ana martínez" data-sangre="0+" data-campana="con" onclick="verDetalle('Ana Martínez')">
-          <div class="pac-donante">
-            <div class="pac-avatar">AM</div>
-            <div>
-              <div class="pac-nombre">Ana Martínez</div>
-              <div class="pac-id">ID #0055 · DNI 29.654.321</div>
-            </div>
-          </div>
-          <div class="td">0+</div>
-          <div class="td hide-md">Leucemia</div>
-          <div class="row-actions">
-            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
-          </div>
-        </div>
+        <div id="lista-pacientes"><!-- renderizado dinámico vía renderPacientes() --></div>
 
         <div id="sin-resultados-pac" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
       </div>
@@ -324,19 +274,62 @@
     });
     document.getElementById('sin-resultados-pac').style.display = visibles === 0 ? 'block' : 'none';
   }
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
+
+  // La lista y las 3 tarjetas de arriba venían 100% hardcodeadas (4
+  // pacientes de ejemplo que no existían en los datos) — conectadas acá
+  // 2026-10-14 a HemoRed.data.cargarPacientesHospital(), igual que ya
+  // estaba conectado el resto del rol Hospital. La vista de detalle en
+  // esta misma página sigue siendo la maqueta fija de "Juan Pérez" (no es
+  // parte de este cambio), por eso cada fila ahora navega directo a
+  // paciente_detalle.html en vez de abrirla.
+  function renderPacientes() {
+    const { pacientes, total, conCampana, sinCampana } = HemoRed.data.cargarPacientesHospital();
+    document.getElementById('pac-stat-total').textContent = total;
+    document.getElementById('pac-stat-con-campana').textContent = conCampana;
+    document.getElementById('pac-stat-sin-campana').textContent = sinCampana;
+    const tiposDistintos = new Set(pacientes.map(p => p.tipo_sangre)).size;
+    document.getElementById('pac-sub-total').textContent = `${tiposDistintos} tipo${tiposDistintos === 1 ? '' : 's'} de sangre distintos`;
+    document.getElementById('pac-sub-con-campana').textContent = `${total ? Math.round((conCampana / total) * 100) : 0}% del total`;
+    document.getElementById('pac-sub-sin-campana').textContent = `${total ? Math.round((sinCampana / total) * 100) : 0}% del total`;
+    const trendTotalPac = document.getElementById('pac-trend-total');
+    trendTotalPac.textContent = `${tiposDistintos} tipo${tiposDistintos === 1 ? '' : 's'}`;
+    trendTotalPac.className = 'kpi-trend flat';
+    HemoRed.ui.pintarPorcentaje('pac-trend-con-campana', conCampana, total, { bg: '#e1f5ee', color: '#27ae60' });
+    HemoRed.ui.pintarPorcentaje('pac-trend-sin-campana', sinCampana, total, { bg: '#f2f2f2', color: '#888' });
+
+    document.getElementById('lista-pacientes').innerHTML = pacientes.map(p => {
+      const nombreCompleto = `${p.nombre} ${p.apellido}`;
+      const iniciales = (p.nombre[0] + p.apellido[0]).toUpperCase();
+      return `
+        <div class="pac-row" data-nombre="${nombreCompleto.toLowerCase()}" data-sangre="${p.tipo_sangre}" data-campana="${p.campanaActiva ? 'con' : 'sin'}" onclick="window.location='../hospital/paciente_detalle.html'">
+          <div class="pac-donante">
+            <div class="pac-avatar">${iniciales}</div>
+            <div>
+              <div class="pac-nombre">${nombreCompleto}</div>
+              <div class="pac-id">ID #${String(p.id).padStart(4, '0')} · DNI ${p.numero_documento}</div>
+            </div>
+          </div>
+          <div class="td">${p.tipo_sangre}</div>
+          <div class="td hide-md">${p.diagnostico}</div>
+          <div class="row-actions">
+            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
+          </div>
+        </div>`;
+    }).join('');
   }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('hospital');
+    await HemoRed.db.init();
+    renderPacientes();
+  });
 </script>
 
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 </body>
 </html>

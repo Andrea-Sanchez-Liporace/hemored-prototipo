@@ -7,6 +7,7 @@
 
 /* CAMPANA TABLE */
 .campana-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid var(--color-rosa-mid); }
+.campana-row > div { min-width: 0; }
 .campana-row:last-child { border-bottom: none; }
 
 /* TURNO TABLE */
@@ -52,7 +53,14 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
    componentes.css — no repetir acá. */
 .sidebar-footer { padding: 14px 20px; border-top: 0.5px solid rgba(255,255,255,0.1); flex-shrink: 0; }
 .plan-card-side { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; border: 0.5px solid rgba(255,255,255,0.12); }
-.main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+/* min-width:0 es necesario porque .main es un hijo flex de body — sin
+   esto, nunca se achica más allá del contenido más ancho que tenga
+   adentro (ej. los selects de .filtros, con min-width:200px cada uno),
+   y en mobile termina forzando scroll horizontal de toda la página en
+   vez de que ese contenido haga wrap. Mismo patrón que min-width:0 ya
+   usado en inputs dentro de filas flex, pero acá a nivel del layout
+   entero. */
+.main { margin-left: 240px; flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar { background: white; padding: 14px 32px; border-bottom: 0.5px solid #e8d0d8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-title { font-size: 16px; font-weight: 500; color: #5a1e37; }
@@ -70,14 +78,14 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .welcome h1 { font-size: 22px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; }
 .welcome p { font-size: 14px; color: #5a3040; }
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: white; border-radius: 12px; padding: 18px 20px; border: 0.5px solid #e8d0d8; }
-.stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.stat-trend { font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 20px; }
-.stat-trend.up { background: #e1f5ee; color: #27ae60; }
-.stat-trend.down { background: #fde8e8; color: #c0392b; }
-.stat-num { font-size: 28px; font-weight: 500; color: #3d0f20; }
-.stat-label { font-size: 12px; color: #5a3040; margin-top: 3px; }
+/* Mismo look que las tarjetas de "Métricas" (.kpi, más abajo): ícono arriba
+   (+ badge de tendencia si aplica) y número/etiqueta a la izquierda. Antes
+   .stat-card tenía su propia versión (más chica, centrada) de ese mismo
+   patrón — unificado 2026-10-14 a pedido explícito, reusando directamente
+   .kpi-top/.kpi-icon/.kpi-trend en vez de duplicarlos acá. */
+.stat-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+.stat-num { font-size: 32px; font-weight: 500; color: #3d0f20; line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 13px; color: #5a3040; }
 .section-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 14px; }
 .accesos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
 .acceso-card { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; cursor: pointer; transition: border-color 0.15s; }
@@ -113,10 +121,13 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .btn-nueva { background: #ef647c; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; }
 .stats-row { display: grid; gap: 16px; margin-bottom: 24px; }
 #dashboard-kpis { grid-template-columns: repeat(3, 1fr); }
-.stat-chip { background: white; border-radius: 10px; padding: 14px 16px; border: 0.5px solid #e8d0d8; }
-.stat-chip-num { font-size: 22px; font-weight: 500; color: #3d0f20; }
-.stat-chip-label { font-size: 11px; color: #a9435d; margin-top: 2px; }
-.estado-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+/* Mismas .kpi-top/.kpi-icon y mismo padding/font-size que .stat-card (más
+   arriba) — son las tarjetas de filtro de "Ver/gestionar campañas",
+   pensadas para medir igual que las de "Gestionar turnos" y lucir como las
+   de "Métricas". */
+.stat-chip { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
+.stat-chip-num { font-size: 32px; font-weight: 500; color: #3d0f20; line-height: 1; margin-bottom: 4px; }
+.stat-chip-label { font-size: 13px; color: #5a3040; }
 .filtros { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
 .search-wrap { flex: 1; min-width: 200px; position: relative; }
 .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a9435d; font-size: 15px; }
@@ -161,7 +172,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .camp-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .camp-meta-label { font-size: 11px; color: rgba(242,139,152,0.7); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
 .camp-meta-value { font-size: 15px; font-weight: 500; color: white; }
-.tabs { display: flex; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; margin-bottom: 20px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: white; border-radius: 10px; padding: 4px; border: 0.5px solid #e8d0d8; width: fit-content; max-width: 100%; margin-bottom: 20px; }
 .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; color: #a9435d; border: none; background: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
 .tab.active { background: #5a1e37; color: white; }
 .tab:hover:not(.active) { background: #fdf0f3; }
@@ -203,6 +214,13 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 
 /* === NUEVA CAMPAÑA (hospital) === */
 .form-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+/* Los hijos directos de estos 4 layouts de 2 columnas heredan
+   min-width:auto (el default de los ítems de grid) — sin min-width:0 acá,
+   una tarjeta con contenido ancho (un form-row de 2 inputs, texto largo)
+   nunca se achica por debajo de ese contenido, y en mobile (donde el
+   layout ya colapsó a 1 columna) termina forzando scroll horizontal de
+   toda la página en vez de que el contenido haga wrap. */
+.form-layout > *, .page-layout > *, .detalle-layout > *, .detail-layout > * { min-width: 0; }
 .steps-bar { display: flex; gap: 0; margin-bottom: 28px; }
 .step-b { display: flex; align-items: center; gap: 8px; }
 .step-b-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; border: 1.5px solid #e8d0d8; color: #a9435d; background: white; flex-shrink: 0; }
@@ -216,6 +234,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .card-title { font-size: 15px; font-weight: 500; color: #5a1e37; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
 .card-subtitle { font-size: 13px; color: #5a3040; margin-bottom: 20px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row > * { min-width: 0; }
 .form-group { margin-bottom: 18px; }
 .form-label { font-size: 13px; font-weight: 500; color: #5a1e37; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 .form-input { width: 100%; padding: 11px 14px; border: 1px solid #e8d0d8; border-radius: 9px; font-size: 14px; color: #1a0a0f; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.15s; background: white; }
@@ -282,7 +301,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .dato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .dato-label { font-size: 11px; color: #a9435d; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
 .dato-value { font-size: 14px; font-weight: 500; color: #5a1e37; }
-.campana-asociada { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
+.campana-asociada { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid #f0e0e6; }
 .campana-asociada:last-child { border-bottom: none; }
 .camp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .camp-info-name { font-size: 13px; font-weight: 500; color: #5a1e37; }
@@ -343,6 +362,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .kpi-trend { font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: 20px; }
 .kpi-trend.up { background: #e1f5ee; color: #27ae60; }
 .kpi-trend.down { background: #fde8e8; color: #c0392b; }
+.kpi-trend.flat { background: #f2f2f2; color: #888; }
 .kpi-num { font-size: 32px; font-weight: 500; color: #3d0f20; line-height: 1; margin-bottom: 4px; }
 .kpi-label { font-size: 13px; color: #5a3040; }
 .kpi-sub { font-size: 11px; color: #a9435d; margin-top: 2px; }
@@ -381,7 +401,11 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .prof-id { font-size: 11px; color: #a9435d; }
 
 /* === RESPONSIVE HOSPITAL === */
-@media (max-width: 1024px) { .detail-layout { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr 1fr; } .accesos-grid { grid-template-columns: 1fr 1fr; } .two-col { grid-template-columns: 1fr; } .kpis { grid-template-columns: 1fr 1fr; } .charts-row, .charts-row-3 { grid-template-columns: 1fr; } }
+/* .page-layout !important: su definición base (más abajo en el archivo,
+   fuera de cualquier @media) viene DESPUÉS de esta regla en el cascade,
+   así que sin !important ganaba igual aunque este media query matcheara
+   — mismo motivo que .stats-row/.kpis unas líneas más abajo. */
+@media (max-width: 1024px) { .detail-layout, .form-layout, .detalle-layout { grid-template-columns: 1fr; } .page-layout { grid-template-columns: 1fr !important; } .stats-grid { grid-template-columns: 1fr 1fr; } .accesos-grid { grid-template-columns: 1fr 1fr; } .two-col { grid-template-columns: 1fr; } .kpis { grid-template-columns: 1fr 1fr; } .charts-row, .charts-row-3 { grid-template-columns: 1fr; } }
 /* El sidebar fijo se muestra completo hasta 1024px (antes se achicaba recién
    a los 768px, dejando el contenido de tablet apretado contra un sidebar de
    240px que no se podía cerrar) — mismo breakpoint y mismo motivo que ya se
@@ -402,6 +426,27 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .td.hide-sm, .th.hide-sm { display: none; }
   .turnos-table-header, .turno-row { grid-template-columns: 2fr 1.4fr 170px; }
+  /* El topbar (título a la izquierda + acciones a la derecha) no tenía
+     wrap: con un botón de acción largo ("+ Nuevo profesional", "Exportar"
+     + el select de período) no entraba en una fila angosta y forzaba
+     scroll horizontal de toda la página. */
+  .topbar { padding: 14px 16px; flex-wrap: wrap; row-gap: 10px; }
+  .topbar-actions { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .fact-row { grid-template-columns: 1fr; row-gap: 4px; }
+  .fact-table-header { grid-template-columns: 1fr; }
+  .fact-table-header .th:not(:first-child) { display: none; }
+  .proxima-banner { flex-wrap: wrap; }
+  .chart-card { min-width: 0; }
+  .chart-wrap, .chart-wrap canvas { max-width: 100%; }
+  /* El wizard de "Nueva campaña" (3 pasos) tiene el texto de cada paso
+     con white-space:nowrap — con las 3 etiquetas completas no entraba en
+     ningún mobile. Se esconde el texto y queda solo el círculo numerado
+     + la línea, patrón común de wizard en mobile. */
+  .step-b-label { display: none; }
+  .step-b-line { min-width: 12px; margin: 0 4px; }
+  .dato-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 1024px) {
   .td.hide-md, .th.hide-md { display: none; }
@@ -409,6 +454,13 @@ textarea.form-input { resize: vertical; min-height: 100px; }
      deja sus fracciones (fr) de ancho reservadas como espacio vacío, aunque
      no haya nada dentro — el grid solo queda con Donante/Campaña/Acciones. */
   .table-header, .table-row, .turno-row { grid-template-columns: 2fr 1.4fr 170px; }
+}
+/* 3ra medida (celular, no solo tablet): las tarjetas de métricas/filtro
+   (.stats-row, .kpis) pasan a 1 columna — en 2 columnas quedaban muy
+   angostas para el ícono + número de 32px una vez unificado su diseño. */
+@media (max-width: 480px) {
+  .stats-row, .kpis, #dashboard-kpis { grid-template-columns: 1fr !important; }
+  .resumen-grid { grid-template-columns: 1fr !important; }
 }
 
 /* === MISSING STYLES RECOVERED FROM ORIGINALS === */
@@ -535,8 +587,8 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .btn-add-horario { display: flex; align-items: center; gap: 6px; background: none; border: 1.5px dashed #a9435d; color: #a9435d; padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
 .btn-add-horario:hover { background: #fdf0f3; }
 .horario-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.horario-desde { display: flex; align-items: center; gap: 8px; flex: 1; }
-.horario-input { width: 100%; padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; }
+.horario-desde { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.horario-input { width: 100%; min-width: 0; padding: 9px 12px; border: 1px solid #e8d0d8; border-radius: 8px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; }
 .horario-input:focus { border-color: #ef647c; }
 .horario-sep { font-size: 12px; color: #a9435d; white-space: nowrap; }
 .btn-remove { background: none; border: none; cursor: pointer; color: #a9435d; padding: 4px; border-radius: 6px; display: flex; align-items: center; }
@@ -669,3 +721,4 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .prof-actions { display: flex; gap: 6px; }
 .stat-card:hover { border-color: #ef647c; }
 .stat-card.active-filter { border-color: #5a1e37; background: #fdf0f3; }
+.stat-card[onclick], .stat-chip[onclick] { cursor: pointer; }

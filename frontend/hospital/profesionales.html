@@ -16,36 +16,14 @@
 </head>
 <body>
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
-    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
-    <a class="nav-item" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
-    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
-    <a class="nav-item active" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
-    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
-    <a class="nav-item" href="../hospital/facturacion.html"><i class="ti ti-receipt"></i>Facturación</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <div class="topbar-title">Profesionales</div>
     </div>
     <div class="topbar-actions">
@@ -58,18 +36,43 @@
 
   <div class="content">
 
+    <div class="stats-row" id="profesionales-stats" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-stethoscope" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="prof-trend-total"></span>
+        </div>
+        <div class="stat-num" id="prof-stat-total">—</div>
+        <div class="stat-label">Profesionales</div>
+        <div class="kpi-sub" id="prof-sub-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-circle-check" style="color:#27ae60;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="prof-trend-activos"></span>
+        </div>
+        <div class="stat-num" id="prof-stat-activos" style="color:#27ae60;">—</div>
+        <div class="stat-label">Activos</div>
+        <div class="kpi-sub" id="prof-sub-activos">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#f2f2f2;"><i class="ti ti-circle-x" style="color:#888;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="prof-trend-inactivos"></span>
+        </div>
+        <div class="stat-num" id="prof-stat-inactivos" style="color:#888;">—</div>
+        <div class="stat-label">Inactivos</div>
+        <div class="kpi-sub" id="prof-sub-inactivos">—</div>
+      </div>
+    </div>
+
     <div class="filtros">
       <div class="search-wrap">
         <i class="ti ti-search search-icon"></i>
         <input class="search-input" type="text" placeholder="Buscar por nombre o matrícula..." oninput="filtrarProfesionales()">
       </div>
-      <select class="filter-select" onchange="filtrarProfesionales()">
+      <select class="filter-select" id="filtro-especialidad" onchange="filtrarProfesionales()">
         <option value="">Todas las especialidades</option>
-        <option>Hematología</option>
-        <option>Cardiología</option>
-        <option>Oncología</option>
-        <option>Cirugía</option>
-        <option>Pediatría</option>
       </select>
       <select class="filter-select" onchange="filtrarProfesionales()">
         <option value="">Todos los estados</option>
@@ -78,94 +81,10 @@
       </select>
     </div>
 
-    <div class="prof-grid">
-
-      <div class="prof-card" data-nombre="dr. carlos méndez mat. 45.231" data-especialidad="Hematología" data-estado="activo">
-        <div class="prof-card-header">
-          <div class="prof-avatar">CM</div>
-          <div>
-            <div class="prof-name">Dr. Carlos Méndez</div>
-            <div class="prof-especialidad">Hematología</div>
-          </div>
-        </div>
-        <div class="prof-datos">
-          <div class="prof-dato"><i class="ti ti-id-badge" style="color:#ef647c;font-size:14px;"></i>Mat. 45.231</div>
-          <div class="prof-dato"><i class="ti ti-mail" style="color:#ef647c;font-size:14px;"></i>c.mendez@ramosmejia.gob.ar</div>
-          <div class="prof-dato"><i class="ti ti-phone" style="color:#ef647c;font-size:14px;"></i>011 4127-0200 int. 205</div>
-        </div>
-        <div class="prof-footer">
-          <span class="prof-badge badge-activo">● Activo</span>
-          <div class="prof-actions">
-            <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/profesional_detalle.html'">Ver</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="prof-card" data-nombre="dra. ana rodríguez mat. 38.904" data-especialidad="Oncología" data-estado="activo">
-        <div class="prof-card-header">
-          <div class="prof-avatar">AR</div>
-          <div>
-            <div class="prof-name">Dra. Ana Rodríguez</div>
-            <div class="prof-especialidad">Oncología</div>
-          </div>
-        </div>
-        <div class="prof-datos">
-          <div class="prof-dato"><i class="ti ti-id-badge" style="color:#ef647c;font-size:14px;"></i>Mat. 38.904</div>
-          <div class="prof-dato"><i class="ti ti-mail" style="color:#ef647c;font-size:14px;"></i>a.rodriguez@ramosmejia.gob.ar</div>
-          <div class="prof-dato"><i class="ti ti-phone" style="color:#ef647c;font-size:14px;"></i>011 4127-0200 int. 312</div>
-        </div>
-        <div class="prof-footer">
-          <span class="prof-badge badge-activo">● Activo</span>
-          <div class="prof-actions">
-            <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/profesional_detalle.html'">Ver</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="prof-card" data-nombre="dr. luis fernández mat. 52.117" data-especialidad="Cirugía" data-estado="activo">
-        <div class="prof-card-header">
-          <div class="prof-avatar">LF</div>
-          <div>
-            <div class="prof-name">Dr. Luis Fernández</div>
-            <div class="prof-especialidad">Cirugía Cardiovascular</div>
-          </div>
-        </div>
-        <div class="prof-datos">
-          <div class="prof-dato"><i class="ti ti-id-badge" style="color:#ef647c;font-size:14px;"></i>Mat. 52.117</div>
-          <div class="prof-dato"><i class="ti ti-mail" style="color:#ef647c;font-size:14px;"></i>l.fernandez@ramosmejia.gob.ar</div>
-          <div class="prof-dato"><i class="ti ti-phone" style="color:#ef647c;font-size:14px;"></i>011 4127-0200 int. 401</div>
-        </div>
-        <div class="prof-footer">
-          <span class="prof-badge badge-activo">● Activo</span>
-          <div class="prof-actions">
-            <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/profesional_detalle.html'">Ver</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="prof-card" data-nombre="dra. marta peralta mat. 29.445" data-especialidad="Pediatría" data-estado="inactivo">
-        <div class="prof-card-header">
-          <div class="prof-avatar">MP</div>
-          <div>
-            <div class="prof-name">Dra. Marta Peralta</div>
-            <div class="prof-especialidad">Pediatría</div>
-          </div>
-        </div>
-        <div class="prof-datos">
-          <div class="prof-dato"><i class="ti ti-id-badge" style="color:#ef647c;font-size:14px;"></i>Mat. 29.445</div>
-          <div class="prof-dato"><i class="ti ti-mail" style="color:#ef647c;font-size:14px;"></i>m.peralta@ramosmejia.gob.ar</div>
-          <div class="prof-dato"><i class="ti ti-phone" style="color:#ef647c;font-size:14px;"></i>011 4127-0200 int. 118</div>
-        </div>
-        <div class="prof-footer">
-          <span class="prof-badge badge-inactivo">○ Inactivo</span>
-          <div class="prof-actions">
-            <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/profesional_detalle.html'">Ver</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="sin-resultados-prof" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;grid-column:1/-1;">Sin resultados</div>
+    <div class="prof-grid" id="lista-profesionales">
+      <!-- renderizado dinámico vía renderProfesionales() -->
     </div>
+    <div id="sin-resultados-prof" style="display:none;padding:40px;text-align:center;color:#a9435d;font-size:14px;">Sin resultados</div>
   </div>
 </div>
 
@@ -246,19 +165,69 @@
     document.getElementById('modal-nuevo').classList.remove('active');
     document.body.style.overflow = '';
   }
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
+
+  // Las 4 tarjetas y las 3 métricas de arriba venían 100% hardcodeadas —
+  // conectadas acá 2026-10-14 a HemoRed.data.cargarProfesionalesHospital(),
+  // mismo motivo y mismo día que hospital/pacientes.html. El combo de
+  // "especialidad" también se arma con las especialidades reales en vez de
+  // la lista fija de antes (que ni siquiera incluía "Hemoterapia").
+  function renderProfesionales() {
+    const { profesionales, total, activos, inactivos } = HemoRed.data.cargarProfesionalesHospital();
+    document.getElementById('prof-stat-total').textContent = total;
+    document.getElementById('prof-stat-activos').textContent = activos;
+    document.getElementById('prof-stat-inactivos').textContent = inactivos;
+    const especialidades = [...new Set(profesionales.map(p => p.especialidad).filter(Boolean))].sort();
+    document.getElementById('prof-sub-total').textContent = `${especialidades.length} especialidad${especialidades.length === 1 ? '' : 'es'}`;
+    document.getElementById('prof-sub-activos').textContent = `${total ? Math.round((activos / total) * 100) : 0}% del total`;
+    document.getElementById('prof-sub-inactivos').textContent = `${total ? Math.round((inactivos / total) * 100) : 0}% del total`;
+    const trendTotalProf = document.getElementById('prof-trend-total');
+    trendTotalProf.textContent = `${especialidades.length} esp.`;
+    trendTotalProf.className = 'kpi-trend flat';
+    HemoRed.ui.pintarPorcentaje('prof-trend-activos', activos, total, { bg: '#e1f5ee', color: '#27ae60' });
+    HemoRed.ui.pintarPorcentaje('prof-trend-inactivos', inactivos, total, { bg: '#f2f2f2', color: '#888' });
+    const selectEsp = document.getElementById('filtro-especialidad');
+    selectEsp.innerHTML = '<option value="">Todas las especialidades</option>'
+      + especialidades.map(e => `<option>${e}</option>`).join('');
+
+    document.getElementById('lista-profesionales').innerHTML = profesionales.map(p => {
+      const iniciales = p.nombre_completo.replace(/^(Dr\.|Dra\.)\s*/, '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      const estado = p.activo ? 'activo' : 'inactivo';
+      return `
+        <div class="prof-card" data-nombre="${p.nombre_completo.toLowerCase()} mat. ${p.matricula}" data-especialidad="${p.especialidad || ''}" data-estado="${estado}" onclick="window.location='../hospital/profesional_detalle.html'">
+          <div class="prof-card-header">
+            <div class="prof-avatar">${iniciales}</div>
+            <div>
+              <div class="prof-name">${p.nombre_completo}</div>
+              <div class="prof-especialidad">${p.especialidad || '—'}</div>
+            </div>
+          </div>
+          <div class="prof-datos">
+            <div class="prof-dato"><i class="ti ti-id-badge" style="color:#ef647c;font-size:14px;"></i>Mat. ${p.matricula}</div>
+            <div class="prof-dato"><i class="ti ti-mail" style="color:#ef647c;font-size:14px;"></i>${p.usuario?.email || '—'}</div>
+            <div class="prof-dato"><i class="ti ti-phone" style="color:#ef647c;font-size:14px;"></i>${p.usuario?.telefono || '—'}</div>
+          </div>
+          <div class="prof-footer">
+            <span class="prof-badge ${p.activo ? 'badge-activo' : 'badge-inactivo'}">${p.activo ? '● Activo' : '○ Inactivo'}</span>
+            <div class="prof-actions">
+              <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/profesional_detalle.html'">Ver</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
   }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('hospital');
+    await HemoRed.db.init();
+    renderProfesionales();
+  });
 </script>
 
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 </body>
 </html>

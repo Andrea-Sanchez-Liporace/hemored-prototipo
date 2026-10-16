@@ -64,5 +64,203 @@
     "titulo": "Evaluación clínica — Hospital Ramos Mejía",
     "fecha": "2026-05-17",
     "visible": true
+  },
+  {
+    "id": 7,
+    "usuario_id": 5,
+    "hospital_id": 1,
+    "donacion_id": 3,
+    "tipo": "resultado_analisis",
+    "referencia_id": 3,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-06-03",
+    "visible": true
+  },
+  {
+    "id": 8,
+    "usuario_id": 6,
+    "hospital_id": 1,
+    "donacion_id": 4,
+    "tipo": "resultado_analisis",
+    "referencia_id": 4,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-06-15",
+    "visible": true
+  },
+  {
+    "id": 9,
+    "usuario_id": 7,
+    "hospital_id": 1,
+    "donacion_id": 5,
+    "tipo": "resultado_analisis",
+    "referencia_id": 5,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-06-24",
+    "visible": true
+  },
+  {
+    "id": 10,
+    "usuario_id": 7,
+    "hospital_id": 1,
+    "donacion_id": 5,
+    "tipo": "certificado",
+    "referencia_id": 3,
+    "titulo": "Certificado de donación — Hospital Ramos Mejía",
+    "fecha": "2026-06-24",
+    "visible": true
+  },
+  {
+    "id": 11,
+    "usuario_id": 9,
+    "hospital_id": 1,
+    "donacion_id": 6,
+    "tipo": "resultado_analisis",
+    "referencia_id": 6,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-07-05",
+    "visible": true
+  },
+  {
+    "id": 12,
+    "usuario_id": 5,
+    "hospital_id": 1,
+    "donacion_id": 7,
+    "tipo": "resultado_analisis",
+    "referencia_id": 7,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-07-16",
+    "visible": true
+  },
+  {
+    "id": 13,
+    "usuario_id": 6,
+    "hospital_id": 1,
+    "donacion_id": 8,
+    "tipo": "resultado_analisis",
+    "referencia_id": 8,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-07-28",
+    "visible": true
+  },
+  {
+    "id": 14,
+    "usuario_id": 7,
+    "hospital_id": 1,
+    "donacion_id": 9,
+    "tipo": "resultado_analisis",
+    "referencia_id": 9,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-08-04",
+    "visible": true
+  },
+  {
+    "id": 15,
+    "usuario_id": 9,
+    "hospital_id": 1,
+    "donacion_id": 10,
+    "tipo": "resultado_analisis",
+    "referencia_id": 10,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-08-12",
+    "visible": true
+  },
+  {
+    "id": 16,
+    "usuario_id": 9,
+    "hospital_id": 1,
+    "donacion_id": 10,
+    "tipo": "certificado",
+    "referencia_id": 4,
+    "titulo": "Certificado de donación — Hospital Ramos Mejía",
+    "fecha": "2026-08-12",
+    "visible": true
+  },
+  {
+    "id": 17,
+    "usuario_id": 5,
+    "hospital_id": 1,
+    "donacion_id": 11,
+    "tipo": "resultado_analisis",
+    "referencia_id": 11,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-08-20",
+    "visible": true
+  },
+  {
+    "id": 18,
+    "usuario_id": 6,
+    "hospital_id": 1,
+    "donacion_id": 12,
+    "tipo": "resultado_analisis",
+    "referencia_id": 12,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-08-29",
+    "visible": true
+  },
+  {
+    "id": 19,
+    "usuario_id": 7,
+    "hospital_id": 1,
+    "donacion_id": 13,
+    "tipo": "resultado_analisis",
+    "referencia_id": 13,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-09-02",
+    "visible": true
+  },
+  {
+    "id": 20,
+    "usuario_id": 9,
+    "hospital_id": 1,
+    "donacion_id": 14,
+    "tipo": "resultado_analisis",
+    "referencia_id": 14,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-09-09",
+    "visible": true
+  },
+  {
+    "id": 21,
+    "usuario_id": 5,
+    "hospital_id": 1,
+    "donacion_id": 15,
+    "tipo": "resultado_analisis",
+    "referencia_id": null,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-09-17",
+    "visible": true
+  },
+  {
+    "id": 22,
+    "usuario_id": 6,
+    "hospital_id": 1,
+    "donacion_id": 16,
+    "tipo": "resultado_analisis",
+    "referencia_id": null,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-09-23",
+    "visible": true
+  },
+  {
+    "id": 23,
+    "usuario_id": 7,
+    "hospital_id": 1,
+    "donacion_id": 17,
+    "tipo": "resultado_analisis",
+    "referencia_id": null,
+    "titulo": "Resultado de análisis — Hospital Ramos Mejía",
+    "fecha": "2026-09-30",
+    "visible": true
+  },
+  {
+    "id": 24,
+    "usuario_id": 7,
+    "hospital_id": 1,
+    "donacion_id": 17,
+    "tipo": "certificado",
+    "referencia_id": null,
+    "titulo": "Certificado de donación — Hospital Ramos Mejía",
+    "fecha": "2026-09-30",
+    "visible": true
   }
 ]

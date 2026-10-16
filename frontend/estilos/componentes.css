@@ -48,6 +48,7 @@
 .nav-item.active { background: rgba(255,255,255,0.14); color: white; }
 .nav-item i { font-size: 18px; flex-shrink: 0; }
 .nav-badge { background: var(--color-rosa); color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: auto; }
+.nav-badge:empty { display: none; }
 .nav-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: white; padding: 12px 12px 4px; }
 .sidebar-nav .nav-section-label ~ .nav-section-label { position: relative; padding-top: 20px; }
 .sidebar-nav .nav-section-label ~ .nav-section-label::before { content: ''; display: block; position: absolute; top: 6px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(242,139,152,0.5) 30%, rgba(242,139,152,0.5) 70%, transparent); }

@@ -17,38 +17,14 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button>
-  </div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
-    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
-    <a class="nav-item active" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
-    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
-    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
-    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
-    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <a class="topbar-back" href="../hospital/campanas.html">
         <i class="ti ti-arrow-left"></i>Campañas
       </a>
@@ -204,6 +180,8 @@
 <script src="../js/sesion.js"></script>
 <script src="../js/ui.js"></script>
 <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 
 <script>
   const ESTADO_INFO = {
@@ -219,6 +197,7 @@
     completado: { badge: 'tb-completado', label: 'Donación realizada' },
     cancelado:  { badge: 'tb-cancelado',  label: 'Cancelado' },
     no_apto:    { badge: 'tb-cancelado',  label: 'No apto' },
+    ausente:    { badge: 'tb-cancelado',  label: 'Ausente' },
   };
   const DIAS_LABEL = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
 
@@ -235,9 +214,9 @@
 
   function etiquetaFechaHora(fechaStr, hora) {
     const hoy = HemoRed.data.ahora();
-    const hoyStr = hoy.toISOString().slice(0, 10);
+    const hoyStr = HemoRed.data.fechaISO(hoy);
     const manana = new Date(hoy); manana.setDate(manana.getDate() + 1);
-    const mananaStr = manana.toISOString().slice(0, 10);
+    const mananaStr = HemoRed.data.fechaISO(manana);
     let dia;
     if (fechaStr === hoyStr) dia = 'Hoy';
     else if (fechaStr === mananaStr) dia = 'Mañana';
@@ -264,7 +243,7 @@
       acciones = `<button class="btn-xs btn-xs-outline" onclick="verPerfilNoDisponible()">Ver perfil</button>`;
     } else if (t.estado === 'completado') {
       acciones = `<button class="btn-xs btn-xs-outline" onclick="verResultadoNoDisponible()">Ver resultado</button>`;
-    } else if (t.estado === 'cancelado' || t.estado === 'no_apto') {
+    } else if (t.estado === 'cancelado' || t.estado === 'no_apto' || t.estado === 'ausente') {
       acciones = `<button class="btn-xs btn-xs-outline" onclick="verMotivo(${t.id})">Ver motivo</button>`;
     }
     return `<div class="turno-row">
@@ -438,14 +417,6 @@
     document.getElementById('tab-descripcion').style.display = 'none';
     document.getElementById('tab-donantes').style.display = 'none';
     document.getElementById('tab-' + tab).style.display = 'block';
-  }
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
-  }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
   }
 
   init();

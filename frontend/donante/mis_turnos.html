@@ -17,47 +17,14 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu">
-      <i class="ti ti-x" aria-hidden="true"></i>
-    </button>
-  </div>
-  <div class="sidebar-user">
-    <div class="sidebar-avatar" data-sesion-iniciales>SP</div>
-    <div>
-      <div class="sidebar-user-name"><span data-sesion-nombre>Sofía Páez</span></div>
-      <div class="sidebar-user-role">Donante</div>
-    </div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../donante/dashboard.html"><i class="ti ti-search" aria-hidden="true"></i>Buscar campañas</a>
-    <a class="nav-item active" href="../donante/mis_turnos.html"><i class="ti ti-calendar" aria-hidden="true"></i>Mis turnos</a>
-    <a class="nav-item" href="../donante/mis_donaciones.html"><i class="ti ti-heart" aria-hidden="true"></i>Mis donaciones</a>
-    <a class="nav-item" href="../donante/mis_documentos.html"><i class="ti ti-file-text" aria-hidden="true"></i>Mis documentos</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../donante/perfil.html"><i class="ti ti-user" aria-hidden="true"></i>Mi perfil</a>
-    <a class="nav-item" href="../donante/notificaciones.html"><i class="ti ti-bell" aria-hidden="true"></i>Notificaciones</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión</a>
-  </nav>
+<aside class="sidebar" id="sidebar"></aside>
 
-  <div class="sidebar-footer">
-    <div class="sidebar-alert hidden" id="sidebar-alerta-perfil">
-      <div class="sidebar-alert-title">⚠️ Perfil incompleto</div>
-      <div class="sidebar-alert-text">Completá tus datos personales y médicos para agilizar tu próxima donación.</div>
-      <a class="sidebar-alert-btn" href="../donante/perfil.html">Completar perfil</a>
-    </div>
-  </div>
-</aside>
-
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()" aria-label="Menú">
+      <button class="mobile-topbar-btn" aria-label="Menú">
         <span></span><span></span><span></span>
       </button>
       <div class="topbar-title">Mis turnos</div>
@@ -149,8 +116,16 @@
   // arriba, porque este bloque corre ANTES de que carguen los <script src>
   // de más abajo — no hace falta esperarlos, `new Date()` no depende de
   // ningún otro archivo.
+  // d.toISOString() convierte a UTC antes de cortar la fecha — en
+  // Argentina (UTC-3) eso adelantaba el calendario hasta 3hs cada noche.
+  function fechaALocalISO(d) {
+    const anio = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+  }
   function hoy() {
-    return new Date().toISOString().slice(0, 10);
+    return fechaALocalISO(new Date());
   }
   const TIME_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'];
 
@@ -161,7 +136,7 @@
   function sumarDias(fechaISO, n) {
     const d = new Date(fechaISO + 'T00:00:00');
     d.setDate(d.getDate() + n);
-    return d.toISOString().slice(0, 10);
+    return fechaALocalISO(d);
   }
 
   function formatearFecha(fechaISO) {
@@ -292,14 +267,6 @@
     document.getElementById('tab-cancelados').classList.add('hidden');
     document.getElementById('tab-' + tab).classList.remove('hidden');
   }
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
-  }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
   function verDetalle() {
     window.location.href = '../donante/campana_detalle.html';
   }
@@ -311,6 +278,7 @@
     completado: { clase: 'completado', texto: 'Asistido' },
     no_apto:    { clase: 'cancelado',  texto: 'No apta' },
     cancelado:  { clase: 'cancelado',  texto: 'Cancelado' },
+    ausente:    { clase: 'cancelado',  texto: 'No te presentaste' },
   };
 
   function turnoCardHTML(t) {
@@ -320,9 +288,9 @@
     const dia = fecha.getDate();
     const mes = fecha.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '');
     const badge = BADGE_TURNO[t.estado] || { clase: '', texto: t.estado };
-    const esPasado = ['completado', 'no_apto', 'cancelado'].includes(t.estado);
+    const esPasado = ['completado', 'no_apto', 'cancelado', 'ausente'].includes(t.estado);
     const dateStyle = t.estado === 'completado' ? 'background:#f0f8f4;border-color:#27ae60;'
-      : (t.estado === 'no_apto' || t.estado === 'cancelado') ? 'background:#fde8e8;border-color:#e74c3c;' : '';
+      : ['no_apto', 'cancelado', 'ausente'].includes(t.estado) ? 'background:#fde8e8;border-color:#e74c3c;' : '';
 
     const acciones = esPasado
       ? `<button class="btn-sm btn-sm-outline" onclick="window.location='../donante/mis_donaciones.html'">${t.estado === 'completado' ? 'Ver donación' : 'Ver motivo'}</button>`
@@ -371,7 +339,7 @@
 
     const proximos = turnos.filter(t => ['pendiente', 'confirmado', 'en_curso'].includes(t.estado))
       .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
-    const historial = turnos.filter(t => ['completado', 'no_apto'].includes(t.estado))
+    const historial = turnos.filter(t => ['completado', 'no_apto', 'ausente'].includes(t.estado))
       .sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
     const cancelados = turnos.filter(t => t.estado === 'cancelado');
 
@@ -479,5 +447,7 @@
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarDonante());</script>
+
 </body>
 </html>

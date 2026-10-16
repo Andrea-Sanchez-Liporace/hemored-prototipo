@@ -34,7 +34,7 @@ test.describe('Dashboard de Hospital', () => {
     await expect(page.locator('#campanas-activas')).toHaveText('2');
     await expect(page.locator('#bienvenida-campanas')).toHaveText('2');
 
-    const filas = page.locator('#lista-campanas-recientes .campana-row');
+    const filas = page.locator('#lista-campanas-recientes .campana-row-dash');
     await expect(filas).toHaveCount(2);
     await expect(filas.first().locator('.campana-badge')).toHaveText('Urgente');
   });
@@ -42,7 +42,7 @@ test.describe('Dashboard de Hospital', () => {
   test('sin turnos pendientes muestra el estado vacío', async ({ page }) => {
     await loginHospital(page);
     // Los datos semilla del hospital 1 no tienen ningún turno "pendiente" hoy
-    await expect(page.locator('#lista-turnos-pendientes .turno-row')).toHaveCount(0);
+    await expect(page.locator('#lista-turnos-pendientes .turno-row-dash')).toHaveCount(0);
     await expect(page.locator('#lista-turnos-pendientes .empty-title')).toHaveText('No hay turnos pendientes');
   });
 
@@ -63,12 +63,12 @@ test.describe('Dashboard de Hospital', () => {
     });
     await page.reload();
 
-    await expect(page.locator('#lista-turnos-pendientes .turno-row')).toHaveCount(1);
+    await expect(page.locator('#lista-turnos-pendientes .turno-row-dash')).toHaveCount(1);
     await expect(page.locator('.turno-meta').first()).toContainText('Hoy · 15:00hs');
     await expect(page.locator('#turnos-hoy')).toHaveText('1');
 
     await page.click('.btn-xs-ok');
-    await expect(page.locator('#lista-turnos-pendientes .turno-row')).toHaveCount(0);
+    await expect(page.locator('#lista-turnos-pendientes .turno-row-dash')).toHaveCount(0);
     await expect(page.locator('#bienvenida-turnos-pendientes')).toHaveText('0');
 
     const estado = await page.evaluate((id) => HemoRed.db.find('turnos', id).estado, turnoId);
@@ -93,7 +93,7 @@ test.describe('Dashboard de Hospital', () => {
 
     page.once('dialog', d => d.accept('No hay cupo disponible'));
     await page.click('.btn-xs-no');
-    await expect(page.locator('#lista-turnos-pendientes .turno-row')).toHaveCount(0);
+    await expect(page.locator('#lista-turnos-pendientes .turno-row-dash')).toHaveCount(0);
 
     // rechazarTurno() marca el turno como "cancelado" (no existe un estado
     // "rechazado" separado) y guarda el motivo.

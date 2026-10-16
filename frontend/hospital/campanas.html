@@ -17,38 +17,14 @@
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button>
-  </div>
-  <div class="sidebar-hospital">
-    <div class="sidebar-hospital-name">Hospital Ramos Mejía</div>
-    <div class="sidebar-hospital-plan"><i class="ti ti-star" style="font-size:10px;"></i>Plan Provincial</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Principal</div>
-    <a class="nav-item" href="../hospital/dashboard.html"><i class="ti ti-layout-dashboard"></i>Inicio</a>
-    <a class="nav-item active" href="../hospital/campanas.html"><i class="ti ti-speakerphone"></i>Campañas</a>
-    <a class="nav-item" href="../hospital/turnos.html"><i class="ti ti-calendar"></i>Turnos</a>
-    <a class="nav-item" href="../hospital/metricas.html"><i class="ti ti-chart-bar"></i>Métricas</a>
-    <div class="nav-section-label">Gestión</div>
-    <a class="nav-item" href="../hospital/pacientes.html"><i class="ti ti-user-plus"></i>Pacientes</a>
-    <a class="nav-item" href="../hospital/profesionales.html"><i class="ti ti-stethoscope"></i>Profesionales</a>
-    <a class="nav-item" href="../hospital/documentacion.html"><i class="ti ti-file-text"></i>Documentación</a>
-    <div class="nav-section-label">Cuenta</div>
-    <a class="nav-item" href="../hospital/perfil.html"><i class="ti ti-building-hospital"></i>Perfil del hospital</a>
-    <a class="nav-item" href="../hospital/notificaciones.html"><i class="ti ti-bell"></i>Notificaciones</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <div class="topbar-title">Campañas</div>
     </div>
     <div class="topbar-actions">
@@ -77,32 +53,72 @@
       </button>
     </div>
 
-    <!-- STATS CHIPS — clickeables como filtro -->
+    <!-- STATS — solo informativas, el filtro está en las pestañas de abajo -->
     <div class="stats-row">
-      <div class="stat-chip active-filter" onclick="filtrarEstado('todas', this)">
+      <div class="stat-chip">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-speakerphone" style="color:#5a1e37;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-todas"></span>
+        </div>
         <div class="stat-chip-num" id="stat-todas">—</div>
         <div class="stat-chip-label">Todas</div>
+        <div class="kpi-sub" id="sub-todas">—</div>
       </div>
-      <div class="stat-chip" onclick="filtrarEstado('activa', this)">
+      <div class="stat-chip">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-circle-check" style="color:#27ae60;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-activa"></span>
+        </div>
         <div class="stat-chip-num" style="color:#27ae60;" id="stat-activa">—</div>
-        <div class="stat-chip-label"><div class="estado-dot dot-activa"></div>Activas</div>
+        <div class="stat-chip-label">Activas</div>
+        <div class="kpi-sub" id="sub-activa">—</div>
       </div>
-      <div class="stat-chip" onclick="filtrarEstado('programada', this)">
+      <div class="stat-chip">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#efeefd;"><i class="ti ti-calendar-time" style="color:#7f77dd;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-programada"></span>
+        </div>
         <div class="stat-chip-num" style="color:#7f77dd;" id="stat-programada">—</div>
-        <div class="stat-chip-label"><div class="estado-dot dot-programada"></div>Programadas</div>
+        <div class="stat-chip-label">Programadas</div>
+        <div class="kpi-sub" id="sub-programada">—</div>
       </div>
-      <div class="stat-chip" onclick="filtrarEstado('pausada', this)">
+      <div class="stat-chip">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf3e8;"><i class="ti ti-player-pause" style="color:#e67e22;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-pausada"></span>
+        </div>
         <div class="stat-chip-num" style="color:#e67e22;" id="stat-pausada">—</div>
-        <div class="stat-chip-label"><div class="estado-dot dot-pausada"></div>Pausadas</div>
+        <div class="stat-chip-label">Pausadas</div>
+        <div class="kpi-sub" id="sub-pausada">—</div>
       </div>
-      <div class="stat-chip" onclick="filtrarEstado('cerrada', this)">
+      <div class="stat-chip">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-lock" style="color:#a9435d;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-cerrada"></span>
+        </div>
         <div class="stat-chip-num" style="color:#a9435d;" id="stat-cerrada">—</div>
-        <div class="stat-chip-label"><div class="estado-dot dot-cerrada"></div>Cerradas</div>
+        <div class="stat-chip-label">Cerradas</div>
+        <div class="kpi-sub" id="sub-cerrada">—</div>
       </div>
-      <div class="stat-chip" onclick="filtrarEstado('borrador', this)">
+      <div class="stat-chip">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#f2f2f2;"><i class="ti ti-file-pencil" style="color:#888;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-borrador"></span>
+        </div>
         <div class="stat-chip-num" style="color:#888;" id="stat-borrador">—</div>
-        <div class="stat-chip-label"><div class="estado-dot dot-borrador"></div>Borradores</div>
+        <div class="stat-chip-label">Borradores</div>
+        <div class="kpi-sub" id="sub-borrador">—</div>
       </div>
+    </div>
+
+    <!-- FILTRO POR ESTADO — mismo componente .tabs que ya usa Documentación -->
+    <div class="tabs" id="tabs-estado-campana">
+      <button class="tab active" onclick="filtrarEstado('todas', this)">Todas<span class="tab-badge" id="tabbadge-todas">0</span></button>
+      <button class="tab" onclick="filtrarEstado('activa', this)">Activas<span class="tab-badge" id="tabbadge-activa">0</span></button>
+      <button class="tab" onclick="filtrarEstado('programada', this)">Programadas<span class="tab-badge" id="tabbadge-programada">0</span></button>
+      <button class="tab" onclick="filtrarEstado('pausada', this)">Pausadas<span class="tab-badge" id="tabbadge-pausada">0</span></button>
+      <button class="tab" onclick="filtrarEstado('cerrada', this)">Cerradas<span class="tab-badge" id="tabbadge-cerrada">0</span></button>
+      <button class="tab" onclick="filtrarEstado('borrador', this)">Borradores<span class="tab-badge" id="tabbadge-borrador">0</span></button>
     </div>
 
     <!-- FILTROS -->
@@ -156,6 +172,8 @@
 <script src="../js/sesion.js"></script>
 <script src="../js/ui.js"></script>
 <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
 
 <script>
   var _filtroEstadoCamp = 'todas';
@@ -237,17 +255,38 @@
     let lista = _pacienteFiltroId ? _campanas.filter(c => c.paciente_id === _pacienteFiltroId) : _campanas;
 
     document.getElementById('stat-todas').textContent = lista.length;
+    const urgentes = lista.filter(c => c.urgente).length;
+    document.getElementById('sub-todas').textContent = urgentes ? `${urgentes} urgente${urgentes === 1 ? '' : 's'}` : 'Ninguna urgente';
+    document.getElementById('trend-todas').innerHTML = urgentes
+      ? `<i class="ti ti-alert-triangle" style="font-size:10px;"></i>${urgentes} urgente${urgentes === 1 ? '' : 's'}`
+      : '<i class="ti ti-check" style="font-size:10px;"></i>sin urgencias';
+    document.getElementById('trend-todas').className = 'kpi-trend ' + (urgentes ? 'down' : 'up');
+
+    // Mismo color que ya tiene cada ícono/número de estado, para que el
+    // badge combine con el resto de la tarjeta.
+    const colorPorEstado = {
+      activa: { bg: '#e1f5ee', color: '#27ae60' },
+      programada: { bg: '#efeefd', color: '#7f77dd' },
+      pausada: { bg: '#fdf3e8', color: '#e67e22' },
+      cerrada: { bg: '#fdf0f3', color: '#a9435d' },
+      borrador: { bg: '#f2f2f2', color: '#888' },
+    };
     ['activa', 'programada', 'pausada', 'cerrada', 'borrador'].forEach(estado => {
-      document.getElementById('stat-' + estado).textContent = lista.filter(c => c.estado === estado).length;
+      const n = lista.filter(c => c.estado === estado).length;
+      document.getElementById('stat-' + estado).textContent = n;
+      document.getElementById('sub-' + estado).textContent = `${lista.length ? Math.round((n / lista.length) * 100) : 0}% del total`;
+      HemoRed.ui.pintarPorcentaje('trend-' + estado, n, lista.length, colorPorEstado[estado]);
+      document.getElementById('tabbadge-' + estado).textContent = n;
     });
+    document.getElementById('tabbadge-todas').textContent = lista.length;
 
     document.getElementById('filas-campanas').innerHTML = lista.map(filaCampana).join('');
     aplicarFiltrosCampanas();
   }
 
   function filtrarEstado(estado, el) {
-    document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active-filter'));
-    el.classList.add('active-filter');
+    document.querySelectorAll('#tabs-estado-campana .tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
     _filtroEstadoCamp = estado;
     aplicarFiltrosCampanas();
   }
@@ -322,14 +361,6 @@
     recargar();
   }
 
-  function abrirSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebar-overlay').classList.add('open');
-  }
-  function cerrarSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }
 
   function volverPaciente() {
     window.history.back();

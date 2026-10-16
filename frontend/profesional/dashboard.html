@@ -18,40 +18,63 @@
 </head>
 <body>
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><a href="../index.html">Hemo<span>red</span></a>
-    <button class="sidebar-close-btn" onclick="cerrarSidebar()" aria-label="Cerrar menu"><i class="ti ti-x" aria-hidden="true"></i></button></div>
-  <div class="sidebar-prof">
-    <div class="sidebar-avatar" id="sidebar-avatar">CM</div>
-    <div>
-      <div class="sidebar-prof-name" id="sidebar-prof-name">Dr. Carlos Méndez</div>
-      <div class="sidebar-prof-role" id="sidebar-prof-role">Hematología · Ramos Mejía</div>
-    </div>
-  </div>
-  <nav class="sidebar-nav">
-    <a class="nav-item active" href="../profesional/dashboard.html"><i class="ti ti-calendar"></i>Turnos<span class="nav-badge" id="nav-badge-turnos">0</span></a>
-    <a class="nav-item" href="../profesional/perfil.html"><i class="ti ti-user"></i>Mi perfil</a>
-    <a class="nav-item" href="../publico/login.html"><i class="ti ti-logout"></i>Cerrar sesión</a>
-  </nav>
-</aside>
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+<aside class="sidebar" id="sidebar"></aside>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="main">
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <button class="mobile-topbar-btn" onclick="abrirSidebar()"><span></span><span></span><span></span></button>
-      <div class="topbar-title">Turnos</div>
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
     </div>
-    <div class="topbar-date" id="topbar-date"></div>
+    <div class="topbar-actions">
+      <a class="topbar-btn" href="../profesional/perfil.html" data-tooltip="Ir a mi perfil">
+        <i class="ti ti-user" style="font-size:18px;" aria-hidden="true"></i>
+      </a>
+    </div>
   </div>
 
   <div class="content">
-    <h2 class="content-title-mobile">Turnos</h2>
+    <div class="page-header">
+      <div class="page-date" id="topbar-date"></div>
+      <h1 class="page-title">Turnos</h1>
+    </div>
     <div class="stats-row">
-      <div class="stat"><div class="stat-num" id="stat-turnos-hoy">0</div><div class="stat-label">Turnos hoy</div></div>
-      <div class="stat"><div class="stat-num" id="stat-completados" style="color:#27ae60;">0</div><div class="stat-label">Completados</div></div>
-      <div class="stat"><div class="stat-num" id="stat-pendientes" style="color:#e67e22;">0</div><div class="stat-label">Pendientes</div></div>
-      <div class="stat"><div class="stat-num" id="stat-no-aptos" style="color:#c0392b;">0</div><div class="stat-label">No aptos</div></div>
+      <div class="stat">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#e1f5ee;"><i class="ti ti-circle-check" style="color:#27ae60;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-completados"></span>
+        </div>
+        <div class="stat-num" id="stat-completados" style="color:#27ae60;">0</div>
+        <div class="stat-label">Completados</div>
+        <div class="kpi-sub" id="sub-completados">—</div>
+      </div>
+      <div class="stat">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#efeefd;"><i class="ti ti-player-play" style="color:#7f77dd;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-en-proceso"></span>
+        </div>
+        <div class="stat-num" id="stat-en-proceso" style="color:#7f77dd;">0</div>
+        <div class="stat-label">En proceso</div>
+        <div class="kpi-sub" id="sub-en-proceso">—</div>
+      </div>
+      <div class="stat">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf3e8;"><i class="ti ti-clock" style="color:#e67e22;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-pendientes"></span>
+        </div>
+        <div class="stat-num" id="stat-pendientes" style="color:#e67e22;">0</div>
+        <div class="stat-label">Pendientes</div>
+        <div class="kpi-sub" id="sub-pendientes">—</div>
+      </div>
+      <div class="stat">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fde8e8;"><i class="ti ti-circle-x" style="color:#c0392b;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-cancelados"></span>
+        </div>
+        <div class="stat-num" id="stat-cancelados" style="color:#c0392b;">0</div>
+        <div class="stat-label">Cancelados</div>
+        <div class="kpi-sub" id="sub-cancelados">—</div>
+      </div>
     </div>
 
     <div class="filtros">
@@ -770,6 +793,17 @@
   }
 
   function cerrarModal() {
+    // Si se abrió con "Iniciar entrevista" y se cierra sin haber llegado a
+    // una decisión (apto/no apto) — X, "Cancelar", o cualquier otro cierre
+    // — el turno vuelve a 'confirmado' (pendiente) en vez de quedar
+    // trabado en "en curso" para siempre. El camino exitoso (ver más abajo
+    // en registrarEvaluacionUI()) apaga esta bandera ANTES de llamar acá,
+    // así que no revierte un turno que sí se terminó de evaluar.
+    if (_entrevistaEnCursoAbierta && _turnoEntrevistaId) {
+      HemoRed.data.cancelarEntrevistaClinica(_turnoEntrevistaId);
+      renderTurnosProfesional();
+    }
+    _entrevistaEnCursoAbierta = false;
     document.getElementById('modal').classList.remove('active');
     document.body.style.overflow = '';
   }
@@ -819,6 +853,11 @@
 
   var _turnoEntrevistaId = null;
   var _cuestionarioModoEdicion = false;
+  // true solo cuando abrirEntrevistaClinica() de verdad puso el turno en
+  // 'en_curso' (el caso "Iniciar entrevista") — NO para "Ver turno" (F1/F2
+  // todavía incompletos, nada que iniciar). cerrarModal() lo usa para
+  // saber si tiene que revertir a 'confirmado' al cerrar sin terminar.
+  var _entrevistaEnCursoAbierta = false;
 
   function renderF2(respuestas) {
     const html = PREGUNTAS_CUESTIONARIO.map(p => {
@@ -854,6 +893,20 @@
     const { turno, donante, campana, formulario } = rev;
     _turnoEntrevistaId = turnoId;
     _cuestionarioModoEdicion = false;
+
+    // Solo marca "en curso" si de verdad hay una entrevista para iniciar
+    // o retomar (turno confirmado — o ya en_curso, caso "Continuar" desde
+    // una entrevista que había quedado a medias — con F1/F2 completos y
+    // sin evaluación todavía). El botón "Ver turno" (F1/F2 incompletos)
+    // llama a esta misma función pero no tiene nada que iniciar.
+    const puedeEvaluar = ['confirmado', 'en_curso'].includes(turno.estado)
+      && turno.formulario_autoexclusion_completado && turno.formulario_cuestionario_completado && !rev.evaluacion;
+    if (puedeEvaluar && turno.estado === 'confirmado') {
+      const r = HemoRed.data.iniciarEntrevistaClinica(turnoId);
+      _entrevistaEnCursoAbierta = r.ok;
+    } else {
+      _entrevistaEnCursoAbierta = puedeEvaluar; // ya estaba en_curso ("Continuar")
+    }
     aptoDec = null;
 
     const nombreCompleto = donante ? `${donante.nombre} ${donante.apellido}` : 'Donante';
@@ -992,6 +1045,11 @@
     }
 
     HemoRed.ui.toast(aptoDec === 'apto' ? 'Evaluación registrada — apto para donar' : 'Evaluación registrada — no apto');
+    // Ya se registró la evaluación (registrarEvaluacionClinica() mismo
+    // dejó el turno en 'confirmado' o 'no_apto', nunca en 'en_curso') —
+    // apagar la bandera ANTES de cerrar para que cerrarModal() no
+    // revierta un turno que en realidad ya se terminó de evaluar.
+    _entrevistaEnCursoAbierta = false;
     cerrarModal();
     renderTurnosProfesional();
   }
@@ -1120,7 +1178,7 @@
   async function renderTurnosProfesional() {
     const turnos = await HemoRed.data.cargarTurnosProfesional();
     _turnosProfesional = turnos;
-    const hoyISO = HemoRed.data.ahora().toISOString().slice(0, 10);
+    const hoyISO = HemoRed.data.hoyISO();
 
     const cont = document.getElementById('turnos-list');
     cont.innerHTML = turnos.map(t => {
@@ -1144,8 +1202,8 @@
       // extrae — un turno marcado apto por el médico nunca desaparecía de
       // su "Solo pendientes", aunque ya no tuviera nada pendiente para él.
       const cerrado = _profesionalActualTipo === 'medico'
-        ? t.tieneEvaluacionClinica || t.estado === 'cancelado'
-        : t.tieneDonacionRegistrada || ['no_apto', 'cancelado', 'incompleta'].includes(t.estado);
+        ? t.tieneEvaluacionClinica || ['cancelado', 'ausente'].includes(t.estado)
+        : t.tieneDonacionRegistrada || ['no_apto', 'cancelado', 'ausente', 'incompleta'].includes(t.estado);
       const periodo = t.fecha < hoyISO ? 'pasado' : (t.fecha > hoyISO ? 'futuro' : 'presente');
 
       const f1f2listos = t.formulario_autoexclusion_completado && t.formulario_cuestionario_completado;
@@ -1160,8 +1218,20 @@
         // "Confirmar evaluación" sigue bloqueado server-side hasta que F1/F2
         // estén listos (registrarEvaluacionClinica() ya valida esto).
         acciones = _profesionalActualTipo === 'medico'
-          ? `<button class="btn-outline-sm" onclick="abrirEntrevistaClinica(${t.id})"><i class="ti ti-eye"></i>Ver turno</button>`
+          ? `<button class="btn-outline-sm" onclick="abrirEntrevistaClinica(${t.id})"><i class="ti ti-eye"></i>Ver turno</button>${periodo !== 'futuro' ? `<button class="btn-outline-sm" onclick="marcarAusenteUI(${t.id})"><i class="ti ti-user-x"></i>Ausente</button>` : ''}`
           : '<span style="font-size:12px;color:#a9435d;">Esperando F1/F2 del donante</span>';
+      } else if (t.estado === 'en_curso') {
+        // El médico clickeó "Iniciar entrevista" y no llegó a cerrar el
+        // modal con una decisión (ej. cerró la pestaña a mitad de la
+        // entrevista) — caso raro, pero mejor mostrarlo bien que dejarlo
+        // caer en ninguna rama. "Continuar" reabre el mismo modal desde
+        // donde quedó (los datos F1/F2/historial se vuelven a cargar).
+        cardClase = 'en-curso';
+        badgeClase = 'tb-en-curso';
+        badgeTexto = '● Entrevista en curso';
+        acciones = _profesionalActualTipo === 'medico'
+          ? `<button class="btn-atender" onclick="abrirEntrevistaClinica(${t.id})"><i class="ti ti-stethoscope"></i>Continuar</button>`
+          : '<span style="font-size:12px;color:#a9435d;">El médico está evaluando este turno</span>';
       } else if (t.estado === 'confirmado' && f1f2listos && !t.tieneEvaluacionClinica) {
         // Gate del médico clínico: entrevista + decisión apto/no apto.
         // Todavía no pasó nadie por acá.
@@ -1169,7 +1239,7 @@
         badgeClase = 'tb-en-curso';
         badgeTexto = '● Esperando evaluación médica';
         acciones = _profesionalActualTipo === 'medico'
-          ? `<button class="btn-atender" onclick="abrirEntrevistaClinica(${t.id})"><i class="ti ti-stethoscope"></i>Iniciar entrevista</button>`
+          ? `<button class="btn-atender" onclick="abrirEntrevistaClinica(${t.id})"><i class="ti ti-stethoscope"></i>Iniciar entrevista</button>${periodo !== 'futuro' ? `<button class="btn-outline-sm" onclick="marcarAusenteUI(${t.id})"><i class="ti ti-user-x"></i>Ausente</button>` : ''}`
           : '<span style="font-size:12px;color:#a9435d;">Esperando evaluación médica</span>';
       } else if (t.estado === 'confirmado' && f1f2listos && t.tieneEvaluacionClinica && !t.tieneDonacionRegistrada) {
         // El médico ya dio apto (si hubiera dado no apto, el turno ya
@@ -1201,6 +1271,12 @@
         badgeClase = 'tb-no-apto';
         badgeTexto = 'Cancelado';
         acciones = '';
+      } else if (t.estado === 'ausente') {
+        // El donante no se presentó — distinto de "cancelado" (ahí nunca
+        // hubo intención de venir, acá sí había turno confirmado y no vino).
+        badgeClase = 'tb-no-apto';
+        badgeTexto = 'Ausente';
+        acciones = '';
       } else if (t.estado === 'incompleta') {
         // Se intentó la extracción pero no se completó (reacción del
         // donante, vena colapsada, etc.) — no hay donación real, no se
@@ -1225,6 +1301,23 @@
     }).join('');
 
     aplicarFiltros();
+  }
+
+  // El médico constata que el donante no se presentó — acción manual (ver
+  // nota en data.js/marcarAusente()). La reconfirmación es a propósito: no
+  // tiene deshacer desde acá.
+  async function marcarAusenteUI(turnoId) {
+    const t = _turnosProfesional.find(x => x.id === turnoId);
+    const nombreCompleto = t?.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'este donante';
+    const confirmado = await HemoRed.ui.confirmar(`¿Está seguro que quiere marcar a ${nombreCompleto} como ausente?`, { titulo: 'Registrar ausencia' });
+    if (!confirmado) return;
+    const resultado = HemoRed.data.marcarAusente(turnoId);
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+    HemoRed.ui.toast('Donante marcado como ausente');
+    await renderTurnosProfesional();
   }
 
   async function abrirModalDonacion(turnoId) {
@@ -1475,13 +1568,13 @@
     return t;
   }
 
-  function abrirSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); }
-  function cerrarSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
 </script>
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarProfesional());</script>
+
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('profesional');

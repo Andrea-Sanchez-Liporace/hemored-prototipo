@@ -47,7 +47,7 @@ test.describe('Ver/gestionar campañas', () => {
     await expect(page.locator('#stat-cerrada')).toHaveText('1');
     await expect(page.locator('.table-row')).toHaveCount(3);
 
-    await page.click('.stat-chip:has-text("Activas")');
+    await page.click('#tabs-estado-campana .tab:has-text("Activas")');
     await expect(page.locator('.table-row:visible')).toHaveCount(2);
   });
 
