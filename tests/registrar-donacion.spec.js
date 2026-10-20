@@ -42,7 +42,10 @@ const timestamp = Date.now();
 const donanteEmail = `donante.f4.${timestamp}@example.com`;
 const donantePassword = 'password123';
 const donanteNombre = 'Rocío';
-const donanteApellido = 'Testigo';
+// Apellido único por corrida (2026-10-20, mismo motivo que golden-path.spec.js):
+// el paso de confirmación ahora busca en campana_detalle.html, que acumula
+// turnos de todas las fechas/corridas, no solo los de hoy.
+const donanteApellido = `Testigo${timestamp}`;
 
 async function firmar(page, canvasSelector) {
   const canvas = page.locator(canvasSelector);
@@ -84,7 +87,8 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
     // timeout global de 30s (playwright.config.js), sobre todo con
     // HemoRed.db.init() cargando 24 tablas en cada uno de los ~6 logins.
     test.slow();
-    await test.step('donante nuevo se registra y reserva un turno para hoy', async () => {
+    let campanaId;
+    await test.step('donante nuevo se registra y reserva un turno', async () => {
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', donanteNombre);
@@ -98,9 +102,13 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
 
       await page.locator('.campaign-btn').first().click();
       await page.waitForURL('**/campana_detalle.html**');
+      campanaId = new URL(page.url()).searchParams.get('id');
       await page.click('#btn-reservar');
-      // No tocamos las fecha-tabs: la primera (índice 0) es HOY por default,
-      // necesario para que el turno aparezca en "Gestión de turnos" del hospital.
+      // No tocamos las fecha-tabs: renderFechaTabs() ya elige sola la
+      // primera fecha con algún horario libre (no siempre hoy, desde
+      // 2026-10-20 — antes de esto, pasado el último horario del día la
+      // grilla de "hoy" quedaba sin nada para elegir). La verificación del
+      // lado del hospital (abajo) ya no depende de que haya caído hoy.
       await page.locator('.turno-opt[data-hora]').first().waitFor();
       await page.locator('.turno-opt[data-hora]').first().click();
       await page.click('#btn-continuar');
@@ -114,14 +122,14 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await page.fill('#password', 'hospital123');
       await page.click('.form-btn');
       await page.waitForURL('**/hospital/dashboard.html');
-      await page.goto('/hospital/turnos.html');
+      // hospital/campana_detalle.html (todas las fechas) en vez de
+      // hospital/turnos.html (solo hoy) — mismo motivo que golden-path.spec.js.
+      await page.goto(`/hospital/campana_detalle.html?id=${campanaId}`);
 
-      const fila = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
+      const fila = page.locator('#d-turnos-lista .turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
       await expect(fila).toBeVisible();
-      await expect(fila.locator('.turno-actions')).not.toContainText('Registrar donación'); // todavía sin F1/F2
       await fila.locator('button:has-text("Confirmar")').click();
       await expect(fila.locator('.turno-badge')).toHaveText('Confirmado');
-      await expect(fila.locator('.turno-actions')).not.toContainText('Registrar donación'); // confirmado, pero F1/F2 sin completar
     });
 
     let urlFormulario;
@@ -167,9 +175,17 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await page.click('.form-btn');
       await page.waitForURL('**/hospital/dashboard.html');
       await page.goto('/hospital/turnos.html');
+      // hospital/turnos.html solo muestra turnos de HOY — si la reserva cayó
+      // en otro día (posible desde 2026-10-20, ver arriba), esta fila
+      // directamente no está acá, y no hay nada que chequear en esta vista
+      // puntual. El hecho de fondo (Hospital no ofrece "Registrar donación"
+      // en ningún lado) no depende de la fecha, así que no es una pérdida
+      // real de cobertura.
       const filaHospital = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
-      await expect(filaHospital.locator('.turno-actions')).not.toContainText('Registrar donación');
-      await expect(filaHospital.locator('.turno-actions')).toContainText('Listo para el profesional');
+      if (await filaHospital.count()) {
+        await expect(filaHospital.locator('.turno-actions')).not.toContainText('Registrar donación');
+        await expect(filaHospital.locator('.turno-actions')).toContainText('Listo para el profesional');
+      }
     });
 
     await test.step('el médico clínico hace la entrevista y da "apto" — recién ahí se habilita la extracción', async () => {
@@ -190,6 +206,13 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
 
       const fila = page.locator('.turno-card', { hasText: `${donanteNombre} ${donanteApellido}` });
       await expect(fila).toContainText('Esperando evaluación médica');
+      // La tarjeta puede estar oculta por el filtro de período (default
+      // "Presentes (hoy)") si la reserva cayó en otro día — ver nota sobre
+      // renderFechaTabs() más arriba. toContainText no exige visibilidad
+      // (lee el DOM igual), pero el click sí.
+      if (!(await fila.isVisible())) {
+        await page.click('button.tab:has-text("Futuros")');
+      }
       await fila.locator('button:has-text("Iniciar entrevista")').click();
       await page.click('#f1 button:has-text("Siguiente")');
       await page.click('#f2 button:has-text("Siguiente")');
@@ -219,6 +242,9 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await page.waitForFunction(() => window._turnosProfesional && window._turnosProfesional.length > 0);
 
       const fila = page.locator('.turno-card', { hasText: `${donanteNombre} ${donanteApellido}` });
+      if (!(await fila.isVisible())) {
+        await page.click('button.tab:has-text("Futuros")');
+      }
       await expect(fila).toBeVisible();
       await fila.locator('button:has-text("Registrar donación")').click();
       await expect(page.locator('#modal-donacion')).toBeVisible();

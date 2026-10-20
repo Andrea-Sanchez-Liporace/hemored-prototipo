@@ -180,27 +180,27 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Nombre</label>
-          <input class="form-input" type="text" placeholder="Juan">
+          <input class="form-input" id="np-nombre" type="text" placeholder="Juan">
         </div>
         <div class="form-group">
           <label class="form-label">Apellido</label>
-          <input class="form-input" type="text" placeholder="Pérez">
+          <input class="form-input" id="np-apellido" type="text" placeholder="Pérez">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">DNI</label>
-          <input class="form-input" type="text" placeholder="28.456.789">
+          <input class="form-input" id="np-dni" type="text" placeholder="28456789">
         </div>
         <div class="form-group">
           <label class="form-label">Fecha de nacimiento</label>
-          <input class="form-input" type="date">
+          <input class="form-input" id="np-nacimiento" type="date">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Tipo de sangre</label>
-          <select class="form-input">
+          <label class="form-label">Tipo de sangre <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+          <select class="form-input" id="np-sangre">
             <option value="" disabled selected>Seleccioná</option>
             <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
             <option>AB+</option><option>AB-</option><option>0+</option><option>0-</option>
@@ -208,7 +208,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Servicio / área</label>
-          <select class="form-input">
+          <select class="form-input" id="np-servicio">
             <option>Pediatría</option><option>Cardiología</option><option>Oncología</option>
             <option>Traumatología</option><option>Hematología</option><option>Cirugía</option>
           </select>
@@ -216,21 +216,21 @@
       </div>
       <div class="form-group">
         <label class="form-label">Diagnóstico</label>
-        <input class="form-input" type="text" placeholder="Ej: Cirugía cardíaca programada">
+        <input class="form-input" id="np-diagnostico" type="text" placeholder="Ej: Cirugía cardíaca programada">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Contacto de referencia <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
-        <input class="form-input" type="text" placeholder="Nombre y teléfono del familiar">
+        <label class="form-label">Contacto de referencia</label>
+        <input class="form-input" id="np-contacto" type="text" placeholder="Nombre y teléfono del familiar">
       </div>
       <div class="form-group">
-        <label class="form-label">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
-        <textarea class="form-input" style="resize:vertical;min-height:80px;" placeholder="Información clínica relevante para el equipo..."></textarea>
+        <label class="form-label">Observaciones</label>
+        <textarea class="form-input" id="np-observaciones" style="resize:vertical;min-height:80px;" placeholder="Información clínica relevante para el equipo..."></textarea>
       </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn-save">Guardar paciente</button>
+      <button class="btn-save" onclick="guardarPacienteUI()">Guardar paciente</button>
     </div>
   </div>
 </div>
@@ -249,12 +249,47 @@
     window.scrollTo(0,0);
   }
   function abrirModal() {
+    limpiarFormNuevoPaciente();
     document.getElementById('modal-nuevo').classList.add('active');
     document.body.style.overflow = 'hidden';
   }
   function cerrarModal() {
     document.getElementById('modal-nuevo').classList.remove('active');
     document.body.style.overflow = '';
+  }
+
+  function limpiarFormNuevoPaciente() {
+    ['np-nombre', 'np-apellido', 'np-dni', 'np-nacimiento', 'np-diagnostico', 'np-contacto', 'np-observaciones'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('np-sangre').value = '';
+    document.getElementById('np-servicio').selectedIndex = 0;
+  }
+
+  // Pedido explícito de la usuaria (2026-10-20): todos los campos del
+  // formulario son obligatorios salvo el tipo de sangre — por eso
+  // "Servicio/área", "Contacto de referencia" y "Observaciones" pasaron a
+  // tener respaldo real en `pacientes.json` (antes se juntaban en el
+  // formulario pero no se guardaban en ningún lado).
+  async function guardarPacienteUI() {
+    const resultado = HemoRed.data.crearPaciente({
+      nombre: document.getElementById('np-nombre').value.trim(),
+      apellido: document.getElementById('np-apellido').value.trim(),
+      numero_documento: document.getElementById('np-dni').value.trim(),
+      fecha_nacimiento: document.getElementById('np-nacimiento').value,
+      tipo_sangre: document.getElementById('np-sangre').value,
+      diagnostico: document.getElementById('np-diagnostico').value.trim(),
+      servicio: document.getElementById('np-servicio').value,
+      contacto_referencia: document.getElementById('np-contacto').value.trim(),
+      observaciones: document.getElementById('np-observaciones').value.trim(),
+    });
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+    HemoRed.ui.toast('Paciente creado');
+    cerrarModal();
+    renderPacientes();
   }
   function filtrarPacientes() {
     const busqueda = document.querySelector('.search-input').value.toLowerCase();
@@ -287,7 +322,7 @@
     document.getElementById('pac-stat-total').textContent = total;
     document.getElementById('pac-stat-con-campana').textContent = conCampana;
     document.getElementById('pac-stat-sin-campana').textContent = sinCampana;
-    const tiposDistintos = new Set(pacientes.map(p => p.tipo_sangre)).size;
+    const tiposDistintos = new Set(pacientes.map(p => p.tipo_sangre).filter(Boolean)).size;
     document.getElementById('pac-sub-total').textContent = `${tiposDistintos} tipo${tiposDistintos === 1 ? '' : 's'} de sangre distintos`;
     document.getElementById('pac-sub-con-campana').textContent = `${total ? Math.round((conCampana / total) * 100) : 0}% del total`;
     document.getElementById('pac-sub-sin-campana').textContent = `${total ? Math.round((sinCampana / total) * 100) : 0}% del total`;
@@ -301,7 +336,7 @@
       const nombreCompleto = `${p.nombre} ${p.apellido}`;
       const iniciales = (p.nombre[0] + p.apellido[0]).toUpperCase();
       return `
-        <div class="pac-row" data-nombre="${nombreCompleto.toLowerCase()}" data-sangre="${p.tipo_sangre}" data-campana="${p.campanaActiva ? 'con' : 'sin'}" onclick="window.location='../hospital/paciente_detalle.html'">
+        <div class="pac-row" data-nombre="${nombreCompleto.toLowerCase()}" data-sangre="${p.tipo_sangre || ''}" data-campana="${p.campanaActiva ? 'con' : 'sin'}" onclick="window.location='../hospital/paciente_detalle.html'">
           <div class="pac-donante">
             <div class="pac-avatar">${iniciales}</div>
             <div>
@@ -309,7 +344,7 @@
               <div class="pac-id">ID #${String(p.id).padStart(4, '0')} · DNI ${p.numero_documento}</div>
             </div>
           </div>
-          <div class="td">${p.tipo_sangre}</div>
+          <div class="td">${p.tipo_sangre || '—'}</div>
           <div class="td hide-md">${p.diagnostico}</div>
           <div class="row-actions">
             <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>

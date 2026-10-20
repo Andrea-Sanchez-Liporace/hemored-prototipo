@@ -49,12 +49,17 @@ test.describe('Dashboard de Hospital', () => {
   test('confirmar un turno pendiente desde el dashboard lo confirma de verdad', async ({ page }) => {
     await loginHospital(page);
 
-    // Turno de prueba: no hay ninguno pendiente en la semilla para poder probar la acción
+    // Turno de prueba: no hay ninguno pendiente en la semilla para poder
+    // probar la acción. Hora fija tarde (23:30, no "hace 2hs" ni nada
+    // relativo al momento real) a propósito: un turno `pendiente` con
+    // fecha+hora ya pasada se cancela solo desde el vencimiento automático
+    // (2026-10-16) — con una hora más temprana, correr este test de tarde
+    // hacía que naciera ya vencido.
     const turnoId = await page.evaluate(() => {
       const t = HemoRed.db.crear('turnos', {
         usuario_id: 1, hospital_id: 1, campana_id: 1,
-        fecha: HemoRed.data.ahora().toISOString().slice(0, 10),
-        hora: '15:00', estado: 'pendiente',
+        fecha: HemoRed.data.hoyISO(),
+        hora: '23:30', estado: 'pendiente',
         formulario_autoexclusion_completado: false,
         formulario_cuestionario_completado: false,
         confirmacion_automatica: false,
@@ -64,7 +69,7 @@ test.describe('Dashboard de Hospital', () => {
     await page.reload();
 
     await expect(page.locator('#lista-turnos-pendientes .turno-row-dash')).toHaveCount(1);
-    await expect(page.locator('.turno-meta').first()).toContainText('Hoy · 15:00hs');
+    await expect(page.locator('.turno-meta').first()).toContainText('Hoy · 23:30hs');
     await expect(page.locator('#turnos-hoy')).toHaveText('1');
 
     await page.click('.btn-xs-ok');
@@ -78,11 +83,13 @@ test.describe('Dashboard de Hospital', () => {
   test('rechazar un turno pendiente desde el dashboard lo rechaza de verdad', async ({ page }) => {
     await loginHospital(page);
 
+    // Mismo motivo que el test anterior: hora fija tarde para que nunca
+    // nazca ya vencido, sin importar a qué hora del día corra la suite.
     const turnoId = await page.evaluate(() => {
       const t = HemoRed.db.crear('turnos', {
         usuario_id: 1, hospital_id: 1, campana_id: 1,
-        fecha: HemoRed.data.ahora().toISOString().slice(0, 10),
-        hora: '16:00', estado: 'pendiente',
+        fecha: HemoRed.data.hoyISO(),
+        hora: '23:45', estado: 'pendiente',
         formulario_autoexclusion_completado: false,
         formulario_cuestionario_completado: false,
         confirmacion_automatica: false,

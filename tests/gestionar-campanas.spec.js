@@ -113,10 +113,16 @@ test.describe('Ver/gestionar campañas', () => {
     await loginHospital(page);
     await irYEsperar(page, '/hospital/campanas.html', '_hospitalId');
 
+    // Fecha a 5 días (no "hoy"): un turno `pendiente` con fecha+hora ya
+    // pasada se cancela solo desde el 2026-10-16 (vencimiento automático) —
+    // crearlo para "hoy 11:00" hacía que, corriendo el test de tarde, el
+    // turno ya naciera vencido y nunca llegara a verse como "Pendiente".
     await page.evaluate(() => {
+      const d = HemoRed.data.ahora();
+      d.setDate(d.getDate() + 5);
       HemoRed.db.crear('turnos', {
         campana_id: 1, usuario_id: 5, hospital_id: 1,
-        fecha: HemoRed.data.ahora().toISOString().slice(0, 10), hora: '11:00',
+        fecha: HemoRed.data.fechaISO(d), hora: '11:00',
         estado: 'pendiente', creado_en: new Date().toISOString(),
       });
     });

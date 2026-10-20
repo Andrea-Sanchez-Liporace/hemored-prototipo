@@ -163,41 +163,48 @@
     document.body.style.overflow = '';
   }
 
+  // Mismo helper y mismo motivo que campana_detalle.html (2026-10-20): la
+  // pestaña que arranca activa tiene que ser la primera con algún horario
+  // libre, no siempre "hoy" — pasado el último horario del día, "hoy" se
+  // queda sin ningún horario reservable.
+  function horasLibresModal(fechaISO) {
+    const campana = HemoRed.db.find('campanas', turnoModal.campana_id);
+    const cupo = campana?.cupo_por_turno ?? 1;
+    const conteoPorHora = {};
+    HemoRed.db.all('turnos')
+      .filter(t => t.id !== turnoModal.id && t.hospital_id === turnoModal.hospital_id && t.fecha === fechaISO && t.estado !== 'cancelado')
+      .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
+    const horaActual = (typeof HemoRed !== 'undefined' && fechaISO === hoy()) ? HemoRed.data.ahora().toTimeString().slice(0, 5) : null;
+    return TIME_SLOTS.filter(hora => (conteoPorHora[hora] || 0) < cupo && (horaActual === null || hora > horaActual));
+  }
+
   function renderFechaTabsModal() {
     const cont = document.getElementById('fecha-tabs-modal');
     cont.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
-      const fechaISO = sumarDias(hoy(), i);
+    const fechas = [];
+    for (let i = 0; i < 4; i++) fechas.push(sumarDias(hoy(), i));
+    const primeraConLibres = fechas.find(f => horasLibresModal(f).length > 0) || fechas[0];
+
+    fechas.forEach(fechaISO => {
       const label = new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
       const btn = document.createElement('button');
-      btn.className = 'fecha-tab-m' + (i === 0 ? ' active' : '');
+      btn.className = 'fecha-tab-m' + (fechaISO === primeraConLibres ? ' active' : '');
       btn.textContent = label;
       btn.onclick = () => selFechaM(btn, fechaISO);
       cont.appendChild(btn);
-      if (i === 0) fechaModal = fechaISO;
-    }
+      if (fechaISO === primeraConLibres) fechaModal = fechaISO;
+    });
     renderTurnosGridModal();
   }
 
   function renderTurnosGridModal() {
     const cont = document.getElementById('turnos-grid-modal');
-    const campana = HemoRed.db.find('campanas', turnoModal.campana_id);
-    const cupo = campana?.cupo_por_turno ?? 1;
-    const conteoPorHora = {};
-    HemoRed.db.all('turnos')
-      .filter(t => t.id !== turnoModal.id && t.hospital_id === turnoModal.hospital_id && t.fecha === fechaModal && t.estado !== 'cancelado')
-      .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
-    // Mismo fix que campana_detalle.html (2026-10-17): un horario de hoy que
-    // ya pasó no se puede elegir al reprogramar.
-    const horaActual = (typeof HemoRed !== 'undefined' && fechaModal === hoy()) ? HemoRed.data.ahora().toTimeString().slice(0, 5) : null;
+    const libres = new Set(horasLibresModal(fechaModal));
     cont.innerHTML = TIME_SLOTS.map(hora => {
-      if ((conteoPorHora[hora] || 0) >= cupo) {
-        return `<div class="turno-m ocp"><div class="th">${hora}</div><div class="ts ocp">Ocupado</div></div>`;
+      if (libres.has(hora)) {
+        return `<div class="turno-m" data-hora="${hora}"><div class="th">${hora}</div><div class="ts libre">Disponible</div></div>`;
       }
-      if (horaActual !== null && hora <= horaActual) {
-        return `<div class="turno-m ocp"><div class="th">${hora}</div><div class="ts ocp">No disponible</div></div>`;
-      }
-      return `<div class="turno-m" data-hora="${hora}"><div class="th">${hora}</div><div class="ts libre">Disponible</div></div>`;
+      return `<div class="turno-m ocp"><div class="th">${hora}</div><div class="ts ocp">Ocupado</div></div>`;
     }).join('');
     cont.querySelectorAll('.turno-m[data-hora]').forEach(el => {
       el.addEventListener('click', () => selTurnoM(el, el.dataset.hora));

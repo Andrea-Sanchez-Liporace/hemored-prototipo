@@ -37,7 +37,13 @@ const timestamp = Date.now();
 const donanteEmail = `donante.qa.${timestamp}@example.com`;
 const donantePassword = 'password123';
 const donanteNombre = 'Marina';
-const donanteApellido = 'Testigo';
+// Apellido único por corrida (2026-10-20): el paso 4/5 ahora busca la fila
+// del turno en campana_detalle.html (todas las fechas, no solo "hoy" —
+// necesario desde que renderFechaTabs() puede mandar la reserva a mañana
+// si ya pasó el último horario del día), así que corridas anteriores con
+// el mismo nombre fijo quedaban acumuladas ahí y volvían ambiguo el
+// locator por nombre.
+const donanteApellido = `Testigo${timestamp}`;
 
 test.describe('Camino feliz: registro → reserva de turno → confirmación', () => {
 
@@ -82,10 +88,12 @@ test.describe('Camino feliz: registro → reserva de turno → confirmación', (
     });
 
     let numeroTurno;
+    let campanaId;
 
     await test.step('3. Reservar un turno en la primera campaña disponible', async () => {
       await page.locator('.campaign-btn').first().click();
       await page.waitForURL('**/campana_detalle.html**');
+      campanaId = new URL(page.url()).searchParams.get('id');
 
       // El detalle de campaña debe cargar el hospital real (no "—", que es
       // el placeholder que se ve mientras todavía no llegó la data).
@@ -129,20 +137,26 @@ test.describe('Camino feliz: registro → reserva de turno → confirmación', (
       await page.click('.form-btn');
       await page.waitForURL('**/hospital/dashboard.html');
 
-      await page.goto('/hospital/turnos.html');
+      // Se verifica en el detalle de la campaña (todas las fechas), no en
+      // hospital/turnos.html (solo turnos de HOY): el horario que le tocó
+      // al donante puede haber caído en otro día si ya pasó el último
+      // horario de atención (12hs) — ver renderFechaTabs() en
+      // campana_detalle.html, corregido 2026-10-20.
+      await page.goto(`/hospital/campana_detalle.html?id=${campanaId}`);
 
-      const filaDelTurno = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
+      const filaDelTurno = page.locator('#d-turnos-lista .turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
       await expect(filaDelTurno).toBeVisible();
       await expect(filaDelTurno.locator('.turno-badge')).toHaveText('Pendiente');
     });
 
     await test.step('5. El hospital confirma el turno', async () => {
-      const filaDelTurno = page.locator('.turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
+      const filaDelTurno = page.locator('#d-turnos-lista .turno-row', { hasText: `${donanteNombre} ${donanteApellido}` });
       await filaDelTurno.locator('button:has-text("Confirmar")').click();
 
-      // confirmarTurnoUI() vuelve a renderizar la lista después de guardar
-      // el cambio — esperamos a que el badge realmente cambie, no que el
-      // botón haya sido clickeado (eso no prueba que se haya guardado nada).
+      // accionConfirmarTurno() (campana_detalle.html) vuelve a renderizar la
+      // lista después de guardar el cambio — esperamos a que el badge
+      // realmente cambie, no que el botón haya sido clickeado (eso no
+      // prueba que se haya guardado nada).
       await expect(filaDelTurno.locator('.turno-badge')).toHaveText('Confirmado');
     });
 

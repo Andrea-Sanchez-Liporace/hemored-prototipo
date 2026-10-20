@@ -235,6 +235,11 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
     await page.fill('#d-pass2', donantePassword);
     await page.click('#btn-crear-cuenta-donante');
     await page.waitForURL('**/donante/dashboard.html');
+    // Misma señal real que el fix de "reprogramar un turno" (2026-10-17,
+    // ver más abajo en este archivo): sin esto, el primer page.evaluate()
+    // puede correr en carrera con cargarDashboardDonante() todavía en
+    // vuelo y Playwright pierde la promesa.
+    await expect(page.locator('#donante-primer-nombre')).toHaveText('Julieta');
 
     await expect(page.locator('#no-elegible-banner')).toBeHidden(); // recién registrado, sin datos que lo bloqueen
 

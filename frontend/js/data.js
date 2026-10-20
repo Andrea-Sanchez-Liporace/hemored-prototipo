@@ -1079,6 +1079,53 @@ HemoRed.data = (function() {
     };
   }
 
+  // El hospital da de alta un paciente nuevo (gate para poder crear una
+  // campaña a su nombre). Crea en `pacientes` + el vínculo en
+  // `paciente_hospital` (2026-10-20) — hasta ahora "Guardar paciente" no
+  // persistía nada, la lista solo podía MOSTRAR los 3 pacientes semilla.
+  // Pedido explícito de la usuaria el mismo día: todos los campos del
+  // formulario son obligatorios salvo el tipo de sangre — por eso
+  // `servicio`/`contacto_referencia`/`observaciones` (que antes se
+  // juntaban en el formulario pero no tenían dónde guardarse) pasan a
+  // persistirse en `pacientes` también.
+  function crearPaciente({ nombre, apellido, numero_documento, fecha_nacimiento, tipo_sangre, diagnostico, servicio, contacto_referencia, observaciones }) {
+    const s = HemoRed.sesion.get();
+    const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
+    const hospitalId = usuario?.hospital_id;
+    if (!hospitalId) return { ok: false, error: 'No se pudo identificar el hospital.' };
+    if (!nombre || !apellido) return { ok: false, error: 'Ingresá nombre y apellido.' };
+    if (!numero_documento) return { ok: false, error: 'Ingresá el DNI del paciente.' };
+    if (!fecha_nacimiento) return { ok: false, error: 'Ingresá la fecha de nacimiento.' };
+    if (!diagnostico) return { ok: false, error: 'Ingresá el diagnóstico.' };
+    if (!servicio) return { ok: false, error: 'Seleccioná el servicio/área.' };
+    if (!contacto_referencia) return { ok: false, error: 'Ingresá un contacto de referencia.' };
+    if (!observaciones) return { ok: false, error: 'Ingresá las observaciones.' };
+
+    const paciente = HemoRed.db.crear('pacientes', {
+      hospital_id: hospitalId,
+      nombre,
+      apellido,
+      fecha_nacimiento,
+      tipo_documento_id: 1,
+      numero_documento,
+      tipo_sangre: tipo_sangre || null,
+      diagnostico,
+      servicio,
+      contacto_referencia,
+      observaciones,
+      activo: true,
+      creado_en: hoyISO(),
+    });
+    HemoRed.db.crear('paciente_hospital', {
+      paciente_id: paciente.id,
+      hospital_id: hospitalId,
+      medico_tratante: null,
+      internado_desde: hoyISO(),
+      activo: true,
+    });
+    return { ok: true, paciente };
+  }
+
   // Profesionales vinculados al hospital logueado (vía profesional_hospital,
   // ya que un mismo profesional puede trabajar en más de un hospital) —
   // mismo motivo que cargarPacientesHospital().
@@ -1867,6 +1914,7 @@ HemoRed.data = (function() {
     eliminarCuentaDonante,
     cargarDashboardHospital,
     cargarPacientesHospital,
+    crearPaciente,
     cargarProfesionalesHospital,
     cargarMetricasHospital,
     cargarDocumentacionHospital,
