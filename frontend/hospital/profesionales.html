@@ -99,39 +99,62 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Nombre</label>
-          <input class="form-input" type="text" placeholder="Carlos">
+          <input class="form-input" id="np-nombre" type="text" placeholder="Carlos">
         </div>
         <div class="form-group">
           <label class="form-label">Apellido</label>
-          <input class="form-input" type="text" placeholder="Méndez">
+          <input class="form-input" id="np-apellido" type="text" placeholder="Méndez">
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">DNI</label>
+        <input class="form-input" id="np-dni" type="text" placeholder="29654321">
+        <div style="font-size:11px;color:#a9435d;margin-top:4px;">Si la persona ya trabaja en otro hospital del sistema, no hace falta definir contraseña — se vincula a tu hospital con la cuenta que ya tiene.</div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Matrícula</label>
-          <input class="form-input" type="text" placeholder="45.231">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Especialidad</label>
-          <select class="form-input">
+          <label class="form-label">Perfil</label>
+          <select class="form-input" id="np-tipo">
             <option value="" disabled selected>Seleccioná</option>
-            <option>Hematología</option><option>Cardiología</option><option>Oncología</option>
-            <option>Cirugía</option><option>Pediatría</option><option>Traumatología</option>
+            <option value="medico">Médico clínico</option>
+            <option value="enfermero">Enfermero/a (extracción)</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">Matrícula</label>
+          <input class="form-input" id="np-matricula" type="text" placeholder="45.231">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Especialidad</label>
+        <select class="form-input" id="np-especialidad">
+          <option value="" disabled selected>Seleccioná</option>
+          <option>Hematología</option><option>Cardiología</option><option>Oncología</option>
+          <option>Cirugía</option><option>Pediatría</option><option>Traumatología</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Email institucional</label>
-        <input class="form-input" type="email" placeholder="nombre@hospital.com.ar">
+        <input class="form-input" id="np-email" type="email" placeholder="nombre@hospital.com.ar">
       </div>
       <div class="form-group">
-        <label class="form-label">Teléfono / interno</label>
-        <input class="form-input" type="text" placeholder="011 4127-0200 int. 205">
+        <label class="form-label">Teléfono / interno <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+        <input class="form-input" id="np-telefono" type="text" placeholder="011 4127-0200 int. 205">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Contraseña provisoria</label>
+          <input class="form-input" id="np-pass" type="password" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Repetir contraseña</label>
+          <input class="form-input" id="np-pass2" type="password" placeholder="••••••••">
+        </div>
       </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn-save">Guardar profesional</button>
+      <button class="btn-save" onclick="guardarProfesionalUI()">Guardar profesional</button>
     </div>
   </div>
 </div>
@@ -158,12 +181,48 @@
     document.getElementById('sin-resultados-prof').style.display = visibles === 0 ? 'block' : 'none';
   }
   function abrirModal() {
+    limpiarFormNuevoProfesional();
     document.getElementById('modal-nuevo').classList.add('active');
     document.body.style.overflow = 'hidden';
   }
   function cerrarModal() {
     document.getElementById('modal-nuevo').classList.remove('active');
     document.body.style.overflow = '';
+  }
+
+  function limpiarFormNuevoProfesional() {
+    ['np-nombre', 'np-apellido', 'np-dni', 'np-matricula', 'np-email', 'np-telefono', 'np-pass', 'np-pass2'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('np-tipo').value = '';
+    document.getElementById('np-especialidad').value = '';
+  }
+
+  // El hospital da de alta un profesional (2026-10-20, mismo pedido que
+  // "Creación de pacientes" del mismo día). crearProfesional() busca
+  // primero por DNI: si la persona ya trabaja en otro hospital del
+  // sistema, solo se crea el vínculo nuevo (con el email institucional de
+  // ESTE hospital) — no una cuenta duplicada.
+  async function guardarProfesionalUI() {
+    const resultado = HemoRed.data.crearProfesional({
+      nombre: document.getElementById('np-nombre').value.trim(),
+      apellido: document.getElementById('np-apellido').value.trim(),
+      numero_documento: document.getElementById('np-dni').value.trim(),
+      tipo: document.getElementById('np-tipo').value,
+      matricula: document.getElementById('np-matricula').value.trim(),
+      especialidad: document.getElementById('np-especialidad').value,
+      email: document.getElementById('np-email').value.trim(),
+      telefono: document.getElementById('np-telefono').value.trim(),
+      password: document.getElementById('np-pass').value,
+      password2: document.getElementById('np-pass2').value,
+    });
+    if (!resultado.ok) {
+      HemoRed.ui.toast(resultado.error, 'error');
+      return;
+    }
+    HemoRed.ui.toast(resultado.yaExistia ? 'Profesional vinculado a tu hospital' : 'Profesional creado');
+    cerrarModal();
+    renderProfesionales();
   }
 
   // Las 4 tarjetas y las 3 métricas de arriba venían 100% hardcodeadas —
@@ -203,7 +262,7 @@
           </div>
           <div class="prof-datos">
             <div class="prof-dato"><i class="ti ti-id-badge" style="color:#ef647c;font-size:14px;"></i>Mat. ${p.matricula}</div>
-            <div class="prof-dato"><i class="ti ti-mail" style="color:#ef647c;font-size:14px;"></i>${p.usuario?.email || '—'}</div>
+            <div class="prof-dato"><i class="ti ti-mail" style="color:#ef647c;font-size:14px;"></i>${p.email_institucional || p.usuario?.email || '—'}</div>
             <div class="prof-dato"><i class="ti ti-phone" style="color:#ef647c;font-size:14px;"></i>${p.usuario?.telefono || '—'}</div>
           </div>
           <div class="prof-footer">

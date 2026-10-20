@@ -361,7 +361,17 @@
     const usuario = HemoRed.db.find('usuarios', s.usuario_id);
     hospitalActual = HemoRed.db.find('hospitales', usuario?.hospital_id);
 
-    const pacientes = HemoRed.db.where('pacientes', 'hospital_id', hospitalActual.id).filter(p => p.activo);
+    // `pacientes` ya no tiene `hospital_id` propio (2026-10-20: un paciente
+    // puede haber pasado por varios hospitales) — la relación vive en
+    // `paciente_hospital`, y el evento (con principio y fin) en
+    // `eventos_paciente`, colgando de esa relación. Para armar una campaña
+    // nueva hace falta un paciente con un EVENTO abierto en este hospital
+    // ahora mismo (si ya se cerró, no tiene sentido ofrecerlo acá — hay que
+    // registrar un evento nuevo desde "Pacientes" primero).
+    const pacientes = HemoRed.db.where('paciente_hospital', 'hospital_id', hospitalActual.id)
+      .filter(r => HemoRed.db.where('eventos_paciente', 'paciente_hospital_id', r.id).some(e => e.activo))
+      .map(r => HemoRed.db.find('pacientes', r.paciente_id))
+      .filter(p => p && p.activo);
     const select = document.getElementById('c-paciente');
     pacientes.forEach(p => {
       const opt = document.createElement('option');

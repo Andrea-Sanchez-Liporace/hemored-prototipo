@@ -83,4 +83,76 @@ test.describe('Creación de pacientes (Hospital)', () => {
     await expect(page.locator('#modal-nuevo')).toHaveClass(/active/);
   });
 
+  // Hospital 2 (Garrahan) no tiene cuenta de login real en la semilla — se
+  // crea una de prueba vía evaluate() en cada test que la necesita, sin
+  // tocar ninguna cuenta/dato real del resto del sitio.
+  async function loginHospital2(page) {
+    await page.goto('/publico/login.html');
+    const email = await page.evaluate(async () => {
+      await HemoRed.db.init();
+      const u = HemoRed.db.crear('usuarios', {
+        nombre: 'Hospital', apellido: 'Garrahan (test)', email: `hospital2.${Date.now()}@example.com`,
+        password_hash: 'test123', rol: 'hospital', hospital_id: 2, activo: true,
+      });
+      return u.email;
+    });
+    await page.fill('#email', email);
+    await page.fill('#password', 'test123');
+    await page.click('.form-btn');
+    await page.waitForURL('**/hospital/dashboard.html');
+  }
+
+  test('paciente con evento YA abierto en otro hospital: otro hospital no puede abrirle uno en paralelo', async ({ page }) => {
+    await loginHospital2(page);
+    await page.goto('/hospital/pacientes.html');
+    await expect(page.locator('#pac-stat-total')).not.toHaveText('—');
+
+    await page.click('button.btn-nueva');
+    await page.fill('#np-nombre', 'Lucas');
+    await page.fill('#np-apellido', 'Gómez');
+    await page.fill('#np-dni', '99123456'); // DNI real de Lucas Gómez, con evento ABIERTO en Hospital Ramos Mejía (id 1, campaña 1)
+    await page.fill('#np-nacimiento', '2019-04-12');
+    await page.fill('#np-diagnostico', 'Intento de evento en paralelo');
+    await page.evaluate(() => { document.getElementById('np-servicio').value = 'Hematología'; });
+    await page.fill('#np-contacto', 'Otro contacto en Garrahan - 11-0000-0000');
+    await page.fill('#np-observaciones', 'No debería poder cargarse.');
+    await page.click('button:has-text("Guardar paciente")');
+
+    await expect(page.locator('#hemored-toast, .toast')).toContainText('ya tiene un evento abierto');
+    await expect(page.locator('.pac-row', { hasText: 'Lucas Gómez' })).toHaveCount(0);
+  });
+
+  test('paciente cuyo evento ya se cerró (campaña terminada) en otro hospital: se puede abrir uno nuevo ahí, sin duplicar la persona', async ({ page }) => {
+    await loginHospital2(page);
+
+    // Cierra la campaña real de Lucas Gómez en el Hospital Ramos Mejía
+    // (campaña 1, seed) — eso es lo que cierra el evento solo, no una
+    // acción manual aparte.
+    const personasAntes = await page.evaluate(async () => {
+      await HemoRed.db.init();
+      HemoRed.data.cerrarCampana(1);
+      return HemoRed.db.all('pacientes').length;
+    });
+
+    await page.goto('/hospital/pacientes.html');
+    await expect(page.locator('#pac-stat-total')).not.toHaveText('—');
+
+    await page.click('button.btn-nueva');
+    await page.fill('#np-nombre', 'Lucas');
+    await page.fill('#np-apellido', 'Gómez');
+    await page.fill('#np-dni', '99123456');
+    await page.fill('#np-nacimiento', '2019-04-12');
+    await page.fill('#np-diagnostico', 'Nuevo evento, distinta causa'); // propio de ESTE evento
+    await page.evaluate(() => { document.getElementById('np-servicio').value = 'Hematología'; });
+    await page.fill('#np-contacto', 'Otro contacto en Garrahan - 11-0000-0000');
+    await page.fill('#np-observaciones', 'Seguimiento en un hospital distinto al de origen.');
+    await page.click('button:has-text("Guardar paciente")');
+
+    await expect(page.locator('#hemored-toast, .toast')).toContainText('vinculado');
+    await expect(page.locator('.pac-row', { hasText: 'Lucas Gómez' })).toBeVisible();
+
+    const personasDespues = await page.evaluate(() => HemoRed.db.all('pacientes').length);
+    expect(personasDespues).toBe(personasAntes); // no se creó una persona nueva, se reusó la existente
+  });
+
 });

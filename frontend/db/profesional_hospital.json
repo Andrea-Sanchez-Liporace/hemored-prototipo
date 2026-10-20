@@ -4,20 +4,23 @@
     "profesional_id": 1,
     "hospital_id": 1,
     "activo": true,
-    "desde": "2026-01-12"
+    "desde": "2026-01-12",
+    "email_institucional": "profesional@hemored.com"
   },
   {
     "id": 2,
     "profesional_id": 2,
     "hospital_id": 1,
     "activo": true,
-    "desde": "2026-02-01"
+    "desde": "2026-02-01",
+    "email_institucional": "enfermeria@hemored.com"
   },
   {
     "id": 3,
     "profesional_id": 2,
     "hospital_id": 2,
     "activo": true,
-    "desde": "2026-02-01"
+    "desde": "2026-02-01",
+    "email_institucional": "enfermeria@hemored.com"
   }
 ]

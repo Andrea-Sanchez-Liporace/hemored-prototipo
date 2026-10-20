@@ -287,7 +287,7 @@
       HemoRed.ui.toast(resultado.error, 'error');
       return;
     }
-    HemoRed.ui.toast('Paciente creado');
+    HemoRed.ui.toast(resultado.yaExistia ? 'Paciente vinculado a tu hospital' : 'Paciente creado');
     cerrarModal();
     renderPacientes();
   }
@@ -336,7 +336,7 @@
       const nombreCompleto = `${p.nombre} ${p.apellido}`;
       const iniciales = (p.nombre[0] + p.apellido[0]).toUpperCase();
       return `
-        <div class="pac-row" data-nombre="${nombreCompleto.toLowerCase()}" data-sangre="${p.tipo_sangre || ''}" data-campana="${p.campanaActiva ? 'con' : 'sin'}" onclick="window.location='../hospital/paciente_detalle.html'">
+        <div class="pac-row" data-nombre="${nombreCompleto.toLowerCase()}" data-sangre="${p.tipo_sangre || ''}" data-campana="${p.campanaActiva ? 'con' : 'sin'}" onclick="window.location='../hospital/paciente_detalle.html?id=${p.id}'">
           <div class="pac-donante">
             <div class="pac-avatar">${iniciales}</div>
             <div>
@@ -347,7 +347,7 @@
           <div class="td">${p.tipo_sangre || '—'}</div>
           <div class="td hide-md">${p.diagnostico}</div>
           <div class="row-actions">
-            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html'">Ver</button>
+            <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html?id=${p.id}'">Ver</button>
           </div>
         </div>`;
     }).join('');

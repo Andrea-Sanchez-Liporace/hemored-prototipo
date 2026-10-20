@@ -1,6 +1,6 @@
 /* ============================================================
    HEMORED — db.js
-   Carga los 23 JSONs de la BD simulada y los expone globalmente
+   Carga los 24 JSONs de la BD simulada y los expone globalmente
    Uso: await HemoRed.db.init() → HemoRed.db.tabla.nombre
    ============================================================ */
 
@@ -19,7 +19,7 @@ HemoRed.db = (function() {
   const BASE = detectBase();
   const tablas = [
     'planes','tipo_documento','medios_pago','hospitales','usuarios',
-    'profesionales','profesional_hospital','pacientes','paciente_hospital',
+    'profesionales','profesional_hospital','pacientes','paciente_hospital','eventos_paciente',
     'campanas','turnos','donaciones','formulario_consentimiento',
     'formulario_postdonacion','resultado_analisis','certificado_donacion',
     'documentos','facturas','mensajes','hospital_plan_historial',

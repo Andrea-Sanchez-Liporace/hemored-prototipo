@@ -44,13 +44,13 @@
 
         <!-- HEADER -->
         <div class="pac-header">
-          <div class="pac-avatar">JP</div>
+          <div class="pac-avatar" id="pd-avatar">—</div>
           <div>
-            <div class="pac-header-name">Juan Pérez</div>
-            <div class="pac-header-sub">ID #0042 · Pediatría · Internado desde 10 may 2026</div>
+            <div class="pac-header-name" id="pd-nombre">—</div>
+            <div class="pac-header-sub" id="pd-sub">—</div>
             <div class="pac-badges">
-              <span class="pac-badge badge-urgente"><i class="ti ti-flame" style="font-size:10px;"></i>Campaña urgente activa</span>
-              <span class="pac-badge badge-sangre"><i class="ti ti-droplet" style="font-size:10px;"></i>0-</span>
+              <span class="pac-badge" id="pd-badge-estado" style="background:#f2f2f2;color:#888;"><i class="ti ti-circle" style="font-size:10px;"></i>—</span>
+              <span class="pac-badge badge-sangre" id="pd-badge-sangre"><i class="ti ti-droplet" style="font-size:10px;"></i>—</span>
             </div>
           </div>
         </div>
@@ -61,66 +61,41 @@
           <div class="card">
             <div class="card-title"><i class="ti ti-user" style="color:#ef647c;"></i>Datos personales</div>
             <div class="dato-grid">
-              <div class="dato-item"><div class="dato-label">Nombre completo</div><div class="dato-value">Juan Pérez</div></div>
-              <div class="dato-item"><div class="dato-label">DNI</div><div class="dato-value">28.456.789</div></div>
-              <div class="dato-item"><div class="dato-label">Fecha de nacimiento</div><div class="dato-value">12/03/2018 · 8 años</div></div>
-              <div class="dato-item"><div class="dato-label">Tipo de sangre</div><div class="dato-value">0-</div></div>
+              <div class="dato-item"><div class="dato-label">Nombre completo</div><div class="dato-value" id="pd-nombre-completo">—</div></div>
+              <div class="dato-item"><div class="dato-label">DNI</div><div class="dato-value" id="pd-dni">—</div></div>
+              <div class="dato-item"><div class="dato-label">Fecha de nacimiento</div><div class="dato-value" id="pd-nacimiento">—</div></div>
+              <div class="dato-item"><div class="dato-label">Tipo de sangre</div><div class="dato-value" id="pd-sangre">—</div></div>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-title"><i class="ti ti-stethoscope" style="color:#ef647c;"></i>Datos clínicos</div>
+            <div class="card-title"><i class="ti ti-stethoscope" style="color:#ef647c;"></i>Datos clínicos de este evento</div>
             <div class="dato-grid">
-              <div class="dato-item"><div class="dato-label">Diagnóstico</div><div class="dato-value">Cirugía cardíaca</div></div>
-              <div class="dato-item"><div class="dato-label">Servicio / área</div><div class="dato-value">Pediatría</div></div>
+              <div class="dato-item"><div class="dato-label">Diagnóstico</div><div class="dato-value" id="pd-diagnostico">—</div></div>
+              <div class="dato-item"><div class="dato-label">Servicio / área</div><div class="dato-value" id="pd-servicio">—</div></div>
             </div>
           </div>
 
           <div class="card">
             <div class="card-title"><i class="ti ti-notes" style="color:#ef647c;"></i>Observaciones clínicas</div>
-            <p style="font-size:14px;color:#5a3040;line-height:1.7;">Paciente pediátrico de 8 años con cardiopatía congénita. Requiere transfusiones previas a la cirugía programada para el 22 de mayo. Se necesita mínimo 10 unidades de sangre tipo 0 negativo o 0 positivo.</p>
+            <p style="font-size:14px;color:#5a3040;line-height:1.7;" id="pd-observaciones">—</p>
           </div>
 
           <div class="card">
             <div class="card-title"><i class="ti ti-phone" style="color:#ef647c;"></i>Contacto de referencia</div>
             <div class="dato-grid">
-              <div class="dato-item"><div class="dato-label">Nombre</div><div class="dato-value">Roberto Pérez</div></div>
-              <div class="dato-item"><div class="dato-label">Relación</div><div class="dato-value">Padre</div></div>
-              <div class="dato-item"><div class="dato-label">Teléfono</div><div class="dato-value">011 1234-5678</div></div>
-              <div class="dato-item"><div class="dato-label">Email</div><div class="dato-value">r.perez@email.com</div></div>
+              <div class="dato-item" style="grid-column:1/-1;"><div class="dato-label">Contacto</div><div class="dato-value" id="pd-contacto">—</div></div>
             </div>
+          </div>
+
+          <div class="card" id="pd-historial-internaciones" style="display:none;">
+            <div class="card-title"><i class="ti ti-history" style="color:#ef647c;"></i>Eventos anteriores en este hospital</div>
+            <div id="pd-historial-lista"></div>
           </div>
 
           <div class="card">
             <div class="card-title"><i class="ti ti-speakerphone" style="color:#ef647c;"></i>Historial de campañas</div>
-
-            <div style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Activas</div>
-            <div class="campana-row">
-              <div class="camp-dot" style="background:#c0392b;"></div>
-              <div style="flex:1;">
-                <div class="camp-name">Campaña paciente pediátrico <span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span></div>
-                <div class="camp-meta">Publicada hace 2 días · 7/10 cupos · Vence 20 may 2026</div>
-              </div>
-              <button class="btn-xs-outline">Ver campaña</button>
-            </div>
-
-            <div style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Historial</div>
-            <div class="campana-row">
-              <div class="camp-dot" style="background:#a9435d;"></div>
-              <div style="flex:1;">
-                <div class="camp-name">Campaña preoperatoria — enero 2026</div>
-                <div class="camp-meta">Cerrada · 10/10 cupos cubiertos · Completada el 15 ene 2026</div>
-              </div>
-              <button class="btn-xs-outline">Ver métricas</button>
-            </div>
-            <div class="campana-row">
-              <div class="camp-dot" style="background:#a9435d;"></div>
-              <div style="flex:1;">
-                <div class="camp-name">Campaña tipo O — noviembre 2025</div>
-                <div class="camp-meta">Cerrada · 8/10 cupos cubiertos · Completada el 30 nov 2025</div>
-              </div>
-              <button class="btn-xs-outline">Ver métricas</button>
-            </div>
+            <div id="pd-campanas"><!-- renderizado real vía renderCampanasPaciente() --></div>
           </div>
 
         </div>
@@ -233,11 +208,10 @@
 
         <div class="side-card">
           <div class="side-title">Resumen</div>
-          <div class="side-stat"><span class="side-stat-label">Campañas totales</span><span class="side-stat-value">3</span></div>
-          <div class="side-stat"><span class="side-stat-label">Campañas activas</span><span class="side-stat-value" style="color:#c0392b;">1</span></div>
-          <div class="side-stat"><span class="side-stat-label">Donantes confirmados</span><span class="side-stat-value">5</span></div>
-          <div class="side-stat"><span class="side-stat-label">Cupos cubiertos</span><span class="side-stat-value">7 / 10</span></div>
-          <div class="side-stat"><span class="side-stat-label">Días internado</span><span class="side-stat-value">5 días</span></div>
+          <div class="side-stat"><span class="side-stat-label">Campañas totales</span><span class="side-stat-value" id="pd-resumen-campanas-totales">—</span></div>
+          <div class="side-stat"><span class="side-stat-label">Campañas activas</span><span class="side-stat-value" id="pd-resumen-campanas-activas" style="color:#c0392b;">—</span></div>
+          <div class="side-stat"><span class="side-stat-label">Cupos cubiertos</span><span class="side-stat-value" id="pd-resumen-cupos">—</span></div>
+          <div class="side-stat"><span class="side-stat-label" id="pd-resumen-dias-label">Días internado</span><span class="side-stat-value" id="pd-resumen-dias">—</span></div>
         </div>
       </div>
 
@@ -246,26 +220,160 @@
 </div>
 
 <script>
+  // Conectado de verdad 2026-10-20 (antes 100% maqueta fija "Juan Pérez"):
+  // lee `?id=` y muestra el EVENTO real (lo que origina la necesidad de la
+  // campaña — una cirugía, una enfermedad, cualquier causa; no es "estar
+  // internado" literal, eso no importa acá) de ESTE hospital con esa
+  // persona (cargarDetallePaciente()). El evento se cierra solo cuando se
+  // cierra la campaña que lo originó (ver cerrarCampana() en data.js) — no
+  // hay ninguna acción manual acá para cerrarlo a mano, a propósito. La
+  // vista "Editar" (datos personales/clínicos/contacto) sigue siendo
+  // maqueta a propósito — es "Ver/editar detalle de paciente", un
+  // pendiente aparte en docs/04, no parte de esto.
+  let _detalle = null;
+  let _nombreCompleto = '—';
+
   function verCampanas() {
-    window.location.href = 'campanas.html?paciente=Juan+Pérez&id=0042';
+    window.location.href = `campanas.html?paciente_id=${_detalle?.paciente?.id || ''}`;
   }
   function activarEdicion() {
     document.getElementById('vista-ver').style.display = 'none';
     document.getElementById('vista-editar').style.display = 'block';
     document.getElementById('btn-editar-top').style.display = 'none';
-    document.getElementById('topbar-title').textContent = 'Editando — Juan Pérez';
+    document.getElementById('topbar-title').textContent = `Editando — ${_nombreCompleto}`;
     window.scrollTo(0, 0);
   }
   function cancelarEdicion() {
     document.getElementById('vista-editar').style.display = 'none';
     document.getElementById('vista-ver').style.display = 'block';
     document.getElementById('btn-editar-top').style.display = 'flex';
-    document.getElementById('topbar-title').textContent = 'Juan Pérez';
+    document.getElementById('topbar-title').textContent = _nombreCompleto;
     window.scrollTo(0, 0);
   }
   function guardarCambios() {
     cancelarEdicion();
   }
+
+  function _fechaLarga(iso) {
+    if (!iso) return '—';
+    return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function _edad(iso) {
+    if (!iso) return null;
+    const hoy = HemoRed.data.ahora();
+    const nac = new Date(iso + 'T00:00:00');
+    let edad = hoy.getFullYear() - nac.getFullYear();
+    if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) edad--;
+    return edad;
+  }
+
+  function renderDetalle() {
+    const { paciente: p, vinculo: v, historial } = _detalle;
+    _nombreCompleto = `${p.nombre} ${p.apellido}`;
+    const iniciales = (p.nombre[0] + p.apellido[0]).toUpperCase();
+
+    document.getElementById('pd-avatar').textContent = iniciales;
+    document.getElementById('pd-nombre').textContent = _nombreCompleto;
+    document.getElementById('topbar-title').textContent = _nombreCompleto;
+    document.title = `HemoRed — ${_nombreCompleto}`;
+    const edad = _edad(p.fecha_nacimiento);
+    document.getElementById('pd-sub').textContent =
+      `ID #${String(p.id).padStart(4, '0')} · ${v.servicio || '—'} · ${v.activo ? `Evento abierto desde ${_fechaLarga(v.evento_desde)}` : `Evento cerrado el ${_fechaLarga(v.fecha_cierre)}`}`;
+
+    const badgeEstado = document.getElementById('pd-badge-estado');
+    if (v.activo) {
+      badgeEstado.innerHTML = '<i class="ti ti-circle-filled" style="font-size:10px;color:#27ae60;"></i>Evento abierto';
+      badgeEstado.style.cssText = 'background:#e1f5ee;color:#1f8a5a;';
+    } else {
+      badgeEstado.innerHTML = '<i class="ti ti-circle-check" style="font-size:10px;"></i>Evento cerrado';
+      badgeEstado.style.cssText = 'background:#f2f2f2;color:#888;';
+    }
+    document.getElementById('pd-badge-sangre').innerHTML = `<i class="ti ti-droplet" style="font-size:10px;"></i>${p.tipo_sangre || 'Sin registrar'}`;
+
+    document.getElementById('pd-nombre-completo').textContent = _nombreCompleto;
+    document.getElementById('pd-dni').textContent = p.numero_documento;
+    document.getElementById('pd-nacimiento').textContent = p.fecha_nacimiento
+      ? `${_fechaLarga(p.fecha_nacimiento)}${edad != null ? ` · ${edad} años` : ''}` : '—';
+    document.getElementById('pd-sangre').textContent = p.tipo_sangre || 'Sin registrar';
+    document.getElementById('pd-diagnostico').textContent = v.diagnostico || '—';
+    document.getElementById('pd-servicio').textContent = v.servicio || '—';
+    document.getElementById('pd-observaciones').textContent = v.observaciones || 'Sin observaciones.';
+    document.getElementById('pd-contacto').textContent = v.contacto_referencia || '—';
+
+    if (historial.length) {
+      document.getElementById('pd-historial-internaciones').style.display = 'block';
+      document.getElementById('pd-historial-lista').innerHTML = historial.map(h => `
+        <div class="dato-grid" style="border-top:0.5px solid #e8d0d8;padding-top:12px;margin-top:12px;">
+          <div class="dato-item"><div class="dato-label">Período</div><div class="dato-value">${_fechaLarga(h.evento_desde)} — ${_fechaLarga(h.fecha_cierre)}</div></div>
+          <div class="dato-item"><div class="dato-label">Diagnóstico</div><div class="dato-value">${h.diagnostico || '—'}</div></div>
+        </div>`).join('');
+    }
+
+    if (v.activo) {
+      document.getElementById('pd-resumen-dias-label').textContent = 'Evento abierto hace';
+      const dias = Math.max(0, Math.round((HemoRed.data.ahora() - new Date(v.evento_desde + 'T00:00:00')) / 86400000));
+      document.getElementById('pd-resumen-dias').textContent = `${dias} día${dias === 1 ? '' : 's'}`;
+    } else {
+      document.getElementById('pd-resumen-dias-label').textContent = 'Evento cerrado el';
+      document.getElementById('pd-resumen-dias').textContent = _fechaLarga(v.fecha_cierre);
+    }
+
+    renderCampanasPaciente(p.id);
+  }
+
+  // "Historial de campañas" — antes eran 3 filas fijas sin ninguna
+  // relación con el paciente real (2026-10-20, corregido de paso al
+  // revisar el resto de esta pantalla: quedaba raro mostrar datos
+  // inventados al lado de todo lo demás ya conectado).
+  function renderCampanasPaciente(pacienteId) {
+    const campanas = HemoRed.db.where('campanas', 'paciente_id', pacienteId);
+    const activas = campanas.filter(c => HemoRed.data.esCampanaActiva(c));
+    const historicas = campanas.filter(c => !activas.includes(c));
+
+    document.getElementById('pd-resumen-campanas-totales').textContent = campanas.length;
+    document.getElementById('pd-resumen-campanas-activas').textContent = activas.length;
+    const unidadesReq = campanas.reduce((sum, c) => sum + (c.unidades_requeridas || 0), 0);
+    const unidadesObt = campanas.reduce((sum, c) => sum + (c.unidades_obtenidas || 0), 0);
+    document.getElementById('pd-resumen-cupos').textContent = unidadesReq ? `${unidadesObt} / ${unidadesReq}` : '—';
+
+    const cont = document.getElementById('pd-campanas');
+    if (!campanas.length) {
+      cont.innerHTML = '<div class="empty-state"><div class="empty-title">Sin campañas todavía</div></div>';
+      return;
+    }
+    const fila = (c, cerrada) => `
+      <div class="campana-row">
+        <div class="camp-dot" style="background:${cerrada ? '#a9435d' : '#c0392b'};"></div>
+        <div style="flex:1;">
+          <div class="camp-name">${c.titulo}${c.urgente ? ' <span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span>' : ''}</div>
+          <div class="camp-meta">${cerrada ? 'Cerrada' : 'Activa'} · ${c.unidades_obtenidas || 0}/${c.unidades_requeridas || 0} cupos</div>
+        </div>
+        <button class="btn-xs-outline" onclick="window.location='campana_detalle.html?id=${c.id}'">Ver campaña</button>
+      </div>`;
+    let html = '';
+    if (activas.length) {
+      html += '<div style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Activas</div>'
+        + activas.map(c => fila(c, false)).join('');
+    }
+    if (historicas.length) {
+      html += '<div style="font-size:11px;font-weight:500;color:#a9435d;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;">Historial</div>'
+        + historicas.map(c => fila(c, true)).join('');
+    }
+    cont.innerHTML = html;
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    HemoRed.sesion.requerirLogin('hospital');
+    await HemoRed.db.init();
+    const params = new URLSearchParams(window.location.search);
+    const pacienteId = Number(params.get('id'));
+    _detalle = HemoRed.data.cargarDetallePaciente(pacienteId);
+    if (!_detalle) {
+      document.querySelector('.content').innerHTML = '<div class="empty-state"><div class="empty-title">No se encontró este paciente en tu hospital.</div></div>';
+      return;
+    }
+    renderDetalle();
+  });
 </script>
 
   <script src="../js/db.js"></script>

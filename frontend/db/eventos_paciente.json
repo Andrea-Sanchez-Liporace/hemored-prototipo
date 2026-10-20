@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "paciente_hospital_id": 1,
+    "medico_tratante": "Dr. Jorge Méndez",
+    "diagnostico": "Leucemia linfoblástica aguda",
+    "servicio": null,
+    "contacto_referencia": null,
+    "observaciones": null,
+    "evento_desde": "2026-03-01",
+    "fecha_cierre": null,
+    "activo": true
+  },
+  {
+    "id": 2,
+    "paciente_hospital_id": 2,
+    "medico_tratante": "Dra. Laura Vidal",
+    "diagnostico": "Anemia aplásica severa",
+    "servicio": null,
+    "contacto_referencia": null,
+    "observaciones": null,
+    "evento_desde": "2026-03-15",
+    "fecha_cierre": null,
+    "activo": true
+  },
+  {
+    "id": 3,
+    "paciente_hospital_id": 3,
+    "medico_tratante": "Dr. Pablo Soria",
+    "diagnostico": "Talasemia mayor",
+    "servicio": null,
+    "contacto_referencia": null,
+    "observaciones": null,
+    "evento_desde": "2026-04-01",
+    "fecha_cierre": null,
+    "activo": true
+  }
+]
