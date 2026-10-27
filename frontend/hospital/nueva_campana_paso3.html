@@ -307,9 +307,9 @@
     sessionStorage.setItem(WIP_KEY, JSON.stringify(datos));
   }
 
-  // El objeto "campaña" tal como lo espera crearCampana()/calcularStatsTurnos(),
-  // armado con lo que se juntó en los pasos 1 y 2 más la opción de
-  // publicación elegida acá.
+  // El objeto "campaña" tal como lo espera crearCampana() — armado con lo
+  // que se juntó en los pasos 1 y 2 (incluido `wip.hospitales`, la config
+  // de cada hospital participante) más la opción de publicación elegida acá.
   function armarCampana() {
     const tipo = document.querySelector('.pub-opt.selected')?.dataset.tipo || 'ahora';
     const estado = tipo === 'programar' ? 'programada' : 'activa';
@@ -320,6 +320,16 @@
       estado,
       fecha_publicacion: estado === 'programada' ? fechaPublicacionInput : new Date().toISOString(),
     };
+  }
+
+  function nombreHospital(id) {
+    return HemoRed.db.find('hospitales', id)?.nombre || `Hospital #${id}`;
+  }
+
+  // Suma calcularStatsTurnos() de cada hospital participante — "una
+  // campaña, varios hospitales" (2026-10-27), cada uno con su propia config.
+  function statsCombinados() {
+    return HemoRed.data.calcularStatsTurnosTotal(wip.hospitales.map(h => ({ ...h, fecha_cierre: wip.fecha_cierre })));
   }
 
   function selPub(tipo, el) {
@@ -375,28 +385,34 @@
   }
 
   function pintarResumen() {
-    const stats = HemoRed.data.calcularStatsTurnos(wip);
+    const stats = statsCombinados();
+    const multi = wip.hospitales.length > 1;
     const fechaLimiteTxt = wip.fecha_cierre ? new Date(wip.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
     const fechaLimiteCorta = wip.fecha_cierre ? new Date(wip.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-    const diasTxt = (wip.dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ') || '—';
 
     // Preview principal
     document.getElementById('pv-titulo').textContent = wip.titulo || '—';
-    document.getElementById('pv-hospital').textContent = `${hospitalActual.nombre} · ${hospitalActual.ciudad}`;
+    document.getElementById('pv-hospital').textContent = multi
+      ? `${hospitalActual.nombre} · ${hospitalActual.ciudad} (creador) + ${wip.hospitales.length - 1} hospital${wip.hospitales.length - 1 > 1 ? 'es' : ''} más`
+      : `${hospitalActual.nombre} · ${hospitalActual.ciudad}`;
     document.getElementById('pv-badge-urgente').classList.toggle('hidden', !wip.urgente);
     document.getElementById('pv-sangre').textContent = wip.tipo_sangre_requerida || 'Cualquier tipo';
     document.getElementById('pv-fecha').textContent = fechaLimiteTxt;
     document.getElementById('pv-unidades').textContent = `${wip.unidades_requeridas} donantes`;
     document.getElementById('pv-turnos').textContent = `${stats.totalTurnos} turnos · ${stats.totalCupos} cupos`;
     document.getElementById('pv-descripcion').textContent = wip.descripcion || 'Sin descripción.';
-    document.getElementById('pv-dias').innerHTML = (wip.horarios_atencion || []).length && (wip.dias_atencion || []).length
-      ? wip.dias_atencion.map(d => `<span class="preview-dia-chip">${DIAS_LABEL[d]} — ${wip.horarios_atencion.map(h => `${h.desde} a ${h.hasta}`).join(' / ')}</span>`).join('')
-      : '';
+    document.getElementById('pv-dias').innerHTML = wip.hospitales.map(h => {
+      if (!(h.horarios_atencion || []).length || !(h.dias_atencion || []).length) return '';
+      const diasTxt = h.dias_atencion.map(d => DIAS_LABEL[d]).join('/');
+      const horTxt = h.horarios_atencion.map(x => `${x.desde} a ${x.hasta}`).join(' / ');
+      const prefijo = multi ? `<strong>${nombreHospital(h.hospital_id)}:</strong> ` : '';
+      return `<span class="preview-dia-chip">${prefijo}${diasTxt} — ${horTxt}</span>`;
+    }).join('');
 
     // Checklist
     document.getElementById('ck-fecha').textContent = fechaLimiteTxt;
     document.getElementById('ck-turnos').textContent = stats.totalTurnos;
-    document.getElementById('ck-dias').textContent = (wip.dias_atencion || []).length;
+    document.getElementById('ck-dias').textContent = wip.hospitales.reduce((acc, h) => acc + (h.dias_atencion || []).length, 0);
 
     // Resumen lateral
     document.getElementById('s-titulo').textContent = wip.titulo || '—';
@@ -405,7 +421,7 @@
     document.getElementById('s-fecha').textContent = fechaLimiteCorta;
     document.getElementById('s-turnos').textContent = `${stats.totalTurnos} turnos`;
     document.getElementById('s-cupos').textContent = `${stats.totalCupos} cupos`;
-    document.getElementById('s-dias').textContent = diasTxt;
+    document.getElementById('s-dias').textContent = multi ? 'Varía por hospital' : ((wip.hospitales[0].dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ') || '—');
     document.getElementById('s-confirmacion').textContent = wip.confirmacion_automatica ? 'Automática' : 'Manual';
 
     actualizarChecklistLimite();
@@ -419,7 +435,7 @@
     sessionStorage.removeItem(WIP_KEY);
 
     const c = res.campana;
-    const stats = HemoRed.data.calcularStatsTurnos(c);
+    const stats = HemoRed.data.calcularStatsTurnosTotal(wip.hospitales.map(h => ({ ...h, fecha_cierre: c.fecha_cierre })));
     const programada = c.estado === 'programada';
     document.getElementById('exito-titulo-principal').textContent = programada ? '¡Campaña programada!' : '¡Campaña publicada!';
     document.getElementById('exito-texto').textContent = programada
@@ -453,7 +469,7 @@
     hospitalActual = HemoRed.db.find('hospitales', usuario?.hospital_id);
 
     wip = cargarWip();
-    if (!wip.titulo || !wip.dias_atencion) { window.location.href = '../hospital/nueva_campana.html'; return; }
+    if (!wip.titulo || !wip.hospitales || !wip.hospitales.length) { window.location.href = '../hospital/nueva_campana.html'; return; }
 
     document.getElementById('c-fecha-publicacion').addEventListener('change', actualizarChecklistLimite);
     pintarResumen();

@@ -3,13 +3,13 @@
  * (`profesional/dashboard.html`, modal "Atención clínica" recortado a
  * F1→F3), agregado 2026-10-08 — cierra el hallazgo de dominio documentado
  * en la memoria del proyecto: "Profesional de salud" no es un solo perfil,
- * son 2 con facultades distintas (médico clínico vs. enfermero/extractor).
+ * son 2 con facultades distintas (médico clínico vs. extraccionista).
  *
  * El médico revisa F1/F2 (ya completados por el donante, con posibilidad
  * de corregir una respuesta) y carga un F3 nuevo (evaluación clínica:
  * signos vitales + decisión apto/no apto + firma) — es el gate real del
  * camino feliz: "no apto" corta el turno ahí mismo, nunca llega al
- * enfermero/extractor ni genera una donación.
+ * extraccionista ni genera una donación.
  *
  * Bug real encontrado armando este test, no de esta tarea sino
  * preexistente: a `#f2-items` (dentro del modal "Atención clínica") le
@@ -59,7 +59,7 @@ async function loginProfesional(page, email, password) {
 
 test.describe('Entrevista clínica (médico clínico)', () => {
 
-  test('camino apto: el médico evalúa, el enfermero recién ahí puede registrar la donación', async ({ page }) => {
+  test('camino apto: el médico evalúa, el extraccionista recién ahí puede registrar la donación', async ({ page }) => {
     await loginProfesional(page, 'profesional@hemored.com', 'prof123');
 
     const fila = page.locator('.turno-card', { hasText: 'Ana Rodríguez' }).filter({ hasText: 'Esperando evaluación médica' });
@@ -97,22 +97,26 @@ test.describe('Entrevista clínica (médico clínico)', () => {
     });
 
     await test.step('para el médico, el turno queda "apto, esperando extracción" (sin acción propia)', async () => {
-      const filaDespues = page.locator('.turno-card', { hasText: 'Ana Rodríguez' }).filter({ hasText: '11:00' });
+      const filaDespues = page.locator('.turno-card', { hasText: 'Ana Rodríguez' }).filter({ hasText: '19:30' });
       await expect(filaDespues).toContainText('Apto — esperando extracción');
     });
 
-    await test.step('recién ahí el enfermero ve "Registrar donación" para ese turno', async () => {
+    await test.step('recién ahí el extraccionista ve "Registrar donación" para ese turno', async () => {
       await page.click('text=Cerrar sesión');
-      await loginProfesional(page, 'enfermeria@hemored.com', 'enf123');
-      const filaEnfermera = page.locator('.turno-card', { hasText: 'Ana Rodríguez' }).filter({ hasText: '11:00' });
-      await expect(filaEnfermera.locator('button:has-text("Registrar donación")')).toBeVisible();
+      await loginProfesional(page, 'extraccionista@hemored.com', 'extrac123');
+      const filaExtraccionista = page.locator('.turno-card', { hasText: 'Ana Rodríguez' }).filter({ hasText: '19:30' });
+      await expect(filaExtraccionista.locator('button:has-text("Registrar donación")')).toBeVisible();
     });
   });
 
   test('camino no apto: corta el turno antes de la extracción', async ({ page }) => {
     await loginProfesional(page, 'profesional@hemored.com', 'prof123');
 
-    const fila = page.locator('.turno-card', { hasText: 'Roberto Fernández' }).filter({ hasText: '10:00' });
+    // Filtrado también por estado, no solo por hora: la semilla tiene OTRO
+    // turno histórico de Roberto Fernández casualmente a la misma hora
+    // (10:30, ya completado hace meses) — sin esto, el locator matchea 2
+    // tarjetas y Playwright lo rechaza por ambigüedad (modo estricto).
+    const fila = page.locator('.turno-card', { hasText: 'Roberto Fernández' }).filter({ hasText: '10:30' }).filter({ hasText: 'Esperando evaluación médica' });
     await expect(fila).toBeVisible();
     await expect(fila).toContainText('Esperando evaluación médica');
     await fila.locator('button:has-text("Iniciar entrevista")').click();
@@ -127,20 +131,20 @@ test.describe('Entrevista clínica (médico clínico)', () => {
     await expect(page.locator('.toast')).toContainText('no apto');
 
     await test.step('el turno queda "No apto", terminal — ya no es accionable', async () => {
-      const filaDespues = page.locator('.turno-card', { hasText: 'Roberto Fernández' }).filter({ hasText: '10:00' });
+      const filaDespues = page.locator('.turno-card', { hasText: 'Roberto Fernández' }).filter({ hasText: '10:30' }).filter({ hasText: 'No apto' });
       await expect(filaDespues).toContainText('No apto');
       await filaDespues.locator('button:has-text("Ver evaluación")').click();
       await expect(page.locator('#modal-ver-registro')).toBeVisible();
       await expect(page.locator('#ver-registro-body')).toContainText('Presión arterial fuera de rango');
     });
 
-    await test.step('el enfermero no ve ninguna acción para este turno (no llega a él)', async () => {
+    await test.step('el extraccionista no ve ninguna acción para este turno (no llega a él)', async () => {
       await page.click('#modal-ver-registro button:has-text("Cerrar")');
       await page.click('text=Cerrar sesión');
-      await loginProfesional(page, 'enfermeria@hemored.com', 'enf123');
-      const filaEnfermera = page.locator('.turno-card', { hasText: 'Roberto Fernández' }).filter({ hasText: '10:00' });
-      await expect(filaEnfermera).toContainText('No apto');
-      await expect(filaEnfermera.locator('button:has-text("Registrar donación")')).toHaveCount(0);
+      await loginProfesional(page, 'extraccionista@hemored.com', 'extrac123');
+      const filaExtraccionista = page.locator('.turno-card', { hasText: 'Roberto Fernández' }).filter({ hasText: '10:30' }).filter({ hasText: 'No apto' });
+      await expect(filaExtraccionista).toContainText('No apto');
+      await expect(filaExtraccionista.locator('button:has-text("Registrar donación")')).toHaveCount(0);
     });
   });
 

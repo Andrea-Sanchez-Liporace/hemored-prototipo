@@ -134,11 +134,27 @@ HemoRed.data = (function() {
       const tipos = c.tipo_sangre_requerida ? [c.tipo_sangre_requerida] : ['Cualquier tipo'];
       const fechaCierre = new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
 
+      // "Una campaña, varios hospitales" (2026-10-27): la tarjeta sigue
+      // mostrando el hospital CREADOR como principal, pero si hay otros
+      // participantes se avisa con un "+N hospitales" — y se suman sus
+      // nombres/ciudades al texto de búsqueda, para que el donante
+      // encuentre la campaña buscando por cualquiera de los hospitales
+      // donde de verdad se puede donar, no solo por el creador.
+      const participantes = HemoRed.db.where('campana_hospital', 'campana_id', c.id);
+      const otrosHospitales = participantes
+        .filter(p => p.hospital_id !== c.hospital_id)
+        .map(p => hospitales.find(h => h.id === p.hospital_id))
+        .filter(Boolean);
+      const masHospitalesTag = otrosHospitales.length
+        ? `<span class="tipo-badge" title="${otrosHospitales.map(h => h.nombre).join(', ')}"><i class="ti ti-building-hospital" aria-hidden="true"></i>+${otrosHospitales.length} hospital${otrosHospitales.length !== 1 ? 'es' : ''}</span>`
+        : '';
+
       // Texto libre para el buscador del dashboard (hospital, ciudad, título):
       // todo en minúscula y sin acentos para que "ramos mejia" encuentre
       // "Hospital Ramos Mejía" sin que el donante tenga que tipear igual.
       const sinAcentos = s => (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-      const busqueda = sinAcentos([hospital?.nombre, hospital?.ciudad, c.titulo].filter(Boolean).join(' '));
+      const todosLosHospitales = [hospital, ...otrosHospitales];
+      const busqueda = sinAcentos([...todosLosHospitales.map(h => h?.nombre), ...todosLosHospitales.map(h => h?.ciudad), c.titulo].filter(Boolean).join(' '));
 
       return `
         <div class="campaign-card" data-sangre="${c.tipo_sangre_requerida || ''}" data-provincia="${hospital?.provincia || ''}" data-urgencia="${c.urgente ? 'urgente' : 'activa'}" data-busqueda="${busqueda}">
@@ -146,6 +162,7 @@ HemoRed.data = (function() {
             <div class="campaign-hospital">${hospital?.nombre || 'Hospital'}</div>
             <span class="campaign-badge ${c.urgente ? 'urgente' : 'activa'}">${c.urgente ? 'Urgente' : 'Activa'}</span>
           </div>
+          ${masHospitalesTag ? `<div class="campaign-tipo">${masHospitalesTag}</div>` : ''}
           <div class="campaign-tipo">
             ${tipos.map(t => `<span class="tipo-badge"><i class="ti ti-droplet" aria-hidden="true"></i>${t}</span>`).join('')}
           </div>
@@ -280,6 +297,19 @@ HemoRed.data = (function() {
       .length;
   }
 
+  // La config real (días/horarios/duración/cupo) de UN hospital participante
+  // de una campaña — "una campaña, varios hospitales" (2026-10-27, pedido
+  // explícito de la usuaria): antes esto vivía directo en `campanas`, pero
+  // cada hospital participante puede atender días/horarios distintos (y
+  // tener su propio cupo por turno), así que pasó a `campana_hospital`, una
+  // fila por (campaña, hospital). `generarSlotsDisponibles()`/
+  // `fechasAtencionCampana()`/`calcularStatsTurnos()` ya leían esos 3 campos
+  // de un objeto genérico, así que siguen sirviendo tal cual pasándoles esta
+  // fila en vez de la campaña entera.
+  function _campanaHospital(campanaId, hospitalId) {
+    return HemoRed.db.all('campana_hospital').find(ch => ch.campana_id === campanaId && ch.hospital_id === hospitalId) || null;
+  }
+
   // Reserva un turno real. Valida elegibilidad (edad, peso, turno activo,
   // 90 días desde la última donación) y que el horario no haya llegado al
   // cupo de la campaña (RF configurable al crear la campaña — "Donantes por
@@ -289,7 +319,7 @@ HemoRed.data = (function() {
     if (!elegibilidad.ok) return elegibilidad;
 
     const campana = HemoRed.db.find('campanas', campana_id);
-    const cupo = campana?.cupo_por_turno ?? 1;
+    const cupo = _campanaHospital(campana_id, hospital_id)?.cupo_por_turno ?? 1;
     if (_turnosActivosEnHorario(hospital_id, fecha, hora) >= cupo) {
       return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
     }
@@ -429,8 +459,7 @@ HemoRed.data = (function() {
     const elegibilidad = _validarElegibilidadDonante(turno.usuario_id, fecha, { excluirTurnoId: turnoId });
     if (!elegibilidad.ok) return elegibilidad;
 
-    const campana = HemoRed.db.find('campanas', turno.campana_id);
-    const cupo = campana?.cupo_por_turno ?? 1;
+    const cupo = _campanaHospital(turno.campana_id, turno.hospital_id)?.cupo_por_turno ?? 1;
     if (_turnosActivosEnHorario(turno.hospital_id, fecha, hora, turnoId) >= cupo) {
       return { ok: false, error: 'Ese horario ya no está disponible. Elegí otro.' };
     }
@@ -540,7 +569,7 @@ HemoRed.data = (function() {
   // El médico revisa F1/F2 — con posibilidad de corregir una respuesta si
   // hace falta repreguntar algo — y deja registrada acá la decisión de
   // aptitud. Es el gate real del camino feliz: si da "no apto", el turno
-  // se corta y el enfermero/extractor no lo ve como disponible para
+  // se corta y el extraccionista no lo ve como disponible para
   // registrar la donación (ver registrarEvaluacionClinica() más abajo).
 
   // Todo lo que necesita la pantalla de revisión del médico: el turno, el
@@ -631,7 +660,7 @@ HemoRed.data = (function() {
     // Gate real: "no apto" corta el camino acá — el turno no vuelve a
     // aparecer como disponible para registrar la donación. "Apto" vuelve
     // a 'confirmado' (puede haber quedado en 'en_curso' si se abrió desde
-    // "Iniciar entrevista") — así queda disponible para el enfermero.
+    // "Iniciar entrevista") — así queda disponible para el extraccionista.
     HemoRed.db.actualizar('turnos', turnoId, { estado: resultado === 'no_apto' ? 'no_apto' : 'confirmado' });
 
     return { ok: true, evaluacion };
@@ -1031,7 +1060,11 @@ HemoRed.data = (function() {
 
     const usuario = HemoRed.db.find('usuarios', s.usuario_id);
     const hospital = HemoRed.db.find('hospitales', usuario?.hospital_id);
-    const campanas = HemoRed.db.where('campanas', 'hospital_id', hospital?.id);
+    // "Una campaña, varios hospitales" (2026-10-27): cuenta también las que
+    // este hospital solo participa (no creó) — mismo alcance que ya usa el
+    // listado de campanas.html, para que el KPI no lo deje afuera de algo
+    // donde de verdad puede recibir donantes.
+    const campanas = cargarCampanasHospital(hospital?.id);
     const turnos = HemoRed.db.where('turnos', 'hospital_id', hospital?.id);
     const donaciones = HemoRed.db.where('donaciones', 'hospital_id', hospital?.id);
     const hoy = ahora();
@@ -1258,7 +1291,7 @@ HemoRed.data = (function() {
     };
   }
 
-  // El hospital da de alta un profesional — médico clínico o enfermero/a,
+  // El hospital da de alta un profesional — médico clínico o extraccionista,
   // ambos perfiles (2026-10-20, reescrita el mismo día: la primera versión
   // creaba SIEMPRE una cuenta nueva, lo que duplicaba a la persona si ya
   // trabajaba en otro hospital del sistema — un profesional SÍ puede
@@ -1284,7 +1317,7 @@ HemoRed.data = (function() {
     if (!hospitalId) return { ok: false, error: 'No se pudo identificar el hospital.' };
     if (!nombre || !apellido) return { ok: false, error: 'Ingresá nombre y apellido.' };
     if (!numero_documento) return { ok: false, error: 'Ingresá el DNI.' };
-    if (!tipo) return { ok: false, error: 'Seleccioná el perfil (médico clínico o enfermero/a).' };
+    if (!tipo) return { ok: false, error: 'Seleccioná el perfil (médico clínico o extraccionista).' };
     if (!matricula) return { ok: false, error: 'Ingresá la matrícula.' };
     if (!especialidad) return { ok: false, error: 'Seleccioná la especialidad.' };
     const emailNorm = (email || '').toLowerCase().trim();
@@ -1639,6 +1672,24 @@ HemoRed.data = (function() {
     return { dias, totalTurnos, totalCupos: totalTurnos * cupo };
   }
 
+  // Suma `calcularStatsTurnos()` de varios hospitales participantes de la
+  // misma campaña ("una campaña, varios hospitales", 2026-10-27) — cada uno
+  // con su propia config de días/horarios/cupo, así que no alcanza con
+  // calcularlo una sola vez. Usada en el wizard (paso 2/3) para mostrar el
+  // total combinado, además del desglose por hospital que ya da
+  // `calcularStatsTurnos()` llamado una vez por cada uno.
+  function calcularStatsTurnosTotal(configsConFechaCierre) {
+    let totalTurnos = 0;
+    let totalCupos = 0;
+    const porHospital = configsConFechaCierre.map(cfg => {
+      const stats = calcularStatsTurnos(cfg);
+      totalTurnos += stats.totalTurnos;
+      totalCupos += stats.totalCupos;
+      return { hospital_id: cfg.hospital_id, ...stats };
+    });
+    return { totalTurnos, totalCupos, porHospital };
+  }
+
   // Crea (o publica) una campaña real. `datos.estado` es 'activa' (publicar
   // ahora), 'programada' (con `fecha_publicacion` futura) o 'borrador'
   // (guardar y seguir después). El límite de campañas del plan se valida
@@ -1649,6 +1700,20 @@ HemoRed.data = (function() {
   // `datos.id` viene con valor, actualiza esa campaña (borrador retomado)
   // en vez de crear una nueva — así "Guardar borrador" varias veces sobre
   // el mismo wizard no duplica filas.
+  //
+  // "Una campaña, varios hospitales" (2026-10-27, pedido explícito de la
+  // usuaria): `datos.hospital_id` sigue siendo el hospital que CREA/
+  // administra la campaña (el único que la puede editar/pausar/cerrar) —
+  // pero ya no es el único lugar donde se puede donar. `datos.hospitales`
+  // es un array con la config de cada hospital PARTICIPANTE (incluido el
+  // creador, si también va a recibir donantes): `{hospital_id,
+  // dias_atencion, horarios_atencion, duracion_turno_min, cupo_por_turno}`.
+  // Cada uno con su propio horario/cupo — un hospital puede atender
+  // lunes/miércoles y otro martes/jueves, cada uno con su propia duración
+  // de turno. El límite del plan sigue siendo solo del hospital creador
+  // (los participantes no gastan cupo de SU plan por sumarse a la campaña
+  // de otro — decisión tomada por alcance, no pedida explícitamente, para
+  // no bloquear a un hospital chico que solo presta un lugar de donación).
   function crearCampana(datos) {
     const { estado } = datos;
     if (estado === 'activa' || estado === 'programada') {
@@ -1660,6 +1725,10 @@ HemoRed.data = (function() {
         return { ok: false, error: `Tu plan ${plan.nombre} permite hasta ${plan.max_campanas_simultaneas} campañas activas simultáneas, y ${cuando} ya tenés ese cupo ocupado. Pausá o cerrá una campaña existente antes de continuar.` };
       }
     }
+    const hospitales = datos.hospitales && datos.hospitales.length
+      ? datos.hospitales
+      : [{ hospital_id: datos.hospital_id, dias_atencion: datos.dias_atencion, horarios_atencion: datos.horarios_atencion, duracion_turno_min: datos.duracion_turno_min, cupo_por_turno: datos.cupo_por_turno }];
+    if (!hospitales.length) return { ok: false, error: 'Elegí al menos un hospital donde se pueda donar.' };
 
     const campo = {
       hospital_id: datos.hospital_id,
@@ -1674,17 +1743,28 @@ HemoRed.data = (function() {
       fecha_publicacion: estado === 'borrador' ? null : (datos.fecha_publicacion || ahora().toISOString()),
       fecha_cierre: datos.fecha_cierre,
       alcance: datos.alcance || 'local',
-      cupo_por_turno: datos.cupo_por_turno ?? 1,
       confirmacion_automatica: !!datos.confirmacion_automatica,
-      dias_atencion: datos.dias_atencion || [],
-      horarios_atencion: datos.horarios_atencion || [],
-      duracion_turno_min: datos.duracion_turno_min || 30,
       creado_en: datos.creado_en || new Date().toISOString(),
     };
 
     const campana = datos.id
       ? HemoRed.db.actualizar('campanas', datos.id, campo)
       : HemoRed.db.crear('campanas', campo);
+
+    // Reemplaza la config de hospitales participantes entera — más simple
+    // y seguro que tratar de "mergear" altas/bajas de hospitales cada vez
+    // que se edita (el wizard siempre manda la lista completa vigente).
+    HemoRed.db.where('campana_hospital', 'campana_id', campana.id).forEach(ch => HemoRed.db.eliminar('campana_hospital', ch.id));
+    hospitales.forEach(h => {
+      HemoRed.db.crear('campana_hospital', {
+        campana_id: campana.id,
+        hospital_id: h.hospital_id,
+        dias_atencion: h.dias_atencion || [],
+        horarios_atencion: h.horarios_atencion || [],
+        duracion_turno_min: h.duracion_turno_min || 30,
+        cupo_por_turno: h.cupo_por_turno ?? 1,
+      });
+    });
 
     return { ok: true, campana };
   }
@@ -1699,8 +1779,19 @@ HemoRed.data = (function() {
   // Listado real para hospital/campanas.html — cada campaña ya trae
   // unidades_obtenidas/unidades_requeridas (cupos) directo del registro,
   // no hace falta recalcular nada contra turnos para esa columna.
+  // "Una campaña, varios hospitales" (2026-10-27): incluye tanto las que
+  // este hospital CREÓ como aquellas en las que solo PARTICIPA como punto
+  // de donación (creadas por otro hospital) — `esCreador` distingue las dos,
+  // para que la UI pueda mostrar "Participás" en vez de las acciones de
+  // dueño (editar/pausar/cerrar, que siguen siendo solo del creador).
   function cargarCampanasHospital(hospitalId) {
-    return HemoRed.db.where('campanas', 'hospital_id', hospitalId)
+    const creadas = HemoRed.db.where('campanas', 'hospital_id', hospitalId);
+    const idsCreadas = new Set(creadas.map(c => c.id));
+    const idsParticipa = new Set(HemoRed.db.where('campana_hospital', 'hospital_id', hospitalId).map(ch => ch.campana_id));
+    const participaSinCrear = [...idsParticipa].filter(id => !idsCreadas.has(id))
+      .map(id => HemoRed.db.find('campanas', id)).filter(Boolean);
+    return [...creadas, ...participaSinCrear]
+      .map(c => ({ ...c, esCreador: c.hospital_id === hospitalId }))
       .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en));
   }
 
@@ -1762,32 +1853,45 @@ HemoRed.data = (function() {
   // Detalle real para hospital/campana_detalle.html — campaña + sus
   // turnos con el donante ya resuelto (nombre/documento), para las 3
   // pestañas (turnos / descripción / donantes confirmados).
+  // "Una campaña, varios hospitales" (2026-10-27): `hospitales` trae TODOS
+  // los participantes con su propia config (días/horarios/cupo) + los
+  // datos del hospital — `hospital` (singular) sigue siendo el creador, a
+  // propósito, para no romper nada que ya lo use así.
   function cargarDetalleCampana(id) {
     _procesarVencimientosTurnos();
     const campana = HemoRed.db.find('campanas', id);
     if (!campana) return null;
     const hospital = HemoRed.db.find('hospitales', campana.hospital_id);
     const paciente = campana.paciente_id ? HemoRed.db.find('pacientes', campana.paciente_id) : null;
+    const hospitales = HemoRed.db.where('campana_hospital', 'campana_id', id)
+      .map(ch => ({ ...ch, hospital: HemoRed.db.find('hospitales', ch.hospital_id) }));
     const turnos = HemoRed.db.where('turnos', 'campana_id', id)
       .map(t => ({ ...t, donante: HemoRed.db.find('usuarios', t.usuario_id) }))
       .sort((a, b) => `${a.fecha}${a.hora}`.localeCompare(`${b.fecha}${b.hora}`));
-    return { campana, hospital, paciente, turnos };
+    return { campana, hospital, hospitales, paciente, turnos };
   }
 
   // Qué turnos reales de esta campaña dejarían de encajar si se guardara
-  // `nuevaConfig` (dias_atencion/horarios_atencion/duracion_turno_min) —
-  // para el flujo de "Editar" cuando la campaña ya tiene turnos: la
-  // usuaria pidió explícitamente (2026-09-29) poder cancelarlos a mano
-  // ahí mismo para destrabar el guardado, sin que la ventana de tiempo ni
-  // `confirmacion_automatica` entren en juego (por eso esto no usa
-  // cancelarTurno() del donante — un rechazo administrativo del hospital
-  // usa rechazarTurno(), que no tiene ninguna de esas dos restricciones).
-  function turnosQueBloqueanEdicion(campanaId, nuevaConfig) {
+  // la config nueva — para el flujo de "Editar" cuando la campaña ya tiene
+  // turnos: la usuaria pidió explícitamente (2026-09-29) poder cancelarlos
+  // a mano ahí mismo para destrabar el guardado, sin que la ventana de
+  // tiempo ni `confirmacion_automatica` entren en juego (por eso esto no
+  // usa cancelarTurno() del donante — un rechazo administrativo del
+  // hospital usa rechazarTurno(), que no tiene ninguna de esas dos
+  // restricciones). `hospitalesConfig` es un array (una fila por hospital
+  // participante, "una campaña, varios hospitales" 2026-10-27) — cada
+  // turno se chequea contra la config de SU PROPIO hospital, no una sola
+  // compartida. Un turno de un hospital que ya no participa (se sacó de
+  // la lista) también bloquea — no hay config con la que comparar, así
+  // que se interpreta como "ya no encaja".
+  function turnosQueBloqueanEdicion(campanaId, hospitalesConfig) {
     _procesarVencimientosTurnos();
     const turnos = HemoRed.db.where('turnos', 'campana_id', campanaId)
       .filter(t => t.estado !== 'cancelado');
     return turnos.filter(t => {
-      const slots = generarSlotsDisponibles(nuevaConfig, t.fecha);
+      const config = hospitalesConfig.find(h => h.hospital_id === t.hospital_id);
+      if (!config) return true; // el hospital de este turno ya no está en la lista
+      const slots = generarSlotsDisponibles(config, t.fecha);
       return !slots || !slots.includes(t.hora);
     }).map(t => ({ ...t, donante: HemoRed.db.find('usuarios', t.usuario_id) }));
   }
@@ -1838,7 +1942,7 @@ HemoRed.data = (function() {
   // guardarRespuestaPostdonacion() más abajo. También le avisa al donante
   // por notificación in-app (con el link directo, no un QR: ver docs/04
   // para por qué QR solo tiene sentido del lado del profesional).
-  // `bolsas` ahora lo carga el enfermero a mano, una por una (antes era un
+  // `bolsas` ahora lo carga el extraccionista a mano, una por una (antes era un
   // solo número que se generaba solo + un volumen único para toda la
   // donación) — puede haber más de una bolsa por extracción real (ej. se
   // cambió de bolsa a mitad de camino), y cada una puede tener un volumen
@@ -1985,7 +2089,7 @@ HemoRed.data = (function() {
     // me queda esta semana". El stat "Turnos hoy" sigue siendo literal
     // (hoy, nada más); el resto de los stats y la lista abajo cubren todo
     // el rango, ordenado cronológicamente, para que el profesional (médico
-    // o enfermero) pueda ver su agenda completa, no solo el día de hoy.
+    // o extraccionista) pueda ver su agenda completa, no solo el día de hoy.
     const hoy = hoyISO();
     // Pedido explícito de la usuaria: un turno todavía "pendiente" (el
     // hospital nunca lo confirmó) no le aparece al profesional en ningún
@@ -2015,10 +2119,10 @@ HemoRed.data = (function() {
     // acotadas al día de hoy (no todo el historial) y partidas según lo
     // que de verdad le toca a CADA rol: para el médico, el turno es
     // "suyo" desde que se agenda hasta que carga la evaluación clínica;
-    // para el enfermero, recién entra en juego cuando el médico ya dio el
+    // para el extraccionista, recién entra en juego cuando el médico ya dio el
     // apto, y antes de eso cae en "Pendientes" (por eso esos números se
     // van corriendo de una tarjeta a otra a medida que el médico evalúa,
-    // sin que el enfermero haga nada). Los 4 baldes son mutuamente
+    // sin que el extraccionista haga nada). Los 4 baldes son mutuamente
     // excluyentes y suman el total de turnos de hoy.
     let completados, cancelados, enProceso, pendientes;
     if (prof?.tipo === 'medico') {
@@ -2042,8 +2146,8 @@ HemoRed.data = (function() {
     // que de verdad le toca a este profesional accionar hoy (no
     // "pendientes", que todavía no le corresponde). Antes contaba "todo
     // lo no cerrado" (pendientes + en proceso juntos), lo que para el
-    // enfermero mostraba un número mayor al de la tarjeta "En proceso" y
-    // no explicaba nada — un médico con todo evaluado y un enfermero con
+    // extraccionista mostraba un número mayor al de la tarjeta "En proceso" y
+    // no explicaba nada — un médico con todo evaluado y un extraccionista con
     // todo extraído veían el mismo número sin que dijera qué les tocaba.
     _set('nav-badge-turnos', enProceso.length);
 
@@ -2142,6 +2246,8 @@ HemoRed.data = (function() {
     generarSlotsDisponibles,
     fechasAtencionCampana,
     calcularStatsTurnos,
+    calcularStatsTurnosTotal,
+    campanaHospital: _campanaHospital,
     crearCampana,
     guardarBorradorCampana,
     cargarCampanasHospital,

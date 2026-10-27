@@ -16,7 +16,7 @@
   {
     "id": 2,
     "usuario_id": 8,
-    "tipo": "enfermero",
+    "tipo": "extraccionista",
     "matricula": "38901",
     "especialidad": "Hemoterapia",
     "titulo": "Dra.",

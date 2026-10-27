@@ -13,7 +13,7 @@
     "hospital_id": 1,
     "activo": true,
     "desde": "2026-02-01",
-    "email_institucional": "enfermeria@hemored.com"
+    "email_institucional": "extraccionista@hemored.com"
   },
   {
     "id": 3,
@@ -21,6 +21,6 @@
     "hospital_id": 2,
     "activo": true,
     "desde": "2026-02-01",
-    "email_institucional": "enfermeria@hemored.com"
+    "email_institucional": "extraccionista@hemored.com"
   }
 ]

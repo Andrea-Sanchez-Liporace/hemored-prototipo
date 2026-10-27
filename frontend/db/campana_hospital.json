@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "campana_id": 1,
+    "hospital_id": 1,
+    "dias_atencion": null,
+    "horarios_atencion": null,
+    "duracion_turno_min": null,
+    "cupo_por_turno": 1
+  },
+  {
+    "id": 2,
+    "campana_id": 2,
+    "hospital_id": 1,
+    "dias_atencion": null,
+    "horarios_atencion": null,
+    "duracion_turno_min": null,
+    "cupo_por_turno": 2
+  },
+  {
+    "id": 3,
+    "campana_id": 3,
+    "hospital_id": 2,
+    "dias_atencion": null,
+    "horarios_atencion": null,
+    "duracion_turno_min": null,
+    "cupo_por_turno": 1
+  },
+  {
+    "id": 4,
+    "campana_id": 4,
+    "hospital_id": 1,
+    "dias_atencion": null,
+    "horarios_atencion": null,
+    "duracion_turno_min": null,
+    "cupo_por_turno": 2
+  }
+]

@@ -157,7 +157,7 @@
     "id": 8,
     "nombre": "Laura",
     "apellido": "Vidal",
-    "email": "enfermeria@hemored.com",
+    "email": "extraccionista@hemored.com",
     "password_hash": "demo_hash",
     "rol": "profesional",
     "tipo_documento_id": 1,

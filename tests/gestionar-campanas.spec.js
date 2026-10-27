@@ -117,7 +117,12 @@ test.describe('Ver/gestionar campañas', () => {
     // pasada se cancela solo desde el 2026-10-16 (vencimiento automático) —
     // crearlo para "hoy 11:00" hacía que, corriendo el test de tarde, el
     // turno ya naciera vencido y nunca llegara a verse como "Pendiente".
+    // Se limpia cualquier otro pendiente vivo de la campaña 1 (la semilla
+    // puede tener uno para la demo, ver [[fecha-hoy-dinamica]]) para que el
+    // "0" final de abajo sea de verdad solo este turno, no dependa de eso.
     await page.evaluate(() => {
+      HemoRed.db.all('turnos').filter(t => t.campana_id === 1 && t.estado === 'pendiente')
+        .forEach(t => HemoRed.data.rechazarTurno(t.id, 'Test: limpiar estado antes del caso.'));
       const d = HemoRed.data.ahora();
       d.setDate(d.getDate() + 5);
       HemoRed.db.crear('turnos', {
@@ -168,8 +173,14 @@ test.describe('Ver/gestionar campañas', () => {
     await page.waitForURL('**/campana_detalle.html?id=1');
     await page.waitForFunction(() => typeof _detalle !== 'undefined' && _detalle !== null);
 
-    const campanaFinal = await page.evaluate(() => HemoRed.db.find('campanas', 1));
-    expect(campanaFinal.dias_atencion.length).toBeGreaterThan(0);
+    // "Una campaña, varios hospitales" (2026-10-27): días/horarios ya no
+    // viven en `campanas`, viven en `campana_hospital` (una fila por
+    // hospital participante — acá, solo el creador).
+    const { campanaFinal, configHospital } = await page.evaluate(() => ({
+      campanaFinal: HemoRed.db.find('campanas', 1),
+      configHospital: HemoRed.db.all('campana_hospital').find(ch => ch.campana_id === 1 && ch.hospital_id === 1),
+    }));
+    expect(configHospital.dias_atencion.length).toBeGreaterThan(0);
     expect(campanaFinal.estado).toBe('activa'); // editar no le cambia el estado
   });
 

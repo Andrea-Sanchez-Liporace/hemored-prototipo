@@ -53,34 +53,45 @@
       <p>Encontrá una campaña activa y reservá tu turno.</p>
     </div>
 
-    <!-- STATS RÁPIDAS -->
+    <!-- STATS RÁPIDAS — mismo lenguaje visual de tarjeta KPI que Hospital/
+         Profesional (ícono + tendencia/sub-label + número + etiqueta),
+         propagado acá 2026-10-27 (antes era la versión anterior, .qstat,
+         ícono+número en una sola fila sin sub-label). Sin badge de
+         tendencia numérica en las 3 — no hay un "período anterior" real
+         con el que comparar estos valores (no son como "campañas activas
+         este mes vs el mes pasado") — el sub-label cumple ese lugar con
+         un dato real en su lugar (última donación, cuándo es el próximo
+         turno, la equivalencia de "vidas ayudadas"). -->
     <div class="quick-stats">
-      <div class="qstat">
-        <div class="qstat-icon" style="background:#fdf0f3;">
-          <i class="ti ti-heart" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;">
+            <i class="ti ti-heart" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
         </div>
-        <div class="qstat-body">
-          <div class="qstat-num" id="total-donaciones">—</div>
-          <div class="qstat-label">Donaciones realizadas</div>
-        </div>
+        <div class="stat-num" id="total-donaciones">—</div>
+        <div class="stat-label">Donaciones realizadas</div>
+        <div class="kpi-sub" id="sub-donaciones">—</div>
       </div>
-      <div class="qstat">
-        <div class="qstat-icon" style="background:#fdf0f3;">
-          <i class="ti ti-calendar-check" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;">
+            <i class="ti ti-calendar-check" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
         </div>
-        <div class="qstat-body">
-          <div class="qstat-num" id="proximos-turnos">—</div>
-          <div class="qstat-label">Turno próximo</div>
-        </div>
+        <div class="stat-num" id="proximos-turnos">—</div>
+        <div class="stat-label">Turno próximo</div>
+        <div class="kpi-sub" id="sub-proximo-turno">—</div>
       </div>
-      <div class="qstat">
-        <div class="qstat-icon" style="background:#fdf0f3;">
-          <i class="ti ti-users" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;">
+            <i class="ti ti-users" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
         </div>
-        <div class="qstat-body">
-          <div class="qstat-num" id="vidas-ayudadas">—</div>
-          <div class="qstat-label">Vidas ayudadas</div>
-        </div>
+        <div class="stat-num" id="vidas-ayudadas">—</div>
+        <div class="stat-label">Vidas ayudadas</div>
+        <div class="kpi-sub">≈3 por cada donación</div>
       </div>
     </div>
 
@@ -341,6 +352,16 @@
     const elVidas = document.getElementById('vidas-ayudadas');
     if (elVidas) elVidas.textContent = donaciones.length * 3;
 
+    const subDonaciones = document.getElementById('sub-donaciones');
+    if (subDonaciones) {
+      if (donaciones.length) {
+        const ultima = [...donaciones].sort((a, b) => b.registrado_en.localeCompare(a.registrado_en))[0];
+        subDonaciones.textContent = `Última: ${new Date(ultima.registrado_en).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      } else {
+        subDonaciones.textContent = 'Todavía no donaste';
+      }
+    }
+
     // Elegibilidad para donar: es un dato del donante, no de la campaña —
     // si no es elegible, no lo es para NINGUNA campaña. Por eso va un solo
     // banner acá arriba (2026-09-10, a pedido de la usuaria), no un
@@ -365,6 +386,7 @@
       .filter(t => ['pendiente', 'confirmado', 'en_curso'].includes(t.estado))
       .sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
     const banner = document.getElementById('proximo-turno-banner');
+    const subProximo = document.getElementById('sub-proximo-turno');
     if (proximo && banner) {
       const hospital = hospitales.find(h => h.id === proximo.hospital_id);
       // Se busca directo en `campanas` (todas, no solo las activas) porque
@@ -377,6 +399,12 @@
       document.getElementById('proximo-turno-valor').textContent = `${fecha} · ${proximo.hora}hs · ${hospital?.nombre || ''}`;
       document.getElementById('proximo-turno-titulo').textContent = proximo.estado === 'confirmado' ? 'Próximo turno confirmado' : 'Próximo turno (pendiente de confirmación)';
       banner.classList.remove('hidden');
+      if (subProximo) {
+        const fechaCorta = new Date(proximo.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+        subProximo.textContent = `${fechaCorta} · ${proximo.hora}hs${proximo.estado !== 'confirmado' ? ' (pendiente)' : ''}`;
+      }
+    } else if (subProximo) {
+      subProximo.textContent = 'Sin turnos agendados';
     }
 
     HemoRed.data.renderCampanas(campanas, hospitales);

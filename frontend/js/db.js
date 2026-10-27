@@ -20,7 +20,7 @@ HemoRed.db = (function() {
   const tablas = [
     'planes','tipo_documento','medios_pago','hospitales','usuarios',
     'profesionales','profesional_hospital','pacientes','paciente_hospital','eventos_paciente',
-    'campanas','turnos','donaciones','formulario_consentimiento',
+    'campanas','campana_hospital','turnos','donaciones','formulario_consentimiento',
     'formulario_postdonacion','resultado_analisis','certificado_donacion',
     'documentos','facturas','mensajes','hospital_plan_historial',
     'solicitudes_correccion','notificaciones_donante','mensajes_contacto',

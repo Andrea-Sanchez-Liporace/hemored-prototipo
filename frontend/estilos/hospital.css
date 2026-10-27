@@ -332,6 +332,16 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .vtab:hover:not(.active) { background: #fdf0f3; }
 .turno-sub { font-size: 11px; color: #a9435d; }
 .campana-chip { display: inline-flex; align-items: center; gap: 4px; background: #fdf0f3; border: 0.5px solid #f28b98; border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #782b46; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* "Una campaña, varios hospitales" (2026-10-27): chips de hospitales
+   participantes en el wizard de campaña (paso 2) + su buscador para sumar. */
+.hosp-chip { display: inline-flex; align-items: center; gap: 6px; background: white; border: 1.5px solid #e8d0d8; border-radius: 20px; padding: 6px 10px 6px 14px; font-size: 13px; color: #5a1e37; font-weight: 500; }
+.hosp-chip.creador { border-color: #ef647c; background: #fdf0f3; }
+.hosp-chip-lock { color: #a9435d; font-size: 13px; }
+.hosp-resultado-item { padding: 10px 14px; font-size: 13px; color: #5a1e37; cursor: pointer; border-bottom: 0.5px solid #f0e0e6; }
+.hosp-resultado-item:last-child { border-bottom: none; }
+.hosp-resultado-item:hover { background: #fdf0f3; }
+.hosp-resultado-empty { padding: 10px 14px; font-size: 13px; color: #a9435d; }
 .calendario { display: none; }
 .calendario.active { display: block; }
 .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }

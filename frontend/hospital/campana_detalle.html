@@ -121,19 +121,21 @@
               <div class="desc-item-sub" id="dd-paciente-sub"></div>
             </div>
             <div class="desc-item">
-              <div class="desc-item-label">Días de atención</div>
-              <div class="desc-item-value" id="dd-dias">—</div>
-              <div class="desc-item-sub" id="dd-horarios"></div>
-            </div>
-            <div class="desc-item">
-              <div class="desc-item-label">Duración por turno</div>
-              <div class="desc-item-value" id="dd-duracion">—</div>
-              <div class="desc-item-sub" id="dd-cupo-confirmacion"></div>
+              <div class="desc-item-label">Confirmación de turnos</div>
+              <div class="desc-item-value" id="dd-confirmacion">—</div>
             </div>
           </div>
           <div class="desc-full">
             <div class="desc-item-label" style="margin-bottom:10px;">Descripción</div>
             <div class="desc-full-text" id="dd-descripcion">—</div>
+          </div>
+          <!-- "Una campaña, varios hospitales" (2026-10-27): cada hospital
+               participante tiene su propio día/horario/duración/cupo, así
+               que ya no hay un solo bloque "Días de atención" — se lista
+               uno por hospital. -->
+          <div class="desc-full" style="margin-top:16px;">
+            <div class="desc-item-label" style="margin-bottom:10px;">Hospitales participantes y sus turnos</div>
+            <div id="dd-hospitales" style="display:flex;flex-direction:column;gap:10px;"></div>
           </div>
         </div>
 
@@ -203,6 +205,7 @@
 
   let _campanaId = null;
   let _detalle = null;
+  let hospitalActual = null;
 
   function hace(fechaISO) {
     const dias = Math.floor((HemoRed.data.ahora() - new Date(fechaISO)) / 86400000);
@@ -294,7 +297,11 @@
     window.location = '../hospital/nueva_campana.html?id=' + _campanaId;
   }
 
-  function botonesAccionPorEstado(estado) {
+  // Editar/pausar/reactivar/cerrar son solo del hospital CREADOR — "una
+  // campaña, varios hospitales" (2026-10-27): uno que solo participa como
+  // punto de donación no administra la campaña de otro.
+  function botonesAccionPorEstado(estado, esCreador) {
+    if (!esCreador) return [];
     // Mismas acciones, en 2 lugares (topbar chico + sidebar de "Acciones"):
     // cada estado habilita solo lo que tiene sentido — no se puede pausar
     // algo ya cerrado, ni reactivar algo que nunca se pausó.
@@ -317,8 +324,8 @@
     return partes;
   }
 
-  function renderAcciones(estado) {
-    const partes = botonesAccionPorEstado(estado);
+  function renderAcciones(estado, esCreador) {
+    const partes = botonesAccionPorEstado(estado, esCreador);
     document.getElementById('topbar-acciones').innerHTML = partes.map(p =>
       `<button class="btn-sm-action ${p.topbarCls}" onclick="${p.fn}"><i class="ti ${p.icon}"></i><span>${p.label}</span></button>`
     ).join('');
@@ -329,7 +336,7 @@
   }
 
   function pintar() {
-    const { campana: c, hospital, paciente, turnos } = _detalle;
+    const { campana: c, hospital, hospitales, paciente, turnos } = _detalle;
     const info = ESTADO_INFO[c.estado] || ESTADO_INFO.borrador;
     const pct = c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0;
 
@@ -361,12 +368,18 @@
       document.getElementById('dd-paciente').textContent = `${paciente.nombre} ${paciente.apellido}`;
       document.getElementById('dd-paciente-sub').textContent = `ID #${String(paciente.id).padStart(4, '0')}`;
     }
-    const dias = (c.dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ');
-    document.getElementById('dd-dias').textContent = dias || '—';
-    document.getElementById('dd-horarios').textContent = (c.horarios_atencion || []).map(h => `${h.desde}–${h.hasta}`).join(' y ');
-    document.getElementById('dd-duracion').textContent = c.duracion_turno_min ? `${c.duracion_turno_min} minutos` : '—';
-    document.getElementById('dd-cupo-confirmacion').textContent = `${c.cupo_por_turno || 1} donante${(c.cupo_por_turno || 1) !== 1 ? 's' : ''} por turno · Confirmación ${c.confirmacion_automatica ? 'automática' : 'manual'}`;
+    document.getElementById('dd-confirmacion').textContent = c.confirmacion_automatica ? 'Automática' : 'Manual';
     document.getElementById('dd-descripcion').textContent = c.descripcion || 'Sin descripción.';
+    document.getElementById('dd-hospitales').innerHTML = (hospitales || []).map(ch => {
+      const dias = (ch.dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ') || '—';
+      const horarios = (ch.horarios_atencion || []).map(h => `${h.desde}–${h.hasta}`).join(' y ') || '—';
+      const esCreador = ch.hospital_id === c.hospital_id;
+      return `<div style="padding:12px 14px;background:#fdf0f3;border-radius:9px;">
+        <div style="font-size:13px;font-weight:500;color:#5a1e37;">${ch.hospital?.nombre || `Hospital #${ch.hospital_id}`}${esCreador ? ' <span style="color:#a9435d;font-weight:400;">(creador)</span>' : ''}</div>
+        <div style="font-size:12px;color:#782b46;margin-top:4px;">${dias} · ${horarios}</div>
+        <div style="font-size:12px;color:#782b46;">${ch.duracion_turno_min || 30} min por turno · ${ch.cupo_por_turno || 1} donante${(ch.cupo_por_turno || 1) !== 1 ? 's' : ''} por turno</div>
+      </div>`;
+    }).join('') || '<div style="font-size:12px;color:#a9435d;">Sin hospitales participantes configurados.</div>';
 
     // Tab donantes confirmados (confirmado + completado)
     const confirmados = turnos.filter(t => t.estado === 'confirmado' || t.estado === 'completado');
@@ -391,7 +404,7 @@
         </div>`).join('')
       : '<div style="font-size:12px;color:#a9435d;">Sin turnos próximos.</div>';
 
-    renderAcciones(c.estado);
+    renderAcciones(c.estado, c.hospital_id === hospitalActual?.id);
   }
 
   async function recargar() {
@@ -404,6 +417,8 @@
     await HemoRed.db.init();
     const s = HemoRed.sesion.get();
     if (!s) return;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    hospitalActual = HemoRed.db.find('hospitales', usuario?.hospital_id);
     const params = new URLSearchParams(window.location.search);
     _campanaId = Number(params.get('id'));
     if (!_campanaId) { window.location = '../hospital/campanas.html'; return; }

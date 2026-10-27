@@ -233,10 +233,10 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await expect(page.locator('.toast')).toContainText('apto para donar');
     });
 
-    await test.step('ahora sí aparece "Registrar donación" — del lado del enfermero/extractor', async () => {
+    await test.step('ahora sí aparece "Registrar donación" — del lado del extraccionista', async () => {
       await page.goto('/publico/login.html');
-      await page.fill('#email', 'enfermeria@hemored.com');
-      await page.fill('#password', 'enf123');
+      await page.fill('#email', 'extraccionista@hemored.com');
+      await page.fill('#password', 'extrac123');
       await page.click('.form-btn');
       await page.waitForURL('**/profesional/dashboard.html');
       await page.waitForFunction(() => window._turnosProfesional && window._turnosProfesional.length > 0);
@@ -252,8 +252,8 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
     });
 
     await test.step('completar y confirmar registra la donación y muestra el QR', async () => {
-      // El número de bolsa ahora lo carga el enfermero a mano (antes se
-      // generaba solo) — ver [[profesional-facultades-medico-enfermero]].
+      // El número de bolsa ahora lo carga el extraccionista a mano (antes se
+      // generaba solo) — ver [[profesional-facultades-medico-extraccionista]].
       await page.fill('.donacion-bolsa-input', 'BLS-TEST-0001');
       await page.click('button:has-text("Confirmar donación")');
       await expect(page.locator('.toast')).toContainText('Donación registrada');
@@ -272,7 +272,7 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       expect(datos.donacion.numero_bolsa).toBe('BLS-TEST-0001');
       expect(datos.donacion.volumen_ml).toBe(450);
       expect(datos.donacion.resultado_apto).toBe(true);
-      // profesional_id 2 = Dra. Laura Vidal (enfermera/extractora, quien
+      // profesional_id 2 = Dra. Laura Vidal (extraccionista/extractora, quien
       // ahora registra la donación) — el médico (id 1) solo hizo la
       // entrevista clínica previa, no la extracción.
       expect(datos.donacion.profesional_id).toBe(2);

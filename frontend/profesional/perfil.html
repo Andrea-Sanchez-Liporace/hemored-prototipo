@@ -293,7 +293,7 @@
 
     // La firma solo existe de verdad para quien ya la registró en el dato
     // semilla (`profesionales.firma_digital_url`) — hoy el médico (Dr.
-    // Méndez) la tiene y la enfermera (Dra. Vidal) no, así que cada una ve
+    // Méndez) la tiene y la extraccionista (Dra. Vidal) no, así que cada una ve
     // un estado distinto en vez de la firma del otro profesional.
     if (prof?.firma_digital_url) {
       document.getElementById('firma-preview-label').textContent = `${nombre} · Mat. ${prof?.matricula || '—'} · ${prof?.especialidad || '—'}`;

@@ -135,7 +135,7 @@
     <h1>Demo 13.10</h1>
     <div class="sub">
       <span class="env-chip"><span class="dot"></span>localhost:8791</span>
-      <span>Donante → Hospital → Médico clínico → Enfermería</span>
+      <span>Donante → Hospital → Médico clínico → Extraccionista</span>
     </div>
   </header>
 
@@ -179,7 +179,7 @@
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-body">
-          <div class="step-head"><span class="step-title">Enfermería registra la donación</span><span class="role-pill">Profesional · enfermería</span></div>
+          <div class="step-head"><span class="step-title">Extraccionista registra la donación</span><span class="role-pill">Profesional · extraccionista</span></div>
           <ul class="actions">
             <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span>El turno marcado apto dice <code>Lista para donar</code> → <code>Registrar donación</code></span></li>
             <li><span class="bul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 6"/></svg></span><span><code>Se realizó</code> → cargar número de bolsa + ml (<code>+ Agregar otra bolsa</code> para sumar una segunda) → <code>Confirmar donación</code> → se genera el QR de F4</span></li>
@@ -208,13 +208,13 @@
   const ROLES = [
     { nombre: 'Donante', email: 'sanchesliporace.a@gmail.com', pass: '12345678' },
     { nombre: 'Médico clínico', email: 'profesional@hemored.com', pass: 'prof123' },
-    { nombre: 'Enfermería', email: 'enfermeria@hemored.com', pass: 'enf123' },
+    { nombre: 'Extraccionista', email: 'extraccionista@hemored.com', pass: 'extrac123' },
   ];
 
   const ICONS = {
     'Donante': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
     'Médico clínico': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v5a4 4 0 0 0 8 0V3M12 13v4M8 21h8"/><circle cx="19" cy="7" r="2"/></svg>',
-    'Enfermería': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v6a5 5 0 0 0 10 0V3M12 14v7"/><path d="M9 20h6"/></svg>',
+    'Extraccionista': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v6a5 5 0 0 0 10 0V3M12 14v7"/><path d="M9 20h6"/></svg>',
   };
 
   const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';

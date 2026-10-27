@@ -41,9 +41,24 @@ test.describe('Dashboard de Hospital', () => {
 
   test('sin turnos pendientes muestra el estado vacío', async ({ page }) => {
     await loginHospital(page);
-    // Los datos semilla del hospital 1 no tienen ningún turno "pendiente" hoy
-    await expect(page.locator('#lista-turnos-pendientes .turno-row-dash')).toHaveCount(0);
+    // Esperar una señal real de que el init() async de la página terminó
+    // (mismo criterio documentado en el resto de la suite) antes de tocar
+    // HemoRed.db desde el test — si no, el evaluate() de abajo puede correr
+    // contra un `data` todavía sin restaurar.
+    await expect(page.locator('#hospital-nombre')).toHaveText('Hospital Ramos Mejía');
+
+    // La semilla puede tener algún turno "pendiente" vivo para la demo (ver
+    // [[fecha-hoy-dinamica]] — se actualiza de vez en cuando para que no
+    // quede vencido) — se limpia antes de afirmar el estado vacío, en vez
+    // de asumir que el hospital 1 nunca va a tener ninguno.
+    await page.evaluate(() => {
+      HemoRed.db.all('turnos').filter(t => t.hospital_id === 1 && t.estado === 'pendiente')
+        .forEach(t => HemoRed.data.rechazarTurno(t.id, 'Test: limpiar estado para probar el vacío.'));
+    });
+    await page.reload();
+    await expect(page.locator('#hospital-nombre')).toHaveText('Hospital Ramos Mejía');
     await expect(page.locator('#lista-turnos-pendientes .empty-title')).toHaveText('No hay turnos pendientes');
+    await expect(page.locator('#lista-turnos-pendientes .turno-row-dash')).toHaveCount(0);
   });
 
   test('confirmar un turno pendiente desde el dashboard lo confirma de verdad', async ({ page }) => {

@@ -168,8 +168,10 @@
   // libre, no siempre "hoy" — pasado el último horario del día, "hoy" se
   // queda sin ningún horario reservable.
   function horasLibresModal(fechaISO) {
-    const campana = HemoRed.db.find('campanas', turnoModal.campana_id);
-    const cupo = campana?.cupo_por_turno ?? 1;
+    // "Una campaña, varios hospitales" (2026-10-27): el cupo ya no vive en
+    // la campaña, vive en campana_hospital (uno por hospital participante)
+    // — se busca el del hospital donde está pactado ESTE turno.
+    const cupo = HemoRed.data.campanaHospital(turnoModal.campana_id, turnoModal.hospital_id)?.cupo_por_turno ?? 1;
     const conteoPorHora = {};
     HemoRed.db.all('turnos')
       .filter(t => t.id !== turnoModal.id && t.hospital_id === turnoModal.hospital_id && t.fecha === fechaISO && t.estado !== 'cancelado')

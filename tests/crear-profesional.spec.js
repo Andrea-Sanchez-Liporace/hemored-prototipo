@@ -8,7 +8,7 @@
  *
  * A diferencia de un paciente, un profesional necesita poder loguearse de
  * verdad — el modal sumó 2 campos que antes no existían: "Perfil" (médico
- * clínico / enfermero, ninguno de los dos se podía dar de alta sin esto)
+ * clínico / extraccionista, ninguno de los dos se podía dar de alta sin esto)
  * y contraseña + repetir, con la misma validación que usa el registro
  * público de donante (mínimo 8 caracteres, deben coincidir).
  */
@@ -25,7 +25,7 @@ async function loginHospital(page) {
 
 test.describe('Creación de profesionales (Hospital)', () => {
 
-  test('crear un enfermero nuevo: aparece en el listado, suma al total y puede loguearse', async ({ page }) => {
+  test('crear un extraccionista nuevo: aparece en el listado, suma al total y puede loguearse', async ({ page }) => {
     await loginHospital(page);
     await page.goto('/hospital/profesionales.html');
     await expect(page.locator('#prof-stat-total')).not.toHaveText('—');
@@ -38,7 +38,7 @@ test.describe('Creación de profesionales (Hospital)', () => {
       await page.fill('#np-nombre', 'Diego');
       await page.fill('#np-apellido', 'Ramírez');
       await page.fill('#np-dni', dni);
-      await page.evaluate(() => { document.getElementById('np-tipo').value = 'enfermero'; });
+      await page.evaluate(() => { document.getElementById('np-tipo').value = 'extraccionista'; });
       await page.fill('#np-matricula', '50123');
       await page.evaluate(() => { document.getElementById('np-especialidad').value = 'Hematología'; });
       await page.fill('#np-email', email);

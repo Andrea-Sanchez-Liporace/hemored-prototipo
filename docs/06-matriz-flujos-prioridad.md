@@ -1,6 +1,6 @@
 # Matriz: flujos del sistema, estado y prioridad
 
-**Fecha:** 2026-09-23 · **Última actualización:** 2026-10-08 (cierre del hallazgo médico/enfermero en Profesional — ver `docs/04`)
+**Fecha:** 2026-09-23 · **Última actualización:** 2026-10-08 (cierre del hallazgo médico/extraccionista en Profesional — ver `docs/04`)
 
 **Por qué existe esto:** `docs/04-estado-actual-prototipo.md` ya tiene, flujo por flujo, si está conectado (🟢/🟡/🔴) y qué le falta técnicamente. Esta matriz toma esas mismas filas y les agrega la capa de planificación que todavía faltaba: **nivel de diseño** (independiente del nivel de desarrollo — un flujo puede estar 🔴 sin conectar y tener el diseño visual terminado, o viceversa), **esfuerzo estimado**, **prioridad** y **si conviene encararlo completo de una vez o de a partes**. Es la base para decidir qué se toca primero ahora que arranca la revisión de Hospital/Admin (hito 4 del correo al profesor).
 
@@ -111,8 +111,8 @@ Las 10 filas están 🟢 desarrollo y 🟢 diseño (incluido el pase completo de
 | Flujo | Desarrollo | Diseño | Qué falta | Esfuerzo | Prioridad | Enfoque |
 |---|---|---|---|---|---|---|
 | Turnos del día (dashboard) | 🟢 | 🟢 | Cerrado 2026-10-06, junto con "Registrar donación". | — | — | — |
-| Registrar donación | 🟢 | 🟢 | Cerrado 2026-10-06 — movida desde Hospital (`hospital/turnos.html`), pedido explícito de la usuaria: es la acción del enfermero/extractor, no una acción administrativa. Ver detalle en `docs/04`. | — | — | — |
-| Entrevista clínica (F1→F3, médico clínico) | 🟢 | 🟢 | Cerrado 2026-10-08 — resuelve el hallazgo médico/enfermero. `profesionales.tipo` separa las 2 facultades; el médico ve F1 (resumen)/F2 (respuestas reales, con corrección) y carga F3 (signos vitales + apto/no apto, tabla nueva `evaluacion_clinica`) — gate real: "no apto" corta el turno antes de llegar al enfermero. F4 queda fuera de este flujo (ya es "Registrar donación", del enfermero). Ver detalle completo en `docs/04`. | — | — | — |
+| Registrar donación | 🟢 | 🟢 | Cerrado 2026-10-06 — movida desde Hospital (`hospital/turnos.html`), pedido explícito de la usuaria: es la acción del extraccionista, no una acción administrativa. Ver detalle en `docs/04`. | — | — | — |
+| Entrevista clínica (F1→F3, médico clínico) | 🟢 | 🟢 | Cerrado 2026-10-08 — resuelve el hallazgo médico/extraccionista. `profesionales.tipo` separa las 2 facultades; el médico ve F1 (resumen)/F2 (respuestas reales, con corrección) y carga F3 (signos vitales + apto/no apto, tabla nueva `evaluacion_clinica`) — gate real: "no apto" corta el turno antes de llegar al extraccionista. F4 queda fuera de este flujo (ya es "Registrar donación", del extraccionista). Ver detalle completo en `docs/04`. | — | — | — |
 | Perfil y firma digital | 🔴 | 🟢 | El canvas de firma funciona y valida, pero nunca se guarda (`// Aquí se enviaría al servidor`). | Bajo | Won't (v2) | Completo |
 
 **Por qué v2 y no antes:** es contenido explícitamente fuera del alcance MVP (`docs/03`, MoSCoW "Won't Have"), aunque la UI ya esté construida con mucho detalle — el criterio de priorización acá no es "cuánto falta" sino "está en el alcance de esta entrega".

@@ -87,7 +87,7 @@ body { font-family: 'Inter', sans-serif; background: #f7f0f3; color: #1a0a0f; mi
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
 /* Mismo look que las tarjetas de hospital/*.html (ícono + badge de
    tendencia) — portado acá 2026-10-16 a pedido explícito, para que las
-   tarjetas de ambos roles (médico/enfermero) se vean consistentes con el
+   tarjetas de ambos roles (médico/extraccionista) se vean consistentes con el
    resto del sitio. */
 .stat { background: white; border-radius: 14px; padding: 20px; border: 0.5px solid #e8d0d8; }
 .stat-num { font-size: 32px; font-weight: 500; color: #3d0f20; line-height: 1; margin-bottom: 4px; }

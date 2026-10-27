@@ -389,7 +389,18 @@
     if (editId) {
       const campana = HemoRed.db.find('campanas', editId);
       if (campana && campana.hospital_id === hospitalActual.id) {
-        guardarWip({ ...campana, editando: true, estadoOriginal: campana.estado });
+        // "Una campaña, varios hospitales" (2026-10-27): se seedea el wip
+        // con la config real de cada hospital participante (campana_hospital),
+        // no solo la del creador — paso 2 la necesita para armar sus tabs.
+        const detalle = HemoRed.data.cargarDetalleCampana(editId);
+        const hospitales = (detalle.hospitales || []).map(ch => ({
+          hospital_id: ch.hospital_id,
+          dias_atencion: ch.dias_atencion,
+          horarios_atencion: ch.horarios_atencion,
+          duracion_turno_min: ch.duracion_turno_min,
+          cupo_por_turno: ch.cupo_por_turno,
+        }));
+        guardarWip({ ...campana, hospitales, editando: true, estadoOriginal: campana.estado });
       }
     }
     const wipActual = cargarWip();
