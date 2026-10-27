@@ -34,34 +34,40 @@
 
   <div class="content">
 
-    <!-- RESUMEN -->
+    <!-- RESUMEN — mismo lenguaje visual de tarjeta KPI que Hospital/Profesional
+         y el dashboard del donante (.stat-card/.kpi-top/.kpi-icon/.kpi-sub,
+         ver componentes.css/donante.css). Antes usaba .qstat, una versión
+         vieja sin actualizar cuando se propagó el rediseño al resto. -->
     <div class="quick-stats" style="margin-bottom:28px;">
-      <div class="qstat">
-        <div class="qstat-icon" style="background:#fdf0f3;">
-          <i class="ti ti-heart-filled" style="color:#ef647c;font-size:20px;" aria-hidden="true"></i>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;">
+            <i class="ti ti-heart-filled" style="color:#ef647c;font-size:18px;" aria-hidden="true"></i>
+          </div>
         </div>
-        <div>
-          <div class="qstat-num" id="stat-total-donaciones">—</div>
-          <div class="qstat-label">Donaciones totales</div>
-        </div>
+        <div class="stat-num" id="stat-total-donaciones">—</div>
+        <div class="stat-label">Donaciones totales</div>
+        <div class="kpi-sub" id="sub-tipo-sangre">—</div>
       </div>
-      <div class="qstat">
-        <div class="qstat-icon" style="background:#e1f5ee;">
-          <i class="ti ti-droplet" style="color:#27ae60;font-size:20px;" aria-hidden="true"></i>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#e1f5ee;">
+            <i class="ti ti-droplet" style="color:#27ae60;font-size:18px;" aria-hidden="true"></i>
+          </div>
         </div>
-        <div>
-          <div class="qstat-num" id="stat-total-ml">—</div>
-          <div class="qstat-label">Total de sangre donada</div>
-        </div>
+        <div class="stat-num" id="stat-total-ml">—</div>
+        <div class="stat-label">Total de sangre donada</div>
+        <div class="kpi-sub" id="sub-vidas">—</div>
       </div>
-      <div class="qstat">
-        <div class="qstat-icon" style="background:#fdf0f3;">
-          <i class="ti ti-calendar" style="color:#5a1e37;font-size:20px;" aria-hidden="true"></i>
+      <div class="stat-card">
+        <div class="kpi-top">
+          <div class="kpi-icon" style="background:#fdf0f3;">
+            <i class="ti ti-calendar" style="color:#5a1e37;font-size:18px;" aria-hidden="true"></i>
+          </div>
         </div>
-        <div>
-          <div class="qstat-num" id="stat-ultima-donacion">—</div>
-          <div class="qstat-label">Última donación</div>
-        </div>
+        <div class="stat-num" id="stat-ultima-donacion">—</div>
+        <div class="stat-label">Última donación</div>
+        <div class="kpi-sub" id="sub-ultima">—</div>
       </div>
     </div>
 
@@ -187,11 +193,22 @@
     document.getElementById('sin-resultados').classList.toggle('hidden', !!donaciones.length);
 
     document.getElementById('stat-total-donaciones').textContent = donaciones.length;
+    document.getElementById('sub-tipo-sangre').textContent = donante?.tipo_sangre ? `Grupo ${donante.tipo_sangre}` : 'Sin tipo de sangre cargado';
+
     const totalMl = donaciones.reduce((sum, d) => sum + (d.volumen_ml || 0), 0);
     document.getElementById('stat-total-ml').textContent = totalMl ? `${totalMl.toLocaleString('es-AR')} ml` : '—';
+    const vidasAyudadas = donaciones.length * 3;
+    document.getElementById('sub-vidas').textContent = vidasAyudadas ? `≈${vidasAyudadas} vidas ayudadas` : 'Todavía no donaste';
+
     document.getElementById('stat-ultima-donacion').textContent = donaciones[0]
       ? new Date(donaciones[0].registrado_en).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
       : '—';
+    if (donaciones[0]) {
+      const dias = Math.floor((HemoRed.data.ahora() - new Date(donaciones[0].registrado_en)) / 86400000);
+      document.getElementById('sub-ultima').textContent = dias <= 0 ? 'Hoy' : `Hace ${dias} día${dias === 1 ? '' : 's'}`;
+    } else {
+      document.getElementById('sub-ultima').textContent = 'Todavía no donaste';
+    }
 
     const banner = document.getElementById('proximo-banner');
     if (proximaFechaHabilitada) {
