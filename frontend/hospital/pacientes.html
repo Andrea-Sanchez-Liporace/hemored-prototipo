@@ -28,7 +28,7 @@
     </div>
     <div class="topbar-actions">
       <a class="topbar-btn" href="../hospital/notificaciones.html" data-tooltip="Ir a notificaciones"><i class="ti ti-bell" style="font-size:18px;"></i></a>
-      <button class="btn-nueva" onclick="abrirModal()">
+      <button class="btn-nueva" id="btn-nuevo-paciente" onclick="abrirModal()">
         <i class="ti ti-plus"></i>Nuevo paciente
       </button>
     </div>
@@ -356,6 +356,17 @@
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('hospital');
     await HemoRed.db.init();
+
+    // Plan Gratuito (2026-11-03): no incluye registrar pacientes propios —
+    // el bloqueo real está en crearPaciente() (data.js), esto solo evita
+    // mostrar un botón que terminaría en un error al tocarlo.
+    const s = HemoRed.sesion.get();
+    const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
+    const plan = HemoRed.data.obtenerPlanHospital(usuario?.hospital_id);
+    if (plan && plan.puede_crear_pacientes === false) {
+      document.getElementById('btn-nuevo-paciente')?.remove();
+    }
+
     renderPacientes();
   });
 </script>

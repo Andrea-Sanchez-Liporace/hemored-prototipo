@@ -1068,16 +1068,18 @@ HemoRed.data = (function() {
     const turnos = HemoRed.db.where('turnos', 'hospital_id', hospital?.id);
     const donaciones = HemoRed.db.where('donaciones', 'hospital_id', hospital?.id);
     const hoy = ahora();
-    const donacionesMes = donaciones.filter(d => {
-      const f = new Date(d.registrado_en);
-      return f.getMonth() === hoy.getMonth() && f.getFullYear() === hoy.getFullYear();
-    });
 
     _set('hospital-nombre', hospital?.nombre || '');
     _set('hospital-nombre-sidebar', hospital?.nombre || '');
     _set('campanas-activas', campanas.filter(c => esCampanaActiva(c)).length);
     _set('turnos-hoy', turnos.filter(t => t.fecha === fechaISO(hoy)).length);
-    _set('donaciones-mes', donacionesMes.length);
+    // "Participaciones a aceptar" (2026-11-03): invitaciones de OTROS
+    // hospitales a sumarse como punto de donación que este hospital todavía
+    // no aceptó ni rechazó — ver responderInvitacionHospital(). Reemplaza acá
+    // a "Donaciones este mes" (esa sigue en Métricas, sin cambios).
+    const participacionesPendientes = HemoRed.db.where('campana_hospital', 'hospital_id', hospital?.id)
+      .filter(ch => ch.estado === 'pendiente').length;
+    _set('participaciones-pendientes', participacionesPendientes);
 
     // Texto de bienvenida (antes fijo: "Hoy es jueves 15 de mayo de 2026...",
     // corregido 2026-09-22 junto con las otras fechas de ejemplo vencidas).
@@ -1170,6 +1172,14 @@ HemoRed.data = (function() {
     const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
     const hospitalId = usuario?.hospital_id;
     if (!hospitalId) return { ok: false, error: 'No se pudo identificar el hospital.' };
+    // Plan Gratuito (2026-11-03, pedido explícito: "no va a poder crear
+    // campañas ni pacientes") — guardia de backend además del botón oculto
+    // en pacientes.html, mismo criterio defensivo que ya usa crearCampana()
+    // con el límite del plan.
+    const plan = obtenerPlanHospital(hospitalId);
+    if (plan && plan.puede_crear_pacientes === false) {
+      return { ok: false, error: `Tu plan ${plan.nombre} no incluye registrar pacientes propios.` };
+    }
     if (!nombre || !apellido) return { ok: false, error: 'Ingresá nombre y apellido.' };
     if (!numero_documento) return { ok: false, error: 'Ingresá el DNI del paciente.' };
     if (!fecha_nacimiento) return { ok: false, error: 'Ingresá la fecha de nacimiento.' };
@@ -1609,13 +1619,39 @@ HemoRed.data = (function() {
   // config (campañas viejas, de antes de este cambio) para que quien llama
   // sepa que tiene que caer al comportamiento genérico de siempre — ver
   // `campana_detalle.html`, que sigue funcionando igual que antes para esas.
-  function generarSlotsDisponibles(campana, fechaISO) {
+  //
+  // `opts.soloDesdeManana` (default false, pedido explícito 2026-11-03):
+  // si `fechaStr` es HOY, no devuelve ningún horario — nunca se ofrece el
+  // mismo día, sin importar la hora. Primera versión de este filtro solo
+  // excluía las horas YA PASADAS (ej. horario 8-12, campaña creada a las
+  // 14hs → quedaban visibles 14-17), pero la usuaria hizo notar que eso
+  // sigue siendo poco realista: publicar ahora y ofrecer un turno a las
+  // 15:30 cuando son las 15:15 no le da tiempo a nadie a enterarse, llegar
+  // y completar formularios + entrevista clínica + extracción. Más simple y
+  // más realista: el primer día reservable es siempre MAÑANA — mismo
+  // criterio que ya usa donante/campana_detalle.html (horasLibres()) para
+  // la reserva real, así que esto no es una regla nueva, solo la hace
+  // valer también acá. Por default queda en `false` a propósito: lo único
+  // que lo pide es calcularStatsTurnos() (el preview/conteo, que tiene que
+  // reflejar lo que todavía se puede reservar). turnosQueBloqueanEdicion()
+  // NO lo activa — ahí se compara un turno YA RESERVADO contra la forma
+  // del horario, no contra la fecha de hoy, así que un turno de hoy no
+  // tiene que aparecer como "ya no encaja" solo por ser de hoy.
+  function generarSlotsDisponibles(campana, fechaStr, opts) {
     if (!campana.horarios_atencion || !campana.duracion_turno_min) return null;
-    const dow = new Date(fechaISO + 'T00:00:00').getDay();
+    if (opts && opts.soloDesdeManana && fechaStr === fechaISO(ahora())) return [];
+    const dow = new Date(fechaStr + 'T00:00:00').getDay();
     if (campana.dias_atencion && !campana.dias_atencion.includes(dow)) return [];
     const slots = [];
     const dur = campana.duracion_turno_min;
-    campana.horarios_atencion.forEach(({ desde, hasta }) => {
+    // Horarios distintos por día (2026-11-03, pedido explícito: "puede ser
+    // que un domingo no quiera atender a la tarde") — `horarios_por_dia` es
+    // opcional y, si está, pisa a `horarios_atencion` SOLO para el día que
+    // tiene cargado; un día seleccionado sin entrada propia ahí cae al
+    // horario compartido de siempre. Así una campaña vieja (sin este campo)
+    // sigue funcionando exactamente igual que antes.
+    const horarios = (campana.horarios_por_dia && campana.horarios_por_dia[dow]) || campana.horarios_atencion;
+    horarios.forEach(({ desde, hasta }) => {
       const [h, m] = desde.split(':').map(Number);
       const [hf, mf] = hasta.split(':').map(Number);
       let actual = h * 60 + m;
@@ -1654,17 +1690,28 @@ HemoRed.data = (function() {
   // (mismo motor que generarSlotsDisponibles) — un solo lugar, usado tanto
   // en el preview del paso 2 del wizard como en el resumen antes de
   // publicar (paso 3), para no repetir el mismo cálculo en 2 pantallas.
+  //
+  // Bug real encontrado 2026-11-03 (pedido explícito de la usuaria,
+  // reproducido con una fecha límite a ~150 días: mostraba 504 turnos/36
+  // días cuando el total real hasta esa fecha era 1232/88): el loop cortaba
+  // a los primeros 60 días calendario pasara lo que pasara con
+  // `fecha_cierre`, aunque el texto en pantalla decía "hasta la fecha
+  // límite". `fecha_cierre` es obligatoria para llegar acá (paso 1 no deja
+  // avanzar sin ella — ver validarPaso1 en nueva_campana.html), así que no
+  // hace falta ningún tope artificial: alcanza con el `break` de abajo. El
+  // límite de 730 días es solo un resguardo defensivo (nunca debería
+  // alcanzarse en uso real), no una restricción real de negocio.
   function calcularStatsTurnos(campana) {
     const hoy = ahora();
     hoy.setHours(0, 0, 0, 0);
     const cierre = campana.fecha_cierre ? new Date(campana.fecha_cierre + 'T00:00:00') : null;
     const dias = [];
-    for (let i = 0; i < 60 && dias.length < 90; i++) {
+    for (let i = 0; i < 730; i++) {
       const d = new Date(hoy);
       d.setDate(d.getDate() + i);
       if (cierre && d > cierre) break;
       const fechaStr = fechaISO(d);
-      const slots = generarSlotsDisponibles(campana, fechaStr) || [];
+      const slots = generarSlotsDisponibles(campana, fechaStr, { soloDesdeManana: true }) || [];
       if (slots.length) dias.push({ fechaISO: fechaStr, slots });
     }
     const cupo = campana.cupo_por_turno || 1;
@@ -1754,19 +1801,105 @@ HemoRed.data = (function() {
     // Reemplaza la config de hospitales participantes entera — más simple
     // y seguro que tratar de "mergear" altas/bajas de hospitales cada vez
     // que se edita (el wizard siempre manda la lista completa vigente).
+    //
+    // `estado` por fila (pedido explícito de la usuaria, 2026-11-03): el
+    // creador propone día/horario para cada participante, pero ese hospital
+    // tiene que validarlo desde su propio usuario antes de quedar visible
+    // para los donantes — ver responderInvitacionHospital() y el filtro en
+    // donante/campana_detalle.html. El creador se autoacepta (no tiene
+    // sentido pedirle que confirme su propia campaña). Si el wizard vuelve a
+    // guardar una campaña ya editada, un participante que YA respondió
+    // (aceptado/rechazado) no vuelve a quedar pendiente solo por guardar de
+    // nuevo — `h.estado` llega con lo que ya había en la fila (ver el bloque
+    // de carga para editar en nueva_campana.html), y acá se respeta.
+    // `propuesta_original` (pedido explícito, 2026-11-03 — "esa es la
+    // trazabilidad"): la primera config que el creador le propuso a cada
+    // participante, congelada para siempre una vez invitado — nunca se
+    // vuelve a pisar, ni aunque el creador edite la campaña de nuevo más
+    // adelante. Sin esto, si el hospital invitado acepta con cambios (ej.
+    // mismo día pero otro horario y menos cupo), no había forma de ver qué
+    // se le había propuesto originalmente para compararlo con lo que
+    // terminó aceptando — ver el diff que arma campana_detalle.html contra
+    // esto. Se busca ANTES de borrar las filas viejas de abajo.
+    const propuestasOriginales = {};
+    HemoRed.db.where('campana_hospital', 'campana_id', campana.id)
+      .forEach(ch => { propuestasOriginales[ch.hospital_id] = ch.propuesta_original || null; });
+
     HemoRed.db.where('campana_hospital', 'campana_id', campana.id).forEach(ch => HemoRed.db.eliminar('campana_hospital', ch.id));
     hospitales.forEach(h => {
+      const esCreador = h.hospital_id === campo.hospital_id;
+      const propuestaActual = {
+        dias_atencion: h.dias_atencion || [],
+        horarios_atencion: h.horarios_atencion || [],
+        // Opcional — ver generarSlotsDisponibles(). Si el wizard no mandó
+        // horarios distintos por día para este hospital, no se guarda nada
+        // acá (en vez de un objeto vacío) para no confundir con una config
+        // real sin franjas.
+        ...(h.horarios_por_dia ? { horarios_por_dia: h.horarios_por_dia } : {}),
+        duracion_turno_min: h.duracion_turno_min || 30,
+        cupo_por_turno: h.cupo_por_turno ?? 1,
+      };
       HemoRed.db.crear('campana_hospital', {
         campana_id: campana.id,
         hospital_id: h.hospital_id,
-        dias_atencion: h.dias_atencion || [],
-        horarios_atencion: h.horarios_atencion || [],
-        duracion_turno_min: h.duracion_turno_min || 30,
-        cupo_por_turno: h.cupo_por_turno ?? 1,
+        ...propuestaActual,
+        estado: esCreador ? 'aceptado' : (h.estado === 'aceptado' || h.estado === 'rechazado' ? h.estado : 'pendiente'),
+        propuesta_original: esCreador ? null : (propuestasOriginales[h.hospital_id] || propuestaActual),
       });
     });
 
     return { ok: true, campana };
+  }
+
+  // El hospital INVITADO confirma o rechaza su propia fila de
+  // `campana_hospital` — único que puede responder su propia invitación
+  // (pedido explícito, 2026-11-03: "eso lo decide el hospital participante",
+  // no el creador). Solo aplica a filas 'pendiente'; una ya respondida no
+  // se puede volver a tocar desde acá (evita pisar un rechazo con un doble
+  // click accidental en "Aceptar", por ejemplo).
+  // `config` es opcional: el hospital invitado puede aceptar tal cual lo
+  // que propuso el creador (no manda nada) o AJUSTAR su propio día/horario/
+  // duración/cupo antes de confirmar (pedido explícito, 2026-11-03: "eso lo
+  // decide el hospital participante", no solo "lo aprueba o no") — en ese
+  // caso manda `{ dias_atencion, horarios_atencion, horarios_por_dia?,
+  // duracion_turno_min, cupo_por_turno }` y eso reemplaza la propuesta
+  // original en su propia fila. Rechazar nunca toca la config, no hace falta.
+  //
+  // `horarios_por_dia` (sumado 2026-11-03, mismo campo opcional que ya usa
+  // el wizard del creador — ver generarSlotsDisponibles()): el invitado
+  // también puede pedir horarios distintos por día (ej. "yo domingo solo
+  // atiendo a la mañana"), no solo aceptar/ajustar un horario único para
+  // todos sus días. Si NO lo manda, se limpia a propósito (`|| null`): si
+  // el creador había propuesto algo con horarios_por_dia y el invitado
+  // ajusta acá con el modo compartido, hay que pisar el campo viejo — si
+  // no, generarSlotsDisponibles() lo seguiría priorizando por encima del
+  // horario nuevo que el invitado acaba de elegir, y el ajuste quedaría
+  // ignorado en los días que tenían entrada propia.
+  function responderInvitacionHospital(campanaId, hospitalId, aceptar, config) {
+    const fila = HemoRed.db.all('campana_hospital').find(ch => ch.campana_id === campanaId && ch.hospital_id === hospitalId);
+    if (!fila) return { ok: false, error: 'No encontramos esa invitación.' };
+    if (fila.estado !== 'pendiente') return { ok: false, error: 'Esta invitación ya fue respondida.' };
+    const cambios = { estado: aceptar ? 'aceptado' : 'rechazado' };
+    if (aceptar && config) {
+      if (!config.dias_atencion || !config.dias_atencion.length) return { ok: false, error: 'Elegí al menos un día de atención.' };
+      if (config.horarios_por_dia) {
+        for (const dow of config.dias_atencion) {
+          const horarios = config.horarios_por_dia[dow] || [];
+          if (!horarios.length) return { ok: false, error: 'Agregá al menos una franja horaria para cada día que elegiste.' };
+          if (horarios.some(h => !h.desde || !h.hasta || h.desde >= h.hasta)) return { ok: false, error: 'Alguna franja horaria tiene un horario inválido (el "hasta" tiene que ser posterior al "desde").' };
+        }
+      } else {
+        if (!config.horarios_atencion || !config.horarios_atencion.length) return { ok: false, error: 'Agregá al menos una franja horaria.' };
+        if (config.horarios_atencion.some(h => !h.desde || !h.hasta || h.desde >= h.hasta)) return { ok: false, error: 'Alguna franja horaria tiene un horario inválido (el "hasta" tiene que ser posterior al "desde").' };
+      }
+      cambios.dias_atencion = config.dias_atencion;
+      cambios.horarios_atencion = config.horarios_atencion;
+      cambios.horarios_por_dia = config.horarios_por_dia || null;
+      cambios.duracion_turno_min = config.duracion_turno_min || 30;
+      cambios.cupo_por_turno = config.cupo_por_turno ?? 1;
+    }
+    HemoRed.db.actualizar('campana_hospital', fila.id, cambios);
+    return { ok: true };
   }
 
   // Mismo crearCampana pero fuerza estado 'borrador' y no valida límite de
@@ -1787,11 +1920,20 @@ HemoRed.data = (function() {
   function cargarCampanasHospital(hospitalId) {
     const creadas = HemoRed.db.where('campanas', 'hospital_id', hospitalId);
     const idsCreadas = new Set(creadas.map(c => c.id));
-    const idsParticipa = new Set(HemoRed.db.where('campana_hospital', 'hospital_id', hospitalId).map(ch => ch.campana_id));
+    const participaciones = HemoRed.db.where('campana_hospital', 'hospital_id', hospitalId);
+    const idsParticipa = new Set(participaciones.map(ch => ch.campana_id));
     const participaSinCrear = [...idsParticipa].filter(id => !idsCreadas.has(id))
       .map(id => HemoRed.db.find('campanas', id)).filter(Boolean);
+    // miParticipacion: estado de la fila campana_hospital de ESTE hospital
+    // en esta campaña ('pendiente'/'aceptado'/'rechazado') — para que
+    // campanas.html pueda mostrar "Invitación pendiente" y las acciones de
+    // aceptar/rechazar en vez de "Participás" directo.
     return [...creadas, ...participaSinCrear]
-      .map(c => ({ ...c, esCreador: c.hospital_id === hospitalId }))
+      .map(c => ({
+        ...c,
+        esCreador: c.hospital_id === hospitalId,
+        miParticipacion: (participaciones.find(ch => ch.campana_id === c.id) || {}).estado || null,
+      }))
       .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en));
   }
 
@@ -2250,6 +2392,7 @@ HemoRed.data = (function() {
     campanaHospital: _campanaHospital,
     crearCampana,
     guardarBorradorCampana,
+    responderInvitacionHospital,
     cargarCampanasHospital,
     pausarCampana,
     reactivarCampana,

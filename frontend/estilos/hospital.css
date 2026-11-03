@@ -538,6 +538,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .resumen-label { font-size: 12px; color: #a9435d; margin-bottom: 6px; }
 .resumen-value { font-size: 24px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }
 .resumen-sub { font-size: 11px; color: #5a3040; }
+.preview-card .resumen-value { font-size: 12px; }
 .proxima-banner { background: #5a1e37; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .pb-info {  }
 .pb-label { font-size: 12px; color: #f28b98; margin-bottom: 4px; }

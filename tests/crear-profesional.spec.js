@@ -106,9 +106,10 @@ test.describe('Creación de profesionales (Hospital)', () => {
   });
 
   test('profesional que ya trabaja en otro hospital del sistema: no duplica la cuenta, solo vincula', async ({ page }) => {
-    // Hospital 2 (Garrahan) no tiene una cuenta de login real en la semilla
-    // — se crea una de prueba vía evaluate() para loguearse como ese
-    // segundo hospital, sin tocar ninguna cuenta/dato real del resto del sitio.
+    // Garrahan (hospital_id 2) ya tiene login real en la semilla
+    // (garrahan@hemored.com), pero el test igual crea su propia cuenta
+    // descartable vía evaluate() para loguearse como ese segundo hospital,
+    // sin tocar ninguna cuenta/dato real del resto del sitio.
     await page.goto('/publico/login.html');
     const emailHospital2 = await page.evaluate(async () => {
       await HemoRed.db.init();

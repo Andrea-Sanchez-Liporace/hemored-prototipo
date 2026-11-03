@@ -377,7 +377,7 @@
       <div id="mapa-lista-hospitales" style="display:flex;flex-direction:column;gap:8px;margin-top:14px;"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-secondary" style="flex:1;" onclick="HemoRed.ui.cerrarModal('modal-mapa')">Cerrar</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="HemoRed.ui.cerrarModal('modal-mapa')">Cerrar</button>
     </div>
   </div>
 </div>
@@ -438,14 +438,21 @@
   // renderFechaTabs() (para elegir qué pestaña arranca activa) y
   // renderTurnosGrid() (para pintar la grilla) — antes cada una tenía su
   // propia lógica y renderFechaTabs() no sabía nada de horas pasadas.
+  // HOY nunca tiene horarios libres, sin importar la hora — pedido
+  // explícito 2026-11-03: filtrar solo las horas ya pasadas no alcanza,
+  // porque igual deja ofrecer un turno a los pocos minutos de publicar
+  // (ej. reservar a las 15:30 cuando son las 15:15, para un proceso que
+  // incluye formularios + entrevista clínica + extracción) y nadie llega a
+  // completarlo de verdad. Más simple y más realista: el primer día
+  // reservable es siempre MAÑANA, lo decide el back acá, no cada pantalla.
   function horasLibres(fechaISO) {
+    if (fechaISO === hoy()) return [];
     const cupo = campanaHospitalActual().cupo_por_turno ?? 1;
     const conteoPorHora = {};
     HemoRed.db.all('turnos')
       .filter(t => t.hospital_id === hospitalSeleccionadoId && t.fecha === fechaISO && t.estado !== 'cancelado')
       .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
-    const horaActual = (typeof HemoRed !== 'undefined' && fechaISO === hoy()) ? HemoRed.data.ahora().toTimeString().slice(0, 5) : null;
-    return TIME_SLOTS.filter(hora => (conteoPorHora[hora] || 0) < cupo && (horaActual === null || hora > horaActual));
+    return TIME_SLOTS.filter(hora => (conteoPorHora[hora] || 0) < cupo);
   }
 
   // Genera las 4 pestañas de fecha arrancando en HOY, para que el turno
@@ -516,13 +523,14 @@
   function renderTurnosGrid() {
     const cont = document.getElementById('turnos-grid');
     const libres = new Set(horasLibres(fechaSeleccionada));
-    const horaActual = (typeof HemoRed !== 'undefined' && fechaSeleccionada === hoy()) ? HemoRed.data.ahora().toTimeString().slice(0, 5) : null;
+    // "No disponible" (hoy, nunca se ofrece) vs "Ocupado" (otro día, ya lo
+    // tomó otro donante) — son motivos distintos, no la misma etiqueta.
+    const esHoy = fechaSeleccionada === hoy();
     cont.innerHTML = TIME_SLOTS.map(hora => {
       if (libres.has(hora)) {
         return `<div class="turno-opt" data-hora="${hora}"><div class="turno-hora">${hora}</div><div class="turno-estado libre">Disponible</div></div>`;
       }
-      const yaPaso = horaActual !== null && hora <= horaActual;
-      return `<div class="turno-opt ocupado"><div class="turno-hora">${hora}</div><div class="turno-estado ocupado">${yaPaso ? 'No disponible' : 'Ocupado'}</div></div>`;
+      return `<div class="turno-opt ocupado"><div class="turno-hora">${hora}</div><div class="turno-estado ocupado">${esHoy ? 'No disponible' : 'Ocupado'}</div></div>`;
     }).join('');
     cont.querySelectorAll('.turno-opt[data-hora]').forEach(el => {
       el.addEventListener('click', () => seleccionarTurno(el, el.dataset.hora));
@@ -862,7 +870,12 @@
       : HemoRed.db.all('campanas').find(c => c.estado === 'activa')?.id;
     const detalle = HemoRed.data.cargarDetalleCampana(campanaId);
     campanaActual = detalle.campana;
-    hospitalesCampana = detalle.hospitales;
+    // Invitación con validación propia (2026-11-03): un hospital sumado por
+    // el creador no es un punto de donación real para el donante hasta que
+    // ESE hospital lo confirma desde su propio usuario — ver
+    // responderInvitacionHospital() en data.js. El creador siempre queda
+    // 'aceptado' automáticamente, así que nunca desaparece de acá.
+    hospitalesCampana = (detalle.hospitales || []).filter(h => h.estado === 'aceptado');
     hospitalCreador = detalle.hospital;
     // Por defecto se arranca eligiendo el primero de la lista — siempre el
     // creador (ver orden en crearCampana()/el wizard, paso 2).

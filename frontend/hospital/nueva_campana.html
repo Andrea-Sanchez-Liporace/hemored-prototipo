@@ -361,6 +361,19 @@
     const usuario = HemoRed.db.find('usuarios', s.usuario_id);
     hospitalActual = HemoRed.db.find('hospitales', usuario?.hospital_id);
 
+    // Plan Gratuito (2026-11-03, pedido explícito: "no va a poder crear
+    // campañas ni pacientes"): es un tope absoluto, no un límite blando
+    // como el resto de los planes — por eso se corta ACÁ, antes de armar
+    // nada de la página, en vez de dejar que el hospital complete los 3
+    // pasos del wizard y recién se entere al publicar (que además tiene el
+    // hueco de "Guardar borrador", que no cuenta contra el límite normal).
+    const planPropio = HemoRed.data.obtenerPlanHospital(hospitalActual.id);
+    if (planPropio && planPropio.max_campanas_simultaneas === 0) {
+      HemoRed.ui.toast(`Tu plan ${planPropio.nombre} no incluye crear campañas propias — sí podés participar en las que te inviten otros hospitales.`, 'error');
+      window.location = '../hospital/campanas.html';
+      return;
+    }
+
     // `pacientes` ya no tiene `hospital_id` propio (2026-10-20: un paciente
     // puede haber pasado por varios hospitales) — la relación vive en
     // `paciente_hospital`, y el evento (con principio y fin) en
@@ -393,12 +406,17 @@
         // con la config real de cada hospital participante (campana_hospital),
         // no solo la del creador — paso 2 la necesita para armar sus tabs.
         const detalle = HemoRed.data.cargarDetalleCampana(editId);
+        // `estado` viaja también: si no se manda, crearCampana() lo trata
+        // como invitación nueva y un participante que YA había aceptado (o
+        // rechazado) volvería a quedar "pendiente" solo por re-guardar la
+        // campaña desde acá — no es lo que se busca al editar.
         const hospitales = (detalle.hospitales || []).map(ch => ({
           hospital_id: ch.hospital_id,
           dias_atencion: ch.dias_atencion,
           horarios_atencion: ch.horarios_atencion,
           duracion_turno_min: ch.duracion_turno_min,
           cupo_por_turno: ch.cupo_por_turno,
+          estado: ch.estado,
         }));
         guardarWip({ ...campana, hospitales, editando: true, estadoOriginal: campana.estado });
       }

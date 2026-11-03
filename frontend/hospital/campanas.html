@@ -29,7 +29,7 @@
     </div>
     <div class="topbar-actions">
       <a class="topbar-btn" href="../hospital/notificaciones.html" data-tooltip="Ir a notificaciones"><i class="ti ti-bell" style="font-size:18px;"></i></a>
-      <button class="btn-nueva" onclick="window.location='../hospital/nueva_campana.html'">
+      <button class="btn-nueva" id="btn-nueva-campana" onclick="window.location='../hospital/nueva_campana.html'">
         <i class="ti ti-plus"></i>Nueva campaña
       </button>
     </div>
@@ -211,7 +211,16 @@
   // eliminar son solo del hospital CREADOR — uno que solo participa como
   // punto de donación de la campaña de otro hospital solo puede verla.
   function accionesCampana(c) {
-    if (!c.esCreador) return `<button class="btn-xs btn-xs-outline" onclick="verCampana(${c.id})">Ver</button>`;
+    if (!c.esCreador) {
+      // Invitación con validación propia (2026-11-03): mientras está
+      // pendiente, se puede aceptar o rechazar directo desde acá — una vez
+      // respondida, solo queda "Ver" (ya no se puede volver atrás).
+      if (c.miParticipacion === 'pendiente') return `
+        <button class="btn-xs btn-xs-outline" onclick="verCampana(${c.id})">Revisar</button>
+        <button class="btn-xs btn-xs-ok" onclick="accionAceptarParticipacion(${c.id})">Aceptar</button>
+        <button class="btn-xs btn-xs-no" onclick="accionRechazarParticipacion(${c.id})">Rechazar</button>`;
+      return `<button class="btn-xs btn-xs-outline" onclick="verCampana(${c.id})">Ver</button>`;
+    }
     switch (c.estado) {
       case 'borrador': return `
         <button class="btn-xs btn-xs-outline" onclick="window.location='../hospital/nueva_campana.html?id=${c.id}'">Editar</button>
@@ -242,7 +251,14 @@
     const fechaLimite = c.fecha_cierre ? new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
     const urgenteTag = c.urgente ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-flame" style="font-size:10px;"></i>Urgente</span>` : '';
     const sangreTexto = c.tipo_sangre_requerida || 'Todos';
-    const participaTag = !c.esCreador ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#f0e0e6;color:#5a1e37;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-building-hospital" style="font-size:10px;"></i>Participás</span>` : '';
+    // "Una campaña, varios hospitales" (2026-10-27) + invitación con
+    // validación propia (2026-11-03): el tag distingue los 3 estados
+    // posibles de LA PROPIA participación, no solo "participo o no".
+    const participaTag = c.esCreador ? '' : c.miParticipacion === 'pendiente'
+      ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#fdebd0;color:#935116;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-clock" style="font-size:10px;"></i>Invitación pendiente</span>`
+      : c.miParticipacion === 'rechazado'
+      ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#fde8e8;color:#c0392b;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-x" style="font-size:10px;"></i>Rechazaste la invitación</span>`
+      : `<span style="display:inline-flex;align-items:center;gap:3px;background:#f0e0e6;color:#5a1e37;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"><i class="ti ti-building-hospital" style="font-size:10px;"></i>Participás</span>`;
     return `<div class="table-row" data-estado="${c.estado}" data-nombre="${c.titulo.toLowerCase()}" data-sangre="${sangreTexto.toLowerCase()}">
       <div>
         <div class="camp-name">${c.titulo}${urgenteTag}${participaTag}</div>
@@ -337,6 +353,22 @@
     HemoRed.ui.toast('Borrador eliminado');
     recargar();
   }
+  // Invitación con validación propia (2026-11-03): responde la fila de ESTE
+  // hospital en campana_hospital — no toca la campaña en sí, que sigue
+  // siendo del creador.
+  async function accionAceptarParticipacion(campanaId) {
+    const res = HemoRed.data.responderInvitacionHospital(campanaId, _hospitalId, true);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Participación confirmada — ya aparecés como punto de donación de esta campaña.');
+    recargar();
+  }
+  async function accionRechazarParticipacion(campanaId) {
+    if (!confirm('¿Rechazar la invitación a participar en esta campaña? No se puede deshacer.')) return;
+    const res = HemoRed.data.responderInvitacionHospital(campanaId, _hospitalId, false);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Invitación rechazada', 'error');
+    recargar();
+  }
 
   function recargar() {
     _campanas = HemoRed.data.cargarCampanasHospital(_hospitalId);
@@ -351,6 +383,15 @@
     if (!s) return;
     const usuario = HemoRed.db.find('usuarios', s.usuario_id);
     _hospitalId = usuario?.hospital_id;
+
+    // Plan Gratuito (2026-11-03): no incluye crear campañas propias — ver
+    // mismo guard en nueva_campana.html, que es el que de verdad bloquea la
+    // creación; esto solo evita mostrar un botón que llevaría a un
+    // dead-end.
+    const planPropio = HemoRed.data.obtenerPlanHospital(_hospitalId);
+    if (planPropio && planPropio.max_campanas_simultaneas === 0) {
+      document.getElementById('btn-nueva-campana')?.remove();
+    }
 
     const params = new URLSearchParams(window.location.search);
     const pacienteNombre = params.get('paciente');

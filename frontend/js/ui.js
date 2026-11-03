@@ -746,16 +746,27 @@ HemoRed.ui = (function() {
     if (panelAbierto.trigger.contains(e.target) || panelAbierto.panel.contains(e.target)) return;
     cerrarPanelAbierto();
   });
-  // Cierra el panel si se scrollea la página de atrás (para que no quede
-  // "flotando" en un lugar que ya no corresponde a su botón) — pero NO si
-  // el scroll es DENTRO del propio panel (ej. bajando por la lista de
-  // provincias, que no entra completa en los 260px de alto): sin este
-  // chequeo, el listener de scroll en fase de captura también agarraba
-  // ese scroll interno y cerraba la lista apenas se la intentaba recorrer
-  // (bug real, encontrado al revisar el reporte de scroll de la usuaria).
+  // Reposiciona el panel si se scrollea la página de atrás, para que se
+  // mantenga pegado a su botón en vez de quedar "flotando" en un lugar que
+  // ya no le corresponde — pero NO si el scroll es DENTRO del propio panel
+  // (ej. bajando por la lista de provincias, que no entra completa en los
+  // 260px de alto): sin este chequeo, el listener de scroll en fase de
+  // captura también agarraba ese scroll interno y cerraba la lista apenas
+  // se la intentaba recorrer (bug real, encontrado al revisar el reporte
+  // de scroll de la usuaria).
+  //
+  // Antes esto CERRABA el panel en vez de reposicionarlo — rompía abrir un
+  // select que recién quedó visible tras scrollear hasta él: el navegador
+  // ajusta la página un pixel para que el botón recién enfocado quede
+  // completo en pantalla, eso dispara este mismo listener, y cerraba el
+  // panel en el mismo click que lo abría (reportado 2026-11-03: "cambio el
+  // número de donantes por grupo y no recalcula la vista previa" — no es
+  // que no recalculaba, es que el panel se cerraba solo antes de que
+  // llegara a elegir nada).
   window.addEventListener('scroll', e => {
-    if (panelAbierto && panelAbierto.panel.contains(e.target)) return;
-    cerrarPanelAbierto();
+    if (!panelAbierto) return;
+    if (panelAbierto.panel.contains(e.target)) return;
+    posicionarPanel(panelAbierto.trigger, panelAbierto.panel);
   }, true);
   window.addEventListener('resize', () => cerrarPanelAbierto());
 

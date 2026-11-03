@@ -83,9 +83,10 @@ test.describe('Creación de pacientes (Hospital)', () => {
     await expect(page.locator('#modal-nuevo')).toHaveClass(/active/);
   });
 
-  // Hospital 2 (Garrahan) no tiene cuenta de login real en la semilla — se
-  // crea una de prueba vía evaluate() en cada test que la necesita, sin
-  // tocar ninguna cuenta/dato real del resto del sitio.
+  // Garrahan (hospital_id 2) ya tiene login real en la semilla
+  // (garrahan@hemored.com), pero igual se crea una cuenta descartable vía
+  // evaluate() en cada test que la necesita, sin tocar ninguna cuenta/dato
+  // real del resto del sitio.
   async function loginHospital2(page) {
     await page.goto('/publico/login.html');
     const email = await page.evaluate(async () => {

@@ -110,39 +110,59 @@
           </div>
           <div class="card-subtitle">Definí las franjas horarias disponibles para donación. Podés agregar más de una franja por día.</div>
 
-          <div id="horarios-lista">
-            <div class="horario-row" id="hor-0">
-              <div class="horario-desde">
-                <span style="font-size:12px;color:#a9435d;white-space:nowrap;">Desde</span>
-                <input class="horario-input" type="time" value="08:00">
-              </div>
-              <span class="horario-sep">hasta</span>
-              <div class="horario-desde">
-                <input class="horario-input" type="time" value="12:00">
-              </div>
-              <button class="btn-remove" onclick="eliminarHorario('hor-0')" title="Eliminar">
-                <i class="ti ti-trash" style="font-size:16px;"></i>
-              </button>
+          <!-- Horarios distintos por día (2026-11-03, pedido explícito: "puede
+               ser que un domingo no quiera atender a la tarde"). Por defecto
+               queda en modo compartido (un solo horario para todos los días,
+               como siempre) — este toggle abre un editor propio por cada día
+               ya tildado arriba, sin forzar esa complejidad a quien no la
+               necesita. -->
+          <div class="toggle-row" onclick="toggleHorariosPorDia()">
+            <div>
+              <div class="toggle-label">Horarios distintos por día</div>
+              <div class="toggle-sub">Por ejemplo, si el domingo solo atendés a la mañana.</div>
             </div>
-            <div class="horario-row" id="hor-1">
-              <div class="horario-desde">
-                <span style="font-size:12px;color:#a9435d;white-space:nowrap;">Desde</span>
-                <input class="horario-input" type="time" value="14:00">
-              </div>
-              <span class="horario-sep">hasta</span>
-              <div class="horario-desde">
-                <input class="horario-input" type="time" value="17:00">
-              </div>
-              <button class="btn-remove" onclick="eliminarHorario('hor-1')" title="Eliminar">
-                <i class="ti ti-trash" style="font-size:16px;"></i>
-              </button>
+            <div class="toggle-switch" id="toggle-horarios-dia">
+              <div class="toggle-knob"></div>
             </div>
           </div>
 
-          <button class="btn-add-horario" onclick="agregarHorario()" style="margin-top:4px;">
-            <i class="ti ti-plus"></i>
-            Agregar franja horaria
-          </button>
+          <div id="horarios-compartido">
+            <div id="horarios-lista">
+              <div class="horario-row" id="hor-0">
+                <div class="horario-desde">
+                  <span style="font-size:12px;color:#a9435d;white-space:nowrap;">Desde</span>
+                  <input class="horario-input" type="time" value="08:00">
+                </div>
+                <span class="horario-sep">hasta</span>
+                <div class="horario-desde">
+                  <input class="horario-input" type="time" value="12:00">
+                </div>
+                <button class="btn-remove" onclick="eliminarHorario('hor-0')" title="Eliminar">
+                  <i class="ti ti-trash" style="font-size:16px;"></i>
+                </button>
+              </div>
+              <div class="horario-row" id="hor-1">
+                <div class="horario-desde">
+                  <span style="font-size:12px;color:#a9435d;white-space:nowrap;">Desde</span>
+                  <input class="horario-input" type="time" value="14:00">
+                </div>
+                <span class="horario-sep">hasta</span>
+                <div class="horario-desde">
+                  <input class="horario-input" type="time" value="17:00">
+                </div>
+                <button class="btn-remove" onclick="eliminarHorario('hor-1')" title="Eliminar">
+                  <i class="ti ti-trash" style="font-size:16px;"></i>
+                </button>
+              </div>
+            </div>
+
+            <button class="btn-add-horario" onclick="agregarHorario()" style="margin-top:4px;">
+              <i class="ti ti-plus"></i>
+              Agregar franja horaria
+            </button>
+          </div>
+
+          <div id="horarios-por-dia" style="display:none;"></div>
         </div>
 
         <!-- DURACIÓN Y FRECUENCIA -->
@@ -195,10 +215,11 @@
 
           <div class="preview-grilla">
             <div class="preview-grilla-title" id="preview-grilla-title">—</div>
-            <div class="grilla-dias" id="grilla-dias"></div>
+            <div class="grilla-dias" id="grilla-dias" style="max-height:260px;overflow-y:auto;align-content:flex-start;justify-content:center;"></div>
           </div>
 
-          <div id="stats-activo-row" style="display:flex;gap:20px;margin-top:14px;padding:12px 14px;background:#fdf0f3;border-radius:9px;">
+          <p style="font-size:11px;color:#a9435d;margin:14px 0 4px;">Hospital principal — se habilita apenas publicás, sin depender de que ningún invitado confirme nada:</p>
+          <div id="stats-activo-row" style="display:flex;gap:20px;padding:12px 14px;background:#fdf0f3;border-radius:9px;flex-wrap:wrap;">
             <div style="text-align:center;">
               <div style="font-size:22px;font-weight:500;color:#5a1e37;" id="stat-turnos">0</div>
               <div style="font-size:11px;color:#a9435d;">turnos totales</div>
@@ -209,7 +230,11 @@
             </div>
             <div style="text-align:center;">
               <div style="font-size:22px;font-weight:500;color:#5a1e37;" id="stat-dias">0</div>
-              <div style="font-size:11px;color:#a9435d;">días activos</div>
+              <div style="font-size:11px;color:#a9435d;">días de la semana</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:500;color:#5a1e37;" id="stat-dias-totales">0</div>
+              <div style="font-size:11px;color:#a9435d;">días totales hasta la fecha límite</div>
             </div>
           </div>
         </div>
@@ -321,9 +346,14 @@
 <script>
   const WIP_KEY = 'hemored_nueva_campana';
   const DIAS_LABEL = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
+  const DIAS_LABEL_LARGO = { 0: 'Domingo', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado' };
   let horCount = 0;
   let hospitalActual = null;
   let wip = {};
+  // Horarios distintos por día (2026-11-03) — por hospital participante,
+  // igual que tabActivo/hospitalesConfig: cuál de los dos modos (compartido
+  // vs. por día) se está mostrando AHORA MISMO en el formulario.
+  let horariosPorDiaOn = false;
 
   // "Una campaña, varios hospitales" (2026-10-27, pedido explícito de la
   // usuaria): cada hospital participante tiene su propia config de días/
@@ -440,6 +470,10 @@
 
   function toggleDia(el) {
     el.classList.toggle('selected');
+    // En modo "horarios distintos por día", agregar/sacar un día tiene que
+    // sumar/sacar también su propio bloque de franjas — preservando lo que
+    // ya estaba cargado en los días que siguen tildados.
+    if (horariosPorDiaOn) renderHorariosPorDia(recolectarHorariosPorDiaActual());
     actualizarPreview();
   }
   function selDur(el) {
@@ -452,8 +486,11 @@
     if (el) el.remove();
     actualizarPreview();
   }
-  function _nuevaFilaHorario(desde, hasta) {
-    const lista = document.getElementById('horarios-lista');
+  // `lista` es el contenedor donde va la fila — el horario compartido
+  // (#horarios-lista) por default, o el bloque propio de un día puntual
+  // cuando "horarios distintos por día" está activo (ver agregarHorarioDia).
+  function _nuevaFilaHorario(desde, hasta, lista) {
+    lista = lista || document.getElementById('horarios-lista');
     const id = 'hor-' + horCount++;
     const div = document.createElement('div');
     div.className = 'horario-row';
@@ -478,19 +515,99 @@
     _nuevaFilaHorario('08:00', '12:00');
     actualizarPreview();
   }
+  function agregarHorarioDia(dow) {
+    _nuevaFilaHorario('08:00', '12:00', document.getElementById('horarios-lista-dia-' + dow));
+    actualizarPreview();
+  }
 
-  function recolectarConfigActual() {
-    const dias = [...document.querySelectorAll('.dia-opt.selected')].map(el => Number(el.dataset.dow));
-    const horarios = [...document.querySelectorAll('#horarios-lista .horario-row')].map(row => {
+  function recolectarHorariosLista(listaEl) {
+    if (!listaEl) return [];
+    return [...listaEl.querySelectorAll('.horario-row')].map(row => {
       const inputs = row.querySelectorAll('.horario-input');
       return { desde: inputs[0].value, hasta: inputs[1].value };
     });
+  }
+
+  // Lee lo que HAY AHORA en los bloques por día ya renderizados (si los
+  // hay) — se usa como "memoria" al prender el toggle de nuevo después de
+  // apagarlo, o al sumar/sacar un día, para no perder lo que ya se había
+  // cargado en los días que no cambiaron.
+  function recolectarHorariosPorDiaActual() {
+    const resultado = {};
+    document.querySelectorAll('#horarios-por-dia .horario-dia-bloque').forEach(bloque => {
+      const dow = Number(bloque.dataset.dow);
+      resultado[dow] = recolectarHorariosLista(document.getElementById('horarios-lista-dia-' + dow));
+    });
+    return resultado;
+  }
+
+  // Dibuja un bloque de franjas por cada día ya tildado en "Días de
+  // atención", en orden de semana (lunes a domingo). `datosPorDia` trae lo
+  // que ya había para cada día (al cargar una campaña existente, o al
+  // volver a prender el toggle); un día sin entrada ahí arranca con una
+  // copia del horario compartido actual (si tiene algo) o con el default de
+  // siempre — así activar el toggle nunca deja a nadie en blanco.
+  function renderHorariosPorDia(datosPorDia) {
+    const cont = document.getElementById('horarios-por-dia');
+    const base = datosPorDia || {};
+    const horariosCompartidos = recolectarHorariosLista(document.getElementById('horarios-lista'));
+    const diasSeleccionados = [...document.querySelectorAll('.dia-opt.selected')]
+      .map(el => Number(el.dataset.dow))
+      .sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b));
+    cont.innerHTML = '';
+    diasSeleccionados.forEach(dow => {
+      const bloque = document.createElement('div');
+      bloque.className = 'horario-dia-bloque';
+      bloque.dataset.dow = dow;
+      bloque.style = 'margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f1dde3;';
+      bloque.innerHTML = `
+        <div style="font-size:12.5px;font-weight:600;color:#5a1e37;margin-bottom:8px;">${DIAS_LABEL_LARGO[dow]}</div>
+        <div id="horarios-lista-dia-${dow}"></div>
+        <button type="button" class="btn-add-horario" onclick="agregarHorarioDia(${dow})">
+          <i class="ti ti-plus"></i>
+          Agregar franja horaria
+        </button>`;
+      cont.appendChild(bloque);
+      const listaEl = bloque.querySelector(`#horarios-lista-dia-${dow}`);
+      const horarios = (base[dow] && base[dow].length) ? base[dow]
+        : (horariosCompartidos.length ? horariosCompartidos : [{ desde: '08:00', hasta: '12:00' }]);
+      horarios.forEach(h => _nuevaFilaHorario(h.desde, h.hasta, listaEl));
+    });
+  }
+
+  // `forzado`/`datosPorDiaInicial` los usa cargarConfigEnForm() para entrar
+  // directo en el modo correcto (y con los datos correctos) al cambiar de
+  // tab o cargar una campaña existente — un click del toggle en cambio no
+  // manda nada, así que toma el estado actual como semilla (recolectarHorariosPorDiaActual()).
+  function toggleHorariosPorDia(forzado, datosPorDiaInicial) {
+    horariosPorDiaOn = forzado != null ? forzado : !horariosPorDiaOn;
+    document.getElementById('toggle-horarios-dia').classList.toggle('on', horariosPorDiaOn);
+    document.getElementById('horarios-compartido').style.display = horariosPorDiaOn ? 'none' : '';
+    document.getElementById('horarios-por-dia').style.display = horariosPorDiaOn ? '' : 'none';
+    if (horariosPorDiaOn) renderHorariosPorDia(datosPorDiaInicial || recolectarHorariosPorDiaActual());
+    actualizarPreview();
+  }
+
+  function recolectarConfigActual() {
+    const dias = [...document.querySelectorAll('.dia-opt.selected')].map(el => Number(el.dataset.dow));
+    const horarios = recolectarHorariosLista(document.getElementById('horarios-lista'));
+    let horarios_por_dia;
+    if (horariosPorDiaOn) {
+      horarios_por_dia = {};
+      dias.forEach(dow => {
+        horarios_por_dia[dow] = recolectarHorariosLista(document.getElementById('horarios-lista-dia-' + dow));
+      });
+    }
     const dur = Number(document.querySelector('.dur-opt.selected')?.dataset.min) || 30;
     return {
       dias_atencion: dias,
       horarios_atencion: horarios,
+      horarios_por_dia,
       duracion_turno_min: dur,
       cupo_por_turno: Number(document.getElementById('c-cupo').value) || 1,
+      // El form no tiene ningún campo para esto — se arrastra del valor que
+      // ya estaba cargado para no perderlo cada vez que se cambia de tab.
+      estado: hospitalesConfig[tabActivo]?.estado,
     };
   }
 
@@ -513,6 +630,11 @@
     if (opt) opt.classList.add('selected');
 
     document.getElementById('c-cupo').value = config.cupo_por_turno || 1;
+
+    // Si esta config ya traía horarios distintos por día (campaña existente
+    // que se está editando, o se volvió a esta tab), entra directo en ese
+    // modo con lo que había cargado — si no, arranca en modo compartido.
+    toggleHorariosPorDia(!!(config.horarios_por_dia && Object.keys(config.horarios_por_dia).length), config.horarios_por_dia);
   }
 
   // ---------- Recolección / validación / preview ----------
@@ -534,8 +656,17 @@
     for (const h of datos.hospitales) {
       const prefijo = multi ? `${nombreHospital(h.hospital_id)}: ` : '';
       if (!h.dias_atencion.length) return `${prefijo}Elegí al menos un día de atención.`;
-      if (!h.horarios_atencion.length) return `${prefijo}Agregá al menos una franja horaria.`;
-      if (h.horarios_atencion.some(x => !x.desde || !x.hasta || x.desde >= x.hasta)) return `${prefijo}Alguna franja horaria tiene un horario inválido (el "hasta" tiene que ser posterior al "desde").`;
+      if (h.horarios_por_dia) {
+        for (const dow of h.dias_atencion) {
+          const horarios = h.horarios_por_dia[dow] || [];
+          const nombreDia = `${DIAS_LABEL_LARGO[dow]}: `;
+          if (!horarios.length) return `${prefijo}${nombreDia}agregá al menos una franja horaria.`;
+          if (horarios.some(x => !x.desde || !x.hasta || x.desde >= x.hasta)) return `${prefijo}${nombreDia}alguna franja horaria tiene un horario inválido (el "hasta" tiene que ser posterior al "desde").`;
+        }
+      } else {
+        if (!h.horarios_atencion.length) return `${prefijo}Agregá al menos una franja horaria.`;
+        if (h.horarios_atencion.some(x => !x.desde || !x.hasta || x.desde >= x.hasta)) return `${prefijo}Alguna franja horaria tiene un horario inválido (el "hasta" tiene que ser posterior al "desde").`;
+      }
     }
     return null;
   }
@@ -549,27 +680,58 @@
     const datos = recolectarPaso2();
     const configActivo = hospitalesConfig[tabActivo] || configPorDefecto();
     const campanaFake = { ...configActivo, fecha_cierre: wip.fecha_cierre };
-    const cupo = configActivo.cupo_por_turno;
 
-    const { dias: diasConTurnos, totalTurnos, totalCupos } = HemoRed.data.calcularStatsTurnos(campanaFake);
-    document.getElementById('stat-turnos').textContent = totalTurnos;
-    document.getElementById('stat-cupos').textContent = totalCupos;
-    document.getElementById('stat-dias').textContent = configActivo.dias_atencion.length;
+    const { dias: diasConTurnos } = HemoRed.data.calcularStatsTurnos(campanaFake);
+
+    // Fila de stats fija al hospital PRINCIPAL (el creador, siempre
+    // hospitalesParticipantes[0]) — no a la tab que se esté mirando. Pedido
+    // explícito 2026-11-03: diferenciar "lo que se habilita apenas publicás,
+    // sin depender de nadie más" de "lo que se suma SI los invitados
+    // aceptan" (esto último sigue en actualizarTotalCombinado). Si estás
+    // configurando OTRO hospital, estos 4 números no se mueven — lo que
+    // cambia con la tab es la grilla de abajo.
+    const idCreador = hospitalesParticipantes[0];
+    const configCreador = hospitalesConfig[idCreador] || configPorDefecto();
+    const statsCreador = HemoRed.data.calcularStatsTurnos({ ...configCreador, fecha_cierre: wip.fecha_cierre });
+    document.getElementById('stat-turnos').textContent = statsCreador.totalTurnos;
+    document.getElementById('stat-cupos').textContent = statsCreador.totalCupos;
+    // "días de la semana" (patrón elegido, ej. 4 si tildaste Mar/Mié/Jue/
+    // Vie) vs "días totales hasta la fecha límite" (cantidad real de fechas
+    // calendario, ej. 8) son 2 números distintos a propósito — van juntos
+    // para que la diferencia quede clara de un vistazo (antes solo se veía
+    // uno de los dos y no coincidían, confusión reportada 2026-11-03).
+    document.getElementById('stat-dias').textContent = configCreador.dias_atencion.length;
+    document.getElementById('stat-dias-totales').textContent = statsCreador.dias.length;
 
     const multi = hospitalesParticipantes.length > 1;
-    const primeros4 = diasConTurnos.slice(0, 4);
-    document.getElementById('preview-grilla-title').textContent = primeros4.length
-      ? `Próximos días con turnos${multi ? ` en ${nombreHospital(tabActivo)}` : ''} (de ${diasConTurnos.length} en total hasta la fecha límite)`
+    // Lista completa hasta la fecha límite, no un recorte de 4 — pedido
+    // explícito 2026-11-03 ("porque no aparece el detalle por cada dia
+    // hasta la fecha limite"). El contenedor (#grilla-dias, ver CSS inline
+    // más abajo) scrollea en vertical para campañas de muchos días. Esta
+    // grilla sí sigue a la tab activa (configActivo/diasConTurnos), a
+    // diferencia de la fila de stats de arriba — sirve para previsualizar
+    // lo que le estás proponiendo a CUALQUIER hospital, no solo al creador.
+    document.getElementById('preview-grilla-title').textContent = diasConTurnos.length
+      ? `Días con turnos${multi ? ` en ${nombreHospital(tabActivo)}` : ''} hasta la fecha límite (${diasConTurnos.length} en total)`
       : 'Elegí días y horarios para ver la vista previa';
-    document.getElementById('grilla-dias').innerHTML = primeros4.map(d => {
+    // Cada tarjeta muestra la/s franja/s horaria/s y el TOTAL de turnos de
+    // ese día — no cada slot individual (ej. "08:00 · 2 cupos", "08:30 · 2
+    // cupos"...) porque con duración corta no entraban todos y quedaba
+    // ilegible ("no se ve todo", pedido explícito 2026-11-03).
+    document.getElementById('grilla-dias').innerHTML = diasConTurnos.map(d => {
       const fecha = new Date(d.fechaISO + 'T00:00:00');
       const nombre = `${DIAS_LABEL[fecha.getDay()]} ${fecha.getDate()}`;
-      const visibles = d.slots.slice(0, 3);
-      const resto = d.slots.length - visibles.length;
+      // Horarios distintos por día: esta tarjeta de preview tiene que
+      // mostrar la franja REAL de ese día de la semana puntual, no siempre
+      // la compartida — si no, un domingo sin tarde seguiría mostrando la
+      // tarde en la vista previa aunque calcularStatsTurnos() ya no la
+      // cuente (serían dos pantallas contradiciéndose).
+      const horariosDia = (configActivo.horarios_por_dia && configActivo.horarios_por_dia[fecha.getDay()]) || configActivo.horarios_atencion || [];
+      const franjas = horariosDia.map(h => `<div class="grilla-turno">${h.desde}–${h.hasta}</div>`).join('');
       return `<div class="grilla-dia">
         <div class="grilla-dia-nombre">${nombre}</div>
-        ${visibles.map(h => `<div class="grilla-turno">${h} · ${cupo} cupos</div>`).join('')}
-        ${resto > 0 ? `<div style="font-size:10px;color:#a9435d;margin-top:4px;">+${resto} más</div>` : ''}
+        ${franjas}
+        <div style="font-size:11px;font-weight:600;color:#5a1e37;margin-top:4px;">${d.slots.length} turno${d.slots.length !== 1 ? 's' : ''} habilitado${d.slots.length !== 1 ? 's' : ''}</div>
       </div>`;
     }).join('');
 
@@ -590,18 +752,47 @@
     if (!fila) {
       fila = document.createElement('div');
       fila.id = 'total-combinado';
-      fila.style = 'display:flex;gap:20px;margin-top:10px;padding:12px 14px;background:#f0e0e6;border-radius:9px;';
+      fila.style = 'margin-top:10px;padding:12px 14px;background:#f0e0e6;border-radius:9px;';
       document.getElementById('stats-activo-row').insertAdjacentElement('afterend', fila);
     }
-    fila.innerHTML = `
-      <div style="text-align:center;">
-        <div style="font-size:18px;font-weight:500;color:#5a1e37;">${total.totalTurnos}</div>
-        <div style="font-size:11px;color:#a9435d;">turnos totales (${datos.hospitales.length} hospitales)</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:18px;font-weight:500;color:#5a1e37;">${total.totalCupos}</div>
-        <div style="font-size:11px;color:#a9435d;">cupos totales combinados</div>
+    // Caption explícita (pedido 2026-11-03) para que no se confunda con la
+    // fila de arriba: esto es lo que se SUMA si los invitados aceptan, no
+    // lo que ya está garantizado al publicar.
+    const invitados = datos.hospitales.length - 1;
+    const idCreador = datos.hospitales[0]?.hospital_id;
+    // Desglose por hospital (pedido explícito 2026-11-03: "donde veo el
+    // detalle de los turnos que se agregarían si los invitados aceptan") —
+    // antes solo se veía el total combinado; para ver cuánto aportaba CADA
+    // invitado había que ir cambiando de pestaña una por una. Reusa
+    // calcularStatsTurnosTotal().porHospital, que ya traía este desglose
+    // calculado pero sin mostrarse acá.
+    const desgloseHtml = total.porHospital.map(h => `
+      <div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#782b46;padding:4px 0;border-top:0.5px solid #e8d0d8;">
+        <span>${nombreHospital(h.hospital_id)}${h.hospital_id === idCreador ? ' <span style="color:#a9435d;">(principal)</span>' : ''}</span>
+        <span style="white-space:nowrap;">${h.totalTurnos} turnos · ${h.totalCupos} cupos</span>
+      </div>`).join('')
+      // Línea de Total debajo del desglose (pedido explícito 2026-11-03) —
+      // mismos números que las 2 tarjetas de arriba, pero repetidos acá en
+      // la misma fila que el desglose para sumar de un vistazo sin tener
+      // que levantar la vista.
+      + `
+      <div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:700;color:#5a1e37;padding:6px 0 0;border-top:1px solid #d9a9b8;margin-top:2px;">
+        <span>Total</span>
+        <span style="white-space:nowrap;">${total.totalTurnos} turnos · ${total.totalCupos} cupos</span>
       </div>`;
+    fila.innerHTML = `
+      <div style="font-size:11px;color:#782b46;margin-bottom:8px;">Si ${invitados === 1 ? 'el hospital invitado acepta' : `los ${invitados} hospitales invitados aceptan`} tal como los convocaste:</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:18px;font-weight:500;color:#5a1e37;">${total.totalTurnos}</div>
+          <div style="font-size:11px;color:#a9435d;">turnos totales (${datos.hospitales.length} hospitales)</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:18px;font-weight:500;color:#5a1e37;">${total.totalCupos}</div>
+          <div style="font-size:11px;color:#a9435d;">cupos totales combinados</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">${desgloseHtml}</div>`;
   }
 
   // Solo aplica editando una campaña que ya tiene turnos reales — pedido
@@ -691,6 +882,10 @@
           horarios_atencion: h.horarios_atencion || [],
           duracion_turno_min: h.duracion_turno_min || 30,
           cupo_por_turno: h.cupo_por_turno ?? 1,
+          // Se arrastra tal cual (nunca se edita acá) para que crearCampana()
+          // no interprete un participante ya aceptado/rechazado como una
+          // invitación nueva solo porque el creador volvió a guardar.
+          estado: h.estado,
         };
       });
       // El creador siempre participa y va primero — por si viniera de un

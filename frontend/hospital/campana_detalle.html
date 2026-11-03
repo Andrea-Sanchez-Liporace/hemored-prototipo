@@ -35,6 +35,83 @@
   </div>
 
   <div class="content">
+
+    <!-- INVITACIÓN PENDIENTE — solo la ve el hospital invitado, mientras no
+         respondió. "Eso lo decide el hospital participante" (pedido
+         explícito, 2026-11-03): el creador propone día/horario, pero esta
+         fila no es visible para los donantes hasta que se confirma acá. -->
+    <div id="invitacion-banner" style="display:none;background:#fdf0f3;border:1px solid #f0c3cf;border-radius:14px;padding:18px 20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#5a1e37;">
+        <i class="ti ti-building-hospital" style="color:#ef647c;"></i>
+        Te invitaron a participar como punto de donación
+      </div>
+      <p style="font-size:13px;color:#782b46;margin:6px 0 14px;">El hospital que creó esta campaña propuso estos días y horarios. Los podés dejar tal cual o ajustarlos a tu propio cupo de atención antes de confirmar — mientras no confirmes, no vas a aparecer como punto de donación para los donantes.</p>
+
+      <div style="background:white;border-radius:10px;padding:16px;margin-bottom:14px;">
+        <div class="form-label" style="margin-bottom:8px;">Días de atención</div>
+        <div class="dias-grid" id="inv-dias-grid" style="margin-bottom:14px;">
+          <div class="dia-opt" data-dow="1" onclick="toggleDiaInvitacion(this)">Lun</div>
+          <div class="dia-opt" data-dow="2" onclick="toggleDiaInvitacion(this)">Mar</div>
+          <div class="dia-opt" data-dow="3" onclick="toggleDiaInvitacion(this)">Mié</div>
+          <div class="dia-opt" data-dow="4" onclick="toggleDiaInvitacion(this)">Jue</div>
+          <div class="dia-opt" data-dow="5" onclick="toggleDiaInvitacion(this)">Vie</div>
+          <div class="dia-opt" data-dow="6" onclick="toggleDiaInvitacion(this)">Sáb</div>
+          <div class="dia-opt" data-dow="0" onclick="toggleDiaInvitacion(this)">Dom</div>
+        </div>
+
+        <div class="form-label" style="margin-bottom:8px;">Horarios</div>
+
+        <!-- Horarios distintos por día (2026-11-03, mismo toggle que ya
+             tiene el wizard del creador — ver nueva_campana_paso2.html):
+             por si el invitado también necesita, por ejemplo, atender
+             domingo solo a la mañana en vez de todo el día. -->
+        <div class="toggle-row" onclick="toggleHorariosPorDiaInv()" style="margin-bottom:14px;">
+          <div>
+            <div class="toggle-label">Horarios distintos por día</div>
+            <div class="toggle-sub">Por ejemplo, si el domingo solo atendés a la mañana.</div>
+          </div>
+          <div class="toggle-switch" id="inv-toggle-horarios-dia">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div id="inv-horarios-compartido">
+          <div id="inv-horarios-lista"></div>
+          <button type="button" class="btn-add-horario" onclick="agregarHorarioInvitacion()" style="margin-top:4px;margin-bottom:16px;">
+            <i class="ti ti-plus"></i>Agregar franja horaria
+          </button>
+        </div>
+
+        <div id="inv-horarios-por-dia" style="display:none;margin-bottom:16px;"></div>
+
+        <div style="display:flex;gap:14px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:220px;">
+            <div class="form-label" style="margin-bottom:8px;">Duración de cada turno</div>
+            <div class="duracion-grid" id="inv-duracion-grid">
+              <div class="dur-opt" data-min="15" onclick="selDurInvitacion(this)">15 min</div>
+              <div class="dur-opt" data-min="30" onclick="selDurInvitacion(this)">30 min</div>
+              <div class="dur-opt" data-min="45" onclick="selDurInvitacion(this)">45 min</div>
+              <div class="dur-opt" data-min="60" onclick="selDurInvitacion(this)">60 min</div>
+            </div>
+          </div>
+          <div style="width:220px;">
+            <div class="form-label" style="margin-bottom:8px;">Donantes por turno</div>
+            <select class="form-input" id="inv-cupo">
+              <option value="1">1 donante por turno</option>
+              <option value="2">2 donantes por turno</option>
+              <option value="3">3 donantes por turno</option>
+              <option value="999">Sin límite por turno</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="btn-xs-action" style="background:#27ae60;color:white;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;" onclick="accionAceptarInvitacion()">Aceptar participación</button>
+        <button class="btn-xs-action" style="background:white;color:#c0392b;border:1px solid #e74c3c;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;" onclick="accionRechazarInvitacion()">Rechazar</button>
+      </div>
+    </div>
+
     <div class="detail-layout">
       <div>
 
@@ -202,6 +279,51 @@
     ausente:    { badge: 'tb-cancelado',  label: 'Ausente' },
   };
   const DIAS_LABEL = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
+  const DIAS_LABEL_LARGO = { 0: 'Domingo', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado' };
+  const ESTADO_PARTICIPACION = {
+    pendiente: { label: 'Invitación pendiente', bg: '#fdebd0', color: '#935116', icon: 'ti-clock' },
+    aceptado:  { label: 'Confirmado', bg: '#e1f5ee', color: '#04342c', icon: 'ti-check' },
+    rechazado: { label: 'Rechazó la invitación', bg: '#fde8e8', color: '#c0392b', icon: 'ti-x' },
+  };
+
+  // Compara lo que el creador propuso originalmente contra la config
+  // VIGENTE de la fila (que puede haber sido editada por el hospital
+  // invitado antes de aceptar) — trazabilidad pedida explícitamente
+  // 2026-11-03: "si acepto los días pero cambio el horario y bajo el
+  // cupo... necesito ver eso". Devuelve frases legibles, una por cada
+  // aspecto que cambió; array vacío si aceptó tal cual.
+  function _diffPropuesta(original, actual) {
+    const diffs = [];
+    const diasOriginal = [...(original.dias_atencion || [])].sort().join(',');
+    const diasActual = [...(actual.dias_atencion || [])].sort().join(',');
+    if (diasOriginal !== diasActual) diffs.push('cambió los días de atención');
+
+    // Incluye `horarios_por_dia` en la comparación (2026-11-03): si el
+    // invitado pasó a "horarios distintos por día" (o viceversa), o cambió
+    // algo adentro de esa config, también cuenta como "cambió el horario de
+    // atención" — no hace falta un mensaje aparte, el texto ya es genérico.
+    const horOriginal = JSON.stringify({
+      compartido: (original.horarios_atencion || []).map(h => `${h.desde}-${h.hasta}`).sort(),
+      porDia: original.horarios_por_dia || null,
+    });
+    const horActual = JSON.stringify({
+      compartido: (actual.horarios_atencion || []).map(h => `${h.desde}-${h.hasta}`).sort(),
+      porDia: actual.horarios_por_dia || null,
+    });
+    if (horOriginal !== horActual) diffs.push('cambió el horario de atención');
+
+    const durOriginal = original.duracion_turno_min || 30;
+    const durActual = actual.duracion_turno_min || 30;
+    if (durOriginal !== durActual) diffs.push(`cambió la duración del turno (${durOriginal} → ${durActual} min)`);
+
+    const cupoOriginal = original.cupo_por_turno ?? 1;
+    const cupoActual = actual.cupo_por_turno ?? 1;
+    if (cupoOriginal !== cupoActual) {
+      const subio = cupoActual > cupoOriginal;
+      diffs.push(`${subio ? 'subió' : 'bajó'} el cupo por turno (${cupoOriginal} → ${cupoActual} donante${cupoActual !== 1 ? 's' : ''})`);
+    }
+    return diffs;
+  }
 
   let _campanaId = null;
   let _detalle = null;
@@ -370,14 +492,68 @@
     }
     document.getElementById('dd-confirmacion').textContent = c.confirmacion_automatica ? 'Automática' : 'Manual';
     document.getElementById('dd-descripcion').textContent = c.descripcion || 'Sin descripción.';
+    // Invitación con validación propia (2026-11-03): cada fila no es "válida"
+    // por el solo hecho de estar acá — ESTADO_PARTICIPACION le pone al
+    // creador el mismo estado que ve el hospital invitado, para que sepa
+    // quién ya confirmó y quién todavía no (y por lo tanto todavía no es
+    // visible para los donantes en esa fila).
+    // Proyección de turnos/cupos por hospital + trazabilidad propuesta vs.
+    // aceptado (pedido explícito, 2026-11-03: "necesito ese cálculo en el
+    // detalle... esa es la trazabilidad") — mismo motor que el preview del
+    // wizard (HemoRed.data.calcularStatsTurnos), así que el número que ve
+    // el creador acá es el mismo que ya validó al crear la campaña, no una
+    // cuenta aparte que podría no coincidir.
     document.getElementById('dd-hospitales').innerHTML = (hospitales || []).map(ch => {
       const dias = (ch.dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ') || '—';
       const horarios = (ch.horarios_atencion || []).map(h => `${h.desde}–${h.hasta}`).join(' y ') || '—';
+      // Horarios distintos por día (2026-11-03): mostrar el resumen plano
+      // "Mar/Mié/Jue/Vie/Dom · 08–12 y 14–17" sería engañoso si domingo en
+      // realidad solo atiende a la mañana — con horarios_por_dia se arma un
+      // resumen día por día en su lugar.
+      const resumenHorarioHtml = ch.horarios_por_dia
+        ? (ch.dias_atencion || []).map(d => `${DIAS_LABEL[d]} ${(ch.horarios_por_dia[d] || []).map(h => `${h.desde}–${h.hasta}`).join(' y ') || '—'}`).join(' · ')
+        : `${dias} · ${horarios}`;
       const esCreador = ch.hospital_id === c.hospital_id;
+      const estadoInfo = ESTADO_PARTICIPACION[ch.estado] || ESTADO_PARTICIPACION.aceptado;
+
+      // Config heredada (campañas de antes de "una campaña, varios
+      // hospitales") sin día/horario propio: calcularStatsTurnos no tiene
+      // con qué calcular y da 0 — mostrar eso tal cual sería engañoso
+      // (no significa que ese hospital no vaya a tener turnos).
+      const proyeccionHtml = !ch.horarios_atencion
+        ? `<div style="font-size:11px;color:#a9435d;margin-top:4px;font-style:italic;">Sin día/horario propio configurado (config heredada).</div>`
+        : (() => {
+            const proyeccion = HemoRed.data.calcularStatsTurnos({ ...ch, fecha_cierre: c.fecha_cierre });
+            return `<div style="font-size:12px;color:#5a1e37;font-weight:500;margin-top:4px;">≈ ${proyeccion.totalTurnos} turnos · ${proyeccion.totalCupos} cupos hasta la fecha límite</div>`;
+          })();
+
+      let trazaHtml = '';
+      if (!esCreador && ch.propuesta_original) {
+        if (ch.estado === 'pendiente') {
+          trazaHtml = `<div style="font-size:11px;color:#a9435d;margin-top:6px;font-style:italic;">Esperando que el hospital confirme esta propuesta.</div>`;
+        } else if (ch.estado === 'aceptado') {
+          const diffs = _diffPropuesta(ch.propuesta_original, ch);
+          trazaHtml = diffs.length
+            ? `<div style="font-size:11px;color:#935116;background:#fdebd0;border-radius:6px;padding:6px 8px;margin-top:6px;">Aceptó con cambios: ${diffs.join('; ')}.</div>`
+            : `<div style="font-size:11px;color:#1a6b3a;margin-top:6px;">Aceptó tal cual se propuso.</div>`;
+        } else if (ch.estado === 'rechazado') {
+          const diasProp = (ch.propuesta_original.dias_atencion || []).map(d => DIAS_LABEL[d]).join(' / ') || '—';
+          const horProp = ch.propuesta_original.horarios_por_dia
+            ? (ch.propuesta_original.dias_atencion || []).map(d => `${DIAS_LABEL[d]} ${(ch.propuesta_original.horarios_por_dia[d] || []).map(h => `${h.desde}–${h.hasta}`).join(' y ') || '—'}`).join(' · ')
+            : (ch.propuesta_original.horarios_atencion || []).map(h => `${h.desde}–${h.hasta}`).join(' y ') || '—';
+          trazaHtml = `<div style="font-size:11px;color:#c0392b;margin-top:6px;">Se le había propuesto: ${ch.propuesta_original.horarios_por_dia ? horProp : `${diasProp} · ${horProp}`} · ${ch.propuesta_original.duracion_turno_min} min · ${ch.propuesta_original.cupo_por_turno} donante(s) por turno.</div>`;
+        }
+      }
+
       return `<div style="padding:12px 14px;background:#fdf0f3;border-radius:9px;">
-        <div style="font-size:13px;font-weight:500;color:#5a1e37;">${ch.hospital?.nombre || `Hospital #${ch.hospital_id}`}${esCreador ? ' <span style="color:#a9435d;font-weight:400;">(creador)</span>' : ''}</div>
-        <div style="font-size:12px;color:#782b46;margin-top:4px;">${dias} · ${horarios}</div>
+        <div style="font-size:13px;font-weight:500;color:#5a1e37;display:flex;align-items:center;gap:6px;">
+          <span>${ch.hospital?.nombre || `Hospital #${ch.hospital_id}`}${esCreador ? ' <span style="color:#a9435d;font-weight:400;">(creador)</span>' : ''}</span>
+          ${esCreador ? '' : `<span style="display:inline-flex;align-items:center;gap:3px;background:${estadoInfo.bg};color:${estadoInfo.color};font-size:10px;font-weight:500;padding:1px 7px;border-radius:10px;"><i class="ti ${estadoInfo.icon}" style="font-size:10px;"></i>${estadoInfo.label}</span>`}
+        </div>
+        <div style="font-size:12px;color:#782b46;margin-top:4px;">${resumenHorarioHtml}</div>
         <div style="font-size:12px;color:#782b46;">${ch.duracion_turno_min || 30} min por turno · ${ch.cupo_por_turno || 1} donante${(ch.cupo_por_turno || 1) !== 1 ? 's' : ''} por turno</div>
+        ${proyeccionHtml}
+        ${trazaHtml}
       </div>`;
     }).join('') || '<div style="font-size:12px;color:#a9435d;">Sin hospitales participantes configurados.</div>';
 
@@ -405,6 +581,184 @@
       : '<div style="font-size:12px;color:#a9435d;">Sin turnos próximos.</div>';
 
     renderAcciones(c.estado, c.hospital_id === hospitalActual?.id);
+
+    // Banner de invitación: solo si ESTE hospital tiene una fila propia
+    // pendiente en campana_hospital para esta campaña. El form se precarga
+    // con lo que propuso el creador UNA sola vez (_bannerInicializado) — si
+    // pintar() se vuelve a llamar por otra acción de la página mientras el
+    // hospital está a mitad de ajustar sus horarios, no le pisamos lo que
+    // ya tocó.
+    const miFila = hospitalActual ? hospitales.find(h => h.hospital_id === hospitalActual.id) : null;
+    const banner = document.getElementById('invitacion-banner');
+    if (miFila && miFila.estado === 'pendiente') {
+      banner.style.display = 'block';
+      if (!_bannerInicializado) {
+        _cargarInvitacionEnForm(miFila);
+        _bannerInicializado = true;
+      }
+    } else {
+      banner.style.display = 'none';
+      _bannerInicializado = false;
+    }
+  }
+
+  // ---------- Form del banner de invitación (mismo patrón que paso2 del
+  // wizard: día/horario/duración/cupo editables, incluido el toggle de
+  // "horarios distintos por día" — ver nueva_campana_paso2.html, es la
+  // misma idea con el prefijo `inv` en vez de nada) ----------
+  let _bannerInicializado = false;
+  let _invHorCount = 0;
+  let horariosPorDiaOnInv = false;
+
+  // `lista` es el contenedor donde va la fila — el horario compartido
+  // (#inv-horarios-lista) por default, o el bloque propio de un día cuando
+  // "horarios distintos por día" está activo.
+  function _nuevaFilaHorarioInvitacion(desde, hasta, lista) {
+    lista = lista || document.getElementById('inv-horarios-lista');
+    const id = 'inv-hor-' + _invHorCount++;
+    const div = document.createElement('div');
+    div.className = 'horario-row';
+    div.id = id;
+    div.innerHTML = `
+      <div class="horario-desde">
+        <span style="font-size:12px;color:#a9435d;white-space:nowrap;">Desde</span>
+        <input class="horario-input" type="time" value="${desde}">
+      </div>
+      <span class="horario-sep">hasta</span>
+      <div class="horario-desde">
+        <input class="horario-input" type="time" value="${hasta}">
+      </div>
+      <button class="btn-remove" onclick="eliminarHorarioInvitacion('${id}')" title="Eliminar">
+        <i class="ti ti-trash" style="font-size:16px;"></i>
+      </button>`;
+    lista.appendChild(div);
+    return div;
+  }
+
+  function _recolectarHorariosListaInv(listaEl) {
+    if (!listaEl) return [];
+    return [...listaEl.querySelectorAll('.horario-row')].map(row => {
+      const inputs = row.querySelectorAll('.horario-input');
+      return { desde: inputs[0].value, hasta: inputs[1].value };
+    });
+  }
+
+  function _recolectarHorariosPorDiaInvActual() {
+    const resultado = {};
+    document.querySelectorAll('#inv-horarios-por-dia .horario-dia-bloque').forEach(bloque => {
+      const dow = Number(bloque.dataset.dow);
+      resultado[dow] = _recolectarHorariosListaInv(document.getElementById('inv-horarios-lista-dia-' + dow));
+    });
+    return resultado;
+  }
+
+  function _renderHorariosPorDiaInv(datosPorDia) {
+    const cont = document.getElementById('inv-horarios-por-dia');
+    const base = datosPorDia || {};
+    const horariosCompartidos = _recolectarHorariosListaInv(document.getElementById('inv-horarios-lista'));
+    const diasSeleccionados = [...document.querySelectorAll('#inv-dias-grid .dia-opt.selected')]
+      .map(el => Number(el.dataset.dow))
+      .sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b));
+    cont.innerHTML = '';
+    diasSeleccionados.forEach(dow => {
+      const bloque = document.createElement('div');
+      bloque.className = 'horario-dia-bloque';
+      bloque.dataset.dow = dow;
+      bloque.style = 'margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f1dde3;';
+      bloque.innerHTML = `
+        <div style="font-size:12.5px;font-weight:600;color:#5a1e37;margin-bottom:8px;">${DIAS_LABEL_LARGO[dow]}</div>
+        <div id="inv-horarios-lista-dia-${dow}"></div>
+        <button type="button" class="btn-add-horario" onclick="agregarHorarioInvitacionDia(${dow})">
+          <i class="ti ti-plus"></i>
+          Agregar franja horaria
+        </button>`;
+      cont.appendChild(bloque);
+      const listaEl = bloque.querySelector(`#inv-horarios-lista-dia-${dow}`);
+      const horarios = (base[dow] && base[dow].length) ? base[dow]
+        : (horariosCompartidos.length ? horariosCompartidos : [{ desde: '08:00', hasta: '12:00' }]);
+      horarios.forEach(h => _nuevaFilaHorarioInvitacion(h.desde, h.hasta, listaEl));
+    });
+  }
+
+  function toggleHorariosPorDiaInv(forzado, datosPorDiaInicial) {
+    horariosPorDiaOnInv = forzado != null ? forzado : !horariosPorDiaOnInv;
+    document.getElementById('inv-toggle-horarios-dia').classList.toggle('on', horariosPorDiaOnInv);
+    document.getElementById('inv-horarios-compartido').style.display = horariosPorDiaOnInv ? 'none' : '';
+    document.getElementById('inv-horarios-por-dia').style.display = horariosPorDiaOnInv ? '' : 'none';
+    if (horariosPorDiaOnInv) _renderHorariosPorDiaInv(datosPorDiaInicial || _recolectarHorariosPorDiaInvActual());
+  }
+
+  function _cargarInvitacionEnForm(fila) {
+    const dias = (fila.dias_atencion && fila.dias_atencion.length) ? fila.dias_atencion : [];
+    document.querySelectorAll('#inv-dias-grid .dia-opt').forEach(el => el.classList.toggle('selected', dias.includes(Number(el.dataset.dow))));
+
+    document.getElementById('inv-horarios-lista').innerHTML = '';
+    _invHorCount = 0;
+    const horarios = (fila.horarios_atencion && fila.horarios_atencion.length) ? fila.horarios_atencion : [{ desde: '08:00', hasta: '12:00' }];
+    horarios.forEach(h => _nuevaFilaHorarioInvitacion(h.desde, h.hasta));
+
+    document.querySelectorAll('#inv-duracion-grid .dur-opt').forEach(o => o.classList.remove('selected'));
+    const opt = document.querySelector(`#inv-duracion-grid .dur-opt[data-min="${fila.duracion_turno_min || 30}"]`);
+    if (opt) opt.classList.add('selected');
+
+    document.getElementById('inv-cupo').value = fila.cupo_por_turno || 1;
+
+    // Si lo que propuso el creador ya venía con horarios distintos por día,
+    // el invitado entra directo viendo esa misma config (no se le simplifica
+    // a un horario único) — y la puede seguir ajustando día por día.
+    toggleHorariosPorDiaInv(!!(fila.horarios_por_dia && Object.keys(fila.horarios_por_dia).length), fila.horarios_por_dia);
+  }
+
+  function toggleDiaInvitacion(el) {
+    el.classList.toggle('selected');
+    if (horariosPorDiaOnInv) _renderHorariosPorDiaInv(_recolectarHorariosPorDiaInvActual());
+  }
+  function selDurInvitacion(el) {
+    document.querySelectorAll('#inv-duracion-grid .dur-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function eliminarHorarioInvitacion(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+  function agregarHorarioInvitacion() {
+    _nuevaFilaHorarioInvitacion('08:00', '12:00');
+  }
+  function agregarHorarioInvitacionDia(dow) {
+    _nuevaFilaHorarioInvitacion('08:00', '12:00', document.getElementById('inv-horarios-lista-dia-' + dow));
+  }
+
+  function _recolectarInvitacion() {
+    const dias = [...document.querySelectorAll('#inv-dias-grid .dia-opt.selected')].map(el => Number(el.dataset.dow));
+    let horarios_por_dia;
+    if (horariosPorDiaOnInv) {
+      horarios_por_dia = {};
+      dias.forEach(dow => {
+        horarios_por_dia[dow] = _recolectarHorariosListaInv(document.getElementById('inv-horarios-lista-dia-' + dow));
+      });
+    }
+    return {
+      dias_atencion: dias,
+      horarios_atencion: _recolectarHorariosListaInv(document.getElementById('inv-horarios-lista')),
+      horarios_por_dia,
+      duracion_turno_min: Number(document.querySelector('#inv-duracion-grid .dur-opt.selected')?.dataset.min) || 30,
+      cupo_por_turno: Number(document.getElementById('inv-cupo').value) || 1,
+    };
+  }
+
+  async function accionAceptarInvitacion() {
+    const config = _recolectarInvitacion();
+    const res = HemoRed.data.responderInvitacionHospital(_campanaId, hospitalActual.id, true, config);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Participación confirmada — ya aparecés como punto de donación de esta campaña.');
+    await recargar();
+  }
+  async function accionRechazarInvitacion() {
+    if (!confirm('¿Rechazar la invitación a participar en esta campaña? No se puede deshacer.')) return;
+    const res = HemoRed.data.responderInvitacionHospital(_campanaId, hospitalActual.id, false);
+    if (!res.ok) { HemoRed.ui.toast(res.error, 'error'); return; }
+    HemoRed.ui.toast('Invitación rechazada', 'error');
+    await recargar();
   }
 
   async function recargar() {

@@ -6,7 +6,8 @@
     "dias_atencion": null,
     "horarios_atencion": null,
     "duracion_turno_min": null,
-    "cupo_por_turno": 1
+    "cupo_por_turno": 1,
+    "estado": "aceptado"
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "dias_atencion": null,
     "horarios_atencion": null,
     "duracion_turno_min": null,
-    "cupo_por_turno": 2
+    "cupo_por_turno": 2,
+    "estado": "aceptado"
   },
   {
     "id": 3,
@@ -24,7 +26,8 @@
     "dias_atencion": null,
     "horarios_atencion": null,
     "duracion_turno_min": null,
-    "cupo_por_turno": 1
+    "cupo_por_turno": 1,
+    "estado": "aceptado"
   },
   {
     "id": 4,
@@ -33,6 +36,39 @@
     "dias_atencion": null,
     "horarios_atencion": null,
     "duracion_turno_min": null,
-    "cupo_por_turno": 2
+    "cupo_por_turno": 2,
+    "estado": "aceptado"
+  },
+  {
+    "id": 5,
+    "campana_id": 2,
+    "hospital_id": 6,
+    "dias_atencion": [2, 3, 4, 5],
+    "horarios_atencion": [{ "desde": "08:00", "hasta": "12:00" }],
+    "duracion_turno_min": 30,
+    "cupo_por_turno": 2,
+    "estado": "pendiente",
+    "propuesta_original": {
+      "dias_atencion": [2, 3, 4, 5],
+      "horarios_atencion": [{ "desde": "08:00", "hasta": "12:00" }],
+      "duracion_turno_min": 30,
+      "cupo_por_turno": 2
+    }
+  },
+  {
+    "id": 6,
+    "campana_id": 2,
+    "hospital_id": 7,
+    "dias_atencion": [1, 3, 5],
+    "horarios_atencion": [{ "desde": "09:00", "hasta": "13:00" }],
+    "duracion_turno_min": 15,
+    "cupo_por_turno": 1,
+    "estado": "pendiente",
+    "propuesta_original": {
+      "dias_atencion": [1, 3, 5],
+      "horarios_atencion": [{ "desde": "09:00", "hasta": "13:00" }],
+      "duracion_turno_min": 15,
+      "cupo_por_turno": 1
+    }
   }
 ]

@@ -69,14 +69,14 @@
         <div class="stat-label">Turnos hoy</div>
         <div class="kpi-sub" id="sub-turnos">—</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="window.location='../hospital/campanas.html'">
         <div class="kpi-top">
-          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-heart" style="color:#ef647c;font-size:18px;"></i></div>
-          <span class="kpi-trend" id="trend-donaciones"></span>
+          <div class="kpi-icon" style="background:#fdf0f3;"><i class="ti ti-building-hospital" style="color:#ef647c;font-size:18px;"></i></div>
+          <span class="kpi-trend" id="trend-participaciones"></span>
         </div>
-        <div class="stat-num" id="donaciones-mes">—</div>
-        <div class="stat-label">Donaciones este mes</div>
-        <div class="kpi-sub" id="sub-donaciones">—</div>
+        <div class="stat-num" id="participaciones-pendientes">—</div>
+        <div class="stat-label">Participaciones a aceptar</div>
+        <div class="kpi-sub" id="sub-participaciones">—</div>
       </div>
     </div>
 
@@ -84,7 +84,7 @@
     <div class="section-title">Accesos rápidos</div>
     <div class="accesos-grid">
 
-      <a class="acceso-card" href="../hospital/nueva_campana.html">
+      <a class="acceso-card" href="../hospital/nueva_campana.html" id="acceso-nueva-campana">
         <div class="acceso-icon" style="background:#fdf0f3;border:1px solid #f28b98;">
           <i class="ti ti-speakerphone" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i>
         </div>
@@ -97,7 +97,7 @@
         </div>
       </a>
 
-      <a class="acceso-card" href="../hospital/pacientes.html">
+      <a class="acceso-card" href="../hospital/pacientes.html" id="acceso-nuevo-paciente">
         <div class="acceso-icon" style="background:#f5eef1;border:1px solid #a9435d;">
           <i class="ti ti-user-plus" style="color:#5a1e37;font-size:22px;" aria-hidden="true"></i>
         </div>
@@ -347,12 +347,42 @@
       trendTurnos.className = 'kpi-trend up';
     }
 
-    document.getElementById('sub-donaciones').textContent = `vs ${m.kpis.donacionesMesAnterior} el mes anterior`;
-    HemoRed.ui.pintarTrend('trend-donaciones', m.kpis.donacionesMes, m.kpis.donacionesMesAnterior);
+    // "Participaciones a aceptar" (2026-11-03, pedido explícito): reemplaza
+    // acá en el inicio a "Donaciones este mes" — esa es una métrica de
+    // negocio, vive mejor agrupada con las demás en Métricas (ya estaba ahí).
+    // Acá en el inicio lo que importa es lo ACCIONABLE: invitaciones de otros
+    // hospitales todavía sin responder, mismo criterio visual que "Turnos hoy".
+    const participacionesPendientes = Number(document.getElementById('participaciones-pendientes').textContent) || 0;
+    document.getElementById('sub-participaciones').textContent = participacionesPendientes > 0
+      ? 'Invitaciones de otros hospitales'
+      : 'Sin invitaciones pendientes';
+    const trendParticipaciones = document.getElementById('trend-participaciones');
+    if (participacionesPendientes > 0) {
+      trendParticipaciones.innerHTML = `<i class="ti ti-alert-circle" style="font-size:10px;"></i>${participacionesPendientes} sin responder`;
+      trendParticipaciones.className = 'kpi-trend down';
+    } else {
+      trendParticipaciones.innerHTML = '<i class="ti ti-check" style="font-size:10px;"></i>al día';
+      trendParticipaciones.className = 'kpi-trend up';
+    }
+  }
+
+  // Plan Gratuito (2026-11-03): no incluye crear campañas ni pacientes —
+  // sacar esos 2 accesos rápidos de acá en vez de dejar que el hospital
+  // llegue a cualquiera de esas 2 pantallas y recién ahí se entere.
+  function ocultarAccesosSegunPlan() {
+    const s = HemoRed.sesion.get();
+    if (!s) return;
+    const usuario = HemoRed.db.find('usuarios', s.usuario_id);
+    const plan = HemoRed.data.obtenerPlanHospital(usuario?.hospital_id);
+    if (!plan) return;
+    if (plan.max_campanas_simultaneas === 0) document.getElementById('acceso-nueva-campana')?.remove();
+    if (plan.puede_crear_pacientes === false) document.getElementById('acceso-nuevo-paciente')?.remove();
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
     HemoRed.sesion.requerirLogin('hospital');
+    await HemoRed.db.init();
+    ocultarAccesosSegunPlan();
     await refrescarDashboard();
   });
 </script>

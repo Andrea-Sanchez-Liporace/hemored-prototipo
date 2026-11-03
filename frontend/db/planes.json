@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "nombre": "Local",
+    "nombre": "Básico",
     "descripcion": "Para hospitales y clínicas de alcance local",
     "precio_base": 15000,
     "max_campanas_simultaneas": 3,
@@ -10,11 +10,12 @@
     "precio_promo": null,
     "fecha_inicio_promo": null,
     "fecha_fin_promo": null,
-    "activo": true
+    "activo": true,
+    "puede_crear_pacientes": true
   },
   {
     "id": 2,
-    "nombre": "Provincial",
+    "nombre": "Profesional",
     "descripcion": "Para redes hospitalarias provinciales",
     "precio_base": 35000,
     "max_campanas_simultaneas": 10,
@@ -23,11 +24,12 @@
     "precio_promo": 28000,
     "fecha_inicio_promo": "2026-05-01",
     "fecha_fin_promo": "2026-06-30",
-    "activo": true
+    "activo": true,
+    "puede_crear_pacientes": true
   },
   {
     "id": 3,
-    "nombre": "Nacional",
+    "nombre": "Premium",
     "descripcion": "Para grandes redes y organismos nacionales",
     "precio_base": 75000,
     "max_campanas_simultaneas": 999,
@@ -36,6 +38,21 @@
     "precio_promo": null,
     "fecha_inicio_promo": null,
     "fecha_fin_promo": null,
-    "activo": true
+    "activo": true,
+    "puede_crear_pacientes": true
+  },
+  {
+    "id": 4,
+    "nombre": "Gratuito",
+    "descripcion": "Para hospitales que solo participan de campañas de otros, sin crear las propias",
+    "precio_base": 0,
+    "max_campanas_simultaneas": 0,
+    "alcance": null,
+    "es_promo": false,
+    "precio_promo": null,
+    "fecha_inicio_promo": null,
+    "fecha_fin_promo": null,
+    "activo": true,
+    "puede_crear_pacientes": false
   }
 ]
