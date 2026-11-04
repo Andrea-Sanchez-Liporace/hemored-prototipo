@@ -160,7 +160,13 @@ HemoRed.ui = (function() {
     const s = HemoRed.sesion.get();
     const usuario = s ? HemoRed.db.find('usuarios', s.usuario_id) : null;
     const prof = usuario ? HemoRed.db.where('profesionales', 'usuario_id', usuario.id)[0] : null;
-    const hospitalProf = prof ? HemoRed.db.where('profesional_hospital', 'profesional_id', prof.id)[0] : null;
+    // Si trabaja en más de un hospital, la sesión ya sabe con cuál entró
+    // (sesion.js lo resuelve por el mail institucional usado para
+    // loguearse) — sin esto, acá se elegía el primero que apareciera,
+    // sin relación con el hospital real de esa sesión.
+    const hospitalProf = s?.profesional_hospital_id
+      ? HemoRed.db.find('profesional_hospital', s.profesional_hospital_id)
+      : (prof ? HemoRed.db.where('profesional_hospital', 'profesional_id', prof.id)[0] : null);
     const hospital = hospitalProf ? HemoRed.db.find('hospitales', hospitalProf.hospital_id) : null;
 
     document.getElementById('sidebar-avatar').textContent = s?.iniciales || '';

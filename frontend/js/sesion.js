@@ -24,17 +24,51 @@ HemoRed.sesion = (function() {
   // Async porque, si no matchea ninguna de las 4 cuentas demo hardcodeadas,
   // busca entre los usuarios reales creados en este navegador (ej. donantes
   // que se registraron vía publico/registro.html) — eso requiere db.init().
+  // Un profesional de salud puede trabajar en más de un hospital
+  // (profesional_hospital, una fila por institución, mismo usuario — no
+  // se duplica login, igual que con los pacientes). Pedido explícito
+  // 2026-11-03: "ya sabes en que hospital entra con el mail, tiene un
+  // mail institucional por hospital" — el mail con el que entra YA dice
+  // en qué hospital está entrando (cada relación tiene su propio
+  // email_institucional), así que no hace falta pedirle que elija nada.
+  // Devuelve la fila de profesional_hospital que corresponde a `emailNorm`
+  // para `usuarioId` — o, si ninguna matchea ese mail puntual (dato viejo,
+  // o entró con un mail que no es ninguno de los institucionales), la
+  // primera relación activa, como antes.
+  function _resolverVinculoProfesional(usuarioId, emailNorm) {
+    const prof = HemoRed.db.where('profesionales', 'usuario_id', usuarioId)[0];
+    if (!prof) return null;
+    const relaciones = HemoRed.db.where('profesional_hospital', 'profesional_id', prof.id).filter(v => v.activo);
+    return relaciones.find(v => v.email_institucional === emailNorm) || relaciones[0] || null;
+  }
+
   async function login(email, password) {
     const emailNorm = email.toLowerCase().trim();
+    await HemoRed.db.init();
+
     const u = USUARIOS[emailNorm];
     if (u && u.pass === password) {
       _sesion = { email: emailNorm, rol: u.rol, usuario_id: u.usuario_id, nombre: u.nombre, iniciales: u.iniciales };
+      if (u.rol === 'profesional') {
+        const vinculo = _resolverVinculoProfesional(u.usuario_id, emailNorm);
+        if (vinculo) { _sesion.profesional_hospital_id = vinculo.id; _sesion.hospital_id = vinculo.hospital_id; }
+      }
       sessionStorage.setItem('hemored_sesion', JSON.stringify(_sesion));
       return { ok: true, dest: u.dest };
     }
 
-    await HemoRed.db.init();
-    const registrado = HemoRed.db.where('usuarios', 'email', emailNorm)[0];
+    let registrado = HemoRed.db.where('usuarios', 'email', emailNorm)[0];
+    // Si no matchea directo contra usuarios.email, puede ser el mail
+    // institucional de un hospital DISTINTO al que tiene cargado en su
+    // cuenta (ver _resolverVinculoProfesional) — mismo usuario, se busca
+    // por ese lado antes de darlo por no encontrado.
+    if (!registrado) {
+      const vinculoPorMail = HemoRed.db.where('profesional_hospital', 'email_institucional', emailNorm)[0];
+      if (vinculoPorMail) {
+        const prof = HemoRed.db.find('profesionales', vinculoPorMail.profesional_id);
+        registrado = prof ? HemoRed.db.find('usuarios', prof.usuario_id) : null;
+      }
+    }
     if (registrado && registrado.activo === false) {
       return { ok: false, error: 'Esta cuenta fue eliminada.' };
     }
@@ -42,6 +76,10 @@ HemoRed.sesion = (function() {
       const nombreCompleto = `${registrado.nombre} ${registrado.apellido || ''}`.trim();
       const iniciales = registrado.avatar_iniciales || (nombreCompleto[0] || '?').toUpperCase();
       _sesion = { email: registrado.email, rol: registrado.rol, usuario_id: registrado.id, nombre: nombreCompleto, iniciales };
+      if (registrado.rol === 'profesional') {
+        const vinculo = _resolverVinculoProfesional(registrado.id, emailNorm);
+        if (vinculo) { _sesion.profesional_hospital_id = vinculo.id; _sesion.hospital_id = vinculo.hospital_id; }
+      }
       sessionStorage.setItem('hemored_sesion', JSON.stringify(_sesion));
       return { ok: true, dest: DEST_POR_ROL[registrado.rol] || '../publico/login.html' };
     }

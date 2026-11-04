@@ -2222,8 +2222,19 @@ HemoRed.data = (function() {
     _procesarVencimientosTurnos();
     const s = HemoRed.sesion.get();
     const prof = HemoRed.db.where('profesionales', 'usuario_id', s?.usuario_id)[0];
-    const ph = HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id);
-    const hospital_ids = ph.map(p => p.hospital_id);
+    // Un profesional puede trabajar en más de un hospital (profesional_hospital,
+    // una fila por institución, mismo usuario — no se duplica login, igual que
+    // con los pacientes). Antes se juntaban los turnos de TODOS esos hospitales
+    // en una sola lista, sin distinguir uno de otro — bug real, encontrado
+    // 2026-11-03 al revisar el caso de un profesional multi-hospital. Ahora la
+    // sesión guarda CON QUÉ relación entró (sesion.js resuelve el hospital a
+    // partir del mail institucional usado para loguearse, que ya es distinto
+    // por hospital — no hace falta pedirle que elija nada), y acá se escopea a
+    // esa única relación.
+    const vinculo = s?.profesional_hospital_id
+      ? HemoRed.db.find('profesional_hospital', s.profesional_hospital_id)
+      : HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id).find(v => v.activo);
+    const hospitalId = vinculo?.hospital_id ?? null;
 
     // Pasados, presentes y futuros (pedido explícito de la usuaria,
     // 2026-10-06) — antes se filtraba a `t.fecha === hoy`, mostrando solo
@@ -2239,7 +2250,7 @@ HemoRed.data = (function() {
     // llegó a ser algo que él tuviera que esperar. "cancelado" SÍ puede
     // seguir apareciendo: también cubre un turno que SÍ estuvo confirmado
     // y el donante canceló después, y eso sí le atañe.
-    const turnos = HemoRed.db.all('turnos').filter(t => hospital_ids.includes(t.hospital_id) && t.estado !== 'pendiente');
+    const turnos = HemoRed.db.all('turnos').filter(t => t.hospital_id === hospitalId && t.estado !== 'pendiente');
     const usuarios = HemoRed.db.all('usuarios');
     const campanas = HemoRed.db.all('campanas');
     const donaciones = HemoRed.db.all('donaciones');

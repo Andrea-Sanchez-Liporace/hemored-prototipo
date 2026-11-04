@@ -1588,7 +1588,9 @@
     // no importaba mientras hubiera un solo profesional con login, pero
     // ahora que la Dra. Vidal (extraccionista) también tiene cuenta, mostrar
     // siempre el mismo nombre hubiera sido confuso/incorrecto.
-    const vinculo = HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id).find(v => v.activo);
+    const vinculo = s?.profesional_hospital_id
+      ? HemoRed.db.find('profesional_hospital', s.profesional_hospital_id)
+      : HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id).find(v => v.activo);
     const hospitalProf = vinculo ? HemoRed.db.find('hospitales', vinculo.hospital_id) : null;
     document.getElementById('sidebar-avatar').textContent = s?.iniciales || '';
     document.getElementById('sidebar-prof-name').textContent = prof?.nombre_completo || s?.nombre || '';

@@ -267,7 +267,9 @@
     const s = HemoRed.sesion.get();
     const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
     const prof = HemoRed.db.where('profesionales', 'usuario_id', s?.usuario_id)[0];
-    const vinculo = HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id).find(v => v.activo);
+    const vinculo = s?.profesional_hospital_id
+      ? HemoRed.db.find('profesional_hospital', s.profesional_hospital_id)
+      : HemoRed.db.where('profesional_hospital', 'profesional_id', prof?.id).find(v => v.activo);
     const hospitalProf = vinculo ? HemoRed.db.find('hospitales', vinculo.hospital_id) : null;
 
     const nombre = prof?.nombre_completo || s?.nombre || '';
