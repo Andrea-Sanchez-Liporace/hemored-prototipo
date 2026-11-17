@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Planes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../estilos/publico.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="../index.html">Hemo<span>red</span></a>
+  <div class="nav-public-links">
+    <a href="../index.html">Home</a>
+    <a href="nosotros.html">Nosotros</a>
+  </div>
+  <button class="burger-btn" onclick="document.getElementById('mobile-menu').classList.toggle('active')" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+  <button class="nav-cta" onclick="window.location='../publico/login.html'">Iniciar sesión</button>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="../index.html#como-funciona">Cómo funciona</a>
+  <a href="../index.html#para-hospitales">Para hospitales</a>
+  <a href="../publico/nosotros.html">Nosotros</a>
+  <button class="mobile-menu-cta" onclick="window.location='../publico/login.html'">Iniciar sesión</button>
+</div>
+
+<main class="elegir-plan">
+  <div class="form-card" style="max-width:960px;">
+    <div class="form-title">Nuestros planes</div>
+    <div class="form-subtitle">Un plan por hospital. Podés cambiarlo más adelante sin perder nada de lo ya cargado.</div>
+
+    <div class="planes-grid" id="planes-grid">
+      <!-- se completa con HemoRed.db.all('planes') -->
+    </div>
+
+    <div class="plan-especial" onclick="window.location='contacto.html'">
+      <div class="plan-especial-info">
+        <div class="plan-especial-icon">
+          <i class="ti ti-message" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="plan-especial-title">¿Necesitás un plan especial?</div>
+          <div class="plan-especial-desc">Redes de hospitales, ministerios o necesidades particulares. Contactanos.</div>
+        </div>
+      </div>
+      <i class="ti ti-arrow-right" aria-hidden="true"></i>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo"><a href="../index.html">Hemo<span>red</span></a></div>
+  <div class="footer-links">
+    <a href="../publico/planes.html">Planes</a>
+    <a href="../publico/terminos.html">Términos</a>
+    <a href="../publico/privacidad.html">Privacidad</a>
+    <a href="../publico/contacto.html">Contacto</a>
+  </div>
+  <div class="footer-copy">© 2026 HemoRed</div>
+</footer>
+
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+<script>
+  // Página pública de planes (2026-11-17, pedido explícito): antes el
+  // modelo de negocio solo se veía en la presentación del producto, no en
+  // el sitio — esta es la primera pantalla pública que lee los planes
+  // reales de planes.json en vez de tener las tarjetas escritas a mano,
+  // así que si mañana cambia un precio o aparece un plan nuevo, esta
+  // página (y el resto de las que linkean para acá) se actualiza sola.
+  const ICONO_ALCANCE = { local: 'ti-map-pin', provincial: 'ti-map', nacional: 'ti-world' };
+
+  function esPromoVigente(plan) {
+    if (!plan.es_promo || !plan.fecha_inicio_promo || !plan.fecha_fin_promo) return false;
+    const hoy = new Date();
+    return hoy >= new Date(plan.fecha_inicio_promo) && hoy <= new Date(plan.fecha_fin_promo + 'T23:59:59');
+  }
+
+  function tarjetaPlan(plan) {
+    const esGratuito = plan.precio_base === 0;
+    const esRecomendado = plan.nombre === 'Profesional';
+    const promoVigente = esPromoVigente(plan);
+    const precio = promoVigente ? plan.precio_promo : plan.precio_base;
+
+    const precioHtml = esGratuito
+      ? `<div class="plan-price">Gratis</div>`
+      : `<div class="plan-price">$${precio.toLocaleString('es-AR')} <span>/ mes + IVA</span></div>` +
+        (promoVigente ? `<div class="plan-note" style="margin-top:-6px;">Precio promocional hasta ${new Date(plan.fecha_fin_promo + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })} (antes $${plan.precio_base.toLocaleString('es-AR')})</div>` : '');
+
+    const features = esGratuito
+      ? [
+          { icon: 'ti-ban', text: 'Sin costo de suscripción' },
+          { icon: 'ti-building-hospital', text: 'Participa en campañas a las que lo inviten' },
+          { icon: 'ti-calendar-check', text: 'Gestiona turnos y da de alta profesionales' },
+        ]
+      : [
+          { icon: ICONO_ALCANCE[plan.alcance] || 'ti-map-pin', text: `Alcance ${plan.alcance}` },
+          { icon: 'ti-check', text: plan.max_campanas_simultaneas >= 999 ? 'Campañas ilimitadas' : `Hasta ${plan.max_campanas_simultaneas} campañas simultáneas` },
+          { icon: 'ti-credit-card', text: 'Facturación integrada y autónoma' },
+        ];
+
+    const restriccion = esGratuito
+      ? `<p class="plan-note">Con este plan solo podrás participar de campañas de otras instituciones, no podrás gestionar campañas propias.</p>`
+      : '';
+
+    return `
+      <div class="plan-card" style="position:relative;display:flex;flex-direction:column;box-sizing:border-box;${esGratuito ? 'border-style:dashed;' : ''}">
+        ${esRecomendado ? '<div class="plan-badge-top">Recomendado</div>' : ''}
+        <div class="plan-name" style="font-size:16px;">${plan.nombre}</div>
+        ${precioHtml}
+        <div style="flex:1;">
+          <ul class="plan-features">
+            ${features.map(f => `<li><i class="ti ${f.icon}" aria-hidden="true"></i>${f.text}</li>`).join('')}
+          </ul>
+          ${restriccion}
+        </div>
+        <button type="button" class="form-btn" style="margin-top:20px;" onclick="window.location='registro.html?rol=hospital&amp;plan=${plan.id}'">
+          Crear cuenta de hospital
+        </button>
+      </div>`;
+  }
+
+  async function render() {
+    await HemoRed.db.init();
+    const planes = HemoRed.db.all('planes').filter(p => p.activo).sort((a, b) => a.id - b.id);
+    document.getElementById('planes-grid').innerHTML = planes.map(tarjetaPlan).join('');
+  }
+  render();
+</script>
+</body>
+</html>

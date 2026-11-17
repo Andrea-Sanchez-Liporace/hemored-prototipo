@@ -43,100 +43,23 @@
         </div>
       </div>
 
-      <!-- PLANES VIGENTES -->
+      <!-- PLANES VIGENTES (2026-11-17: ya lee planes.json real — ver
+           renderListaPlanes() más abajo) -->
       <div style="font-size:15px;font-weight:500;color:#1a1a2e;margin-bottom:16px;">Planes vigentes</div>
-      <div class="planes-grid">
-
-        <div class="plan-card">
-          <div class="plan-header">
-            <div class="plan-nombre">Plan Provincial</div>
-            <span class="plan-estado-badge pb-activo">● Activo</span>
-          </div>
-          <div class="plan-body">
-            <div class="plan-precio">$15.000 <span>/ mes + IVA</span></div>
-            <ul class="plan-features">
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Campañas ilimitadas</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Hasta 3 activas simultáneas</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Alcance provincial</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Dashboard de métricas</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Documentación clínica</li>
-            </ul>
-            <div class="plan-meta">
-              <div class="plan-meta-item"><div class="plan-meta-label">Hospitales suscriptos</div><div class="plan-meta-value">15</div></div>
-              <div class="plan-meta-item"><div class="plan-meta-label">MRR aportado</div><div class="plan-meta-value">$225k</div></div>
-              <div class="plan-meta-item"><div class="plan-meta-label">Vigente desde</div><div class="plan-meta-value">ene 2026</div></div>
-            </div>
-            <div class="plan-actions">
-              <button class="btn-sm btn-sm-outline" onclick="mostrarFormEditar('Provincial')"><i class="ti ti-pencil" style="font-size:12px;"></i>Editar</button>
-              <button class="btn-sm btn-sm-danger"><i class="ti ti-player-pause" style="font-size:12px;"></i>Suspender</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="plan-card">
-          <div class="plan-header">
-            <div class="plan-nombre">Plan Nacional</div>
-            <span class="plan-estado-badge pb-promo">🎁 Con promo activa</span>
-          </div>
-          <div class="plan-body">
-            <div class="plan-promo-precio">
-              <span class="plan-precio-tachado">$25.000</span>
-              <span class="plan-precio-promo">$20.000</span>
-              <span style="font-size:13px;color:#999;">/ mes + IVA</span>
-            </div>
-            <div class="plan-promo-vigencia">Promo válida hasta 30 jun 2026</div>
-            <ul class="plan-features">
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Campañas ilimitadas</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Hasta 10 activas simultáneas</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Alcance nacional</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Dashboard de métricas avanzado</li>
-              <li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Soporte prioritario</li>
-            </ul>
-            <div class="plan-meta">
-              <div class="plan-meta-item"><div class="plan-meta-label">Hospitales suscriptos</div><div class="plan-meta-value">9</div></div>
-              <div class="plan-meta-item"><div class="plan-meta-label">MRR aportado</div><div class="plan-meta-value">$207k</div></div>
-              <div class="plan-meta-item"><div class="plan-meta-label">Vigente desde</div><div class="plan-meta-value">ene 2026</div></div>
-            </div>
-            <div class="plan-actions">
-              <button class="btn-sm btn-sm-outline" onclick="mostrarFormEditar('Nacional')"><i class="ti ti-pencil" style="font-size:12px;"></i>Editar</button>
-              <button class="btn-sm btn-sm-danger"><i class="ti ti-player-pause" style="font-size:12px;"></i>Suspender</button>
-            </div>
-          </div>
-        </div>
-
+      <div class="planes-grid" id="admin-planes-grid">
       </div>
 
-      <!-- HISTORIAL DE CAMBIOS -->
+      <!-- HISTORIAL DE CAMBIOS (real, de hospital_plan_historial.json) -->
       <div style="font-size:15px;font-weight:500;color:#1a1a2e;margin-bottom:14px;">Historial de cambios</div>
       <div class="hist-table">
         <div class="hist-header">
-          <div class="th">Plan</div>
+          <div class="th">Hospital</div>
           <div class="th">Cambio</div>
-          <div class="th">Precio anterior</div>
-          <div class="th">Precio nuevo</div>
+          <div class="th">Plan anterior</div>
+          <div class="th">Plan nuevo</div>
           <div class="th">Fecha</div>
         </div>
-        <div class="hist-row" style="color:#555;">
-          <div style="font-weight:500;color:#1a1a2e;">Plan Nacional</div>
-          <div>Promo activada</div>
-          <div>$25.000</div>
-          <div style="color:#e67e22;">$20.000</div>
-          <div>1 jun 2026</div>
-        </div>
-        <div class="hist-row" style="color:#555;">
-          <div style="font-weight:500;color:#1a1a2e;">Plan Provincial</div>
-          <div>Actualización de precio</div>
-          <div>$12.000</div>
-          <div>$15.000</div>
-          <div>1 ene 2026</div>
-        </div>
-        <div class="hist-row" style="color:#555;">
-          <div style="font-weight:500;color:#1a1a2e;">Plan Nacional</div>
-          <div>Actualización de precio</div>
-          <div>$20.000</div>
-          <div>$25.000</div>
-          <div>1 ene 2026</div>
-        </div>
+        <div id="hist-table-body"></div>
       </div>
 
     </div>
@@ -170,9 +93,11 @@
               <label class="form-label">Alcance</label>
               <select class="form-input" id="f-alcance" onchange="actualizarPreview()">
                 <option value="" disabled selected>Seleccioná</option>
-                <option>Provincial</option>
-                <option>Nacional</option>
+                <option value="local">Local</option>
+                <option value="provincial">Provincial</option>
+                <option value="nacional">Nacional</option>
               </select>
+              <p class="form-hint" style="margin-top:4px;">Dejalo vacío para un plan sin alcance geográfico propio (ej. un plan gratuito que solo participa en campañas de otros).</p>
             </div>
           </div>
 
@@ -189,11 +114,17 @@
               <div class="form-row" style="margin-bottom:10px;">
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Precio promocional (sin IVA)</label>
-                  <input class="form-input" type="number" placeholder="20000">
+                  <input class="form-input" type="number" id="f-precio-promo" placeholder="20000">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">Válido desde</label>
+                  <input class="form-input" type="date" id="f-promo-desde">
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label">Válido hasta</label>
-                  <input class="form-input" type="date">
+                  <input class="form-input" type="date" id="f-promo-hasta">
                 </div>
               </div>
               <p style="font-size:11px;color:#633806;">La promo se aplica a todos los hospitales suscritos a este plan a partir del próximo período.</p>
@@ -202,6 +133,13 @@
 
           <div class="form-card">
             <div class="form-title"><i class="ti ti-check" style="color:#ef647c;"></i>Funcionalidades incluidas</div>
+            <div class="toggle-row" onclick="togglePuedeCrearPacientes()">
+              <div>
+                <div class="toggle-label">Puede registrar pacientes propios</div>
+                <div class="toggle-sub">Si está apagado, el hospital solo participa de campañas que le propongan otros (ej. plan Gratuito)</div>
+              </div>
+              <div class="toggle" id="toggle-pacientes"><div class="toggle-knob"></div></div>
+            </div>
             <div class="toggle-row">
               <div><div class="toggle-label">Dashboard de métricas</div></div>
               <div class="toggle"><div class="toggle-knob"></div></div>
@@ -241,7 +179,7 @@
                 <div class="preview-feature"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Campañas ilimitadas</div>
                 <div class="preview-feature" id="prev-simultaneas"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Hasta — simultáneas</div>
                 <div class="preview-feature" id="prev-alcance"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Alcance —</div>
-                <div class="preview-feature"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Gestión de turnos y pacientes</div>
+                <div class="preview-feature" id="prev-pacientes"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Gestión de turnos y pacientes</div>
                 <div class="preview-feature"><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Documentación clínica</div>
               </div>
             </div>
@@ -258,24 +196,159 @@
 </div>
 
 <script>
+  // Conectado a planes.json real (2026-11-17, pedido explícito) — antes
+  // era una maqueta fija con 2 planes inventados (Provincial/Nacional),
+  // sin relación con los 4 reales ni con los hospitales de verdad
+  // suscritos a cada uno. Guarda y lee con HemoRed.db, igual que el resto
+  // del sitio (sin backend: los cambios quedan en el localStorage de este
+  // navegador — ver nota de la usuaria, es el mismo mecanismo que ya usa
+  // todo HemoRed).
   let promoActiva = false;
+  let puedeCrearPacientesActivo = true;
+  let editandoPlanId = null;
+
+  function esPromoVigenteAdmin(plan) {
+    if (!plan.es_promo || !plan.fecha_inicio_promo || !plan.fecha_fin_promo) return false;
+    const hoy = new Date();
+    return hoy >= new Date(plan.fecha_inicio_promo) && hoy <= new Date(plan.fecha_fin_promo + 'T23:59:59');
+  }
+  function formatearFecha(iso) {
+    return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function tarjetaPlanAdmin(plan) {
+    const promoVigente = esPromoVigenteAdmin(plan);
+    const hospitalesDelPlan = HemoRed.db.all('hospitales').filter(h => h.plan_id === plan.id);
+    const precioEfectivo = promoVigente ? plan.precio_promo : plan.precio_base;
+    const mrr = hospitalesDelPlan.length * precioEfectivo;
+    const primeraAlta = HemoRed.db.all('hospital_plan_historial')
+      .filter(h => h.plan_id === plan.id)
+      .map(h => h.fecha)
+      .sort()[0];
+
+    const badge = !plan.activo
+      ? '<span class="plan-estado-badge" style="background:#eee;color:#666;">Inactivo</span>'
+      : (promoVigente ? '<span class="plan-estado-badge pb-promo">🎁 Con promo activa</span>' : '<span class="plan-estado-badge pb-activo">● Activo</span>');
+
+    const precioHtml = promoVigente
+      ? `<div class="plan-promo-precio">
+           <span class="plan-precio-tachado">$${plan.precio_base.toLocaleString('es-AR')}</span>
+           <span class="plan-precio-promo">$${plan.precio_promo.toLocaleString('es-AR')}</span>
+           <span style="font-size:13px;color:#999;">/ mes + IVA</span>
+         </div>
+         <div class="plan-promo-vigencia">Promo válida hasta ${formatearFecha(plan.fecha_fin_promo)}</div>`
+      : (plan.precio_base === 0
+          ? `<div class="plan-precio">Gratis</div>`
+          : `<div class="plan-precio">$${plan.precio_base.toLocaleString('es-AR')} <span>/ mes + IVA</span></div>`);
+
+    const features = plan.precio_base === 0
+      ? ['Participa en campañas a las que lo inviten', 'Gestión de turnos y profesionales', 'No crea campañas ni pacientes propios']
+      : [
+          plan.max_campanas_simultaneas >= 999 ? 'Campañas ilimitadas' : `Hasta ${plan.max_campanas_simultaneas} activas simultáneas`,
+          plan.alcance ? `Alcance ${plan.alcance}` : null,
+          plan.puede_crear_pacientes === false ? 'No crea pacientes propios' : 'Gestión de turnos y pacientes',
+          'Dashboard de métricas',
+        ].filter(Boolean);
+
+    return `
+      <div class="plan-card${plan.activo ? '' : ' inactivo'}">
+        <div class="plan-header">
+          <div class="plan-nombre">Plan ${plan.nombre}</div>
+          ${badge}
+        </div>
+        <div class="plan-body">
+          ${precioHtml}
+          <ul class="plan-features">
+            ${features.map(f => `<li><i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>${f}</li>`).join('')}
+          </ul>
+          <div class="plan-meta">
+            <div class="plan-meta-item"><div class="plan-meta-label">Hospitales suscriptos</div><div class="plan-meta-value">${hospitalesDelPlan.length}</div></div>
+            <div class="plan-meta-item"><div class="plan-meta-label">MRR aportado</div><div class="plan-meta-value">$${mrr.toLocaleString('es-AR')}</div></div>
+            <div class="plan-meta-item"><div class="plan-meta-label">Vigente desde</div><div class="plan-meta-value">${primeraAlta ? formatearFecha(primeraAlta) : '—'}</div></div>
+          </div>
+          <div class="plan-actions">
+            <button class="btn-sm btn-sm-outline" onclick="mostrarFormEditar(${plan.id})"><i class="ti ti-pencil" style="font-size:12px;"></i>Editar</button>
+            <button class="btn-sm btn-sm-danger" onclick="toggleActivoPlan(${plan.id})"><i class="ti ti-player-${plan.activo ? 'pause' : 'play'}" style="font-size:12px;"></i>${plan.activo ? 'Suspender' : 'Activar'}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function filaHistorial(h) {
+    const hospital = HemoRed.db.find('hospitales', h.hospital_id);
+    const planNuevo = HemoRed.db.find('planes', h.plan_id);
+    const planAnterior = h.plan_anterior_id ? HemoRed.db.find('planes', h.plan_anterior_id) : null;
+    return `
+      <div class="hist-row" style="color:#555;">
+        <div style="font-weight:500;color:#1a1a2e;">${hospital?.nombre || `Hospital #${h.hospital_id}`}</div>
+        <div>${h.motivo || (planAnterior ? 'Cambio de plan' : 'Alta inicial')}</div>
+        <div>${planAnterior ? 'Plan ' + planAnterior.nombre : '—'}</div>
+        <div style="color:#e67e22;">Plan ${planNuevo?.nombre || '—'}</div>
+        <div>${formatearFecha(h.fecha)}</div>
+      </div>`;
+  }
+
+  async function renderPlanesAdmin() {
+    await HemoRed.db.init();
+    const planes = HemoRed.db.all('planes').sort((a, b) => a.id - b.id);
+    document.getElementById('admin-planes-grid').innerHTML = planes.map(tarjetaPlanAdmin).join('');
+
+    const historial = HemoRed.db.all('hospital_plan_historial').slice().sort((a, b) => b.fecha.localeCompare(a.fecha));
+    document.getElementById('hist-table-body').innerHTML = historial.length
+      ? historial.map(filaHistorial).join('')
+      : '<div class="hist-row" style="color:#999;">Sin cambios registrados todavía.</div>';
+  }
+
+  async function toggleActivoPlan(id) {
+    const plan = HemoRed.db.find('planes', id);
+    if (!plan) return;
+    const accion = plan.activo ? 'suspender' : 'reactivar';
+    if (!confirm(`¿${accion === 'suspender' ? 'Suspender' : 'Reactivar'} el plan ${plan.nombre}? ${accion === 'suspender' ? 'Los hospitales ya suscritos siguen activos, pero nadie nuevo va a poder elegirlo.' : ''}`)) return;
+    HemoRed.db.actualizar('planes', id, { activo: !plan.activo });
+    HemoRed.ui.toast(`Plan ${plan.nombre} ${plan.activo ? 'suspendido' : 'reactivado'}`);
+    renderPlanesAdmin();
+  }
 
   function mostrarFormNuevo() {
+    editandoPlanId = null;
     document.getElementById('form-titulo').textContent = 'Nuevo plan';
     document.getElementById('f-nombre').value = '';
+    document.getElementById('f-desc').value = '';
     document.getElementById('f-precio').value = '';
     document.getElementById('f-campanas').value = '';
+    document.getElementById('f-alcance').value = '';
+    document.getElementById('f-precio-promo').value = '';
+    document.getElementById('f-promo-desde').value = '';
+    document.getElementById('f-promo-hasta').value = '';
+    promoActiva = false;
+    document.getElementById('toggle-promo').classList.add('off');
+    document.getElementById('promo-fields').classList.remove('visible');
+    puedeCrearPacientesActivo = true;
+    document.getElementById('toggle-pacientes').classList.remove('off');
+    actualizarPreview();
     document.getElementById('view-lista').classList.remove('active');
     document.getElementById('view-form').classList.add('active');
     window.scrollTo(0,0);
   }
 
-  function mostrarFormEditar(nombre) {
-    document.getElementById('form-titulo').textContent = 'Editar — Plan ' + nombre;
-    document.getElementById('f-nombre').value = 'Plan ' + nombre;
-    document.getElementById('f-precio').value = nombre === 'Provincial' ? '15000' : '25000';
-    document.getElementById('f-campanas').value = nombre === 'Provincial' ? '3' : '10';
-    document.getElementById('f-alcance').value = nombre;
+  function mostrarFormEditar(id) {
+    const plan = HemoRed.db.find('planes', id);
+    if (!plan) return;
+    editandoPlanId = id;
+    document.getElementById('form-titulo').textContent = 'Editar — Plan ' + plan.nombre;
+    document.getElementById('f-nombre').value = plan.nombre;
+    document.getElementById('f-desc').value = plan.descripcion || '';
+    document.getElementById('f-precio').value = plan.precio_base;
+    document.getElementById('f-campanas').value = plan.max_campanas_simultaneas;
+    document.getElementById('f-alcance').value = plan.alcance || '';
+    document.getElementById('f-precio-promo').value = plan.precio_promo || '';
+    document.getElementById('f-promo-desde').value = plan.fecha_inicio_promo || '';
+    document.getElementById('f-promo-hasta').value = plan.fecha_fin_promo || '';
+    promoActiva = !!plan.es_promo;
+    document.getElementById('toggle-promo').classList.toggle('off', !promoActiva);
+    document.getElementById('promo-fields').classList.toggle('visible', promoActiva);
+    puedeCrearPacientesActivo = plan.puede_crear_pacientes !== false;
+    document.getElementById('toggle-pacientes').classList.toggle('off', !puedeCrearPacientesActivo);
     actualizarPreview();
     document.getElementById('view-lista').classList.remove('active');
     document.getElementById('view-form').classList.add('active');
@@ -289,6 +362,34 @@
   }
 
   function guardarPlan() {
+    const nombre = document.getElementById('f-nombre').value.trim();
+    const precio = Number(document.getElementById('f-precio').value);
+    const campanas = Number(document.getElementById('f-campanas').value);
+    const alcance = document.getElementById('f-alcance').value || null;
+    if (!nombre) { HemoRed.ui.toast('Ingresá el nombre del plan.', 'error'); return; }
+    if (!campanas && campanas !== 0) { HemoRed.ui.toast('Ingresá el máximo de campañas simultáneas.', 'error'); return; }
+
+    const campos = {
+      nombre,
+      descripcion: document.getElementById('f-desc').value.trim(),
+      precio_base: precio || 0,
+      max_campanas_simultaneas: campanas,
+      alcance,
+      es_promo: promoActiva,
+      precio_promo: promoActiva ? (Number(document.getElementById('f-precio-promo').value) || null) : null,
+      fecha_inicio_promo: promoActiva ? (document.getElementById('f-promo-desde').value || null) : null,
+      fecha_fin_promo: promoActiva ? (document.getElementById('f-promo-hasta').value || null) : null,
+      puede_crear_pacientes: puedeCrearPacientesActivo,
+    };
+
+    if (editandoPlanId) {
+      HemoRed.db.actualizar('planes', editandoPlanId, campos);
+      HemoRed.ui.toast('Plan actualizado');
+    } else {
+      HemoRed.db.crear('planes', { ...campos, activo: true });
+      HemoRed.ui.toast('Plan creado');
+    }
+    renderPlanesAdmin();
     volverLista();
   }
 
@@ -300,17 +401,26 @@
     fields.classList.toggle('visible', promoActiva);
   }
 
+  function togglePuedeCrearPacientes() {
+    puedeCrearPacientesActivo = !puedeCrearPacientesActivo;
+    document.getElementById('toggle-pacientes').classList.toggle('off', !puedeCrearPacientesActivo);
+    actualizarPreview();
+  }
+
   function actualizarPreview() {
     const nombre = document.getElementById('f-nombre').value || 'Nombre del plan';
     const precio = document.getElementById('f-precio').value;
     const campanas = document.getElementById('f-campanas').value;
     const alcance = document.getElementById('f-alcance').value;
     document.getElementById('prev-nombre').textContent = nombre;
-    document.getElementById('prev-precio').innerHTML = precio ? '$' + parseInt(precio).toLocaleString('es-AR') + ' <span style="font-size:13px;font-weight:400;color:#999;">/ mes + IVA</span>' : '$— <span style="font-size:13px;font-weight:400;color:#999;">/ mes + IVA</span>';
+    document.getElementById('prev-precio').innerHTML = (precio && Number(precio) > 0) ? '$' + parseInt(precio).toLocaleString('es-AR') + ' <span style="font-size:13px;font-weight:400;color:#999;">/ mes + IVA</span>' : 'Gratis';
     document.getElementById('prev-simultaneas').innerHTML = '<i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Hasta ' + (campanas || '—') + ' activas simultáneas';
-    document.getElementById('prev-alcance').innerHTML = '<i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Alcance ' + (alcance || '—').toLowerCase();
+    document.getElementById('prev-alcance').innerHTML = alcance ? ('<i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>Alcance ' + alcance) : '';
+    document.getElementById('prev-alcance').style.display = alcance ? '' : 'none';
+    document.getElementById('prev-pacientes').innerHTML = '<i class="ti ti-check" style="color:#27ae60;font-size:14px;"></i>' + (puedeCrearPacientesActivo ? 'Gestión de turnos y pacientes' : 'Gestión de turnos (sin pacientes propios)');
   }
 
+  document.addEventListener('DOMContentLoaded', renderPlanesAdmin);
 </script>
   <script src="../js/db.js"></script>
   <script src="../js/sesion.js"></script>

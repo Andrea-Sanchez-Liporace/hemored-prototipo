@@ -67,7 +67,7 @@
         Datos de tu solicitud
       </div>
       <div class="info-row"><span class="info-label">Institución</span><span class="info-value">Hospital Ramos Mejía</span></div>
-      <div class="info-row"><span class="info-label">Plan seleccionado</span><span class="info-value">Plan Provincial · $15.000/mes</span></div>
+      <div class="info-row"><span class="info-label">Plan seleccionado</span><span class="info-value" id="plan-seleccionado-value">Plan Provincial · $15.000/mes</span></div>
       <div class="info-row"><span class="info-label">Email de contacto</span><span class="info-value">admin@ramosmejia.gob.ar</span></div>
       <div class="info-row"><span class="info-label">Fecha de solicitud</span><span class="info-value">15 de mayo 2026 · 10:32hs</span></div>
       <div class="info-row"><span class="info-label">Documentación</span><span class="info-value ok">✓ Habilitación sanitaria enviada</span></div>
@@ -94,5 +94,25 @@
   <div class="footer-copy">© 2026 HemoRed</div>
 </footer>
 
+<!-- El resto de esta pantalla sigue siendo mockup (institución, mail y
+     fecha de la solicitud son fijos — el form de registro.html todavía no
+     persiste nada) — esto solo arregla el plan mostrado, que si no
+     quedaba mal si venías de elegir el plan Gratuito y veía "Plan
+     Provincial $15.000/mes". -->
+<script src="../js/db.js"></script>
+<script src="../js/data.js"></script>
+<script>
+  (async function () {
+    const id = Number(sessionStorage.getItem('hemored_plan_elegido'));
+    if (!id) return;
+    await HemoRed.db.init();
+    const plan = HemoRed.db.find('planes', id);
+    if (!plan) return;
+    const el = document.getElementById('plan-seleccionado-value');
+    el.textContent = plan.precio_base === 0
+      ? `Plan ${plan.nombre} · sin costo`
+      : `Plan ${plan.nombre} · $${plan.precio_base.toLocaleString('es-AR')}/mes`;
+  })();
+</script>
 </body>
 </html>

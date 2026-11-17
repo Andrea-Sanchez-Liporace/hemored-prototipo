@@ -247,45 +247,54 @@
     window.scrollTo(0, 0);
   }
 
-  // Los 2 planes y sus datos, para reflejar lo elegido en "elegir_plan.html"
-  // (guardado en sessionStorage, mismo mecanismo que ya usa el wizard de
-  // "Crear campaña" del hospital) sin tener que volver a cargar nada del
-  // formulario de registro.
-  const PLANES_PAGO = {
-    provincial: {
-      nombre: 'Plan Provincial', precio: 15000,
-      features: ['Campañas ilimitadas', 'Hasta 3 activas simultáneas', 'Alcance provincial', 'Dashboard de métricas', 'Documentación clínica'],
-    },
-    nacional: {
-      nombre: 'Plan Nacional', precio: 25000,
-      features: ['Campañas ilimitadas', 'Hasta 10 activas simultáneas', 'Alcance nacional', 'Dashboard de métricas avanzado', 'Documentación clínica', 'Soporte prioritario'],
-    },
-  };
+  // Plan real leído de planes.json (2026-11-17, pedido explícito: "los
+  // planes nuevos conectados") — antes era un diccionario fijo con solo 2
+  // planes (Provincial/Nacional), ya no alcanzaba con los 4 reales. El
+  // plan Gratuito nunca llega acá (registro.html lo manda directo a
+  // cuenta_pendiente.html, no tiene nada que cobrar).
+  function featuresDePlan(plan) {
+    return [
+      plan.max_campanas_simultaneas >= 999 ? 'Campañas ilimitadas' : `Hasta ${plan.max_campanas_simultaneas} activas simultáneas`,
+      `Alcance ${plan.alcance}`,
+      'Dashboard de métricas',
+      'Documentación clínica',
+    ].concat(plan.nombre === 'Premium' ? ['Soporte prioritario'] : []);
+  }
+
+  function esPromoVigentePago(plan) {
+    if (!plan.es_promo || !plan.fecha_inicio_promo || !plan.fecha_fin_promo) return false;
+    const hoy = new Date();
+    return hoy >= new Date(plan.fecha_inicio_promo) && hoy <= new Date(plan.fecha_fin_promo + 'T23:59:59');
+  }
 
   function formatearMonto(n) {
     return '$' + n.toLocaleString('es-AR');
   }
 
-  function aplicarPlanElegido() {
-    const id = sessionStorage.getItem('hemored_plan_elegido') || 'provincial';
-    const plan = PLANES_PAGO[id] || PLANES_PAGO.provincial;
-    const iva = Math.round(plan.precio * 0.21);
-    const total = plan.precio + iva;
+  async function aplicarPlanElegido() {
+    await HemoRed.db.init();
+    const id = Number(sessionStorage.getItem('hemored_plan_elegido'));
+    const planes = HemoRed.db.all('planes').filter(p => p.activo && p.precio_base > 0);
+    const plan = planes.find(p => p.id === id) || planes.find(p => p.nombre === 'Profesional') || planes[0];
+    const precio = esPromoVigentePago(plan) ? plan.precio_promo : plan.precio_base;
+    const iva = Math.round(precio * 0.21);
+    const total = precio + iva;
+    const nombrePlan = `Plan ${plan.nombre}`;
 
-    document.getElementById('resumen-plan-name').textContent = plan.nombre;
-    document.getElementById('resumen-plan-price').innerHTML = formatearMonto(plan.precio) + ' <span>/ mes + IVA</span>';
-    document.getElementById('resumen-plan-features').innerHTML = plan.features
+    document.getElementById('resumen-plan-name').textContent = nombrePlan;
+    document.getElementById('resumen-plan-price').innerHTML = formatearMonto(precio) + ' <span>/ mes + IVA</span>';
+    document.getElementById('resumen-plan-features').innerHTML = featuresDePlan(plan)
       .map(f => `<li><i class="ti ti-check"></i>${f}</li>`).join('');
-    document.getElementById('resumen-subtotal').textContent = formatearMonto(plan.precio);
+    document.getElementById('resumen-subtotal').textContent = formatearMonto(precio);
     document.getElementById('resumen-iva').textContent = formatearMonto(iva);
     document.getElementById('resumen-total').textContent = formatearMonto(total);
-    document.getElementById('btn-pagar').innerHTML = `<i class="ti ti-lock"></i>Pagar ${formatearMonto(plan.precio)} / mes`;
-    document.getElementById('success-plan-nombre').textContent = plan.nombre;
-    document.getElementById('success-plan-nombre-2').textContent = plan.nombre;
+    document.getElementById('btn-pagar').innerHTML = `<i class="ti ti-lock"></i>Pagar ${formatearMonto(precio)} / mes`;
+    document.getElementById('success-plan-nombre').textContent = nombrePlan;
+    document.getElementById('success-plan-nombre-2').textContent = nombrePlan;
     document.getElementById('success-plan-monto').textContent = `${formatearMonto(total)} / mes`;
   }
 
-  aplicarPlanElegido();
+  document.addEventListener('DOMContentLoaded', aplicarPlanElegido);
 </script>
 
 <!-- Esta página nunca cargó el framework de HemoRed (es un mockup estático,

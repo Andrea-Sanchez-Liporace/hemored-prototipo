@@ -163,57 +163,25 @@
         <input class="form-input" id="h-pass2" type="password" placeholder="••••••••">
       </div>
 
-      <!-- PLANES -->
+      <!-- PLANES (2026-11-17: ya lee los planes reales de planes.json. El
+           form ya no muestra las 4 tarjetas — si no hay un plan elegido
+           todavía, manda a elegirlo a publico/planes.html y vuelve acá con
+           el plan puesto y sin perder lo que ya habías cargado arriba. -->
       <div class="plan-section-title">
         <i class="ti ti-star" aria-hidden="true"></i>
-        Elegí tu plan
-      </div>
-      <div class="planes-grid">
-
-        <div class="plan-card selectable" onclick="seleccionarPlan('provincial', this)">
-          <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
-          <div class="plan-name">Plan Provincial</div>
-          <div class="plan-price">$15.000 <span>/ mes + IVA</span></div>
-          <ul class="plan-features">
-            <li><i class="ti ti-check" aria-hidden="true"></i>Campañas ilimitadas</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Hasta 3 campañas activas simultáneas</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Alcance provincial</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Gestión de turnos, pacientes y profesionales</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Dashboard de métricas</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Carga de documentación clínica</li>
-          </ul>
-        </div>
-
-        <div class="plan-card selectable" onclick="seleccionarPlan('nacional', this)">
-          <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
-          <div class="plan-badge-top">Recomendado</div>
-          <div class="plan-name">Plan Nacional</div>
-          <div class="plan-price">$25.000 <span>/ mes + IVA</span></div>
-          <ul class="plan-features">
-            <li><i class="ti ti-check" aria-hidden="true"></i>Campañas ilimitadas</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Hasta 10 campañas activas simultáneas</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Alcance nacional</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Gestión de turnos, pacientes y profesionales</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Dashboard de métricas avanzado</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Carga de documentación clínica</li>
-            <li><i class="ti ti-check" aria-hidden="true"></i>Soporte prioritario</li>
-          </ul>
-        </div>
-
+        Tu plan
       </div>
 
-      <div class="plan-especial" onclick="window.location='../publico/contacto.html'">
-        <div class="plan-especial-info">
-          <div class="plan-especial-icon">
-            <i class="ti ti-message" aria-hidden="true"></i>
-          </div>
-          <div>
-            <div class="plan-especial-title">¿Necesitás un plan especial?</div>
-            <div class="plan-especial-desc">Redes de hospitales, ministerios o necesidades particulares. Contactanos.</div>
-          </div>
-        </div>
-        <i class="ti ti-arrow-right" aria-hidden="true"></i>
+      <div id="plan-sin-elegir" style="display:none;background:#fdf0f3;border:1px solid #f28b98;border-radius:12px;padding:18px;flex-direction:column;align-items:center;gap:12px;">
+        <p style="font-size:13px;color:#5a1e37;margin:0;">Todavía no elegiste un plan.</p>
+        <button type="button" class="form-btn" style="width:auto;padding:10px 24px;" onclick="irAElegirPlan()">Ver planes y elegir</button>
       </div>
+
+      <div id="plan-elegido-resumen" style="display:none;">
+      </div>
+      <!-- "¿Necesitás un plan especial?" ya no va acá (2026-11-17, pedido
+           explícito): ahora vive en publico/planes.html, donde se elige el
+           plan antes de llegar a este form. -->
 
       <p class="plan-note">Tu cuenta quedará pendiente de aprobación. Te notificaremos por email cuando sea activada por el administrador.</p>
 
@@ -228,6 +196,7 @@
 <footer>
   <div class="footer-logo"><a href="../index.html">Hemo<span>red</span></a></div>
   <div class="footer-links">
+    <a href="../publico/planes.html">Planes</a>
     <a href="../publico/terminos.html">Términos</a>
     <a href="../publico/privacidad.html">Privacidad</a>
     <a href="../publico/contacto.html">Contacto</a>
@@ -241,18 +210,100 @@
     document.getElementById('step-' + rol).classList.add('active');
     window.scrollTo(0, 0);
   }
-  // Por default coincide con el plan que pago.html ya daba por hardcodeado
-  // (Plan Provincial) para cuando se llega a "Solicitar registro" sin
-  // haber clickeado ninguna tarjeta.
-  let planElegido = 'provincial';
-  function seleccionarPlan(plan, el) {
-    document.querySelectorAll('.plan-card.selectable').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    planElegido = plan;
+
+  // Planes reales (2026-11-17, pedido explícito: "actualizar las opciones"
+  // del form de alta) — antes eran 2 tarjetas fijas (Provincial/Nacional)
+  // sin relación con planes.json. Mismas 3 funciones que ya usa
+  // publico/planes.html y publico/elegir_plan.html, duplicadas acá a
+  // propósito (son 3 pantallas mockup sin backend compartido, no vale la
+  // pena armar un módulo común para esto todavía).
+  let planElegido = null;
+
+  function esPromoVigenteReg(plan) {
+    if (!plan.es_promo || !plan.fecha_inicio_promo || !plan.fecha_fin_promo) return false;
+    const hoy = new Date();
+    return hoy >= new Date(plan.fecha_inicio_promo) && hoy <= new Date(plan.fecha_fin_promo + 'T23:59:59');
   }
-  function continuarAPago() {
-    sessionStorage.setItem('hemored_plan_elegido', planElegido);
-    window.location = '../publico/pago.html';
+
+  // El form ya no muestra las 4 tarjetas (2026-11-17, pedido explícito):
+  // si hay un plan elegido, se ve un resumen compacto con un link para
+  // cambiarlo; si no hay ninguno, un botón manda a publico/planes.html a
+  // elegir. Volver de ahí no pierde lo que ya se había completado arriba
+  // — se guarda en sessionStorage antes de salir y se restaura al volver.
+  const DRAFT_KEY = 'hemored_registro_hospital_draft';
+  const CAMPOS_DRAFT = ['h-nombre', 'h-cuit', 'h-tel', 'h-dir', 'h-email', 'h-pass', 'h-pass2'];
+
+  function guardarDraftHospital() {
+    const datos = {};
+    CAMPOS_DRAFT.forEach(id => { datos[id] = document.getElementById(id).value; });
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(datos));
+  }
+  function restaurarDraftHospital() {
+    try {
+      const datos = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null');
+      if (!datos) return;
+      CAMPOS_DRAFT.forEach(id => { if (datos[id]) document.getElementById(id).value = datos[id]; });
+    } catch (e) { /* draft corrupto, se ignora */ }
+  }
+  function irAElegirPlan() {
+    guardarDraftHospital();
+    window.location = '../publico/planes.html';
+  }
+
+  function resumenPlanHospital(plan) {
+    const esGratuito = plan.precio_base === 0;
+    const promoVigente = esPromoVigenteReg(plan);
+    const precio = promoVigente ? plan.precio_promo : plan.precio_base;
+    const precioTxt = esGratuito ? 'Gratis' : `$${precio.toLocaleString('es-AR')} / mes + IVA`;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fdf0f3;border:1px solid #f28b98;border-radius:12px;padding:16px 18px;">
+        <div>
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">Plan ${plan.nombre}</div>
+          <div style="font-size:13px;color:#854f0b;">${precioTxt}</div>
+        </div>
+        <button type="button" style="background:none;border:none;color:#a9435d;font-size:13px;font-weight:500;cursor:pointer;text-decoration:underline;padding:0;" onclick="irAElegirPlan()">Cambiar plan</button>
+      </div>`;
+  }
+
+  async function initPasoHospital() {
+    await HemoRed.db.init();
+    restaurarDraftHospital();
+
+    const params = new URLSearchParams(window.location.search);
+    const planParam = Number(params.get('plan'));
+    const planGuardado = Number(sessionStorage.getItem('hemored_plan_elegido'));
+    const planes = HemoRed.db.all('planes').filter(p => p.activo).sort((a, b) => a.id - b.id);
+    const elegido = planes.find(p => p.id === planParam) || planes.find(p => p.id === planGuardado) || null;
+    planElegido = elegido?.id ?? null;
+
+    const cajaSinPlan = document.getElementById('plan-sin-elegir');
+    const cajaResumen = document.getElementById('plan-elegido-resumen');
+    if (elegido) {
+      cajaSinPlan.style.display = 'none';
+      cajaResumen.style.display = '';
+      cajaResumen.innerHTML = resumenPlanHospital(elegido);
+    } else {
+      cajaSinPlan.style.display = 'flex';
+      cajaResumen.style.display = 'none';
+    }
+
+    const vuelveDeElegirPlan = !!planParam || sessionStorage.getItem(DRAFT_KEY);
+    if (params.get('rol') === 'hospital' || vuelveDeElegirPlan) elegirRol('hospital');
+  }
+  document.addEventListener('DOMContentLoaded', initPasoHospital);
+
+  async function continuarAPago() {
+    if (!planElegido) {
+      document.getElementById('plan-sin-elegir').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    await HemoRed.db.init();
+    const plan = HemoRed.db.find('planes', planElegido);
+    sessionStorage.setItem('hemored_plan_elegido', String(planElegido));
+    sessionStorage.removeItem(DRAFT_KEY);
+    // El plan Gratuito no tiene nada que cobrar — saltea pago.html directo
+    // a la pantalla de "cuenta pendiente de aprobación".
+    window.location = (plan && plan.precio_base === 0) ? '../publico/cuenta_pendiente.html' : '../publico/pago.html';
   }
   function volver() {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));

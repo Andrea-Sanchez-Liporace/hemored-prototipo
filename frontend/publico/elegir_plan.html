@@ -30,38 +30,7 @@
     <div class="form-title">Elegí tu plan</div>
     <div class="form-subtitle">Cambiá de plan sin perder los datos de tu institución ya cargados.</div>
 
-    <div class="planes-grid">
-
-      <div class="plan-card selectable" data-plan="provincial" onclick="seleccionarPlan('provincial', this)">
-        <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
-        <div class="plan-name">Plan Provincial</div>
-        <div class="plan-price">$15.000 <span>/ mes + IVA</span></div>
-        <ul class="plan-features">
-          <li><i class="ti ti-check" aria-hidden="true"></i>Campañas ilimitadas</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Hasta 3 campañas activas simultáneas</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Alcance provincial</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Gestión de turnos, pacientes y profesionales</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Dashboard de métricas</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Carga de documentación clínica</li>
-        </ul>
-      </div>
-
-      <div class="plan-card selectable" data-plan="nacional" onclick="seleccionarPlan('nacional', this)">
-        <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
-        <div class="plan-badge-top">Recomendado</div>
-        <div class="plan-name">Plan Nacional</div>
-        <div class="plan-price">$25.000 <span>/ mes + IVA</span></div>
-        <ul class="plan-features">
-          <li><i class="ti ti-check" aria-hidden="true"></i>Campañas ilimitadas</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Hasta 10 campañas activas simultáneas</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Alcance nacional</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Gestión de turnos, pacientes y profesionales</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Dashboard de métricas avanzado</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Carga de documentación clínica</li>
-          <li><i class="ti ti-check" aria-hidden="true"></i>Soporte prioritario</li>
-        </ul>
-      </div>
-
+    <div class="planes-grid" id="planes-grid-elegir">
     </div>
 
     <div class="plan-especial" onclick="window.location='contacto.html'">
@@ -86,26 +55,69 @@
   <div class="footer-copy">© 2026 HemoRed</div>
 </footer>
 
+<script src="../js/db.js"></script>
+<script src="../js/data.js"></script>
 <script>
-  let planElegido = sessionStorage.getItem('hemored_plan_elegido') || 'provincial';
+  // Planes reales (2026-11-17) — mismas funciones que registro.html y
+  // publico/planes.html, duplicadas a propósito (ver nota en registro.html).
+  let planElegido = Number(sessionStorage.getItem('hemored_plan_elegido')) || null;
+  let planesCache = [];
 
-  function marcarSeleccion(plan) {
-    document.querySelectorAll('.plan-card.selectable').forEach(c => {
-      c.classList.toggle('selected', c.dataset.plan === plan);
-    });
+  function esPromoVigenteElegir(plan) {
+    if (!plan.es_promo || !plan.fecha_inicio_promo || !plan.fecha_fin_promo) return false;
+    const hoy = new Date();
+    return hoy >= new Date(plan.fecha_inicio_promo) && hoy <= new Date(plan.fecha_fin_promo + 'T23:59:59');
   }
 
-  function seleccionarPlan(plan, el) {
-    planElegido = plan;
-    marcarSeleccion(plan);
+  function tarjetaPlanElegir(plan) {
+    const esGratuito = plan.precio_base === 0;
+    const esRecomendado = plan.nombre === 'Profesional';
+    const promoVigente = esPromoVigenteElegir(plan);
+    const precio = promoVigente ? plan.precio_promo : plan.precio_base;
+    const precioHtml = esGratuito
+      ? `<div class="plan-price">Gratis</div>`
+      : `<div class="plan-price">$${precio.toLocaleString('es-AR')} <span>/ mes + IVA</span></div>`;
+    const features = esGratuito
+      ? ['Sin costo de suscripción', 'Participa en campañas a las que te inviten', 'Gestión de turnos y profesionales (sin pacientes propios)']
+      : [
+          plan.max_campanas_simultaneas >= 999 ? 'Campañas ilimitadas' : `Hasta ${plan.max_campanas_simultaneas} campañas activas simultáneas`,
+          `Alcance ${plan.alcance}`,
+          'Gestión de turnos, pacientes y profesionales',
+          'Dashboard de métricas',
+          'Carga de documentación clínica',
+        ].concat(plan.nombre === 'Premium' ? ['Soporte prioritario'] : []);
+
+    return `
+      <div class="plan-card selectable${plan.id === planElegido ? ' selected' : ''}" data-plan="${plan.id}" onclick="seleccionarPlan(${plan.id}, this)">
+        <div class="plan-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+        ${esRecomendado ? '<div class="plan-badge-top">Recomendado</div>' : ''}
+        ${esGratuito ? '<div class="plan-badge-top" style="background:#27ae60;">Nuevo</div>' : ''}
+        <div class="plan-name">${plan.nombre}</div>
+        ${precioHtml}
+        <ul class="plan-features">
+          ${features.map(f => `<li><i class="ti ti-check" aria-hidden="true"></i>${f}</li>`).join('')}
+        </ul>
+      </div>`;
+  }
+
+  async function renderPlanesElegir() {
+    await HemoRed.db.init();
+    planesCache = HemoRed.db.all('planes').filter(p => p.activo).sort((a, b) => a.id - b.id);
+    if (!planElegido) planElegido = (planesCache.find(p => p.nombre === 'Profesional') || planesCache[0])?.id;
+    document.getElementById('planes-grid-elegir').innerHTML = planesCache.map(tarjetaPlanElegir).join('');
+  }
+  document.addEventListener('DOMContentLoaded', renderPlanesElegir);
+
+  function seleccionarPlan(planId, el) {
+    planElegido = planId;
+    document.querySelectorAll('.plan-card.selectable').forEach(c => c.classList.toggle('selected', Number(c.dataset.plan) === planId));
   }
 
   function confirmarPlan() {
-    sessionStorage.setItem('hemored_plan_elegido', planElegido);
-    window.location = 'pago.html';
+    sessionStorage.setItem('hemored_plan_elegido', String(planElegido));
+    const plan = planesCache.find(p => p.id === planElegido);
+    window.location = (plan && plan.precio_base === 0) ? 'cuenta_pendiente.html' : 'pago.html';
   }
-
-  marcarSeleccion(planElegido);
 </script>
 </body>
 </html>
