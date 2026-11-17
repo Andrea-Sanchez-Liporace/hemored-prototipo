@@ -82,7 +82,8 @@ test.describe('Notificaciones (donante)', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Fresca');
-    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-apellido-paterno', 'Testigo');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.notif.${Date.now()}@example.com`);
     await page.fill('#d-tel', '11-2222-2222');
     await page.fill('#d-pass', 'password123');

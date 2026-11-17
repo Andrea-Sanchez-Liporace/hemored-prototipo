@@ -75,7 +75,8 @@ test.describe('Sin scroll horizontal en Donante a 320px', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Marina');
-    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-apellido-paterno', 'Testigo');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.responsive320.${ts}@example.com`);
     await page.fill('#d-tel', '11-5555-4444');
     await page.fill('#d-pass', 'password123');
@@ -131,7 +132,7 @@ test.describe('Sin scroll horizontal en Donante a 320px', () => {
     expect(completitudBox.y).toBeGreaterThanOrEqual(infoBox.y + infoBox.height - 1);
 
     const nombreBox = await page.locator('#input-nombre').boundingBox();
-    const apellidoBox = await page.locator('#input-apellido').boundingBox();
+    const apellidoBox = await page.locator('#input-apellido-paterno').boundingBox();
     // Un campo por fila: Apellido tiene que estar DEBAJO de Nombre, no al
     // lado (misma fila = misma "y" aproximada).
     expect(apellidoBox.y).toBeGreaterThan(nombreBox.y + nombreBox.height / 2);
@@ -188,7 +189,8 @@ test.describe('Sin scroll horizontal en Donante a 320px', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Marina');
-    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-apellido-paterno', 'Testigo');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.topbar320.${ts}@example.com`);
     await page.fill('#d-tel', '11-5555-4444');
     await page.fill('#d-pass', 'password123');

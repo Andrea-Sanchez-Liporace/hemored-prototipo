@@ -44,7 +44,8 @@ async function registrarYEntrarACampana(page) {
   await page.goto('/publico/registro.html');
   await page.click('text=Soy donante');
   await page.fill('#d-nombre', 'Julieta');
-  await page.fill('#d-apellido', 'Testigo');
+  await page.fill('#d-apellido-paterno', 'Testigo');
+  await page.fill('#d-apellido-materno', 'Flores');
   await page.fill('#d-email', donanteEmail);
   await page.fill('#d-tel', '11-2222-3333');
   await page.fill('#d-pass', donantePassword);
@@ -162,7 +163,8 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Julieta');
-    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-apellido-paterno', 'Testigo');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.reprogramar.${Date.now()}@example.com`);
     await page.fill('#d-tel', '11-2222-3333');
     await page.fill('#d-pass', donantePassword);
@@ -228,7 +230,8 @@ test.describe('Restricciones de elegibilidad para reservar turno', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Julieta');
-    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-apellido-paterno', 'Testigo');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.banner.${Date.now()}@example.com`);
     await page.fill('#d-tel', '11-2222-3333');
     await page.fill('#d-pass', donantePassword);

@@ -56,10 +56,10 @@ test.describe('Solicitudes de corrección sobre certificados (donante + hospital
       await expect(page.locator('#solicitud-campos-lista')).not.toContainText('Volumen donado');
       await expect(page.locator('#solicitud-campos-lista')).not.toContainText('Profesional a cargo');
       await expect(page.locator('#solicitud-campos-lista')).not.toContainText('Hospital');
-      await page.locator('#solicitud-campos-lista label', { hasText: 'Apellido' }).locator('input[type=checkbox]').check();
-      await expect(page.locator('#campo-correccion-detalle-apellido')).toBeVisible();
-      await expect(page.locator('#campo-correccion-detalle-apellido')).toContainText('Páez');
-      await page.fill('#campo-correccion-valor-apellido', 'Páez López');
+      await page.locator('#solicitud-campos-lista label', { hasText: 'Apellido paterno' }).locator('input[type=checkbox]').check();
+      await expect(page.locator('#campo-correccion-detalle-apellido_paterno')).toBeVisible();
+      await expect(page.locator('#campo-correccion-detalle-apellido_paterno')).toContainText('Páez');
+      await page.fill('#campo-correccion-valor-apellido_paterno', 'Páez López');
     });
 
     await test.step('mandar la solicitud sin completar el valor propuesto se rechaza', async () => {
@@ -119,7 +119,7 @@ test.describe('Solicitudes de corrección sobre certificados (donante + hospital
 
     await test.step('el dato corregido queda aplicado de verdad en usuarios', async () => {
       const apellidoActualizado = await page.evaluate(() => {
-        return HemoRed.db.where('usuarios', 'email', 'donante@hemored.com')[0].apellido;
+        return HemoRed.db.where('usuarios', 'email', 'donante@hemored.com')[0].apellido_paterno;
       });
       expect(apellidoActualizado).toBe('Páez López');
     });

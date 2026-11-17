@@ -79,7 +79,8 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', 'Carla');
-      await page.fill('#d-apellido', 'Testigo');
+      await page.fill('#d-apellido-paterno', 'Testigo');
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', donanteEmail);
       await page.fill('#d-tel', '11-4444-3333');
       await page.fill('#d-pass', donantePassword);
@@ -279,7 +280,8 @@ test.describe('Formularios pre-donación (F1 + F2)', () => {
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', 'Rocío');
-      await page.fill('#d-apellido', 'Testigo');
+      await page.fill('#d-apellido-paterno', 'Testigo');
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', `donante.f2inhab.${Date.now()}@example.com`);
       await page.fill('#d-tel', '11-4444-3333');
       await page.fill('#d-pass', donantePassword);

@@ -33,7 +33,8 @@ async function registrarYReservar(page, indiceFecha) {
   await page.goto('/publico/registro.html');
   await page.click('text=Soy donante');
   await page.fill('#d-nombre', 'Marina');
-  await page.fill('#d-apellido', 'Testigo');
+  await page.fill('#d-apellido-paterno', 'Testigo');
+  await page.fill('#d-apellido-materno', 'Flores');
   await page.fill('#d-email', donanteEmail);
   await page.fill('#d-tel', '11-5555-4444');
   await page.fill('#d-pass', donantePassword);
@@ -135,7 +136,8 @@ test.describe('Modificar y cancelar turno', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Marina');
-    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-apellido-paterno', 'Testigo');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.mod.vencido.${Date.now()}@example.com`);
     await page.fill('#d-tel', '11-5555-4444');
     await page.fill('#d-pass', donantePassword);

@@ -35,7 +35,8 @@ test.describe('Mi perfil (donante)', () => {
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', 'Marina');
-      await page.fill('#d-apellido', 'Testigo');
+      await page.fill('#d-apellido-paterno', 'Testigo');
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', donanteEmail);
       await page.fill('#d-tel', '11-5555-4444');
       await page.fill('#d-pass', donantePassword);
@@ -46,7 +47,7 @@ test.describe('Mi perfil (donante)', () => {
 
     await test.step('ir a Mi perfil', async () => {
       await page.goto('/donante/perfil.html');
-      await expect(page.locator('#perfil-nombre-completo')).toHaveText('Marina Testigo');
+      await expect(page.locator('#perfil-nombre-completo')).toHaveText('Marina Testigo Flores');
       // Perfil recién creado: sin tipo de sangre, así que el badge de alerta debe verse.
       await expect(page.locator('#perfil-badge-sangre')).toBeVisible();
     });
@@ -64,7 +65,7 @@ test.describe('Mi perfil (donante)', () => {
     await test.step('el nombre del sidebar se actualiza sin recargar', async () => {
       await page.fill('#input-nombre', 'Marina Inés');
       await page.click('#sec-personal button:has-text("Guardar cambios")');
-      await expect(page.locator('[data-sesion-nombre]')).toHaveText('Marina Inés Testigo');
+      await expect(page.locator('[data-sesion-nombre]')).toHaveText('Marina Inés Testigo Flores');
     });
 
     await test.step('abrir Datos médicos, elegir tipo de sangre y guardar', async () => {

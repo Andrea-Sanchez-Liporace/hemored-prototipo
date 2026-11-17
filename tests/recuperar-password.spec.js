@@ -52,7 +52,8 @@ test.describe('Recuperar contraseña', () => {
     const email = `recuperar${Date.now()}@hemored.com`;
     await page.click('.rol-card[onclick*="donante"]');
     await page.fill('#d-nombre', 'Test');
-    await page.fill('#d-apellido', 'Recuperar');
+    await page.fill('#d-apellido-paterno', 'Recuperar');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', email);
     await page.fill('#d-pass', 'password123');
     await page.fill('#d-pass2', 'password123');

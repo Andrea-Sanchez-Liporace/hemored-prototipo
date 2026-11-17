@@ -57,7 +57,8 @@ test.describe('Camino feliz: registro → reserva de turno → confirmación', (
       await page.click('text=Soy donante');
 
       await page.fill('#d-nombre', donanteNombre);
-      await page.fill('#d-apellido', donanteApellido);
+      await page.fill('#d-apellido-paterno', donanteApellido);
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', donanteEmail);
       await page.fill('#d-tel', '11-5555-4444');
       await page.fill('#d-pass', donantePassword);

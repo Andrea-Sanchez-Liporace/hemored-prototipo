@@ -33,7 +33,8 @@ test.describe('Seguridad de la cuenta (donante)', () => {
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', 'Lucía');
-      await page.fill('#d-apellido', 'Testigo');
+      await page.fill('#d-apellido-paterno', 'Testigo');
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', donanteEmail);
       await page.fill('#d-tel', '11-7777-8888');
       await page.fill('#d-pass', donantePassword);

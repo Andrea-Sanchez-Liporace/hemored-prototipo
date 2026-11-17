@@ -92,7 +92,8 @@ test.describe('Registrar donación (Hospital) + formulario post-donación anóni
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', donanteNombre);
-      await page.fill('#d-apellido', donanteApellido);
+      await page.fill('#d-apellido-paterno', donanteApellido);
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', donanteEmail);
       await page.fill('#d-tel', '11-4321-8765');
       await page.fill('#d-pass', donantePassword);

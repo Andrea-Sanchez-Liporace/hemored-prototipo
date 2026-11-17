@@ -33,7 +33,8 @@ test.describe('Perfil incompleto — aviso del sidebar y badges de perfil.html',
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', 'Marina');
-      await page.fill('#d-apellido', 'Incompleta');
+      await page.fill('#d-apellido-paterno', 'Incompleta');
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', donanteEmail);
       await page.fill('#d-tel', '11-5555-4444');
       await page.fill('#d-pass', donantePassword);

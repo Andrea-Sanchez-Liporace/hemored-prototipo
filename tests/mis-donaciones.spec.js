@@ -75,7 +75,8 @@ test.describe('Mis donaciones (donante)', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Reciente');
-    await page.fill('#d-apellido', 'Testigo');
+    await page.fill('#d-apellido-paterno', 'Testigo');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.reciente.${Date.now()}@example.com`);
     await page.fill('#d-tel', '11-1111-1111');
     await page.fill('#d-pass', 'password123');
@@ -112,7 +113,8 @@ test.describe('Mis donaciones (donante)', () => {
       await page.goto('/publico/registro.html');
       await page.click('text=Soy donante');
       await page.fill('#d-nombre', 'Sin');
-      await page.fill('#d-apellido', 'Donaciones');
+      await page.fill('#d-apellido-paterno', 'Donaciones');
+      await page.fill('#d-apellido-materno', 'Flores');
       await page.fill('#d-email', email);
       await page.fill('#d-tel', '11-0000-0000');
       await page.fill('#d-pass', 'password123');

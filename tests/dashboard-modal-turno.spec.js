@@ -75,7 +75,8 @@ test.describe('Modal "Detalle del turno" (dashboard)', () => {
     await page.goto('/publico/registro.html');
     await page.click('text=Soy donante');
     await page.fill('#d-nombre', 'Marina');
-    await page.fill('#d-apellido', 'Pendiente');
+    await page.fill('#d-apellido-paterno', 'Pendiente');
+    await page.fill('#d-apellido-materno', 'Flores');
     await page.fill('#d-email', `donante.pendiente.${Date.now()}@example.com`);
     await page.fill('#d-tel', '11-2222-3333');
     await page.fill('#d-pass', 'password123');
