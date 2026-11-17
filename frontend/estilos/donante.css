@@ -310,6 +310,11 @@ fieldset.content { border: 0; margin: 0; min-width: 0; }
 .fecha-tab { padding: 8px 16px; border-radius: 9px; border: 1.5px solid #e8d0d8; font-size: 13px; color: #5a3040; cursor: pointer; transition: all 0.15s; background: white; font-family: 'Inter', sans-serif; }
 .fecha-tab:hover { border-color: #ef647c; color: #5a1e37; }
 .fecha-tab.active { background: #5a1e37; border-color: #5a1e37; color: white; }
+/* Paginado de fechas candidatas (2026-11-17) — antes la grilla quedaba
+   fija en los próximos 4 días sin forma de avanzar. */
+.fecha-nav-btn { width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px; border: 1.5px solid #e8d0d8; background: white; color: #5a3040; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.15s; }
+.fecha-nav-btn:hover:not(:disabled) { border-color: #ef647c; color: #5a1e37; }
+.fecha-nav-btn:disabled { opacity: 0.35; cursor: default; }
 .turnos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .turno-opt { border: 1.5px solid #e8d0d8; border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.15s; }
 .turno-opt:hover { border-color: #ef647c; background: #fdf0f3; }

@@ -9,10 +9,6 @@
   <link rel="stylesheet" href="../estilos/global.css">
   <link rel="stylesheet" href="../estilos/componentes.css">
   <link rel="stylesheet" href="../estilos/hospital.css">
-
-
-
-
 </head>
 <body>
 
@@ -26,124 +22,192 @@
       <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
       <div class="topbar-title">Facturación</div>
     </div>
-    <button class="btn-export" style="border:1.5px solid #e8d0d8;">
-      <i class="ti ti-download"></i>Exportar todas
-    </button>
   </div>
 
-  <div class="content">
-
-    <!-- RESUMEN -->
-    <div class="resumen-grid">
-      <div class="resumen-card">
-        <div class="resumen-label">Plan activo</div>
-        <div class="resumen-value">Provincial</div>
-        <div class="resumen-sub">Desde el 15 de abril 2026</div>
-      </div>
-      <div class="resumen-card">
-        <div class="resumen-label">Monto mensual</div>
-        <div class="resumen-value">$18.150</div>
-        <div class="resumen-sub">$15.000 + IVA (21%)</div>
-      </div>
-      <div class="resumen-card">
-        <div class="resumen-label">Total facturado</div>
-        <div class="resumen-value">$36.300</div>
-        <div class="resumen-sub">2 facturas emitidas</div>
-      </div>
-    </div>
-
-    <!-- PRÓXIMA FACTURA -->
-    <div class="proxima-banner">
-      <div class="pb-info">
-        <div class="pb-label">Próxima factura</div>
-        <div class="pb-value">$18.150 · 15 de junio 2026</div>
-        <div class="pb-sub">Se debitará automáticamente de Visa terminada en 4532</div>
-      </div>
-      <button class="btn-medio" onclick="window.location='../hospital/perfil.html'">
-        <i class="ti ti-credit-card"></i>Cambiar medio de pago
-      </button>
-    </div>
-
-    <!-- HISTORIAL -->
-    <div class="section-header">
-      <div class="section-title">Historial de facturas</div>
-      <select style="padding:8px 12px;border:1px solid #e8d0d8;border-radius:8px;font-size:13px;color:#5a1e37;outline:none;font-family:'Inter',sans-serif;background:white;">
-        <option>Todos los períodos</option>
-        <option>2026</option>
-        <option>2025</option>
-      </select>
-    </div>
-
-    <div class="table-wrap">
-      <div class="table-header fact-table-header">
-        <div class="th">Nro. de factura</div>
-        <div class="th">Período</div>
-        <div class="th">Monto</div>
-        <div class="th">Estado</div>
-        <div class="th"></div>
-      </div>
-
-      <!-- PENDIENTE -->
-      <div class="fact-row">
-        <div>
-          <div class="fact-id">FAC-2026-0003</div>
-          <div class="fact-periodo">Plan Provincial</div>
-        </div>
-        <div class="td">Junio 2026</div>
-        <div class="td">$18.150</div>
-        <div class="td"><span class="fact-badge badge-pendiente">⏳ Pendiente</span></div>
-        <div class="fact-actions">
-          <button class="btn-xs btn-xs-primary">Pagar ahora</button>
-          <button class="btn-xs btn-xs-outline">Ver</button>
-        </div>
-      </div>
-
-      <!-- PAGADA -->
-      <div class="fact-row">
-        <div>
-          <div class="fact-id">FAC-2026-0002</div>
-          <div class="fact-periodo">Plan Provincial</div>
-        </div>
-        <div class="td">Mayo 2026</div>
-        <div class="td">$18.150</div>
-        <div class="td"><span class="fact-badge badge-pagada">✓ Pagada</span></div>
-        <div class="fact-actions">
-          <button class="btn-xs btn-xs-outline">
-            <i class="ti ti-download" style="font-size:11px;"></i> Descargar
-          </button>
-          <button class="btn-xs btn-xs-outline">Ver</button>
-        </div>
-      </div>
-
-      <!-- PAGADA -->
-      <div class="fact-row">
-        <div>
-          <div class="fact-id">FAC-2026-0001</div>
-          <div class="fact-periodo">Plan Provincial</div>
-        </div>
-        <div class="td">Abril 2026</div>
-        <div class="td">$18.150</div>
-        <div class="td"><span class="fact-badge badge-pagada">✓ Pagada</span></div>
-        <div class="fact-actions">
-          <button class="btn-xs btn-xs-outline">
-            <i class="ti ti-download" style="font-size:11px;"></i> Descargar
-          </button>
-          <button class="btn-xs btn-xs-outline">Ver</button>
-        </div>
-      </div>
-
-    </div>
-
+  <div class="content" id="contenido-facturacion">
+    <!-- se completa con HemoRed.data.cargarFacturacionHospital() -->
   </div>
 </div>
 
-<script>
-</script>
+<!-- MODAL: ver factura -->
+<div class="modal-overlay" id="modal-factura" style="display:none;position:fixed;inset:0;background:rgba(61,15,32,0.45);z-index:50;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this) cerrarModalFactura()">
+  <div style="background:white;border-radius:16px;max-width:420px;width:100%;padding:0;overflow:hidden;">
+    <div style="background:#3d0f20;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Lobster',cursive;font-size:20px;color:white;">Hemo<span style="color:#ef647c;">red</span></div>
+      <div style="background:rgba(255,255,255,0.12);color:white;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;">Factura</div>
+    </div>
+    <div style="padding:22px 24px;" id="modal-factura-body"></div>
+    <div style="padding:0 24px 22px;">
+      <button class="form-btn" style="margin:0;" onclick="cerrarModalFactura()">Cerrar</button>
+    </div>
+  </div>
+</div>
 
-  <script src="../js/db.js"></script>
-  <script src="../js/sesion.js"></script>
-  <script src="../js/ui.js"></script>
-  <script src="../js/data.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+<script>
+  // Facturación del hospital conectada a datos reales (2026-11-17, pedido
+  // explícito) — antes toda la pantalla era estática (siempre "Plan
+  // Provincial", 3 facturas fijas). Lee HemoRed.data.cargarFacturacionHospital(),
+  // que a su vez usa facturas.json/hospital_plan_historial.json ya
+  // regenerados con los precios reales de los 4 planes.
+  let hospitalId = null;
+  let facturasCache = [];
+
+  const BADGE = {
+    pagada: { clase: 'badge-pagada', texto: '✓ Pagada' },
+    pendiente: { clase: 'badge-pendiente', texto: '⏳ Pendiente' },
+    vencida: { clase: 'badge-vencida', texto: '⚠ Vencida' },
+  };
+
+  function formatearMonto(n) { return '$' + n.toLocaleString('es-AR'); }
+  function formatearFecha(iso) {
+    return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  function formatearFechaLarga(iso) {
+    return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function filaFactura(f) {
+    const badge = BADGE[f.estado];
+    const accion = f.estado === 'pendiente' || f.estado === 'vencida'
+      ? `<button class="btn-xs btn-xs-primary" onclick="window.location='../hospital/cambiar_plan.html'">Ver opciones de pago</button>`
+      : `<button class="btn-xs btn-xs-outline" onclick="descargarFactura()"><i class="ti ti-download" style="font-size:11px;"></i> Descargar</button>`;
+    return `
+      <div class="fact-row">
+        <div>
+          <div class="fact-id">${f.numero}</div>
+          <div class="fact-periodo">${f.periodo}</div>
+        </div>
+        <div class="td">${f.periodo}</div>
+        <div class="td">${formatearMonto(f.monto)}</div>
+        <div class="td"><span class="fact-badge ${badge.clase}">${badge.texto}</span></div>
+        <div class="fact-actions">
+          ${accion}
+          <button class="btn-xs btn-xs-outline" onclick="verFactura(${f.id})">Ver</button>
+        </div>
+      </div>`;
+  }
+
+  function renderGratuito(datos) {
+    document.getElementById('contenido-facturacion').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i class="ti ti-receipt-off" style="color:#ef647c;font-size:22px;" aria-hidden="true"></i></div>
+        <div class="empty-title">Tu cuenta no genera facturas</div>
+        <div class="empty-text">Estás en el <b>Plan ${datos.plan.nombre}</b>, sin costo de suscripción — no hay nada que facturar mientras lo mantengas.</div>
+      </div>`;
+  }
+
+  function renderFacturacion(datos) {
+    if (datos.plan.precio_base === 0) { renderGratuito(datos); return; }
+
+    const montoBase = datos.plan.precio_base;
+    const iva = Math.round(montoBase * 0.21);
+    const totalMensual = montoBase + iva;
+    const desdeLargo = formatearFechaLarga(datos.desde);
+
+    const bannerHtml = datos.proxima ? `
+      <div class="proxima-banner">
+        <div class="pb-info">
+          <div class="pb-label">${datos.proxima.estado === 'vencida' ? 'Factura vencida' : 'Próxima factura'}</div>
+          <div class="pb-value">${formatearMonto(datos.proxima.monto)} · vence el ${formatearFechaLarga(datos.proxima.fecha_vencimiento)}</div>
+          <div class="pb-sub">${datos.proxima.estado === 'vencida' ? 'Todavía no se registró el pago.' : 'Se debitará del medio de pago cargado en tu perfil.'}</div>
+        </div>
+        <button class="btn-medio" onclick="window.location='../hospital/perfil.html#sec-pago'">
+          <i class="ti ti-credit-card"></i>Cambiar medio de pago
+        </button>
+      </div>` : '';
+
+    document.getElementById('contenido-facturacion').innerHTML = `
+      <div class="resumen-grid">
+        <div class="resumen-card">
+          <div class="resumen-label">Plan activo</div>
+          <div class="resumen-value">${datos.plan.nombre}</div>
+          <div class="resumen-sub">Desde el ${desdeLargo}</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Monto mensual</div>
+          <div class="resumen-value">${formatearMonto(totalMensual)}</div>
+          <div class="resumen-sub">${formatearMonto(montoBase)} + IVA (21%)</div>
+        </div>
+        <div class="resumen-card">
+          <div class="resumen-label">Total facturado</div>
+          <div class="resumen-value">${formatearMonto(datos.totalFacturado)}</div>
+          <div class="resumen-sub">${datos.facturas.filter(f => f.estado === 'pagada').length} facturas pagadas</div>
+        </div>
+      </div>
+
+      ${bannerHtml}
+
+      <div class="section-header">
+        <div class="section-title">Historial de facturas</div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header fact-table-header">
+          <div class="th">Nro. de factura</div>
+          <div class="th">Período</div>
+          <div class="th">Monto</div>
+          <div class="th">Estado</div>
+          <div class="th"></div>
+        </div>
+        ${datos.facturas.map(filaFactura).join('')}
+      </div>`;
+  }
+
+  async function cargarFacturacion() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    const usuario = s && HemoRed.db.find('usuarios', s.usuario_id);
+    hospitalId = usuario?.hospital_id;
+    if (!hospitalId) return;
+
+    const datos = HemoRed.data.cargarFacturacionHospital(hospitalId);
+    if (!datos) return;
+    facturasCache = datos.facturas;
+    renderFacturacion(datos);
+  }
+  document.addEventListener('DOMContentLoaded', cargarFacturacion);
+
+  function contenidoFacturaHtml(f) {
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    const medio = f.medio_pago_id ? HemoRed.data.obtenerMedioPago(f.medio_pago_id) : null;
+    const iva = Math.round(f.monto * 0.21);
+    const total = f.monto + iva;
+    const badge = BADGE[f.estado];
+    return `
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:4px;"><span>Nro. de factura</span><b>${f.numero}</b></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:4px;"><span>Emisión</span><span>${formatearFecha(f.fecha_emision)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:4px;"><span>Vencimiento</span><span>${formatearFecha(f.fecha_vencimiento)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:4px;"><span>Período</span><span>${f.periodo}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:4px;"><span>Institución</span><span>${hospital.nombre}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:4px;"><span>CUIT</span><span>${hospital.cuit}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:12px;"><span>Estado</span><span class="fact-badge ${badge.clase}">${badge.texto}</span></div>
+      <hr style="border:none;border-top:1px solid #e8d0d8;margin:12px 0;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:4px;"><span>Subtotal</span><span>${formatearMonto(f.monto)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a1e37;margin-bottom:10px;"><span>IVA 21%</span><span>${formatearMonto(iva)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:600;color:#5a1e37;padding-top:10px;border-top:1px solid #e8d0d8;"><span>Total</span><span>${formatearMonto(total)}</span></div>
+      ${f.fecha_pago ? `<div style="font-size:12px;color:#a9435d;margin-top:10px;">Pagada el ${formatearFecha(f.fecha_pago)}${medio ? ' · ' + medio.nombre : ''}</div>` : ''}
+      ${f.observaciones ? `<div style="font-size:12px;color:#c0392b;margin-top:10px;">${f.observaciones}</div>` : ''}`;
+  }
+
+  function verFactura(facturaId) {
+    const f = facturasCache.find(x => x.id === facturaId);
+    if (!f) return;
+    document.getElementById('modal-factura-body').innerHTML = contenidoFacturaHtml(f);
+    document.getElementById('modal-factura').style.display = 'flex';
+  }
+  function cerrarModalFactura() { document.getElementById('modal-factura').style.display = 'none'; }
+
+  // Sin backend que genere un PDF real — mismo patrón de aviso que ya usan
+  // "Ver perfil"/"Ver resultado" en hospital/campana_detalle.html en vez de
+  // simular una descarga que no existe de verdad.
+  function descargarFactura() {
+    HemoRed.ui.toast('Descargar la factura todavía no está disponible en este prototipo.', 'error');
+  }
+</script>
 <script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
 
 </body>

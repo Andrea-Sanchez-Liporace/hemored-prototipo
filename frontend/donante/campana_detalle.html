@@ -190,8 +190,12 @@
             <div id="hospital-chips-donante" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
           </div>
 
-          <div class="fecha-tabs" id="fecha-tabs">
-            <!-- Se generan dinámicamente desde HOY -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+            <button type="button" class="fecha-nav-btn" id="fecha-nav-prev" onclick="cambiarPaginaFecha(-1)" aria-label="Días anteriores"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+            <div class="fecha-tabs" id="fecha-tabs" style="margin-bottom:0;flex:1;">
+              <!-- Se generan dinámicamente según las fechas candidatas del hospital elegido -->
+            </div>
+            <button type="button" class="fecha-nav-btn" id="fecha-nav-next" onclick="cambiarPaginaFecha(1)" aria-label="Días siguientes"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
           </div>
 
           <div class="turnos-grid" id="turnos-grid">
@@ -399,6 +403,12 @@
   // reservar (por defecto, el primero — que siempre es el creador).
   let hospitalesCampana = [];
   let hospitalSeleccionadoId = null;
+  // Página actual dentro de las fechas candidatas del hospital elegido (4
+  // por página, ver fechasCandidatasHospital/renderFechaTabs) — antes la
+  // grilla quedaba fija en los próximos 4 días sin forma de avanzar, por
+  // más que la campaña siguiera abierta meses (2026-11-17, reportado con
+  // captura).
+  let paginaFecha = 0;
 
   function campanaHospitalActual() {
     return hospitalesCampana.find(h => h.hospital_id === hospitalSeleccionadoId) || { cupo_por_turno: 1 };
@@ -433,11 +443,31 @@
     return new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  // Horas de TIME_SLOTS que siguen libres para una fecha dada: ni ocupadas
-  // (cupo lleno) ni, si la fecha es hoy, ya pasadas. Compartida por
-  // renderFechaTabs() (para elegir qué pestaña arranca activa) y
-  // renderTurnosGrid() (para pintar la grilla) — antes cada una tenía su
-  // propia lógica y renderFechaTabs() no sabía nada de horas pasadas.
+  // Si el hospital elegido tiene su propia config de días/horarios (ver
+  // "una campaña, varios hospitales", 2026-10-27) se usa esa — antes esta
+  // pantalla la ignoraba por completo y mostraba siempre la misma grilla
+  // fija (TIME_SLOTS) sin importar qué hospital se eligiera, que era
+  // justo lo que se reportó el 2026-11-17 ("cuando cambio de hospital la
+  // grilla no cambia"). Una campaña vieja sin esa config (el creador
+  // original, antes de que existiera esta función) sigue cayendo al
+  // comportamiento genérico de siempre: TIME_SLOTS, cualquier día.
+  function tieneConfigPropia(config) {
+    return !!(config.dias_atencion && config.horarios_atencion && config.duracion_turno_min);
+  }
+
+  // Lista de horarios POSIBLES (ocupados o no) para una fecha, según la
+  // config del hospital elegido — antes de cruzarla con turnos.json.
+  function slotsPosibles(fechaISO) {
+    const config = campanaHospitalActual();
+    if (!tieneConfigPropia(config)) return TIME_SLOTS;
+    return HemoRed.data.generarSlotsDisponibles({ ...config, fecha_cierre: campanaActual?.fecha_cierre }, fechaISO) || [];
+  }
+
+  // Horas que siguen libres para una fecha dada: ni ocupadas (cupo lleno)
+  // ni, si la fecha es hoy, ya pasadas. Compartida por renderFechaTabs()
+  // (para elegir qué pestaña arranca activa) y renderTurnosGrid() (para
+  // pintar la grilla) — antes cada una tenía su propia lógica y
+  // renderFechaTabs() no sabía nada de horas pasadas.
   // HOY nunca tiene horarios libres, sin importar la hora — pedido
   // explícito 2026-11-03: filtrar solo las horas ya pasadas no alcanza,
   // porque igual deja ofrecer un turno a los pocos minutos de publicar
@@ -452,18 +482,36 @@
     HemoRed.db.all('turnos')
       .filter(t => t.hospital_id === hospitalSeleccionadoId && t.fecha === fechaISO && t.estado !== 'cancelado')
       .forEach(t => { conteoPorHora[t.hora] = (conteoPorHora[t.hora] || 0) + 1; });
-    return TIME_SLOTS.filter(hora => (conteoPorHora[hora] || 0) < cupo);
+    return slotsPosibles(fechaISO).filter(hora => (conteoPorHora[hora] || 0) < cupo);
   }
 
-  // Genera las 4 pestañas de fecha arrancando en HOY, para que el turno
-  // reservado hoy aparezca de una en "Turnos del día" del lado hospital.
-  // La pestaña que arranca activa es la primera que todavía tiene algún
-  // horario libre (no necesariamente hoy) — antes siempre era hoy (i===0)
-  // sin importar la hora real: pasado el último horario del día (12hs), la
-  // grilla de "hoy" quedaba sin ningún horario reservable y el donante no
-  // tenía forma de darse cuenta de que tenía que cambiar de pestaña a mano
-  // (bug real encontrado 2026-10-20, al agregar el filtro de horas ya
-  // pasadas de más abajo).
+  // Todas las fechas candidatas del hospital elegido, desde hoy hasta el
+  // cierre de la campaña (o 90 días si no tiene fecha límite) — antes la
+  // pantalla se quedaba fija en los próximos 4 días sin importar cuánto
+  // durara la campaña (reportado 2026-11-17: "la campaña va hasta el 31
+  // de dic y solo veo los próximos 4 días, no puedo ir a la semana
+  // siguiente"). Con config propia, solo entran los días de atención
+  // configurados; sin ella, cualquier día (comportamiento de siempre).
+  function fechasCandidatasHospital() {
+    const config = campanaHospitalActual();
+    if (tieneConfigPropia(config)) {
+      return HemoRed.data.fechasAtencionCampana({ ...config, fecha_cierre: campanaActual?.fecha_cierre }, 120) || [];
+    }
+    const limite = campanaActual?.fecha_cierre || sumarDias(hoy(), 90);
+    const fechas = [];
+    let cursor = hoy();
+    while (cursor <= limite && fechas.length < 120) {
+      fechas.push(cursor);
+      cursor = sumarDias(cursor, 1);
+    }
+    return fechas;
+  }
+
+  function cambiarPaginaFecha(delta) {
+    paginaFecha += delta;
+    renderFechaTabs();
+  }
+
   // Chips para elegir en qué hospital participante donar — solo se
   // muestran con más de uno (con uno solo, no hay nada para elegir).
   function renderSelectorHospital() {
@@ -480,6 +528,7 @@
     if (id === hospitalSeleccionadoId) return;
     hospitalSeleccionadoId = id;
     hospitalActual = HemoRed.db.find('hospitales', id);
+    paginaFecha = 0; // cada hospital tiene sus propias fechas candidatas
     renderSelectorHospital();
     actualizarHospitalEnResumenes();
     renderFechaTabs();
@@ -499,8 +548,20 @@
   function renderFechaTabs() {
     const cont = document.getElementById('fecha-tabs');
     cont.innerHTML = '';
-    const fechas = [];
-    for (let i = 0; i < 4; i++) fechas.push(sumarDias(hoy(), i));
+    const candidatas = fechasCandidatasHospital();
+
+    if (!candidatas.length) {
+      cont.innerHTML = '<div style="font-size:12px;color:#a9435d;">No hay fechas disponibles en este hospital.</div>';
+      document.getElementById('fecha-nav-prev').disabled = true;
+      document.getElementById('fecha-nav-next').disabled = true;
+      document.getElementById('turnos-grid').innerHTML = '';
+      return;
+    }
+
+    const totalPaginas = Math.ceil(candidatas.length / 4);
+    if (paginaFecha >= totalPaginas) paginaFecha = totalPaginas - 1;
+    if (paginaFecha < 0) paginaFecha = 0;
+    const fechas = candidatas.slice(paginaFecha * 4, paginaFecha * 4 + 4);
     const primeraConLibres = fechas.find(f => horasLibres(f).length > 0) || fechas[0];
 
     fechas.forEach((fechaISO, i) => {
@@ -512,6 +573,9 @@
       cont.appendChild(btn);
       if (fechaISO === primeraConLibres) fechaSeleccionada = fechaISO;
     });
+
+    document.getElementById('fecha-nav-prev').disabled = paginaFecha === 0;
+    document.getElementById('fecha-nav-next').disabled = paginaFecha >= totalPaginas - 1;
     renderTurnosGrid();
   }
 
@@ -526,7 +590,7 @@
     // "No disponible" (hoy, nunca se ofrece) vs "Ocupado" (otro día, ya lo
     // tomó otro donante) — son motivos distintos, no la misma etiqueta.
     const esHoy = fechaSeleccionada === hoy();
-    cont.innerHTML = TIME_SLOTS.map(hora => {
+    cont.innerHTML = slotsPosibles(fechaSeleccionada).map(hora => {
       if (libres.has(hora)) {
         return `<div class="turno-opt" data-hora="${hora}"><div class="turno-hora">${hora}</div><div class="turno-estado libre">Disponible</div></div>`;
       }

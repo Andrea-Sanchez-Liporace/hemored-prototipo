@@ -361,8 +361,12 @@
     const iniciales = t.donante?.avatar_iniciales || '—';
     const dni = t.donante?.numero_documento ? `DNI ${t.donante.numero_documento}` : '—';
     const info = TURNO_INFO[t.estado] || { badge: 'tb-pendiente', label: t.estado };
+    // Confirmar/Rechazar son del hospital DUEÑO de ese turno — en la vista
+    // combinada del creador (ve los turnos de todos los participantes) no
+    // tiene sentido que le queden botones para accionar el turno de otro
+    // hospital.
     let acciones = '';
-    if (t.estado === 'pendiente') {
+    if (t.estado === 'pendiente' && t.hospital_id === hospitalActual?.id) {
       acciones = `<button class="btn-xs btn-xs-ok" onclick="accionConfirmarTurno(${t.id})">Confirmar</button><button class="btn-xs btn-xs-no" onclick="accionRechazarTurno(${t.id})">Rechazar</button>`;
     } else if (t.estado === 'confirmado') {
       acciones = `<button class="btn-xs btn-xs-outline" onclick="verPerfilNoDisponible()">Ver perfil</button>`;
@@ -392,7 +396,9 @@
     await recargar();
   }
   async function accionConfirmarTodosPendientes() {
-    _detalle.turnos.filter(t => t.estado === 'pendiente').forEach(t => HemoRed.data.confirmarTurno(t.id));
+    _detalle.turnos
+      .filter(t => t.estado === 'pendiente' && t.hospital_id === hospitalActual?.id)
+      .forEach(t => HemoRed.data.confirmarTurno(t.id));
     HemoRed.ui.toast('Turnos confirmados');
     await recargar();
   }
@@ -446,19 +452,38 @@
     return partes;
   }
 
-  function renderAcciones(estado, esCreador) {
+  function renderAcciones(estado, esCreador, confirmacionAutomatica) {
     const partes = botonesAccionPorEstado(estado, esCreador);
     document.getElementById('topbar-acciones').innerHTML = partes.map(p =>
       `<button class="btn-sm-action ${p.topbarCls}" onclick="${p.fn}"><i class="ti ${p.icon}"></i><span>${p.label}</span></button>`
     ).join('');
-    const conConfirmar = [{ icon: 'ti-check-all', label: 'Confirmar todos los pendientes', sideCls: 'primary', fn: 'accionConfirmarTodosPendientes()' }, ...partes];
+    // "Confirmar todos los pendientes" opera sobre los turnos DE ESTE
+    // HOSPITAL (ver pintar(): turnos ya viene filtrado si no es el
+    // creador) — antes se mostraba siempre, dejando que un hospital
+    // invitado confirmara turnos de otro participante. Con confirmación
+    // automática un turno nace directo en "confirmado" (ver
+    // HemoRed.data.reservarTurno) — nunca va a haber nada pendiente que
+    // confirmar a mano, así que el botón ni se muestra (2026-11-17,
+    // reportado: "esta campaña es de aceptación automática, no debería
+    // tener ese botón").
+    const conConfirmar = confirmacionAutomatica
+      ? partes
+      : [{ icon: 'ti-check-all', label: 'Confirmar todos los pendientes', sideCls: 'primary', fn: 'accionConfirmarTodosPendientes()' }, ...partes];
     document.getElementById('side-acciones').innerHTML = conConfirmar.map(p =>
       `<button class="btn-action btn-action-${p.sideCls}" onclick="${p.fn}"><i class="ti ${p.icon}"></i>${p.label}</button>`
     ).join('');
   }
 
   function pintar() {
-    const { campana: c, hospital, hospitales, paciente, turnos } = _detalle;
+    const { campana: c, hospital, hospitales, paciente, turnos: turnosTodos } = _detalle;
+    // Un hospital que solo PARTICIPA (no creó la campaña) solo debe ver los
+    // turnos/donantes de SU PROPIO hospital — antes se mostraban los de
+    // todos los participantes, incluido un botón para confirmarles los
+    // turnos pendientes a otro hospital (2026-11-17, reportado con
+    // captura: "estoy desde el Penna... solo debo ver los turnos de mi
+    // hospital"). El creador sigue viendo el combinado de todos.
+    const esCreador = c.hospital_id === hospitalActual?.id;
+    const turnos = esCreador ? turnosTodos : turnosTodos.filter(t => t.hospital_id === hospitalActual?.id);
     const info = ESTADO_INFO[c.estado] || ESTADO_INFO.borrador;
     const pct = c.unidades_requeridas ? Math.round((c.unidades_obtenidas / c.unidades_requeridas) * 100) : 0;
 
@@ -513,7 +538,7 @@
       const resumenHorarioHtml = ch.horarios_por_dia
         ? (ch.dias_atencion || []).map(d => `${DIAS_LABEL[d]} ${(ch.horarios_por_dia[d] || []).map(h => `${h.desde}–${h.hasta}`).join(' y ') || '—'}`).join(' · ')
         : `${dias} · ${horarios}`;
-      const esCreador = ch.hospital_id === c.hospital_id;
+      const esFilaCreador = ch.hospital_id === c.hospital_id;
       const estadoInfo = ESTADO_PARTICIPACION[ch.estado] || ESTADO_PARTICIPACION.aceptado;
 
       // Config heredada (campañas de antes de "una campaña, varios
@@ -528,7 +553,7 @@
           })();
 
       let trazaHtml = '';
-      if (!esCreador && ch.propuesta_original) {
+      if (!esFilaCreador && ch.propuesta_original) {
         if (ch.estado === 'pendiente') {
           trazaHtml = `<div style="font-size:11px;color:#a9435d;margin-top:6px;font-style:italic;">Esperando que el hospital confirme esta propuesta.</div>`;
         } else if (ch.estado === 'aceptado') {
@@ -547,8 +572,8 @@
 
       return `<div style="padding:12px 14px;background:#fdf0f3;border-radius:9px;">
         <div style="font-size:13px;font-weight:500;color:#5a1e37;display:flex;align-items:center;gap:6px;">
-          <span>${ch.hospital?.nombre || `Hospital #${ch.hospital_id}`}${esCreador ? ' <span style="color:#a9435d;font-weight:400;">(creador)</span>' : ''}</span>
-          ${esCreador ? '' : `<span style="display:inline-flex;align-items:center;gap:3px;background:${estadoInfo.bg};color:${estadoInfo.color};font-size:10px;font-weight:500;padding:1px 7px;border-radius:10px;"><i class="ti ${estadoInfo.icon}" style="font-size:10px;"></i>${estadoInfo.label}</span>`}
+          <span>${ch.hospital?.nombre || `Hospital #${ch.hospital_id}`}${esFilaCreador ? ' <span style="color:#a9435d;font-weight:400;">(creador)</span>' : ''}</span>
+          ${esFilaCreador ? '' : `<span style="display:inline-flex;align-items:center;gap:3px;background:${estadoInfo.bg};color:${estadoInfo.color};font-size:10px;font-weight:500;padding:1px 7px;border-radius:10px;"><i class="ti ${estadoInfo.icon}" style="font-size:10px;"></i>${estadoInfo.label}</span>`}
         </div>
         <div style="font-size:12px;color:#782b46;margin-top:4px;">${resumenHorarioHtml}</div>
         <div style="font-size:12px;color:#782b46;">${ch.duracion_turno_min || 30} min por turno · ${ch.cupo_por_turno || 1} donante${(ch.cupo_por_turno || 1) !== 1 ? 's' : ''} por turno</div>
@@ -580,7 +605,7 @@
         </div>`).join('')
       : '<div style="font-size:12px;color:#a9435d;">Sin turnos próximos.</div>';
 
-    renderAcciones(c.estado, c.hospital_id === hospitalActual?.id);
+    renderAcciones(c.estado, esCreador, c.confirmacion_automatica);
 
     // Banner de invitación: solo si ESTE hospital tiene una fila propia
     // pendiente en campana_hospital para esta campaña. El form se precarga

@@ -1645,6 +1645,31 @@ HemoRed.data = (function() {
     return { plan, fechaEfectiva };
   }
 
+  // Facturación real del hospital (2026-11-17, pedido explícito) — plan
+  // actual, resumen de lo facturado y el listado de facturas reales
+  // (db/facturas.json), para hospital/facturacion.html. Un hospital
+  // Gratuito no tiene nada que facturar: devuelve facturas: [].
+  function cargarFacturacionHospital(hospitalId) {
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    if (!hospital) return null;
+    const plan = HemoRed.data.obtenerPlanHospital(hospitalId);
+    const facturas = HemoRed.db.where('facturas', 'hospital_id', hospitalId)
+      .slice().sort((a, b) => b.fecha_emision.localeCompare(a.fecha_emision));
+    const totalFacturado = facturas.filter(f => f.estado === 'pagada').reduce((s, f) => s + f.monto, 0);
+    const proxima = facturas.find(f => f.estado === 'pendiente' || f.estado === 'vencida') || null;
+    const ultimoCambio = HemoRed.db.all('hospital_plan_historial')
+      .filter(h => h.hospital_id === hospitalId && h.plan_id === hospital.plan_id)
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
+    return {
+      hospital, plan, facturas, totalFacturado, proxima,
+      desde: ultimoCambio ? ultimoCambio.fecha : hospital.fecha_alta,
+    };
+  }
+
+  function obtenerMedioPago(id) {
+    return HemoRed.db.find('medios_pago', id);
+  }
+
   // Cambio de plan iniciado por el propio hospital desde su perfil
   // (2026-11-17, pedido explícito): la cuenta ya está aprobada, así que no
   // vuelve a pasar por la revisión del admin. Subir de plan se aplica ya
@@ -1764,16 +1789,19 @@ HemoRed.data = (function() {
 
   // Próximas `cantidad` fechas (ISO) en que la campaña atiende según
   // `dias_atencion`, arrancando hoy, sin pasarse de `fecha_cierre`. Ventana
-  // de búsqueda acotada a 60 días para no colgarse si `dias_atencion`
-  // quedara vacío por algún error de carga. `null` = campaña sin esa
-  // config (cae al comportamiento genérico de siempre).
+  // de búsqueda acotada a 730 días (mismo límite que calcularStatsTurnos,
+  // y mismo motivo: 60 días se quedaba corto para una campaña con fecha
+  // límite más lejana — bug real encontrado 2026-11-03 para
+  // calcularStatsTurnos, mismo patrón acá) para no colgarse si
+  // `dias_atencion` quedara vacío por algún error de carga. `null` =
+  // campaña sin esa config (cae al comportamiento genérico de siempre).
   function fechasAtencionCampana(campana, cantidad) {
     if (!campana.dias_atencion || !campana.dias_atencion.length) return null;
     const base = ahora();
     base.setHours(0, 0, 0, 0);
     const cierre = campana.fecha_cierre ? new Date(campana.fecha_cierre + 'T00:00:00') : null;
     const fechas = [];
-    for (let i = 0; i < 60 && fechas.length < cantidad; i++) {
+    for (let i = 0; i < 730 && fechas.length < cantidad; i++) {
       const d = new Date(base);
       d.setDate(d.getDate() + i);
       if (cierre && d > cierre) break;
@@ -2493,6 +2521,8 @@ HemoRed.data = (function() {
     cambiarPlanHospital,
     obtenerCambioPlanPendiente,
     fechaVencimientoPlanActual,
+    cargarFacturacionHospital,
+    obtenerMedioPago,
     contarCampanasActivas,
     cupoOcupadoEn,
     generarSlotsDisponibles,

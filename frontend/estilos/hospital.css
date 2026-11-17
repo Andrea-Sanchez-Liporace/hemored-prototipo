@@ -545,7 +545,13 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .pb-value { font-size: 18px; font-weight: 500; color: white; }
 .btn-medio { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.fact-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 120px; padding: 16px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; transition: background 0.1s; }
+/* El header (.table-header, 6 columnas genéricas) y las filas tenían cada
+   uno su propio ancho de columnas, nunca coincidían del todo — se les da
+   el mismo grid-template-columns a los dos. La última columna pasa de
+   120px a 190px: con el ícono + "Descargar" + "Ver" ahí al lado, 120px no
+   alcanzaba y el ícono quedaba arriba del texto en vez de al lado. */
+.fact-table-header, .fact-row { grid-template-columns: 2fr 1fr 1fr 1fr 190px; }
+.fact-row { display: grid; padding: 16px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; transition: background 0.1s; }
 .fact-row:last-child { border-bottom: none; }
 .fact-row:hover { background: #fdf0f3; }
 .fact-id { font-size: 13px; font-weight: 500; color: #5a1e37; }
@@ -554,6 +560,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .badge-pagada { background: #e1f5ee; color: #04342c; }
 .badge-vencida { background: #fde8e8; color: #c0392b; }
 .fact-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.fact-actions .btn-xs { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .chart-wrap { position: relative; }
 .campanas-table { width: 100%; }
 .camp-efectividad { text-align: right; flex-shrink: 0; }
