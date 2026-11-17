@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HemoRed — Presentación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Layout: una sola página con 4 bandas full-bleed que se van turnando
+     clara/oscura (Problema claro, Solución oscura, Video claro, Gracias
+     oscura) para que al proyectarla en clase cada sección se sienta como
+     un "slide" propio, sin perder el scroll continuo. */
+  :root {
+    --bg: #f7f0f3;
+    --surface: #ffffff;
+    --text: #1a0a0f;
+    --text-secondary: #5a3040;
+    --text-muted: #a9435d;
+    --accent: #ef647c;
+    --accent-light: #f28b98;
+    --accent-pale: #fdf0f3;
+    --border: #e8d0d8;
+    --dark-bg: #5a1e37;
+    --dark-bg-deep: #3d0f20;
+    --dark-text: #fdf0f3;
+    --dark-text-muted: #e8a9b8;
+    --success-bg: #e1f5ee;
+    --success-text: #04342c;
+    --font-display: 'Lobster', cursive;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  img, video { max-width: 100%; }
+
+  .gutter {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  .seccion {
+    padding-block: 72px;
+    position: relative;
+  }
+  .seccion-inner {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .seccion.clara { background: var(--bg); color: var(--text); }
+  .seccion.oscura {
+    background: linear-gradient(165deg, var(--dark-bg) 0%, var(--dark-bg-deep) 100%);
+    color: var(--dark-text);
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .seccion.oscura .eyebrow { color: var(--accent-light); }
+  .eyebrow .num {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .titulo-seccion {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .bajada {
+    font-size: clamp(17px, 2vw, 20px);
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin-bottom: 48px;
+  }
+  .seccion.oscura .bajada { color: var(--dark-text-muted); }
+
+  /* ===== HERO / NAV ===== */
+  .topnav {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: 18px;
+    background: rgba(247,240,243,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--dark-bg);
+  }
+  .logo span { color: var(--accent); }
+  .dots { display: flex; gap: 10px; }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--border);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .dot:hover { transform: scale(1.3); }
+  .dot.activo { background: var(--accent); }
+  @media (max-width: 560px) { .dots { display: none; } }
+
+  /* ===== SECCIÓN 1: PROBLEMA ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+  }
+  .stat-num {
+    font-size: clamp(30px, 4vw, 40px);
+    font-weight: 800;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .stat-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; }
+  .stat-fuente { font-size: 11px; color: var(--text-muted); font-style: italic; }
+
+  .problema-cierre {
+    margin-top: 40px;
+    padding: 24px 28px;
+    background: var(--accent-pale);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+  .problema-cierre strong { color: var(--text); }
+
+  /* ===== SECCIÓN 2: SOLUCIÓN ===== */
+  .pilares {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .pilar {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 16px;
+    padding: 28px 24px;
+  }
+  .pilar-icono {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+    font-size: 20px;
+  }
+  .pilar h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .pilar p { font-size: 14px; color: var(--dark-text-muted); }
+
+  /* ===== SECCIÓN 3: VIDEO ===== */
+  .video-marco {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 14px;
+    box-shadow: 0 24px 60px -24px rgba(90,30,55,0.35);
+  }
+  .video-marco video {
+    display: block;
+    width: 100%;
+    border-radius: 12px;
+    background: #000;
+  }
+  .video-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .video-leyenda span { white-space: nowrap; }
+  .video-leyenda b { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+  /* ===== SECCIÓN 4: GRACIAS ===== */
+  .gracias {
+    text-align: center;
+  }
+  .gracias-titulo {
+    font-family: var(--font-display);
+    font-size: clamp(56px, 10vw, 110px);
+    color: var(--dark-text);
+    margin-bottom: 8px;
+  }
+  .gracias-sub {
+    font-size: 18px;
+    color: var(--dark-text-muted);
+    margin-bottom: 44px;
+  }
+  .equipo {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .equipo span {
+    padding: 8px 18px;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 100px;
+    font-size: 14px;
+    color: var(--dark-text);
+  }
+  .gracias-foot {
+    font-size: 12px;
+    color: var(--dark-text-muted);
+    opacity: 0.8;
+  }
+
+  @media (max-width: 640px) {
+    .seccion { padding-block: 52px; }
+    .bajada { margin-bottom: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topnav gutter">
+  <div class="logo">Hemo<span>red</span></div>
+  <nav class="dots" aria-label="Secciones">
+    <button class="dot" data-target="problema" aria-label="Ir a Problema"></button>
+    <button class="dot" data-target="solucion" aria-label="Ir a Solución"></button>
+    <button class="dot" data-target="video" aria-label="Ir a Demo"></button>
+    <button class="dot" data-target="gracias" aria-label="Ir a Gracias"></button>
+  </nav>
+</header>
+
+<main>
+
+  <section class="seccion clara" id="problema">
+    <div class="seccion-inner gutter">
+      <div class="eyebrow"><span class="num">01</span> El problema</div>
+      <h1 class="titulo-seccion">Conseguir donantes de sangre a tiempo sigue siendo, en gran parte, manual.</h1>
+      <p class="bajada">En Argentina, la coordinación de campañas de donación depende todavía de canales informales — redes sociales, grupos de mensajería — sin un sistema que centralice quién puede donar, cuándo, y en qué hospital.</p>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num">1,5%</div>
+          <div class="stat-label">de los argentinos dona sangre, cuando se necesita entre el 8% y el 10%</div>
+          <div class="stat-fuente">Fuente: Infobae / Ministerio de Salud</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">4 vidas</div>
+          <div class="stat-label">puede salvar una sola donación de sangre</div>
+          <div class="stat-fuente">Fuente: OMS / INCUCAI</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">+600.000</div>
+          <div class="stat-label">donaciones se realizan por año en Argentina, cuando se necesitan 2 millones</div>
+          <div class="stat-fuente">Fuente: Banco Mundial / Hospital Garrahan</div>
+        </div>
+      </div>
+
+      <div class="problema-cierre">
+        El resultado: hospitales que no llegan a cubrir su necesidad puntual, y donantes dispuestos a ayudar que nunca se enteran de la campaña a tiempo. <strong>No falta voluntad — falta organización.</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion oscura" id="solucion">
+    <div class="seccion-inner gutter">
+      <div class="eyebrow"><span class="num">02</span> La solución</div>
+      <h1 class="titulo-seccion">HemoRed conecta donantes, hospitales y profesionales de salud en un solo sistema.</h1>
+      <p class="bajada">Una plataforma centralizada para gestionar campañas, turnos y toda la documentación asociada al proceso de donación — de punta a punta.</p>
+
+      <div class="pilares">
+        <div class="pilar">
+          <div class="pilar-icono">🔍</div>
+          <h3>Para el donante</h3>
+          <p>Busca campañas compatibles con su tipo de sangre y reserva su turno en pocos pasos, desde cualquier dispositivo.</p>
+        </div>
+        <div class="pilar">
+          <div class="pilar-icono">🏥</div>
+          <h3>Para el hospital</h3>
+          <p>Publica campañas, suma a otros hospitales a una misma convocatoria, y mide la efectividad real de cada una.</p>
+        </div>
+        <div class="pilar">
+          <div class="pilar-icono">🩺</div>
+          <h3>Circuito clínico digital</h3>
+          <p>Entrevista médica, extracción, resultado del análisis y certificado de donación, todo conectado — nada en papel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion clara" id="video">
+    <div class="seccion-inner gutter">
+      <div class="eyebrow"><span class="num">03</span> Viéndolo en acción</div>
+      <h1 class="titulo-seccion">Un recorrido real, de punta a punta.</h1>
+      <p class="bajada">Un donante se registra y reserva su turno. El hospital lo confirma. El médico clínico evalúa si está apto. El extraccionista registra la donación. Y el donante vuelve a entrar y gestiona su certificado.</p>
+
+      <div class="video-marco">
+        <video id="demo-video" controls preload="metadata">
+          <source src="demo.webm" type="video/webm">
+        </video>
+      </div>
+      <div class="video-leyenda">
+        <span><b>0:00</b> Home, login y registro</span>
+        <span><b>0:21</b> Reserva el turno</span>
+        <span><b>0:33</b> Hospital confirma</span>
+        <span><b>0:43</b> Formularios pre-donación</span>
+        <span><b>1:03</b> Entrevista médica</span>
+        <span><b>1:20</b> Extracción</span>
+        <span><b>1:34</b> Certificado</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion oscura gracias-seccion" id="gracias">
+    <div class="seccion-inner gutter gracias">
+      <div class="gracias-titulo">¡Gracias!</div>
+      <p class="gracias-sub">HemoRed — Plataforma de gestión de campañas de donación de sangre</p>
+      <div class="equipo">
+        <span>Sofía Páez</span>
+        <span>Andrea Sanchez Liporace</span>
+        <span>Natalia Sanchez Liporace</span>
+      </div>
+      <p class="gracias-foot">Prácticas Profesionalizantes III · Tecnicatura Superior en Análisis de Sistemas · IFTS N.° 11</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Portada del video dibujada con canvas (no una imagen aparte) — así la
+  // tipografía Lobster del logo se ve igual que en el resto de la página,
+  // sin depender de que un <img>/poster externo pueda cargar la misma
+  // fuente que el documento.
+  (async function dibujarPortadaVideo() {
+    try {
+      await document.fonts.load("400 180px 'Lobster'");
+      await document.fonts.ready;
+    } catch (e) { /* si la fuente no carga, se dibuja igual con el fallback */ }
+
+    var video = document.getElementById('demo-video');
+    if (!video) return;
+    var canvas = document.createElement('canvas');
+    canvas.width = 1920;
+    canvas.height = 1080;
+    var ctx = canvas.getContext('2d');
+
+    var grad = ctx.createLinearGradient(0, 0, 1920, 1080);
+    grad.addColorStop(0, '#5a1e37');
+    grad.addColorStop(1, '#3d0f20');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1920, 1080);
+
+    // Gota decorativa arriba del logo
+    ctx.save();
+    ctx.translate(960, 330);
+    ctx.fillStyle = '#ef647c';
+    ctx.beginPath();
+    ctx.moveTo(0, -70);
+    ctx.bezierCurveTo(55, 10, 55, 70, 0, 70);
+    ctx.bezierCurveTo(-55, 70, -55, 10, 0, -70);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.font = "400 170px 'Lobster', cursive";
+    ctx.textBaseline = 'alphabetic';
+    var w1 = ctx.measureText('Hemo').width;
+    var w2 = ctx.measureText('red').width;
+    var startX = 960 - (w1 + w2) / 2;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#fdf0f3';
+    ctx.fillText('Hemo', startX, 540);
+    ctx.fillStyle = '#ef647c';
+    ctx.fillText('red', startX + w1, 540);
+
+    ctx.textAlign = 'center';
+    ctx.font = "500 34px 'Inter', sans-serif";
+    ctx.fillStyle = '#e8a9b8';
+    ctx.fillText('Demo completa — del registro al certificado', 960, 630);
+
+    video.setAttribute('poster', canvas.toDataURL('image/png'));
+  })();
+
+  (function () {
+    var secciones = ['problema', 'solucion', 'video', 'gracias'];
+    var dots = Array.prototype.slice.call(document.querySelectorAll('.dot'));
+
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        var el = document.getElementById(dot.dataset.target);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    function actualizarActivo() {
+      var mitad = window.scrollY + window.innerHeight / 2;
+      var actual = secciones[0];
+      secciones.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.offsetTop <= mitad) actual = id;
+      });
+      dots.forEach(function (dot) {
+        dot.classList.toggle('activo', dot.dataset.target === actual);
+      });
+    }
+
+    window.addEventListener('scroll', actualizarActivo, { passive: true });
+    actualizarActivo();
+  })();
+</script>
+
+</body>
+</html>
