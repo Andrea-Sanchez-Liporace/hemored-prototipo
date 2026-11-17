@@ -710,6 +710,26 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .medio-badge { font-size: 11px; background: #e1f5ee; color: #04342c; padding: 2px 8px; border-radius: 20px; }
 .btn-outline-sm { background: white; color: #5a1e37; border: 1px solid #e8d0d8; padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; }
 .btn-add-medio { width: 100%; background: white; color: #a9435d; border: 1.5px dashed #a9435d; padding: 11px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* Selección de plan desde hospital/cambiar_plan.html (2026-11-17) — mismo
+   patrón de tarjeta seleccionable que .sangre-opt/.urgencia-opt. */
+.plan-opt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.plan-opt { position: relative; border: 1.5px solid #e8d0d8; border-radius: 12px; padding: 18px 16px; cursor: pointer; transition: all 0.15s; }
+.plan-opt:hover { border-color: #ef647c; }
+.plan-opt.selected { border-color: #ef647c; background: #fdf0f3; }
+.plan-opt.es-actual { cursor: default; }
+.plan-opt-badge { position: absolute; top: -9px; right: 12px; font-size: 10px; font-weight: 500; padding: 3px 9px; border-radius: 20px; color: white; background: #5a1e37; }
+.plan-opt-nombre { font-size: 15px; font-weight: 600; color: #5a1e37; margin-bottom: 6px; }
+.plan-opt-precio { font-size: 13px; font-weight: 500; color: #782b46; margin-bottom: 12px; }
+.plan-opt-precio span { font-size: 11px; font-weight: 400; color: #a9435d; }
+.plan-opt-features { list-style: none; padding: 0; margin: 0; font-size: 12px; color: #5a3040; }
+.plan-opt-features li { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; line-height: 1.4; }
+.plan-opt-features i { color: #ef647c; font-size: 13px; margin-top: 1px; flex-shrink: 0; }
+.medio-pago-aviso { display: flex; align-items: center; gap: 8px; background: #fdf0f3; border: 1px solid #f28b98; border-radius: 9px; padding: 10px 14px; margin-bottom: 20px; font-size: 13px; color: #782b46; }
+.medio-pago-aviso a { color: #ef647c; font-weight: 500; }
+.form-error-box { display: none; background: #fde8e8; border: 1px solid #c0392b; border-radius: 9px; padding: 10px 14px; font-size: 13px; color: #c0392b; text-align: center; }
+@media (max-width: 1024px) { .plan-opt-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .plan-opt-grid { grid-template-columns: 1fr; } }
 .security-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 0.5px solid #f0e0e6; }
 .security-row:last-child { border-bottom: none; }
 .security-title { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 2px; }

@@ -1580,10 +1580,106 @@ HemoRed.data = (function() {
     return false;
   }
 
+  // Fecha en que vence el período ya pagado del plan ACTUAL del hospital
+  // (2026-11-17, pedido explícito) — se calcula en vez de guardarse fija,
+  // para que no se desactualice con el paso del tiempo (mismo motivo que
+  // hoyISO(), ver nota más arriba). El ancla es la fecha del último cambio
+  // de plan (o el alta, si nunca cambió) y se la hace avanzar de mes en mes
+  // hasta pasar "hoy" — ese es el próximo vencimiento.
+  function _fechaVencimientoPlanActual(hospital) {
+    const ultimoCambio = HemoRed.db.all('hospital_plan_historial')
+      .filter(h => h.hospital_id === hospital.id && h.plan_id === hospital.plan_id)
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
+    const vencimiento = new Date((ultimoCambio ? ultimoCambio.fecha : hospital.fecha_alta) + 'T00:00:00');
+    const hoy = ahora();
+    while (vencimiento <= hoy) vencimiento.setMonth(vencimiento.getMonth() + 1);
+    return vencimiento;
+  }
+
+  // Si hay un cambio de plan programado (downgrade) y ya venció el período
+  // pagado del plan viejo, lo aplica. Mismo patrón que
+  // _procesarVencimientosTurnos(): se llama de forma perezosa desde
+  // obtenerPlanHospital() en vez de necesitar un cron.
+  function _procesarCambioPlanPendiente(hospitalId) {
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    if (!hospital || !hospital.plan_pendiente_id) return;
+    if (ahora() <= _fechaVencimientoPlanActual(hospital)) return;
+
+    const planAnteriorId = hospital.plan_id;
+    const nuevoPlanId = hospital.plan_pendiente_id;
+    const planNuevo = HemoRed.db.find('planes', nuevoPlanId);
+    HemoRed.db.actualizar('hospitales', hospitalId, { plan_id: nuevoPlanId, plan_pendiente_id: null });
+    HemoRed.db.crear('hospital_plan_historial', {
+      hospital_id: hospitalId,
+      plan_id: nuevoPlanId,
+      plan_anterior_id: planAnteriorId,
+      motivo: `Cambio a plan ${planNuevo.nombre} (programado desde el perfil, efectivo al vencer el período pagado)`,
+      cambiado_por: 'hospital',
+      fecha: hoyISO(),
+    });
+  }
+
   function obtenerPlanHospital(hospitalId) {
+    _procesarCambioPlanPendiente(hospitalId);
     const hospital = HemoRed.db.find('hospitales', hospitalId);
     if (!hospital) return null;
     return HemoRed.db.find('planes', hospital.plan_id);
+  }
+
+  // Para mostrar, ANTES de confirmar, desde cuándo empezaría a correr un
+  // downgrade si se elige ahora (ver cambiarPlanHospital).
+  function fechaVencimientoPlanActual(hospitalId) {
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    return hospital ? _fechaVencimientoPlanActual(hospital) : null;
+  }
+
+  // Cambio de plan pendiente (downgrade programado) para mostrarlo en el
+  // perfil — null si no hay ninguno agendado.
+  function obtenerCambioPlanPendiente(hospitalId) {
+    _procesarCambioPlanPendiente(hospitalId);
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    if (!hospital || !hospital.plan_pendiente_id) return null;
+    const plan = HemoRed.db.find('planes', hospital.plan_pendiente_id);
+    const fechaEfectiva = new Date(_fechaVencimientoPlanActual(hospital));
+    fechaEfectiva.setDate(fechaEfectiva.getDate() + 1);
+    return { plan, fechaEfectiva };
+  }
+
+  // Cambio de plan iniciado por el propio hospital desde su perfil
+  // (2026-11-17, pedido explícito): la cuenta ya está aprobada, así que no
+  // vuelve a pasar por la revisión del admin. Subir de plan se aplica ya
+  // mismo (lo pide porque necesita más capacidad ahora); bajar de plan o
+  // pasar a Gratuito recién arranca al otro día de vencer el período que
+  // ya pagó, para no hacerle perder lo que pagó — hasta entonces sigue
+  // con el plan y el costo actuales. La comparación de "para arriba/abajo"
+  // usa precio_base (precio de lista) y no el precio con promo, porque la
+  // promo es pasajera y no cambia la jerarquía real de los planes.
+  function cambiarPlanHospital(hospitalId, nuevoPlanId, motivo) {
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    if (!hospital) return { ok: false, error: 'No se pudo identificar el hospital.' };
+    const planActual = HemoRed.db.find('planes', hospital.plan_id);
+    const planNuevo = HemoRed.db.find('planes', nuevoPlanId);
+    if (!planNuevo) return { ok: false, error: 'Plan inválido.' };
+
+    const esDowngrade = planNuevo.precio_base < planActual.precio_base;
+    if (esDowngrade) {
+      HemoRed.db.actualizar('hospitales', hospitalId, { plan_pendiente_id: nuevoPlanId });
+      const fechaEfectiva = new Date(_fechaVencimientoPlanActual(hospital));
+      fechaEfectiva.setDate(fechaEfectiva.getDate() + 1);
+      return { ok: true, inmediato: false, fechaEfectiva };
+    }
+
+    const planAnteriorId = hospital.plan_id;
+    HemoRed.db.actualizar('hospitales', hospitalId, { plan_id: nuevoPlanId, plan_pendiente_id: null });
+    HemoRed.db.crear('hospital_plan_historial', {
+      hospital_id: hospitalId,
+      plan_id: nuevoPlanId,
+      plan_anterior_id: planAnteriorId,
+      motivo: motivo || 'Cambio de plan desde el perfil',
+      cambiado_por: 'hospital',
+      fecha: hoyISO(),
+    });
+    return { ok: true, inmediato: true };
   }
 
   // Cuenta "activas ahora" para mostrar en pantalla (ej. checklist del
@@ -2394,6 +2490,9 @@ HemoRed.data = (function() {
     cargarDocumentacionHospital,
     esCampanaActiva,
     obtenerPlanHospital,
+    cambiarPlanHospital,
+    obtenerCambioPlanPendiente,
+    fechaVencimientoPlanActual,
     contarCampanasActivas,
     cupoOcupadoEn,
     generarSlotsDisponibles,

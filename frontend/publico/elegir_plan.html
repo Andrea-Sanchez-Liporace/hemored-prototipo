@@ -60,6 +60,9 @@
 <script>
   // Planes reales (2026-11-17) — mismas funciones que registro.html y
   // publico/planes.html, duplicadas a propósito (ver nota en registro.html).
+  // Esta pantalla es parte del flujo de registro (hospital todavía sin
+  // cuenta) — el cambio de plan de un hospital YA ACTIVO es un flujo
+  // interno aparte, ver hospital/cambiar_plan.html.
   let planElegido = Number(sessionStorage.getItem('hemored_plan_elegido')) || null;
   let planesCache = [];
 

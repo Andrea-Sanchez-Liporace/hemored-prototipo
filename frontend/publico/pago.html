@@ -222,6 +222,11 @@
   // pago también queda sujeto a la aprobación del admin, igual que el plan
   // Gratuito). Por eso no hay pantalla de "pago confirmado / ir al
   // dashboard": se va directo a cuenta_pendiente.html.
+  //
+  // Esta pantalla es del flujo de registro (hospital todavía sin cuenta).
+  // El cambio de plan de un hospital YA ACTIVO es un flujo interno aparte,
+  // ver hospital/cambiar_plan.html (usa el medio de pago ya cargado, no
+  // pasa por acá).
   function procesarPago() {
     window.location = '../publico/cuenta_pendiente.html';
   }
@@ -275,14 +280,12 @@
   document.addEventListener('DOMContentLoaded', aplicarPlanElegido);
 </script>
 
-<!-- Esta página nunca cargó el framework de HemoRed (es un mockup estático,
-     parte del circuito "registro de hospital → pago → aprobación" todavía
-     sin conectar, ver docs/04) — se agregan estos 2 scripts únicamente
-     para que el select de "Condición IVA" tenga el mismo componente
-     personalizado que el resto del sitio (ver docs/04, "Componente
-     compartido: select personalizado"). db.js solo crea el objeto global
-     `HemoRed` que necesita ui.js — no se llama a HemoRed.db.init() acá,
-     esta pantalla sigue sin datos reales. -->
+<!-- Esta página es del flujo de registro (hospital todavía sin cuenta, no
+     hay sesión que cargar). db.js: lee los planes reales. ui.js: select
+     personalizado de "Condición IVA" (ver docs/04). Van al final del
+     documento a propósito — aplicarPlanElegido() y procesarPago() sólo se
+     ejecutan por DOMContentLoaded/onclick, nunca en la carga síncrona, así
+     que el orden no importa. -->
 <script src="../js/db.js"></script>
 <script src="../js/ui.js"></script>
 </body>

@@ -39,7 +39,7 @@
         <div class="hosp-name">Hospital Ramos Mejía</div>
         <div class="hosp-email">admin@ramosmejia.gob.ar</div>
         <div class="hosp-badges">
-          <span class="hosp-badge badge-plan"><i class="ti ti-star" style="font-size:11px;"></i>Plan Provincial</span>
+          <span class="hosp-badge badge-plan"><i class="ti ti-star" style="font-size:11px;"></i><span id="hosp-plan-nombre-badge">Plan Provincial</span></span>
           <span class="hosp-badge badge-activo"><i class="ti ti-check" style="font-size:11px;"></i>Cuenta activa</span>
         </div>
       </div>
@@ -108,25 +108,31 @@
       </div>
       <div class="seccion-body">
         <div class="seccion-body-inner">
+          <div id="plan-actualizado-banner" style="display:none;align-items:center;gap:8px;background:#e1f5ee;color:#1e8449;border:1px solid #27ae60;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;">
+            <i class="ti ti-circle-check" aria-hidden="true"></i><span id="plan-actualizado-texto">Tu plan se actualizó correctamente.</span>
+          </div>
+          <div id="plan-pendiente-aviso" style="display:none;align-items:center;gap:8px;background:#fdf0f3;color:#782b46;border:1px solid #f28b98;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;">
+            <i class="ti ti-clock" aria-hidden="true"></i><span id="plan-pendiente-texto"></span>
+          </div>
           <div class="plan-actual">
             <div class="plan-info">
-              <div class="plan-nombre">Plan Provincial</div>
-              <div class="plan-precio">$15.000 <span>/ mes + IVA</span></div>
-              <div class="plan-estado">Activo desde el 15 de abril 2026</div>
+              <div class="plan-nombre" id="plan-nombre">Plan Provincial</div>
+              <div class="plan-precio" id="plan-precio">$15.000 <span>/ mes + IVA</span></div>
+              <div class="plan-estado" id="plan-estado">Activo desde el 15 de abril 2026</div>
             </div>
-            <div class="plan-uso">
+            <div class="plan-uso" id="plan-uso-wrap">
               <div class="plan-uso-label">Campañas activas</div>
-              <div class="plan-uso-bar"><div class="plan-uso-fill" style="width:100%;"></div></div>
-              <div class="plan-uso-count">3 / 3 — límite alcanzado</div>
+              <div class="plan-uso-bar"><div class="plan-uso-fill" id="plan-uso-fill" style="width:100%;"></div></div>
+              <div class="plan-uso-count" id="plan-uso-count">3 / 3 — límite alcanzado</div>
             </div>
           </div>
           <div class="proximo-cobro">
             <div>
               <div class="cobro-label">Próximo cobro</div>
-              <div class="cobro-value">15 de junio 2026 · $18.150 (con IVA)</div>
+              <div class="cobro-value" id="cobro-value">15 de junio 2026 · $18.150 (con IVA)</div>
             </div>
-            <button class="btn-upgrade" onclick="window.location='../publico/pago.html'">
-              <i class="ti ti-arrow-up"></i>Actualizar plan
+            <button class="btn-upgrade" onclick="window.location='cambiar_plan.html'">
+              <i class="ti ti-arrow-up"></i>Cambiar de plan
             </button>
           </div>
           <button class="btn-cancelar-plan">Cancelar suscripción</button>
@@ -318,7 +324,73 @@
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
-<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());
+
+  // Sección "Plan y suscripción" conectada a datos reales (2026-11-17,
+  // pedido explícito: poder contratar/cambiar de plan desde el perfil). El
+  // resto de esta pantalla (datos institucionales, medio de pago,
+  // habilitación sanitaria, seguridad) sigue siendo mockup.
+  async function cargarPlanPerfil() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    const usuario = s && HemoRed.db.find('usuarios', s.usuario_id);
+    const hospitalId = usuario?.hospital_id;
+    const hospital = hospitalId && HemoRed.db.find('hospitales', hospitalId);
+    const plan = hospitalId && HemoRed.data.obtenerPlanHospital(hospitalId);
+    if (!hospital || !plan) return;
+
+    const esGratuito = plan.precio_base === 0;
+    document.getElementById('hosp-plan-nombre-badge').textContent = `Plan ${plan.nombre}`;
+    document.getElementById('plan-nombre').textContent = `Plan ${plan.nombre}`;
+    document.getElementById('plan-precio').innerHTML = esGratuito
+      ? 'Gratis'
+      : `$${plan.precio_base.toLocaleString('es-AR')} <span>/ mes + IVA</span>`;
+
+    const ultimoCambio = HemoRed.db.all('hospital_plan_historial')
+      .filter(h => h.hospital_id === hospitalId && h.plan_id === hospital.plan_id)
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
+    document.getElementById('plan-estado').textContent = ultimoCambio
+      ? `Activo desde el ${new Date(ultimoCambio.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}`
+      : 'Plan activo';
+
+    const usoWrap = document.getElementById('plan-uso-wrap');
+    if (plan.max_campanas_simultaneas > 0) {
+      const activas = HemoRed.data.contarCampanasActivas(hospitalId);
+      const ilimitado = plan.max_campanas_simultaneas >= 999;
+      usoWrap.style.display = '';
+      document.getElementById('plan-uso-fill').style.width = (ilimitado ? 100 : Math.min(100, Math.round((activas / plan.max_campanas_simultaneas) * 100))) + '%';
+      document.getElementById('plan-uso-count').textContent = ilimitado
+        ? `${activas} activas · campañas ilimitadas`
+        : `${activas} / ${plan.max_campanas_simultaneas}` + (activas >= plan.max_campanas_simultaneas ? ' — límite alcanzado' : '');
+    } else {
+      usoWrap.style.display = 'none';
+    }
+
+    document.getElementById('cobro-value').textContent = esGratuito
+      ? 'Sin cargo mensual'
+      : 'Se renueva automáticamente cada mes';
+
+    const pendiente = HemoRed.data.obtenerCambioPlanPendiente(hospitalId);
+    const avisoPendiente = document.getElementById('plan-pendiente-aviso');
+    if (pendiente) {
+      const fecha = pendiente.fechaEfectiva.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+      document.getElementById('plan-pendiente-texto').textContent = `Tenés programado el cambio a Plan ${pendiente.plan.nombre} a partir del ${fecha}.`;
+      avisoPendiente.style.display = 'flex';
+    } else {
+      avisoPendiente.style.display = 'none';
+    }
+
+    const estadoActualizacion = new URLSearchParams(location.search).get('plan_actualizado');
+    if (estadoActualizacion) {
+      document.getElementById('plan-actualizado-texto').textContent = estadoActualizacion === 'programado'
+        ? 'Listo, el cambio de plan quedó programado.'
+        : 'Tu plan se actualizó correctamente.';
+      document.getElementById('plan-actualizado-banner').style.display = 'flex';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', cargarPlanPerfil);
+</script>
 
 </body>
 </html>

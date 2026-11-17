@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HemoRed — Cambiar de plan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="../estilos/global.css">
+  <link rel="stylesheet" href="../estilos/componentes.css">
+  <link rel="stylesheet" href="../estilos/hospital.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar"></aside>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-topbar-btn"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Cambiar de plan</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="seccion open">
+      <div class="seccion-body" style="display:block;border-top:none;">
+        <div class="seccion-body-inner" style="padding-top:20px;">
+
+          <div class="plan-opt-grid" id="plan-opt-grid"></div>
+
+          <!-- DETALLE DEL CAMBIO: aparece al elegir un plan distinto del actual -->
+          <div id="detalle-cambio" style="display:none;border:1px solid #e8d0d8;border-radius:12px;padding:20px;margin-bottom:20px;">
+            <div id="detalle-mensaje" style="font-size:13px;color:#5a1e37;margin-bottom:16px;line-height:1.5;"></div>
+
+            <div id="medio-pago-opciones" style="display:none;margin-bottom:4px;">
+              <div class="form-label" style="margin-bottom:10px;">Medio de pago para el nuevo plan</div>
+
+              <label id="opt-mantener-label" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:#5a1e37;cursor:pointer;">
+                <input type="radio" name="medio-pago-opt" value="mantener" id="opt-mantener" checked onchange="toggleMedioPagoNuevo()">
+                Mantener el medio de pago ya cargado en tu perfil
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;color:#5a1e37;cursor:pointer;">
+                <input type="radio" name="medio-pago-opt" value="nuevo" id="opt-nuevo" onchange="toggleMedioPagoNuevo()">
+                Cargar un medio de pago nuevo
+              </label>
+
+              <div id="medio-pago-nuevo-form" style="display:none;background:#fdf0f3;border-radius:10px;padding:16px;margin-bottom:6px;">
+                <div class="form-group">
+                  <label class="form-label">Número de tarjeta</label>
+                  <input class="form-input" id="mp-numero" type="text" placeholder="1234 5678 9012 3456" maxlength="19">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Nombre del titular</label>
+                  <input class="form-input" id="mp-titular" type="text" placeholder="Como figura en la tarjeta">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Vencimiento</label>
+                    <input class="form-input" id="mp-vencimiento" type="text" placeholder="MM/AA" maxlength="5">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">CVV</label>
+                    <input class="form-input" id="mp-cvv" type="password" placeholder="•••" maxlength="4">
+                  </div>
+                </div>
+
+                <!-- Datos de facturación: ya los tenemos (hospital logueado,
+                     cuenta ya registrada), no se le piden de nuevo como en
+                     publico/pago.html — se muestran precargados y la razón
+                     social/CUIT quedan fijos, igual que en perfil.html. -->
+                <div class="form-group">
+                  <label class="form-label">Razón social</label>
+                  <input class="form-input" id="mp-razon-social" type="text" disabled>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">CUIT</label>
+                    <input class="form-input" id="mp-cuit" type="text" disabled>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Email para facturas</label>
+                    <input class="form-input" id="mp-email-facturas" type="email">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-upgrade" id="btn-confirmar-cambio" style="width:100%;justify-content:center;padding:13px;font-size:14px;" onclick="confirmarCambioPlan()" disabled>
+            <i class="ti ti-check" aria-hidden="true"></i>
+            Confirmar cambio de plan
+          </button>
+          <div id="cambio-plan-error" class="form-error-box" style="display:none;margin-top:12px;"></div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script src="../js/sesion.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/data.js"></script>
+<script>
+  // Cambio de plan de un hospital YA ACTIVO, desde adentro del dashboard
+  // (2026-11-17, pedido explícito) — a diferencia de publico/elegir_plan.html
+  // (que es parte del registro de un hospital nuevo), esta pantalla da por
+  // hecho que hay sesión. No pasa por el admin: sube de plan ya mismo (lo
+  // pide porque necesita más capacidad ahora) y baja de plan o pasa a
+  // Gratuito recién al otro día de vencer el período ya pagado, para no
+  // hacerle perder lo que pagó. El medio de pago sólo se pregunta si el
+  // plan nuevo tiene costo — a Gratuito nunca.
+  let hospitalId = null;
+  let planActual = null;
+  let planSeleccionado = null;
+  let planesCache = [];
+
+  function esPromoVigente(plan) {
+    if (!plan.es_promo || !plan.fecha_inicio_promo || !plan.fecha_fin_promo) return false;
+    const hoy = new Date();
+    return hoy >= new Date(plan.fecha_inicio_promo) && hoy <= new Date(plan.fecha_fin_promo + 'T23:59:59');
+  }
+
+  function formatearFechaLarga(d) {
+    return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+  }
+
+  function tarjetaPlanOpt(plan) {
+    const esGratuito = plan.precio_base === 0;
+    const esActual = plan.id === planActual.id;
+    const promoVigente = esPromoVigente(plan);
+    const precio = promoVigente ? plan.precio_promo : plan.precio_base;
+    const precioHtml = esGratuito ? 'Gratis' : `$${precio.toLocaleString('es-AR')} <span>/ mes + IVA</span>`;
+    const features = esGratuito
+      ? ['Participa en campañas a las que te inviten', 'Gestión de turnos y profesionales']
+      : [
+          plan.max_campanas_simultaneas >= 999 ? 'Campañas ilimitadas' : `Hasta ${plan.max_campanas_simultaneas} campañas simultáneas`,
+          `Alcance ${plan.alcance}`,
+        ];
+
+    return `
+      <div class="plan-opt${esActual ? ' es-actual' : ''}${planSeleccionado && plan.id === planSeleccionado.id ? ' selected' : ''}" data-plan="${plan.id}" onclick="${esActual ? '' : `seleccionarPlanOpt(${plan.id})`}">
+        ${esActual ? '<div class="plan-opt-badge">Tu plan actual</div>' : ''}
+        <div class="plan-opt-nombre">${plan.nombre}</div>
+        <div class="plan-opt-precio">${precioHtml}</div>
+        <ul class="plan-opt-features">
+          ${features.map(f => `<li><i class="ti ti-check" aria-hidden="true"></i>${f}</li>`).join('')}
+        </ul>
+      </div>`;
+  }
+
+  function renderGrid() {
+    document.getElementById('plan-opt-grid').innerHTML = planesCache.map(tarjetaPlanOpt).join('');
+  }
+
+  function toggleMedioPagoNuevo() {
+    const quiereNuevo = document.getElementById('opt-nuevo').checked;
+    document.getElementById('medio-pago-nuevo-form').style.display = quiereNuevo ? 'block' : 'none';
+  }
+
+  function seleccionarPlanOpt(planId) {
+    planSeleccionado = planesCache.find(p => p.id === planId);
+    renderGrid();
+    mostrarDetalleCambio();
+  }
+
+  function mostrarDetalleCambio() {
+    const detalle = document.getElementById('detalle-cambio');
+    const btn = document.getElementById('btn-confirmar-cambio');
+    if (!planSeleccionado) { detalle.style.display = 'none'; btn.disabled = true; return; }
+
+    const esGratuitoNuevo = planSeleccionado.precio_base === 0;
+    const esDowngrade = planSeleccionado.precio_base < planActual.precio_base;
+
+    let mensaje;
+    if (esDowngrade) {
+      const vencimiento = HemoRed.data.fechaVencimientoPlanActual(hospitalId);
+      const efectiva = new Date(vencimiento);
+      efectiva.setDate(efectiva.getDate() + 1);
+      mensaje = `Seguís con el <strong>Plan ${planActual.nombre}</strong> hasta el ${formatearFechaLarga(vencimiento)} (ya lo tenés pagado). A partir del ${formatearFechaLarga(efectiva)} pasás al <strong>Plan ${planSeleccionado.nombre}</strong>${esGratuitoNuevo ? ', sin costo' : ', con su nuevo costo y límites'}.`;
+    } else {
+      mensaje = `El <strong>Plan ${planSeleccionado.nombre}</strong> se activa ahora mismo, con el nuevo costo y límites desde ya.`;
+    }
+    document.getElementById('detalle-mensaje').innerHTML = mensaje;
+
+    const medioPagoWrap = document.getElementById('medio-pago-opciones');
+    if (esGratuitoNuevo) {
+      medioPagoWrap.style.display = 'none';
+    } else {
+      medioPagoWrap.style.display = 'block';
+      const hospitalSinMedioCargado = planActual.precio_base === 0;
+      document.getElementById('opt-mantener-label').style.display = hospitalSinMedioCargado ? 'none' : 'flex';
+      document.getElementById('opt-nuevo').checked = hospitalSinMedioCargado;
+      document.getElementById('opt-mantener').checked = !hospitalSinMedioCargado;
+      toggleMedioPagoNuevo();
+    }
+
+    detalle.style.display = 'block';
+    btn.disabled = false;
+  }
+
+  async function cargarCambiarPlan() {
+    await HemoRed.db.init();
+    const s = HemoRed.sesion.get();
+    const usuario = s && HemoRed.db.find('usuarios', s.usuario_id);
+    hospitalId = usuario?.hospital_id;
+    if (!hospitalId) return;
+
+    planActual = HemoRed.data.obtenerPlanHospital(hospitalId);
+    if (!planActual) return;
+    planesCache = HemoRed.db.all('planes').filter(p => p.activo).sort((a, b) => a.id - b.id);
+    renderGrid();
+
+    // Datos de facturación precargados desde la ficha real del hospital
+    // (hay sesión activa, no tiene sentido volver a pedirlos).
+    const hospital = HemoRed.db.find('hospitales', hospitalId);
+    if (hospital) {
+      document.getElementById('mp-razon-social').value = hospital.razon_social || hospital.nombre;
+      document.getElementById('mp-cuit').value = hospital.cuit || '';
+      document.getElementById('mp-email-facturas').value = hospital.email || hospital.contacto_email || '';
+      document.getElementById('mp-titular').value = hospital.contacto_nombre || '';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', cargarCambiarPlan);
+
+  function confirmarCambioPlan() {
+    const errorEl = document.getElementById('cambio-plan-error');
+    errorEl.style.display = 'none';
+    if (!hospitalId || !planSeleccionado) return;
+
+    const resultado = HemoRed.data.cambiarPlanHospital(hospitalId, planSeleccionado.id, `Cambio a plan ${planSeleccionado.nombre} desde el perfil`);
+    if (!resultado.ok) {
+      errorEl.textContent = resultado.error || 'No se pudo cambiar el plan.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    window.location = `perfil.html?plan_actualizado=${resultado.inmediato ? '1' : 'programado'}`;
+  }
+</script>
+<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+
+</body>
+</html>
