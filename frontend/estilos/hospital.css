@@ -279,6 +279,11 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 /* === PACIENTES (hospital) === */
 .view { display: none; }
 .view.active { display: block; }
+/* Le faltaba grid-template-columns (nunca lo tuvo) — cada celda caía en su
+   propia fila en vez de alinearse con el header, mismo bug que ya se dio
+   varias veces en este proyecto con tablas nunca miradas con datos reales
+   de más de 1 columna. */
+.pac-table-header, .pac-row { grid-template-columns: 2fr 1fr 1.4fr 90px; }
 .pac-row { display: grid; padding: 14px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; cursor: pointer; transition: background 0.1s; }
 .pac-row:last-child { border-bottom: none; }
 .pac-row:hover { background: #fdf0f3; }
@@ -464,6 +469,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
      deja sus fracciones (fr) de ancho reservadas como espacio vacío, aunque
      no haya nada dentro — el grid solo queda con Donante/Campaña/Acciones. */
   .table-header, .table-row, .turno-row { grid-template-columns: 2fr 1.4fr 170px; }
+  .pac-table-header, .pac-row { grid-template-columns: 2fr 1fr 90px; }
 }
 /* 3ra medida (celular, no solo tablet): las tarjetas de métricas/filtro
    (.stats-row, .kpis) pasan a 1 columna — en 2 columnas quedaban muy

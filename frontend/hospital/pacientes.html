@@ -86,9 +86,9 @@
       </div>
 
       <div class="table-wrap">
-        <div class="table-header">
+        <div class="table-header pac-table-header">
           <div class="th">Paciente</div>
-          <div class="th">Tipo de sangre</div>
+          <div class="th">Grupo y factor</div>
           <div class="th hide-md">Diagnóstico</div>
           <div class="th"></div>
         </div>
@@ -345,7 +345,7 @@
             </div>
           </div>
           <div class="td">${p.tipo_sangre || '—'}</div>
-          <div class="td hide-md">${p.diagnostico}</div>
+          <div class="td hide-md">${p.diagnostico || '—'}</div>
           <div class="row-actions">
             <button class="btn-xs btn-xs-outline" onclick="event.stopPropagation();window.location='../hospital/paciente_detalle.html?id=${p.id}'">Ver</button>
           </div>
