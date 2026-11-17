@@ -148,9 +148,9 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="h-doc">Habilitación sanitaria <span class="opcional">(PDF)</span></label>
+        <label class="form-label" for="h-doc">Habilitación sanitaria <span class="opcional">(PDF, obligatorio)</span></label>
         <input class="form-input" id="h-doc" type="file" accept=".pdf">
-        <p class="form-hint">Adjuntá la habilitación sanitaria de la institución. Requerido para aprobar el registro.</p>
+        <p class="form-hint">Adjuntá la habilitación sanitaria de la institución. Sin este archivo no podemos validar la cuenta.</p>
       </div>
 
       <div class="form-group">
@@ -184,6 +184,8 @@
            plan antes de llegar a este form. -->
 
       <p class="plan-note">Tu cuenta quedará pendiente de aprobación. Te notificaremos por email cuando sea activada por el administrador.</p>
+
+      <div id="hospital-error" class="form-error-box"></div>
 
       <button class="form-btn" onclick="continuarAPago()">Solicitar registro</button>
       <p class="form-login">¿Ya tenés cuenta? <a href="../publico/login.html">Iniciá sesión</a></p>
@@ -293,17 +295,53 @@
   document.addEventListener('DOMContentLoaded', initPasoHospital);
 
   async function continuarAPago() {
+    const nombreInstitucion = document.getElementById('h-nombre').value.trim();
+    const cuit = document.getElementById('h-cuit').value.trim();
+    const tel = document.getElementById('h-tel').value.trim();
+    const dir = document.getElementById('h-dir').value.trim();
+    const email = document.getElementById('h-email').value.trim();
+    const doc = document.getElementById('h-doc').files[0];
+    const pass = document.getElementById('h-pass').value;
+    const pass2 = document.getElementById('h-pass2').value;
+    const errorEl = document.getElementById('hospital-error');
+
+    function mostrarError(msg) {
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+      errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    errorEl.style.display = 'none';
+
+    // Todos los campos de este form son obligatorios para poder validar la
+    // cuenta (2026-11-17, pedido explícito) — incluida la habilitación
+    // sanitaria, sin la cual el admin no tiene con qué aprobar el registro.
+    if (!nombreInstitucion || !cuit || !tel || !dir || !email) {
+      mostrarError('Completá todos los datos de la institución.');
+      return;
+    }
+    if (!doc) {
+      mostrarError('Adjuntá la habilitación sanitaria en PDF: sin ese archivo no podemos validar la cuenta.');
+      return;
+    }
+    if (pass.length < 8) {
+      mostrarError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (pass !== pass2) {
+      mostrarError('Las contraseñas no coinciden.');
+      return;
+    }
     if (!planElegido) {
       document.getElementById('plan-sin-elegir').scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
+
     await HemoRed.db.init();
     const plan = HemoRed.db.find('planes', planElegido);
     sessionStorage.setItem('hemored_plan_elegido', String(planElegido));
     // Se guarda el nombre de la institución ya cargado en este form antes de
     // borrar el draft, para que pago.html no lo tenga que hardcodear.
-    const nombreInstitucion = document.getElementById('h-nombre').value.trim();
-    if (nombreInstitucion) sessionStorage.setItem('hemored_hospital_nombre', nombreInstitucion);
+    sessionStorage.setItem('hemored_hospital_nombre', nombreInstitucion);
     sessionStorage.removeItem(DRAFT_KEY);
     // El plan Gratuito no tiene nada que cobrar — saltea pago.html directo
     // a la pantalla de "cuenta pendiente de aprobación".
