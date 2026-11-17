@@ -802,8 +802,9 @@ HemoRed.data = (function() {
   // donante no los controla ni puede saber si están "mal" desde su lugar —
   // no son reportables acá.
   const CAMPOS_CORREGIBLES = {
-    nombre:         { label: 'Nombre',           tabla: 'usuarios',            campo: 'nombre' },
-    apellido:       { label: 'Apellido',          tabla: 'usuarios',            campo: 'apellido' },
+    nombre:            { label: 'Nombre',            tabla: 'usuarios', campo: 'nombre' },
+    apellido_paterno:  { label: 'Apellido paterno',  tabla: 'usuarios', campo: 'apellido_paterno' },
+    apellido_materno:  { label: 'Apellido materno',  tabla: 'usuarios', campo: 'apellido_materno' },
     dni:            { label: 'DNI',               tabla: 'usuarios',            campo: 'numero_documento' },
     fecha_donacion: { label: 'Fecha de donación', tabla: 'certificado_donacion', campo: 'fecha_donacion' },
   };
@@ -1138,7 +1139,8 @@ HemoRed.data = (function() {
           ...paciente,
           diagnostico: eventoReciente.diagnostico,
           servicio: eventoReciente.servicio,
-          contacto_referencia: eventoReciente.contacto_referencia,
+          contacto_nombre: eventoReciente.contacto_nombre,
+          contacto_telefono: eventoReciente.contacto_telefono,
           observaciones: eventoReciente.observaciones,
           medico_tratante: eventoReciente.medico_tratante,
           evento_desde: eventoReciente.evento_desde,
@@ -1154,20 +1156,27 @@ HemoRed.data = (function() {
     };
   }
 
-  // El hospital da de alta un paciente — gate para poder crear una campaña
-  // a su nombre. Busca primero por DNI, en TODOS los hospitales:
+  // El hospital da de alta un paciente — SOLO la persona + la relación
+  // permanente con este hospital, sin ningún evento todavía (2026-11-17,
+  // corregido a pedido explícito: el formulario pedía diagnóstico/
+  // servicio/contacto/observaciones como obligatorios, que son datos del
+  // EVENTO, no de la persona — quedaba de la época, antes de separar
+  // paciente de evento, en que "dar de alta" y "abrir evento" eran lo
+  // mismo). El evento se abre recién cuando hace falta de verdad, al crear
+  // una campaña para ese paciente — ver abrirEventoPaciente() y
+  // crearCampana(). Busca primero por DNI, en TODOS los hospitales:
   // - Si la persona ya existe: no se toca su ficha (nombre/fecha de
   //   nacimiento/tipo de sangre quedan como estaban). Se busca (o se crea,
-  //   si nunca existió) la RELACIÓN con ESTE hospital, y se le crea un
-  //   evento nuevo colgando de ella — la relación en sí nunca se duplica
-  //   ni se borra, puede terminar con varios eventos a lo largo del tiempo.
-  // - Si no existe: se crea la persona + la relación + el primer evento.
-  // Gate: solo puede haber un evento activo a la vez por paciente, en
-  // cualquier hospital — si ya tiene uno, hay que esperar a que la campaña
-  // que lo originó se cierre (`cerrarCampana()`, más abajo) antes de
-  // registrar uno nuevo. Todos los campos del formulario son obligatorios
-  // salvo el tipo de sangre (pedido explícito de la usuaria).
-  function crearPaciente({ nombre, apellido, numero_documento, fecha_nacimiento, tipo_sangre, diagnostico, servicio, contacto_referencia, observaciones }) {
+  //   si nunca existió) la RELACIÓN con ESTE hospital — la relación en sí
+  //   nunca se duplica ni se borra.
+  // - Si no existe: se crea la persona + la relación.
+  // apellido_paterno/apellido_materno (2026-11-17, pedido explícito: más
+  // control de identidad, se piden los dos por separado sin importar si
+  // el DNI solo muestra uno) — son los ÚNICOS campos de apellido; no hay
+  // un `apellido` genérico combinado ni duplicado. Toda pantalla que
+  // muestra el nombre completo de una persona (paciente/profesional/
+  // donante) lee y concatena los dos directo.
+  function crearPaciente({ nombre, apellido_paterno, apellido_materno, numero_documento, fecha_nacimiento, tipo_sangre }) {
     const s = HemoRed.sesion.get();
     const usuario = HemoRed.db.find('usuarios', s?.usuario_id);
     const hospitalId = usuario?.hospital_id;
@@ -1180,34 +1189,18 @@ HemoRed.data = (function() {
     if (plan && plan.puede_crear_pacientes === false) {
       return { ok: false, error: `Tu plan ${plan.nombre} no incluye registrar pacientes propios.` };
     }
-    if (!nombre || !apellido) return { ok: false, error: 'Ingresá nombre y apellido.' };
+    if (!nombre || !apellido_paterno || !apellido_materno) return { ok: false, error: 'Ingresá nombre, apellido paterno y apellido materno.' };
     if (!numero_documento) return { ok: false, error: 'Ingresá el DNI del paciente.' };
     if (!fecha_nacimiento) return { ok: false, error: 'Ingresá la fecha de nacimiento.' };
-    if (!diagnostico) return { ok: false, error: 'Ingresá el diagnóstico.' };
-    if (!servicio) return { ok: false, error: 'Seleccioná el servicio/área.' };
-    if (!contacto_referencia) return { ok: false, error: 'Ingresá un contacto de referencia.' };
-    if (!observaciones) return { ok: false, error: 'Ingresá las observaciones.' };
 
     let paciente = HemoRed.db.where('pacientes', 'numero_documento', numero_documento)[0];
     let yaExistia = !!paciente;
 
-    if (paciente) {
-      const relacionConEvento = HemoRed.db.all('paciente_hospital')
-        .find(r => r.paciente_id === paciente.id && _eventoDeRelacion(r.id).some(e => e.activo));
-      if (relacionConEvento) {
-        const hospitalActivo = HemoRed.db.find('hospitales', relacionConEvento.hospital_id);
-        const mismoHospital = relacionConEvento.hospital_id === hospitalId;
-        return {
-          ok: false,
-          error: mismoHospital
-            ? 'Este paciente ya tiene un evento abierto en tu hospital — tiene que cerrarse la campaña asociada antes de registrar uno nuevo.'
-            : `Este paciente ya tiene un evento abierto en ${hospitalActivo?.nombre || 'otro hospital'} — tiene que cerrarse la campaña asociada ahí antes de poder registrar uno nuevo en otro lado.`,
-        };
-      }
-    } else {
+    if (!paciente) {
       paciente = HemoRed.db.crear('pacientes', {
         nombre,
-        apellido,
+        apellido_paterno,
+        apellido_materno,
         fecha_nacimiento,
         tipo_documento_id: 1,
         numero_documento,
@@ -1225,18 +1218,90 @@ HemoRed.data = (function() {
         creado_en: hoyISO(),
       });
     }
-    HemoRed.db.crear('eventos_paciente', {
+    // yaExistia (la PERSONA, no la relación con este hospital en particular)
+    // decide el toast en pacientes.html: "vinculado" si ya existía en algún
+    // lado, "creado" si es la primera vez que se registra en el sistema.
+    return { ok: true, paciente, yaExistia };
+  }
+
+  // Buscador por DNI, 2026-11-17 (pedido explícito: "para poder relacionar
+  // a la institución más fácilmente, sin volver a tipear nombre/apellidos
+  // a mano"). Busca en TODO el sistema, no solo en el hospital logueado —
+  // usado desde los modales de alta de pacientes.html y profesionales.html
+  // ANTES de guardar, para avisar si la persona ya existe y a qué
+  // hospital(es) ya está vinculada.
+  function buscarPersonaPorDni(numero_documento) {
+    if (!numero_documento) return null;
+    const paciente = HemoRed.db.where('pacientes', 'numero_documento', numero_documento)[0];
+    if (paciente) {
+      const hospitales = HemoRed.db.where('paciente_hospital', 'paciente_id', paciente.id)
+        .map(r => HemoRed.db.find('hospitales', r.hospital_id)?.nombre)
+        .filter(Boolean);
+      return { tipo: 'paciente', paciente, hospitales };
+    }
+    const usuarioProf = HemoRed.db.where('usuarios', 'numero_documento', numero_documento)
+      .find(u => u.rol === 'profesional');
+    if (usuarioProf) {
+      const profesional = HemoRed.db.where('profesionales', 'usuario_id', usuarioProf.id)[0];
+      const hospitales = profesional
+        ? HemoRed.db.where('profesional_hospital', 'profesional_id', profesional.id).filter(v => v.activo)
+            .map(v => HemoRed.db.find('hospitales', v.hospital_id)?.nombre)
+            .filter(Boolean)
+        : [];
+      return { tipo: 'profesional', usuario: usuarioProf, profesional, hospitales };
+    }
+    return null;
+  }
+
+  // Abre un evento nuevo para un paciente ya vinculado a este hospital —
+  // llamado desde crearCampana() cuando se asocia la campaña a un paciente
+  // que no tiene ningún evento activo todavía (2026-11-17). Gate: solo
+  // puede haber un evento activo a la vez por paciente, en cualquier
+  // hospital — si ya tiene uno, hay que esperar a que la campaña que lo
+  // originó se cierre (cerrarCampana(), más abajo) antes de abrir otro.
+  function abrirEventoPaciente(pacienteId, hospitalId, { diagnostico, servicio, contacto_nombre, contacto_telefono, observaciones }) {
+    if (!diagnostico) return { ok: false, error: 'Ingresá el diagnóstico del paciente.' };
+    if (!servicio) return { ok: false, error: 'Seleccioná el servicio/área.' };
+
+    const relacionConEvento = HemoRed.db.all('paciente_hospital')
+      .find(r => r.paciente_id === pacienteId && _eventoDeRelacion(r.id).some(e => e.activo));
+    if (relacionConEvento) {
+      const hospitalActivo = HemoRed.db.find('hospitales', relacionConEvento.hospital_id);
+      const mismoHospital = relacionConEvento.hospital_id === hospitalId;
+      return {
+        ok: false,
+        error: mismoHospital
+          ? 'Este paciente ya tiene un evento abierto en tu hospital.'
+          : `Este paciente ya tiene un evento abierto en ${hospitalActivo?.nombre || 'otro hospital'} — tiene que cerrarse la campaña asociada ahí antes de abrir uno en otro lado.`,
+      };
+    }
+
+    const relacion = _buscarRelacion(pacienteId, hospitalId);
+    if (!relacion) return { ok: false, error: 'Ese paciente no está vinculado a tu hospital.' };
+
+    const evento = HemoRed.db.crear('eventos_paciente', {
       paciente_hospital_id: relacion.id,
       medico_tratante: null,
       diagnostico,
       servicio,
-      contacto_referencia,
-      observaciones,
+      contacto_nombre: contacto_nombre || null,
+      contacto_telefono: contacto_telefono || null,
+      observaciones: observaciones || null,
       evento_desde: hoyISO(),
       fecha_cierre: null,
       activo: true,
     });
-    return { ok: true, paciente, yaExistia };
+    return { ok: true, evento };
+  }
+
+  // Un paciente de este hospital tiene evento activo ahora mismo — usado
+  // por el wizard de campaña para saber si hace falta pedir diagnóstico/
+  // servicio/contacto/observaciones antes de publicar, o si ya hay uno
+  // para reusar.
+  function tieneEventoActivo(pacienteId, hospitalId) {
+    const relacion = _buscarRelacion(pacienteId, hospitalId);
+    if (!relacion) return false;
+    return _eventoDeRelacion(relacion.id).some(e => e.activo);
   }
 
   // Detalle real de un paciente para hospital/paciente_detalle.html — la
@@ -1253,9 +1318,12 @@ HemoRed.data = (function() {
     const relacion = _buscarRelacion(pacienteId, hospitalId);
     if (!relacion) return null; // este hospital nunca tuvo relación con esta persona
     const eventos = _eventoDeRelacion(relacion.id).sort((a, b) => b.evento_desde.localeCompare(a.evento_desde));
-    const vinculo = eventos.find(e => e.activo) || eventos[0];
-    if (!vinculo) return null; // relación sin ningún evento todavía (no debería pasar vía la UI)
-    const historial = eventos.filter(e => e.id !== vinculo.id);
+    // Un paciente recién registrado (2026-11-17: "Nuevo paciente" ya no
+    // abre evento solo) puede no tener ninguno todavía — `vinculo` queda
+    // null y la pantalla lo muestra como "sin evento abierto" en vez de
+    // asumir que siempre hay uno.
+    const vinculo = eventos.find(e => e.activo) || eventos[0] || null;
+    const historial = vinculo ? eventos.filter(e => e.id !== vinculo.id) : [];
     return { paciente, vinculo, historial };
   }
 
@@ -1301,37 +1369,103 @@ HemoRed.data = (function() {
     };
   }
 
+  // Detalle real de un profesional para hospital/profesional_detalle.html
+  // (2026-11-17, reportado con captura: el botón "Ver" llevaba siempre a
+  // la misma ficha estática de Dr. Carlos Méndez, sin importar qué
+  // profesional se clickeara). Devuelve solo si ESTE hospital tiene un
+  // vínculo activo con ese profesional — nunca datos de otro hospital.
+  function cargarDetalleProfesional(profesionalId) {
+    const s = HemoRed.sesion.get();
+    const usuarioHospital = HemoRed.db.find('usuarios', s?.usuario_id);
+    const hospitalId = usuarioHospital?.hospital_id;
+    const profesional = HemoRed.db.find('profesionales', profesionalId);
+    if (!profesional) return null;
+    const vinculo = HemoRed.db.all('profesional_hospital')
+      .find(v => v.profesional_id === profesionalId && v.hospital_id === hospitalId && v.activo);
+    if (!vinculo) return null;
+    const usuario = HemoRed.db.find('usuarios', profesional.usuario_id);
+    // telefono_interno es propio del vínculo (2026-11-17, mismo criterio
+    // que el email institucional) — fallback a usuario.telefono para
+    // vínculos semilla viejos que nunca tuvieron este campo.
+    const telefono = vinculo.telefono_interno || usuario?.telefono || null;
+    // "Resumen" del sidebar (2026-11-17, reportado por la usuaria: eran
+    // 3 números fijos — 2/1/47 — iguales para cualquier profesional en
+    // cualquier hospital, ej. un profesional recién vinculado a un
+    // hospital nuevo mostraba igual "47 donaciones"). "Pacientes a
+    // cargo" se sacó del todo (no hay esa relación en el modelo);
+    // campañas activas y donaciones SÍ se pueden calcular de verdad,
+    // escopadas a ESTE hospital.
+    const campanasActivas = HemoRed.db.where('campana_hospital', 'hospital_id', hospitalId)
+      .map(ch => HemoRed.db.find('campanas', ch.campana_id))
+      .filter(c => c && esCampanaActiva(c)).length;
+    const donacionesDelProfesional = HemoRed.db.all('donaciones')
+      .filter(d => d.profesional_id === profesionalId && d.hospital_id === hospitalId);
+    const donacionesSupervisadas = donacionesDelProfesional.length;
+    // "Pacientes a cargo" (2026-11-17, reportado por la usuaria: eran 2
+    // nombres fijos, iguales para cualquier profesional — "¿no estamos
+    // contemplando ya la relación médico↔paciente, o la hacemos en la
+    // campaña?"). SÍ hay un camino real, vía actividad real: cada
+    // donación que este profesional supervisó en ESTE hospital está
+    // atada a una campaña (`donaciones.campana_id`), y la campaña puede
+    // tener un paciente propio (`campanas.paciente_id` — no todas lo
+    // tienen, hay campañas generales de banco de sangre). Se arma la
+    // lista de pacientes distintos detrás de esas campañas, no una
+    // relación inventada aparte.
+    const campanasIds = [...new Set(donacionesDelProfesional.map(d => d.campana_id))];
+    const pacientesACargo = [];
+    const vistos = new Set();
+    campanasIds.forEach(cId => {
+      const campana = HemoRed.db.find('campanas', cId);
+      if (!campana || !campana.paciente_id || vistos.has(campana.paciente_id)) return;
+      const paciente = HemoRed.db.find('pacientes', campana.paciente_id);
+      if (!paciente) return;
+      vistos.add(campana.paciente_id);
+      pacientesACargo.push({ paciente, campana });
+    });
+    return { profesional, usuario, vinculo, telefono, campanasActivas, donacionesSupervisadas, pacientesACargo };
+  }
+
   // El hospital da de alta un profesional — médico clínico o extraccionista,
   // ambos perfiles (2026-10-20, reescrita el mismo día: la primera versión
   // creaba SIEMPRE una cuenta nueva, lo que duplicaba a la persona si ya
   // trabajaba en otro hospital del sistema — un profesional SÍ puede
   // trabajar en varios a la vez, pedido explícito de la usuaria).
   // Busca primero por DNI, en TODOS los hospitales:
-  // - Si ya existe: no se toca su cuenta ni su ficha profesional (tipo/
-  //   matrícula/especialidad no cambian de hospital a hospital — es la
-  //   misma matrícula en todos lados) ni se le pide contraseña de nuevo
-  //   (ya tiene cuenta con la que entra). Solo se crea el vínculo nuevo
-  //   con ESTE hospital, con SU PROPIO email institucional.
-  // - Si no existe: se crea la cuenta (`usuarios`, mismo patrón sin hash
-  //   de `registrarDonante()` en sesion.js) + la ficha (`profesionales`,
-  //   sin `hospital_id` propio a propósito, nunca lo tuvo) + el primer
-  //   vínculo. El email de login de la cuenta nueva es, por default, el
-  //   mismo que el institucional de este primer hospital — son el mismo
-  //   valor solo porque es su primera alta, no porque tengan que coincidir
-  //   siempre (si después lo vincula otro hospital, ESE vínculo tiene su
-  //   propio email institucional, el de login de la cuenta no cambia).
-  function crearProfesional({ nombre, apellido, numero_documento, tipo, matricula, especialidad, email, telefono, password, password2 }) {
+  // - Si ya existe: no se toca su identidad (nombre/apellidos/DNI/
+  //   matrícula — son de la persona, no cambian de hospital a hospital).
+  //   Pero, a diferencia de un paciente, SÍ se le crea acá un vínculo con
+  //   TODO lo propio de este hospital: perfil (médico/extraccionista),
+  //   especialidad, email institucional, teléfono interno y CONTRASEÑA
+  //   propia — pedido explícito 2026-11-17, "un profesional puede tener
+  //   tantas cuentas como relaciones con hospitales tenga, y cuando se
+  //   loguea con el hospital 1 lo hace con el user y pass de ese hospital,
+  //   y lo mismo en el hospital 2". El mail institucional propio por
+  //   vínculo ya existía desde el 3/11 (ver sesion.js); lo que faltaba era
+  //   que la contraseña (y el teléfono interno) también fueran propios de
+  //   cada vínculo, no compartidos con el resto de los hospitales.
+  // - Si no existe: se crea la identidad (`usuarios`+`profesionales`) y,
+  //   en el mismo paso, su primer vínculo — con su propio email/teléfono/
+  //   contraseña, igual que cualquier otro.
+  // apellido_paterno/apellido_materno (2026-11-17, pedido explícito, ver
+  // la misma nota en crearPaciente()).
+  function crearProfesional({ nombre, apellido_paterno, apellido_materno, numero_documento, tipo, matricula, especialidad, email, telefono, password, password2 }) {
     const s = HemoRed.sesion.get();
     const usuarioHospital = HemoRed.db.find('usuarios', s?.usuario_id);
     const hospitalId = usuarioHospital?.hospital_id;
     if (!hospitalId) return { ok: false, error: 'No se pudo identificar el hospital.' };
-    if (!nombre || !apellido) return { ok: false, error: 'Ingresá nombre y apellido.' };
+    if (!nombre || !apellido_paterno || !apellido_materno) return { ok: false, error: 'Ingresá nombre, apellido paterno y apellido materno.' };
     if (!numero_documento) return { ok: false, error: 'Ingresá el DNI.' };
     if (!tipo) return { ok: false, error: 'Seleccioná el perfil (médico clínico o extraccionista).' };
     if (!matricula) return { ok: false, error: 'Ingresá la matrícula.' };
     if (!especialidad) return { ok: false, error: 'Seleccioná la especialidad.' };
     const emailNorm = (email || '').toLowerCase().trim();
     if (!emailNorm) return { ok: false, error: 'Ingresá el email institucional.' };
+    if (!password || password.length < 8) return { ok: false, error: 'La contraseña debe tener al menos 8 caracteres.' };
+    if (password !== password2) return { ok: false, error: 'Las contraseñas no coinciden.' };
+
+    const emailEnUso = HemoRed.db.where('usuarios', 'email', emailNorm).length > 0
+      || HemoRed.db.where('profesional_hospital', 'email_institucional', emailNorm).length > 0;
+    if (emailEnUso) return { ok: false, error: 'Ya existe una cuenta con ese email.' };
 
     let usuarioProf = HemoRed.db.where('usuarios', 'numero_documento', numero_documento)
       .find(u => u.rol === 'profesional');
@@ -1343,16 +1477,11 @@ HemoRed.data = (function() {
         .some(v => v.profesional_id === profesional.id && v.hospital_id === hospitalId && v.activo);
       if (yaVinculado) return { ok: false, error: 'Este profesional ya está vinculado a tu hospital.' };
     } else {
-      if (HemoRed.db.where('usuarios', 'email', emailNorm).length > 0) {
-        return { ok: false, error: 'Ya existe una cuenta con ese email.' };
-      }
-      if (!password || password.length < 8) return { ok: false, error: 'La contraseña debe tener al menos 8 caracteres.' };
-      if (password !== password2) return { ok: false, error: 'Las contraseñas no coinciden.' };
-
-      const iniciales = (nombre[0] || '').toUpperCase() + (apellido[0] || '').toUpperCase();
+      const iniciales = (nombre[0] || '').toUpperCase() + (apellido_paterno[0] || '').toUpperCase();
       usuarioProf = HemoRed.db.crear('usuarios', {
         nombre,
-        apellido,
+        apellido_paterno,
+        apellido_materno,
         email: emailNorm,
         password_hash: password, // demo: sin hash real, no hay backend
         rol: 'profesional',
@@ -1370,7 +1499,7 @@ HemoRed.data = (function() {
         matricula,
         especialidad,
         titulo: null,
-        nombre_completo: `${nombre} ${apellido}`,
+        nombre_completo: `${nombre} ${apellido_paterno} ${apellido_materno}`,
         universidad: null,
         anio_graduacion: null,
         firma_digital_url: null,
@@ -1385,6 +1514,8 @@ HemoRed.data = (function() {
       activo: true,
       desde: hoyISO(),
       email_institucional: emailNorm,
+      telefono_interno: telefono || null,
+      password_hash: password,
     });
     return { ok: true, profesional, yaExistia };
   }
@@ -1900,6 +2031,22 @@ HemoRed.data = (function() {
       ? datos.hospitales
       : [{ hospital_id: datos.hospital_id, dias_atencion: datos.dias_atencion, horarios_atencion: datos.horarios_atencion, duracion_turno_min: datos.duracion_turno_min, cupo_por_turno: datos.cupo_por_turno }];
     if (!hospitales.length) return { ok: false, error: 'Elegí al menos un hospital donde se pueda donar.' };
+
+    // Si la campaña se asocia a un paciente sin evento activo, se abre acá
+    // mismo (2026-11-17, pedido explícito: evitar un paso aparte de "abrir
+    // evento" antes de poder crear la campaña). Si ya tiene uno activo
+    // (reusado de un guardado anterior del mismo borrador, o porque ya
+    // tenía uno), no se vuelve a pedir nada ni se toca.
+    if (datos.paciente_id && !tieneEventoActivo(datos.paciente_id, datos.hospital_id)) {
+      const resEvento = abrirEventoPaciente(datos.paciente_id, datos.hospital_id, {
+        diagnostico: datos.diagnostico,
+        servicio: datos.servicio,
+        contacto_nombre: datos.contacto_nombre,
+        contacto_telefono: datos.contacto_telefono,
+        observaciones: datos.observaciones,
+      });
+      if (!resEvento.ok) return resEvento;
+    }
 
     const campo = {
       hospital_id: datos.hospital_id,
@@ -2511,8 +2658,12 @@ HemoRed.data = (function() {
     cargarDashboardHospital,
     cargarPacientesHospital,
     crearPaciente,
+    buscarPersonaPorDni,
+    abrirEventoPaciente,
+    tieneEventoActivo,
     cargarDetallePaciente,
     cargarProfesionalesHospital,
+    cargarDetalleProfesional,
     crearProfesional,
     cargarMetricasHospital,
     cargarDocumentacionHospital,

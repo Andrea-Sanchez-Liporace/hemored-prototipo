@@ -272,8 +272,8 @@
     cont.innerHTML = pendientes.map(t => {
       const donante = usuarios.find(u => u.id === t.usuario_id);
       const campana = campanas.find(c => c.id === t.campana_id);
-      const nombre = donante ? `${donante.nombre} ${donante.apellido || ''}`.trim() : 'Donante';
-      const iniciales = donante ? ((donante.nombre[0] || '') + (donante.apellido?.[0] || '')).toUpperCase() : '?';
+      const nombre = donante ? `${donante.nombre} ${donante.apellido_paterno || ''} ${donante.apellido_materno || ''}`.replace(/\s+/g, ' ').trim() : 'Donante';
+      const iniciales = donante ? ((donante.nombre[0] || '') + (donante.apellido_paterno?.[0] || '')).toUpperCase() : '?';
       return `
         <div class="turno-row-dash">
           <div class="turno-avatar">${iniciales}</div>

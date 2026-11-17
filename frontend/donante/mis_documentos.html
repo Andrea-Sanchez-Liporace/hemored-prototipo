@@ -242,7 +242,7 @@
             <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;text-align:center;">${a?.resultado_general || '—'}</span>
           </div>
           <div class="resultado-meta">
-            <div class="meta-item"><div class="meta-label">Donante</div><div class="meta-value">${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}</div></div>
+            <div class="meta-item"><div class="meta-label">Donante</div><div class="meta-value">${donanteActual?.nombre || ''} ${donanteActual?.apellido_paterno || ''} ${donanteActual?.apellido_materno || ''}</div></div>
             <div class="meta-item"><div class="meta-label">Grupo sanguíneo</div><div class="meta-value">${a?.grupo_sanguineo || '—'} ${a?.factor_rh || ''}</div></div>
             <div class="meta-item"><div class="meta-label">Laboratorio</div><div class="meta-value">${a?.laboratorio || '—'}</div></div>
             <div class="meta-item"><div class="meta-label">Nro. de bolsa</div><div class="meta-value">#${a?.numero_bolsa || '—'}</div></div>
@@ -320,7 +320,7 @@
           <span style="background:#e1f5ee;color:#04342c;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-heart-check" style="font-size:11px;"></i>${don?.resultado_apto ? 'Apto para donar' : '—'}</span>
         </div>
         <div class="resultado-meta">
-          <div class="meta-item"><div class="meta-label">Donante</div><div class="meta-value">${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}</div></div>
+          <div class="meta-item"><div class="meta-label">Donante</div><div class="meta-value">${donanteActual?.nombre || ''} ${donanteActual?.apellido_paterno || ''} ${donanteActual?.apellido_materno || ''}</div></div>
           <div class="meta-item"><div class="meta-label">Evaluado por</div><div class="meta-value">${d.profesional?.nombre_completo || '—'}</div></div>
           <div class="meta-item"><div class="meta-label">Especialidad</div><div class="meta-value">${d.profesional?.especialidad || '—'}</div></div>
           <div class="meta-item"><div class="meta-label">Matrícula</div><div class="meta-value">${d.profesional?.matricula || '—'}</div></div>
@@ -432,7 +432,7 @@
             <div class="cert-preview-title">Certificado de donación de sangre</div>
           </div>
           <div class="cert-body">
-            <p>Por medio del presente se certifica que <strong>${donanteActual?.nombre || ''} ${donanteActual?.apellido || ''}</strong>, DNI <strong>${donanteActual?.numero_documento || '—'}</strong>, realizó una donación voluntaria de sangre en las instalaciones del <strong>${c.hospital_nombre}</strong>.</p>
+            <p>Por medio del presente se certifica que <strong>${donanteActual?.nombre || ''} ${donanteActual?.apellido_paterno || ''} ${donanteActual?.apellido_materno || ''}</strong>, DNI <strong>${donanteActual?.numero_documento || '—'}</strong>, realizó una donación voluntaria de sangre en las instalaciones del <strong>${c.hospital_nombre}</strong>.</p>
             <div class="cert-datos">
               <div class="cert-dato"><div class="cert-dato-label">Fecha de donación</div><div class="cert-dato-value">${fechaLarga(c.fecha_donacion)}</div></div>
               <div class="cert-dato"><div class="cert-dato-label">Profesional a cargo</div><div class="cert-dato-value">${c.profesional_nombre} · Mat. ${c.profesional_matricula}</div></div>
@@ -499,7 +499,8 @@
     if (!c) return {};
     return {
       nombre: donanteActual?.nombre || '',
-      apellido: donanteActual?.apellido || '',
+      apellido_paterno: donanteActual?.apellido_paterno || '',
+      apellido_materno: donanteActual?.apellido_materno || '',
       dni: donanteActual?.numero_documento || '',
       fecha_donacion: fechaLarga(c.fecha_donacion),
     };

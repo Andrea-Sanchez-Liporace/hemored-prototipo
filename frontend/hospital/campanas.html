@@ -198,7 +198,7 @@
   }
 
   function subtextoCampana(c, paciente) {
-    const quien = paciente ? `Paciente: ${paciente.nombre} ${paciente.apellido}` : 'Campaña genérica';
+    const quien = paciente ? `Paciente: ${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno}` : 'Campaña genérica';
     if (c.estado === 'borrador') return `Borrador · Última edición ${hace(c.creado_en)}`;
     if (c.estado === 'programada') {
       const f = new Date(c.fecha_publicacion);

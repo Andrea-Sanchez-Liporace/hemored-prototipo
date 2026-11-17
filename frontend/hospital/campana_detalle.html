@@ -357,7 +357,7 @@
   }
 
   function filaTurno(t) {
-    const nombre = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+    const nombre = t.donante ? `${t.donante.nombre} ${t.donante.apellido_paterno || ''} ${t.donante.apellido_materno || ''}`.replace(/\s+/g, ' ').trim() : 'Donante';
     const iniciales = t.donante?.avatar_iniciales || '—';
     const dni = t.donante?.numero_documento ? `DNI ${t.donante.numero_documento}` : '—';
     const info = TURNO_INFO[t.estado] || { badge: 'tb-pendiente', label: t.estado };
@@ -499,7 +499,7 @@
     document.getElementById('d-cubiertos').textContent = `${c.unidades_obtenidas} / ${c.unidades_requeridas}`;
     document.getElementById('d-cubiertos-fill').style.width = pct + '%';
     document.getElementById('d-paciente-item').style.display = paciente ? '' : 'none';
-    if (paciente) document.getElementById('d-paciente').textContent = `${paciente.nombre} ${paciente.apellido}`;
+    if (paciente) document.getElementById('d-paciente').textContent = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno}`;
 
     // Tab turnos
     document.getElementById('d-turnos-count').textContent = `${turnos.length} turno${turnos.length !== 1 ? 's' : ''}`;
@@ -512,7 +512,7 @@
     document.getElementById('dd-fecha-limite').textContent = c.fecha_cierre ? new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
     document.getElementById('dd-paciente-item').style.display = paciente ? '' : 'none';
     if (paciente) {
-      document.getElementById('dd-paciente').textContent = `${paciente.nombre} ${paciente.apellido}`;
+      document.getElementById('dd-paciente').textContent = `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno}`;
       document.getElementById('dd-paciente-sub').textContent = `ID #${String(paciente.id).padStart(4, '0')}`;
     }
     document.getElementById('dd-confirmacion').textContent = c.confirmacion_automatica ? 'Automática' : 'Manual';

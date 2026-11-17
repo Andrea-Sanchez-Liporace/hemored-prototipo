@@ -85,14 +85,18 @@
       </div>
       <div class="seccion-body">
         <div class="seccion-body-inner">
+          <div class="form-group">
+            <label class="form-label">Nombre</label>
+            <input class="form-input" type="text" id="input-nombre">
+          </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Nombre</label>
-              <input class="form-input" type="text" id="input-nombre">
+              <label class="form-label">Apellido paterno</label>
+              <input class="form-input" type="text" id="input-apellido-paterno">
             </div>
             <div class="form-group">
-              <label class="form-label">Apellido</label>
-              <input class="form-input" type="text" id="input-apellido">
+              <label class="form-label">Apellido materno</label>
+              <input class="form-input" type="text" id="input-apellido-materno">
             </div>
           </div>
           <div class="form-row">
@@ -512,7 +516,7 @@
 
     // Header
     document.getElementById('perfil-avatar-iniciales').textContent = usuarioActual.avatar_iniciales || '?';
-    document.getElementById('perfil-nombre-completo').textContent = `${usuarioActual.nombre} ${usuarioActual.apellido}`.trim();
+    document.getElementById('perfil-nombre-completo').textContent = `${usuarioActual.nombre} ${usuarioActual.apellido_paterno || ''} ${usuarioActual.apellido_materno || ''}`.replace(/\s+/g, ' ').trim();
     document.getElementById('perfil-email').textContent = usuarioActual.email || '';
     document.getElementById('perfil-badge-sangre').classList.toggle('hidden', !!usuarioActual.tipo_sangre);
     actualizarCompletitud();
@@ -520,7 +524,8 @@
 
     // Sección 1 — Datos personales
     document.getElementById('input-nombre').value = usuarioActual.nombre || '';
-    document.getElementById('input-apellido').value = usuarioActual.apellido || '';
+    document.getElementById('input-apellido-paterno').value = usuarioActual.apellido_paterno || '';
+    document.getElementById('input-apellido-materno').value = usuarioActual.apellido_materno || '';
     document.getElementById('input-email').value = usuarioActual.email || '';
     document.getElementById('input-telefono').value = usuarioActual.telefono || '';
     document.getElementById('input-fecha-nacimiento').value = usuarioActual.fecha_nacimiento || '';
@@ -719,19 +724,21 @@
 
   function guardarDatosPersonales() {
     const nombre = document.getElementById('input-nombre').value.trim();
-    const apellido = document.getElementById('input-apellido').value.trim();
+    const apellido_paterno = document.getElementById('input-apellido-paterno').value.trim();
+    const apellido_materno = document.getElementById('input-apellido-materno').value.trim();
     const errorEl = document.getElementById('error-datos-personales');
-    if (!nombre || !apellido) {
-      errorEl.textContent = 'Nombre y apellido son obligatorios.';
+    if (!nombre || !apellido_paterno || !apellido_materno) {
+      errorEl.textContent = 'Nombre, apellido paterno y apellido materno son obligatorios.';
       errorEl.classList.remove('hidden');
       return;
     }
     errorEl.classList.add('hidden');
 
-    const iniciales = (nombre[0] || '').toUpperCase() + (apellido[0] || '').toUpperCase();
+    const iniciales = (nombre[0] || '').toUpperCase() + (apellido_paterno[0] || '').toUpperCase();
     const cambios = {
       nombre,
-      apellido,
+      apellido_paterno,
+      apellido_materno,
       telefono: document.getElementById('input-telefono').value.trim() || null,
       fecha_nacimiento: document.getElementById('input-fecha-nacimiento').value || null,
       numero_documento: document.getElementById('input-dni').value.trim() || null,
@@ -747,7 +754,7 @@
     }
     usuarioActual = resultado.usuario;
     // Sin esto, el sidebar seguiría mostrando el nombre viejo hasta el próximo login.
-    HemoRed.sesion.actualizarNombreSesion(`${nombre} ${apellido}`.trim(), iniciales);
+    HemoRed.sesion.actualizarNombreSesion(`${nombre} ${apellido_paterno} ${apellido_materno}`.trim(), iniciales);
     HemoRed.sesion.inyectarPerfil();
     cargarPerfil();
     HemoRed.ui.toast('Datos personales guardados');

@@ -72,14 +72,23 @@ HemoRed.sesion = (function() {
     if (registrado && registrado.activo === false) {
       return { ok: false, error: 'Esta cuenta fue eliminada.' };
     }
-    if (registrado && registrado.password_hash === password) {
-      const nombreCompleto = `${registrado.nombre} ${registrado.apellido || ''}`.trim();
+    // Cada vínculo profesional↔hospital tiene su PROPIA contraseña
+    // (2026-11-17, además del mail institucional propio que ya existía
+    // desde el 3/11) — "un profesional puede tener tantas cuentas como
+    // relaciones con hospitales tenga". Se valida contra la del vínculo
+    // con el que está entrando, no contra una sola contraseña de cuenta.
+    // Si ese vínculo no tiene contraseña propia (dato semilla viejo,
+    // creado antes de este cambio), se cae a la de la cuenta para no
+    // romper lo que ya había.
+    const vinculoLogin = registrado && registrado.rol === 'profesional'
+      ? _resolverVinculoProfesional(registrado.id, emailNorm)
+      : null;
+    const passwordEsperada = vinculoLogin?.password_hash || registrado?.password_hash;
+    if (registrado && passwordEsperada === password) {
+      const nombreCompleto = `${registrado.nombre} ${registrado.apellido_paterno || ''} ${registrado.apellido_materno || ''}`.replace(/\s+/g, ' ').trim();
       const iniciales = registrado.avatar_iniciales || (nombreCompleto[0] || '?').toUpperCase();
       _sesion = { email: registrado.email, rol: registrado.rol, usuario_id: registrado.id, nombre: nombreCompleto, iniciales };
-      if (registrado.rol === 'profesional') {
-        const vinculo = _resolverVinculoProfesional(registrado.id, emailNorm);
-        if (vinculo) { _sesion.profesional_hospital_id = vinculo.id; _sesion.hospital_id = vinculo.hospital_id; }
-      }
+      if (vinculoLogin) { _sesion.profesional_hospital_id = vinculoLogin.id; _sesion.hospital_id = vinculoLogin.hospital_id; }
       sessionStorage.setItem('hemored_sesion', JSON.stringify(_sesion));
       return { ok: true, dest: DEST_POR_ROL[registrado.rol] || '../publico/login.html' };
     }
@@ -90,17 +99,22 @@ HemoRed.sesion = (function() {
   // Crea un usuario donante nuevo en la BD simulada, lo loguea y devuelve
   // el destino al que redirigir. No valida contra sesion.login() porque
   // los usuarios creados acá no forman parte del objeto USUARIOS hardcodeado.
-  function registrarDonante({ nombre, apellido, email, telefono, password }) {
+  // apellido_paterno/apellido_materno (2026-11-17, pedido explícito: más
+  // control de identidad) — quedan como los DOS únicos campos de apellido,
+  // sin un `apellido` genérico que los tape. Las pantallas que muestran el
+  // nombre completo leen y concatenan los dos directo.
+  function registrarDonante({ nombre, apellido_paterno, apellido_materno, email, telefono, password }) {
     const emailNorm = email.toLowerCase().trim();
     const existente = HemoRed.db.where('usuarios', 'email', emailNorm);
     if (existente.length > 0) {
       return { ok: false, error: 'Ya existe una cuenta con ese email.' };
     }
-    const iniciales = (nombre[0] || '').toUpperCase() + (apellido[0] || '').toUpperCase();
-    // nombre/apellido separados: mismo esquema que usa usuarios.json (no un string combinado)
+    const iniciales = (nombre[0] || '').toUpperCase() + (apellido_paterno[0] || '').toUpperCase();
+    // nombre/apellido_paterno/apellido_materno separados: mismo esquema que usa usuarios.json
     const usuario = HemoRed.db.crear('usuarios', {
       nombre,
-      apellido,
+      apellido_paterno,
+      apellido_materno,
       email: emailNorm,
       password_hash: password, // demo: sin hash real, no hay backend
       rol: 'donante',
@@ -128,7 +142,7 @@ HemoRed.sesion = (function() {
       fecha_registro: HemoRed.data.hoyISO(),
       avatar_iniciales: iniciales,
     });
-    const nombreCompleto = `${nombre} ${apellido}`.trim();
+    const nombreCompleto = `${nombre} ${apellido_paterno} ${apellido_materno}`.replace(/\s+/g, ' ').trim();
     _sesion = { email: usuario.email, rol: 'donante', usuario_id: usuario.id, nombre: nombreCompleto, iniciales };
     sessionStorage.setItem('hemored_sesion', JSON.stringify(_sesion));
     return { ok: true, dest: '../donante/dashboard.html' };

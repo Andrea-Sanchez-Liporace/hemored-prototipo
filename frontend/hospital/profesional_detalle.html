@@ -28,7 +28,7 @@
         <i class="ti ti-arrow-left"></i>Profesionales
       </a>
       <span class="topbar-sep">/</span>
-      <span class="topbar-title" id="topbar-title">Dr. Carlos Méndez</span>
+      <span class="topbar-title" id="topbar-title">—</span>
     </div>
     <div>
       <button id="btn-editar-top" onclick="activarEdicion()" style="background:white;color:#5a1e37;border:1.5px solid #e8d0d8;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;">
@@ -43,11 +43,11 @@
       <div>
         <!-- HEADER -->
         <div class="prof-header">
-          <div class="prof-avatar">CM</div>
+          <div class="prof-avatar" id="pr-avatar">—</div>
           <div>
-            <div class="prof-header-name">Dr. Carlos Méndez</div>
-            <div class="prof-header-sub">Hematología · Mat. 45.231</div>
-            <span class="prof-badge">● Activo</span>
+            <div class="prof-header-name" id="pr-nombre">—</div>
+            <div class="prof-header-sub"><span id="pr-especialidad">—</span> · Mat. <span id="pr-matricula">—</span></div>
+            <span class="prof-badge" id="pr-badge-estado">—</span>
           </div>
         </div>
 
@@ -56,71 +56,78 @@
           <div class="card">
             <div class="card-title"><i class="ti ti-user" style="color:#ef647c;"></i>Datos del profesional</div>
             <div class="dato-grid">
-              <div><div class="dato-label">Nombre completo</div><div class="dato-value">Dr. Carlos Méndez</div></div>
-              <div><div class="dato-label">Matrícula</div><div class="dato-value">45.231</div></div>
-              <div><div class="dato-label">Especialidad</div><div class="dato-value">Hematología</div></div>
-              <div><div class="dato-label">Email institucional</div><div class="dato-value">c.mendez@ramosmejia.gob.ar</div></div>
-              <div><div class="dato-label">Teléfono / interno</div><div class="dato-value">011 4127-0200 int. 205</div></div>
+              <div><div class="dato-label">Nombre completo</div><div class="dato-value" id="pr-nombre-completo">—</div></div>
+              <div><div class="dato-label">DNI</div><div class="dato-value" id="pr-dni">—</div></div>
+              <div><div class="dato-label">Matrícula</div><div class="dato-value" id="pr-matricula-2">—</div></div>
+              <div><div class="dato-label">Especialidad</div><div class="dato-value" id="pr-especialidad-2">—</div></div>
+              <div><div class="dato-label">Email institucional</div><div class="dato-value" id="pr-email">—</div></div>
+              <div><div class="dato-label">Teléfono / interno</div><div class="dato-value" id="pr-telefono">—</div></div>
             </div>
           </div>
 
+          <!-- "Pacientes a cargo" conectado a datos reales (2026-11-17;
+               antes eran 2 nombres fijos, iguales para cualquier
+               profesional en cualquier hospital). No hay una relación
+               profesional↔paciente directa en el modelo, pero SÍ una
+               derivable de actividad real: los pacientes detrás de las
+               campañas donde este profesional supervisó al menos una
+               donación en ESTE hospital (`donaciones.profesional_id` +
+               `donaciones.campana_id` → `campanas.paciente_id`) — ver
+               cargarDetalleProfesional() en data.js. Las campañas
+               generales de banco de sangre (`paciente_id: null`) no
+               suman acá, a propósito: no tienen un paciente puntual. -->
           <div class="card">
             <div class="card-title"><i class="ti ti-users" style="color:#ef647c;"></i>Pacientes a cargo</div>
-            <div class="pac-row">
-              <div class="pac-avatar-sm">JP</div>
-              <div style="flex:1;">
-                <div class="pac-nombre">Juan Pérez</div>
-                <div class="pac-meta">Cirugía cardíaca · ID #0042</div>
-              </div>
-              <button class="btn-xs-outline">Ver paciente</button>
-            </div>
-            <div class="pac-row">
-              <div class="pac-avatar-sm">AM</div>
-              <div style="flex:1;">
-                <div class="pac-nombre">Ana Martínez</div>
-                <div class="pac-meta">Leucemia · ID #0055</div>
-              </div>
-              <button class="btn-xs-outline">Ver paciente</button>
-            </div>
+            <div id="pr-pacientes-cargo"><!-- renderizado por JS --></div>
           </div>
         </div>
 
-        <!-- VISTA EDITAR -->
+        <!-- VISTA EDITAR — muestra SIEMPRE los datos del vínculo con ESTE
+             hospital (2026-11-17: antes tenía valores fijos de Carlos
+             Méndez/Ramos Mejía tipeados en el HTML, reportado por la
+             usuaria logueada como Penna viendo datos de Ramos Mejía).
+             Nombre/apellidos/matrícula son de la persona (no cambian de
+             hospital a hospital); especialidad/email/teléfono son propios
+             de ESTE vínculo. -->
         <div id="vista-editar" style="display:none;">
           <div class="card">
             <div class="card-title"><i class="ti ti-user" style="color:#ef647c;"></i>Datos del profesional</div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Nombre</label>
-                <input class="form-input" type="text" value="Carlos">
+                <input class="form-input" type="text" id="pe-nombre" disabled>
               </div>
               <div class="form-group">
-                <label class="form-label">Apellido</label>
-                <input class="form-input" type="text" value="Méndez">
+                <label class="form-label">Apellido paterno</label>
+                <input class="form-input" type="text" id="pe-apellido-paterno" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Apellido materno</label>
+                <input class="form-input" type="text" id="pe-apellido-materno" disabled>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Matrícula</label>
-                <input class="form-input" type="text" value="45.231" disabled>
-                <p class="form-hint">La matrícula no se puede modificar.</p>
+                <input class="form-input" type="text" id="pe-matricula" disabled>
+                <p class="form-hint">Nombre, apellidos y matrícula son de la persona — no se editan por hospital.</p>
               </div>
               <div class="form-group">
                 <label class="form-label">Especialidad</label>
-                <select class="form-input">
-                  <option selected>Hematología</option>
+                <select class="form-input" id="pe-especialidad">
+                  <option>Hematología</option>
                   <option>Cardiología</option><option>Oncología</option>
-                  <option>Cirugía</option><option>Pediatría</option>
+                  <option>Cirugía</option><option>Pediatría</option><option>Traumatología</option>
                 </select>
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Email institucional</label>
-              <input class="form-input" type="email" value="c.mendez@ramosmejia.gob.ar">
+              <label class="form-label">Email institucional (propio de tu hospital)</label>
+              <input class="form-input" type="email" id="pe-email">
             </div>
             <div class="form-group">
-              <label class="form-label">Teléfono / interno</label>
-              <input class="form-input" type="text" value="011 4127-0200 int. 205">
+              <label class="form-label">Teléfono / interno (propio de tu hospital)</label>
+              <input class="form-input" type="text" id="pe-telefono">
             </div>
           </div>
           <div class="form-actions">
@@ -145,9 +152,9 @@
         </div>
         <div class="side-card">
           <div class="side-title">Resumen</div>
-          <div class="side-stat"><span class="side-stat-label">Pacientes a cargo</span><span class="side-stat-value">2</span></div>
-          <div class="side-stat"><span class="side-stat-label">Campañas activas</span><span class="side-stat-value">1</span></div>
-          <div class="side-stat"><span class="side-stat-label">Donaciones supervisadas</span><span class="side-stat-value">47</span></div>
+          <div class="side-stat"><span class="side-stat-label">Pacientes a cargo</span><span class="side-stat-value" id="pr-stat-pacientes">—</span></div>
+          <div class="side-stat"><span class="side-stat-label">Campañas activas</span><span class="side-stat-value" id="pr-stat-campanas">—</span></div>
+          <div class="side-stat"><span class="side-stat-label">Donaciones supervisadas</span><span class="side-stat-value" id="pr-stat-donaciones">—</span></div>
         </div>
       </div>
 
@@ -156,18 +163,19 @@
 </div>
 
 <script>
+  let _nombreCompletoActual = '—';
   function activarEdicion() {
     document.getElementById('vista-ver').style.display = 'none';
     document.getElementById('vista-editar').style.display = 'block';
     document.getElementById('btn-editar-top').style.display = 'none';
-    document.getElementById('topbar-title').textContent = 'Editando — Dr. Carlos Méndez';
+    document.getElementById('topbar-title').textContent = `Editando — ${_nombreCompletoActual}`;
     window.scrollTo(0, 0);
   }
   function cancelarEdicion() {
     document.getElementById('vista-editar').style.display = 'none';
     document.getElementById('vista-ver').style.display = 'block';
     document.getElementById('btn-editar-top').style.display = 'flex';
-    document.getElementById('topbar-title').textContent = 'Dr. Carlos Méndez';
+    document.getElementById('topbar-title').textContent = _nombreCompletoActual;
     window.scrollTo(0, 0);
   }
   function guardarCambios() { cancelarEdicion(); }
@@ -177,7 +185,73 @@
   <script src="../js/sesion.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/data.js"></script>
-<script>document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => HemoRed.ui.montarSidebarHospital());
+
+  // Conectado 2026-11-17 (antes 100% maqueta fija "Dr. Carlos Méndez" —
+  // reportado con captura: el botón "Ver" de CUALQUIER profesional llevaba
+  // siempre a esa misma ficha). Lee ?id= y muestra el profesional real de
+  // ESTE hospital — cargarDetalleProfesional() en data.js.
+  document.addEventListener('DOMContentLoaded', async () => {
+    await HemoRed.db.init();
+    const id = Number(new URLSearchParams(location.search).get('id'));
+    const detalle = id && HemoRed.data.cargarDetalleProfesional(id);
+    if (!detalle) {
+      document.querySelector('.content').innerHTML = '<div class="empty-state"><div class="empty-title">No se encontró este profesional en tu hospital.</div></div>';
+      return;
+    }
+    const { profesional: p, usuario: u, vinculo: v, telefono, campanasActivas, donacionesSupervisadas, pacientesACargo } = detalle;
+    const nombreCompleto = p.nombre_completo || `${u.nombre} ${u.apellido_paterno} ${u.apellido_materno}`;
+    const iniciales = nombreCompleto.replace(/^(Dr\.|Dra\.)\s*/, '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    const emailInstitucional = v.email_institucional || u.email || '—';
+    _nombreCompletoActual = nombreCompleto;
+
+    document.getElementById('topbar-title').textContent = nombreCompleto;
+    document.getElementById('pr-avatar').textContent = iniciales;
+    document.getElementById('pr-nombre').textContent = nombreCompleto;
+    document.getElementById('pr-especialidad').textContent = p.especialidad || '—';
+    document.getElementById('pr-matricula').textContent = p.matricula || '—';
+    document.getElementById('pr-badge-estado').textContent = p.activo ? '● Activo' : '○ Inactivo';
+    document.getElementById('pr-nombre-completo').textContent = nombreCompleto;
+    document.getElementById('pr-dni').textContent = u.numero_documento || '—';
+    document.getElementById('pr-matricula-2').textContent = p.matricula || '—';
+    document.getElementById('pr-especialidad-2').textContent = p.especialidad || '—';
+    document.getElementById('pr-email').textContent = emailInstitucional;
+    document.getElementById('pr-telefono').textContent = telefono || '—';
+
+    document.getElementById('pr-stat-pacientes').textContent = pacientesACargo.length;
+    document.getElementById('pr-stat-campanas').textContent = campanasActivas;
+    document.getElementById('pr-stat-donaciones').textContent = donacionesSupervisadas;
+
+    const pacientesEl = document.getElementById('pr-pacientes-cargo');
+    if (!pacientesACargo.length) {
+      pacientesEl.innerHTML = '<div class="empty-state"><div class="empty-title">Sin pacientes a cargo todavía</div><div class="empty-text">Aparecen acá en cuanto este profesional supervise una donación de una campaña con un paciente asociado, en tu hospital.</div></div>';
+    } else {
+      pacientesEl.innerHTML = pacientesACargo.map(({ paciente: pac, campana }) => {
+        const nombrePac = `${pac.nombre} ${pac.apellido_paterno} ${pac.apellido_materno}`;
+        const inicialesPac = (pac.nombre[0] + pac.apellido_paterno[0]).toUpperCase();
+        return `
+          <div class="pac-row">
+            <div class="pac-avatar-sm">${inicialesPac}</div>
+            <div style="flex:1;">
+              <div class="pac-nombre">${nombrePac}</div>
+              <div class="pac-meta">${campana.titulo}</div>
+            </div>
+            <button class="btn-xs-outline" onclick="window.location='../hospital/paciente_detalle.html?id=${pac.id}'">Ver paciente</button>
+          </div>`;
+      }).join('');
+    }
+
+    // VISTA EDITAR — mismos datos reales, propios de ESTE vínculo.
+    document.getElementById('pe-nombre').value = u.nombre || '';
+    document.getElementById('pe-apellido-paterno').value = u.apellido_paterno || '';
+    document.getElementById('pe-apellido-materno').value = u.apellido_materno || '';
+    document.getElementById('pe-matricula').value = p.matricula || '';
+    if (p.especialidad) document.getElementById('pe-especialidad').value = p.especialidad;
+    document.getElementById('pe-email').value = emailInstitucional === '—' ? '' : emailInstitucional;
+    document.getElementById('pe-telefono').value = telefono || '';
+  });
+</script>
 
 </body>
 </html>

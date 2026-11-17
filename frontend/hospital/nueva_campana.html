@@ -161,12 +161,54 @@
           </div>
 
           <div class="paciente-form" id="paciente-form">
-            <div class="form-group" style="margin-bottom:0;">
+            <div class="form-group">
               <label class="form-label">Seleccionar paciente</label>
-              <select class="form-input" id="c-paciente">
+              <select class="form-input" id="c-paciente" onchange="onCambiarPaciente()">
                 <option value="" selected>Buscá por nombre o ID</option>
               </select>
               <p class="form-hint">Solo aparecen pacientes registrados en tu hospital. <a href="../hospital/pacientes.html" style="color:#ef647c;">Registrar nuevo paciente</a></p>
+            </div>
+
+            <!-- El paciente ya tiene un evento abierto: se reusa, no se
+                 vuelve a preguntar nada (2026-11-17). -->
+            <div id="evento-existente-aviso" class="hidden" style="background:#e1f5ee;border-radius:10px;padding:12px 14px;margin-bottom:0;font-size:13px;color:#1f8a5a;display:flex;align-items:center;gap:8px;">
+              <i class="ti ti-circle-check" aria-hidden="true"></i>
+              <span id="evento-existente-texto">Este paciente ya tiene un evento abierto — se usa ese mismo.</span>
+            </div>
+
+            <!-- El paciente no tiene evento abierto todavía: se abre uno
+                 junto con la campaña (2026-11-17, pedido explícito — antes
+                 "Nuevo paciente" lo abría solo, sin relación con la
+                 campaña real que lo justifica). -->
+            <div id="evento-nuevo-form" class="hidden">
+              <div class="form-group">
+                <label class="form-label">Diagnóstico</label>
+                <input class="form-input" id="c-evt-diagnostico" type="text" placeholder="Ej: Cirugía cardíaca programada">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Servicio / área</label>
+                  <select class="form-input" id="c-evt-servicio">
+                    <option value="" disabled selected>Seleccioná</option>
+                    <option>Pediatría</option><option>Cardiología</option><option>Oncología</option>
+                    <option>Traumatología</option><option>Hematología</option><option>Cirugía</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contacto de referencia <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+                  <input class="form-input" id="c-evt-contacto-nombre" type="text" placeholder="Nombre y apellido del familiar">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">Teléfono de contacto <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+                  <input class="form-input" id="c-evt-contacto-telefono" type="tel" placeholder="011 1234-5678">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label">Observaciones <span style="font-weight:400;color:#a9435d;">(opcional)</span></label>
+                  <input class="form-input" id="c-evt-observaciones" type="text" placeholder="Información clínica relevante...">
+                </div>
+              </div>
             </div>
           </div>
 
@@ -281,6 +323,24 @@
     const form = document.getElementById('paciente-form');
     toggle.classList.toggle('on', pacienteOn);
     form.classList.toggle('visible', pacienteOn);
+    if (!pacienteOn) onCambiarPaciente();
+  }
+
+  // Si el paciente elegido ya tiene un evento abierto, se reusa sin pedir
+  // nada más; si no tiene, se piden acá mismo los datos para abrir uno
+  // junto con la campaña (2026-11-17).
+  function onCambiarPaciente() {
+    const id = Number(document.getElementById('c-paciente').value) || null;
+    const avisoExistente = document.getElementById('evento-existente-aviso');
+    const formNuevo = document.getElementById('evento-nuevo-form');
+    if (!id) {
+      avisoExistente.classList.add('hidden');
+      formNuevo.classList.add('hidden');
+      return;
+    }
+    const tieneEvento = HemoRed.data.tieneEventoActivo(id, hospitalActual.id);
+    avisoExistente.classList.toggle('hidden', !tieneEvento);
+    formNuevo.classList.toggle('hidden', tieneEvento);
   }
 
   function selSangre(el) {
@@ -298,6 +358,8 @@
   function recolectarPaso1() {
     const sangreSel = document.querySelector('.sangre-opt.selected');
     const urgenciaSel = document.querySelector('.urgencia-opt.selected');
+    const pacienteId = pacienteOn ? (Number(document.getElementById('c-paciente').value) || null) : null;
+    const pacienteSinEvento = pacienteId && !HemoRed.data.tieneEventoActivo(pacienteId, hospitalActual.id);
     return {
       titulo: document.getElementById('c-titulo').value.trim(),
       descripcion: document.getElementById('c-descripcion').value.trim(),
@@ -305,7 +367,14 @@
       unidades_requeridas: Number(document.getElementById('c-unidades').value) || null,
       tipo_sangre_requerida: sangreSel?.dataset.valor || null,
       urgente: urgenciaSel?.dataset.valor === 'urgente',
-      paciente_id: pacienteOn ? (Number(document.getElementById('c-paciente').value) || null) : null,
+      paciente_id: pacienteId,
+      // Solo hacen falta si el paciente elegido no tiene ya un evento
+      // abierto — si lo tiene, crearCampana() los ignora por completo.
+      diagnostico: pacienteSinEvento ? document.getElementById('c-evt-diagnostico').value.trim() : null,
+      servicio: pacienteSinEvento ? document.getElementById('c-evt-servicio').value : null,
+      contacto_nombre: pacienteSinEvento ? document.getElementById('c-evt-contacto-nombre').value.trim() : null,
+      contacto_telefono: pacienteSinEvento ? document.getElementById('c-evt-contacto-telefono').value.trim() : null,
+      observaciones: pacienteSinEvento ? document.getElementById('c-evt-observaciones').value.trim() : null,
     };
   }
 
@@ -313,6 +382,10 @@
     if (!datos.titulo) return 'Falta el título de la campaña.';
     if (!datos.fecha_cierre) return 'Falta la fecha límite.';
     if (!datos.unidades_requeridas || datos.unidades_requeridas < 1) return 'Falta la cantidad de donantes necesarios.';
+    if (datos.paciente_id && !HemoRed.data.tieneEventoActivo(datos.paciente_id, hospitalActual.id)) {
+      if (!datos.diagnostico) return 'Ingresá el diagnóstico del paciente.';
+      if (!datos.servicio) return 'Seleccioná el servicio/área del paciente.';
+    }
     return null;
   }
 
@@ -351,6 +424,12 @@
     if (wip.paciente_id) {
       togglePaciente(true);
       document.getElementById('c-paciente').value = wip.paciente_id;
+      onCambiarPaciente();
+      if (wip.diagnostico) document.getElementById('c-evt-diagnostico').value = wip.diagnostico;
+      if (wip.servicio) document.getElementById('c-evt-servicio').value = wip.servicio;
+      if (wip.contacto_nombre) document.getElementById('c-evt-contacto-nombre').value = wip.contacto_nombre;
+      if (wip.contacto_telefono) document.getElementById('c-evt-contacto-telefono').value = wip.contacto_telefono;
+      if (wip.observaciones) document.getElementById('c-evt-observaciones').value = wip.observaciones;
     }
   }
 
@@ -377,19 +456,18 @@
     // `pacientes` ya no tiene `hospital_id` propio (2026-10-20: un paciente
     // puede haber pasado por varios hospitales) — la relación vive en
     // `paciente_hospital`, y el evento (con principio y fin) en
-    // `eventos_paciente`, colgando de esa relación. Para armar una campaña
-    // nueva hace falta un paciente con un EVENTO abierto en este hospital
-    // ahora mismo (si ya se cerró, no tiene sentido ofrecerlo acá — hay que
-    // registrar un evento nuevo desde "Pacientes" primero).
+    // `eventos_paciente`, colgando de esa relación. Se listan TODOS los
+    // pacientes de este hospital, tengan o no un evento activo (2026-11-17:
+    // antes solo se ofrecían los que ya tenían uno abierto — ahora, si no
+    // tiene, el evento se abre acá mismo al elegirlo, ver onCambiarPaciente()).
     const pacientes = HemoRed.db.where('paciente_hospital', 'hospital_id', hospitalActual.id)
-      .filter(r => HemoRed.db.where('eventos_paciente', 'paciente_hospital_id', r.id).some(e => e.activo))
       .map(r => HemoRed.db.find('pacientes', r.paciente_id))
       .filter(p => p && p.activo);
     const select = document.getElementById('c-paciente');
     pacientes.forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.id;
-      opt.textContent = `${p.nombre} ${p.apellido} — ID #${String(p.id).padStart(4, '0')}`;
+      opt.textContent = `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno} — ID #${String(p.id).padStart(4, '0')}`;
       select.appendChild(opt);
     });
 

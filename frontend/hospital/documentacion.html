@@ -346,7 +346,7 @@
         <div class="donante-info">
           <div class="donante-avatar">${s.donante?.avatar_iniciales || '?'}</div>
           <div>
-            <div class="donante-nombre">${s.donante?.nombre || ''} ${s.donante?.apellido || ''}</div>
+            <div class="donante-nombre">${s.donante?.nombre || ''} ${s.donante?.apellido_paterno || ''} ${s.donante?.apellido_materno || ''}</div>
             <div class="donante-sub">${s.campos.length} dato${s.campos.length === 1 ? '' : 's'} reportado${s.campos.length === 1 ? '' : 's'} del certificado</div>
           </div>
         </div>
@@ -406,7 +406,7 @@
       <div class="donante-card">
         <div class="donante-avatar">${s.donante?.avatar_iniciales || '?'}</div>
         <div>
-          <div style="font-size:14px;font-weight:500;color:#5a1e37;">${s.donante?.nombre || ''} ${s.donante?.apellido || ''}</div>
+          <div style="font-size:14px;font-weight:500;color:#5a1e37;">${s.donante?.nombre || ''} ${s.donante?.apellido_paterno || ''} ${s.donante?.apellido_materno || ''}</div>
           <div style="font-size:12px;color:#a9435d;">Certificado de donación · Reportado el ${fechaHoraCorta(s.fecha_solicitud)}</div>
         </div>
       </div>
@@ -444,8 +444,8 @@
   // (emitirCertificado(), cargar un resultado_analisis nuevo) todavía no
   // existe del lado de datos, es una función aparte de lo pedido hoy.
   function filaDocumento(d, columnas) {
-    const nombre = `${d.donante?.nombre || ''} ${d.donante?.apellido || ''}`.trim() || '—';
-    const iniciales = ((d.donante?.nombre?.[0] || '') + (d.donante?.apellido?.[0] || '')).toUpperCase() || '?';
+    const nombre = `${d.donante?.nombre || ''} ${d.donante?.apellido_paterno || ''} ${d.donante?.apellido_materno || ''}`.replace(/\s+/g, ' ').trim() || '—';
+    const iniciales = ((d.donante?.nombre?.[0] || '') + (d.donante?.apellido_paterno?.[0] || '')).toUpperCase() || '?';
     return `
       <div class="doc-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 140px;">
         <div class="donante-info">

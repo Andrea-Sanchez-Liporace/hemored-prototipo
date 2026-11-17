@@ -84,7 +84,8 @@
           <div class="card">
             <div class="card-title"><i class="ti ti-phone" style="color:#ef647c;"></i>Contacto de referencia</div>
             <div class="dato-grid">
-              <div class="dato-item" style="grid-column:1/-1;"><div class="dato-label">Contacto</div><div class="dato-value" id="pd-contacto">—</div></div>
+              <div class="dato-item"><div class="dato-label">Nombre y apellido</div><div class="dato-value" id="pd-contacto-nombre">—</div></div>
+              <div class="dato-item"><div class="dato-label">Teléfono</div><div class="dato-value" id="pd-contacto-telefono">—</div></div>
             </div>
           </div>
 
@@ -269,19 +270,29 @@
 
   function renderDetalle() {
     const { paciente: p, vinculo: v, historial } = _detalle;
-    _nombreCompleto = `${p.nombre} ${p.apellido}`;
-    const iniciales = (p.nombre[0] + p.apellido[0]).toUpperCase();
+    // v puede ser null: un paciente recién registrado (2026-11-17, "Nuevo
+    // paciente" ya no abre evento solo) todavía no tiene ninguno — se abre
+    // recién al crear una campaña para él. vv da valores vacíos para no
+    // repetir "v && v.algo" en cada línea de abajo.
+    const tieneEvento = !!v;
+    const vv = v || {};
+    _nombreCompleto = `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno}`;
+    const iniciales = (p.nombre[0] + p.apellido_paterno[0]).toUpperCase();
 
     document.getElementById('pd-avatar').textContent = iniciales;
     document.getElementById('pd-nombre').textContent = _nombreCompleto;
     document.getElementById('topbar-title').textContent = _nombreCompleto;
     document.title = `HemoRed — ${_nombreCompleto}`;
     const edad = _edad(p.fecha_nacimiento);
-    document.getElementById('pd-sub').textContent =
-      `ID #${String(p.id).padStart(4, '0')} · ${v.servicio || '—'} · ${v.activo ? `Evento abierto desde ${_fechaLarga(v.evento_desde)}` : `Evento cerrado el ${_fechaLarga(v.fecha_cierre)}`}`;
+    document.getElementById('pd-sub').textContent = !tieneEvento
+      ? `ID #${String(p.id).padStart(4, '0')} · Sin evento abierto`
+      : `ID #${String(p.id).padStart(4, '0')} · ${vv.servicio || '—'} · ${vv.activo ? `Evento abierto desde ${_fechaLarga(vv.evento_desde)}` : `Evento cerrado el ${_fechaLarga(vv.fecha_cierre)}`}`;
 
     const badgeEstado = document.getElementById('pd-badge-estado');
-    if (v.activo) {
+    if (!tieneEvento) {
+      badgeEstado.innerHTML = '<i class="ti ti-circle" style="font-size:10px;"></i>Sin evento abierto';
+      badgeEstado.style.cssText = 'background:#f2f2f2;color:#888;';
+    } else if (vv.activo) {
       badgeEstado.innerHTML = '<i class="ti ti-circle-filled" style="font-size:10px;color:#27ae60;"></i>Evento abierto';
       badgeEstado.style.cssText = 'background:#e1f5ee;color:#1f8a5a;';
     } else {
@@ -295,10 +306,11 @@
     document.getElementById('pd-nacimiento').textContent = p.fecha_nacimiento
       ? `${_fechaLarga(p.fecha_nacimiento)}${edad != null ? ` · ${edad} años` : ''}` : '—';
     document.getElementById('pd-sangre').textContent = p.tipo_sangre || 'Sin registrar';
-    document.getElementById('pd-diagnostico').textContent = v.diagnostico || '—';
-    document.getElementById('pd-servicio').textContent = v.servicio || '—';
-    document.getElementById('pd-observaciones').textContent = v.observaciones || 'Sin observaciones.';
-    document.getElementById('pd-contacto').textContent = v.contacto_referencia || '—';
+    document.getElementById('pd-diagnostico').textContent = tieneEvento ? (vv.diagnostico || '—') : 'Sin evento abierto — se abre uno al crear una campaña para este paciente.';
+    document.getElementById('pd-servicio').textContent = tieneEvento ? (vv.servicio || '—') : '—';
+    document.getElementById('pd-observaciones').textContent = tieneEvento ? (vv.observaciones || 'Sin observaciones.') : 'Sin evento abierto.';
+    document.getElementById('pd-contacto-nombre').textContent = vv.contacto_nombre || '—';
+    document.getElementById('pd-contacto-telefono').textContent = vv.contacto_telefono || '—';
 
     if (historial.length) {
       document.getElementById('pd-historial-internaciones').style.display = 'block';
@@ -309,13 +321,16 @@
         </div>`).join('');
     }
 
-    if (v.activo) {
+    if (!tieneEvento) {
+      document.getElementById('pd-resumen-dias-label').textContent = 'Sin evento abierto';
+      document.getElementById('pd-resumen-dias').textContent = '—';
+    } else if (vv.activo) {
       document.getElementById('pd-resumen-dias-label').textContent = 'Evento abierto hace';
-      const dias = Math.max(0, Math.round((HemoRed.data.ahora() - new Date(v.evento_desde + 'T00:00:00')) / 86400000));
+      const dias = Math.max(0, Math.round((HemoRed.data.ahora() - new Date(vv.evento_desde + 'T00:00:00')) / 86400000));
       document.getElementById('pd-resumen-dias').textContent = `${dias} día${dias === 1 ? '' : 's'}`;
     } else {
       document.getElementById('pd-resumen-dias-label').textContent = 'Evento cerrado el';
-      document.getElementById('pd-resumen-dias').textContent = _fechaLarga(v.fecha_cierre);
+      document.getElementById('pd-resumen-dias').textContent = _fechaLarga(vv.fecha_cierre);
     }
 
     renderCampanasPaciente(p.id);

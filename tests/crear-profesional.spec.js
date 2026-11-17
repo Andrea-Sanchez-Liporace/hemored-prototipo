@@ -36,7 +36,8 @@ test.describe('Creación de profesionales (Hospital)', () => {
     await test.step('completar y guardar el formulario', async () => {
       await page.click('.btn-nueva');
       await page.fill('#np-nombre', 'Diego');
-      await page.fill('#np-apellido', 'Ramírez');
+      await page.fill('#np-apellido-paterno', 'Ramírez');
+      await page.fill('#np-apellido-materno', 'Flores');
       await page.fill('#np-dni', dni);
       await page.evaluate(() => { document.getElementById('np-tipo').value = 'extraccionista'; });
       await page.fill('#np-matricula', '50123');
@@ -69,7 +70,8 @@ test.describe('Creación de profesionales (Hospital)', () => {
 
     await page.click('.btn-nueva');
     await page.fill('#np-nombre', 'Prueba');
-    await page.fill('#np-apellido', 'Testigo');
+    await page.fill('#np-apellido-paterno', 'Testigo');
+    await page.fill('#np-apellido-materno', 'Vega');
     await page.fill('#np-dni', String(Date.now()).slice(-8));
     await page.evaluate(() => { document.getElementById('np-tipo').value = 'medico'; });
     await page.fill('#np-matricula', '99999');
@@ -91,7 +93,8 @@ test.describe('Creación de profesionales (Hospital)', () => {
 
     await page.click('.btn-nueva');
     await page.fill('#np-nombre', 'Otro');
-    await page.fill('#np-apellido', 'Médico');
+    await page.fill('#np-apellido-paterno', 'Médico');
+    await page.fill('#np-apellido-materno', 'Torres');
     await page.fill('#np-dni', String(Date.now()).slice(-8)); // DNI nuevo, no es el conflicto
     await page.evaluate(() => { document.getElementById('np-tipo').value = 'medico'; });
     await page.fill('#np-matricula', '11111');
@@ -105,7 +108,7 @@ test.describe('Creación de profesionales (Hospital)', () => {
     await expect(page.locator('#modal-nuevo')).toHaveClass(/active/);
   });
 
-  test('profesional que ya trabaja en otro hospital del sistema: no duplica la cuenta, solo vincula', async ({ page }) => {
+  test('profesional que ya trabaja en otro hospital del sistema: no duplica su identidad, pero crea un vínculo (y una cuenta de acceso) propia de este hospital', async ({ page }) => {
     // Garrahan (hospital_id 2) ya tiene login real en la semilla
     // (garrahan@hemored.com), pero el test igual crea su propia cuenta
     // descartable vía evaluate() para loguearse como ese segundo hospital,
@@ -129,14 +132,25 @@ test.describe('Creación de profesionales (Hospital)', () => {
     const cuentasAntes = await page.evaluate(() => HemoRed.db.all('usuarios').length);
 
     await page.click('.btn-nueva');
-    await page.fill('#np-nombre', 'Carlos');
-    await page.fill('#np-apellido', 'Méndez');
+    // Buscador por DNI (2026-11-17): encuentra la identidad ya existente y
+    // precarga nombre/apellidos/matrícula bloqueados — no hace falta
+    // retipearlos.
     await page.fill('#np-dni', '29654321'); // DNI real del Dr. Carlos Méndez, ya vinculado al Hospital Ramos Mejía (id 1)
+    await page.click('button:has-text("Buscar")');
+    await expect(page.locator('#np-dni-resultado')).toContainText('Ya existe en el sistema');
+    await expect(page.locator('#np-nombre')).toHaveValue('Carlos');
+    await expect(page.locator('#np-apellido-paterno')).toHaveValue('Méndez');
+    await expect(page.locator('#np-nombre')).toBeDisabled();
     await page.evaluate(() => { document.getElementById('np-tipo').value = 'medico'; });
-    await page.fill('#np-matricula', '45231');
+    await expect(page.locator('#np-matricula')).toHaveValue('45231');
     await page.evaluate(() => { document.getElementById('np-especialidad').value = 'Hematología'; });
     await page.fill('#np-email', 'cmendez@hospitalgarrahan.com.ar'); // institucional PROPIO de este hospital
-    // sin contraseña: no hace falta, ya tiene cuenta
+    // Cada vínculo tiene su propia contraseña (2026-11-17, pedido
+    // explícito: "un profesional puede tener tantas cuentas como
+    // relaciones con hospitales tenga") — distinta de la que usa en
+    // Ramos Mejía (prof123).
+    await page.fill('#np-pass', 'claveGarrahan1');
+    await page.fill('#np-pass2', 'claveGarrahan1');
     await page.click('button:has-text("Guardar profesional")');
 
     await expect(page.locator('#hemored-toast, .toast')).toContainText('vinculado');
@@ -144,7 +158,22 @@ test.describe('Creación de profesionales (Hospital)', () => {
     await expect(page.locator('.prof-card', { hasText: 'cmendez@hospitalgarrahan.com.ar' })).toBeVisible();
 
     const cuentasDespues = await page.evaluate(() => HemoRed.db.all('usuarios').length);
-    expect(cuentasDespues).toBe(cuentasAntes); // no se creó ninguna cuenta nueva
+    expect(cuentasDespues).toBe(cuentasAntes); // no se creó ninguna cuenta nueva — misma identidad
+
+    await test.step('cada hospital entra con su propio mail y su propia contraseña', async () => {
+      await page.goto('/publico/login.html');
+      await page.fill('#email', 'cmendez@hospitalgarrahan.com.ar');
+      await page.fill('#password', 'claveGarrahan1');
+      await page.click('.form-btn');
+      await page.waitForURL('**/profesional/dashboard.html');
+
+      await page.evaluate(() => sessionStorage.removeItem('hemored_sesion'));
+      await page.goto('/publico/login.html');
+      await page.fill('#email', 'profesional@hemored.com');
+      await page.fill('#password', 'prof123'); // la contraseña original de Ramos Mejía sigue siendo la suya, no la pisó la de Garrahan
+      await page.click('.form-btn');
+      await page.waitForURL('**/profesional/dashboard.html');
+    });
   });
 
 });

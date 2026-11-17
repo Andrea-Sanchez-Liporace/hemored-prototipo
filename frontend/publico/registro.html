@@ -71,14 +71,18 @@
       </span>
       <div class="form-title">Creá tu cuenta</div>
 
+      <div class="form-group">
+        <label class="form-label" for="d-nombre">Nombre</label>
+        <input class="form-input" id="d-nombre" type="text" placeholder="María">
+      </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="d-nombre">Nombre</label>
-          <input class="form-input" id="d-nombre" type="text" placeholder="María">
+          <label class="form-label" for="d-apellido-paterno">Apellido paterno</label>
+          <input class="form-input" id="d-apellido-paterno" type="text" placeholder="González">
         </div>
         <div class="form-group">
-          <label class="form-label" for="d-apellido">Apellido</label>
-          <input class="form-input" id="d-apellido" type="text" placeholder="González">
+          <label class="form-label" for="d-apellido-materno">Apellido materno</label>
+          <input class="form-input" id="d-apellido-materno" type="text" placeholder="Fernández">
         </div>
       </div>
 
@@ -355,7 +359,8 @@
 
   async function registrarCuentaDonante() {
     const nombre = document.getElementById('d-nombre').value.trim();
-    const apellido = document.getElementById('d-apellido').value.trim();
+    const apellido_paterno = document.getElementById('d-apellido-paterno').value.trim();
+    const apellido_materno = document.getElementById('d-apellido-materno').value.trim();
     const email = document.getElementById('d-email').value.trim();
     const telefono = document.getElementById('d-tel').value.trim();
     const pass = document.getElementById('d-pass').value;
@@ -368,8 +373,8 @@
     }
     errorEl.style.display = 'none';
 
-    if (!nombre || !apellido || !email) {
-      mostrarError('Completá nombre, apellido y email.');
+    if (!nombre || !apellido_paterno || !apellido_materno || !email) {
+      mostrarError('Completá nombre, apellido paterno, apellido materno y email.');
       return;
     }
     if (pass.length < 8) {
@@ -386,7 +391,7 @@
     btn.textContent = 'Creando cuenta...';
 
     await HemoRed.db.init();
-    const resultado = HemoRed.sesion.registrarDonante({ nombre, apellido, email, telefono, password: pass });
+    const resultado = HemoRed.sesion.registrarDonante({ nombre, apellido_paterno, apellido_materno, email, telefono, password: pass });
 
     if (!resultado.ok) {
       mostrarError(resultado.error);

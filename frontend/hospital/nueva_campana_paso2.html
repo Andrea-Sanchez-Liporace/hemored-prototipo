@@ -811,7 +811,7 @@
     if (!bloqueantes.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     document.getElementById('bloqueantes-lista').innerHTML = bloqueantes.map(t => {
-      const nombre = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+      const nombre = t.donante ? `${t.donante.nombre} ${t.donante.apellido_paterno || ''} ${t.donante.apellido_materno || ''}`.replace(/\s+/g, ' ').trim() : 'Donante';
       const fecha = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#fdf0f3;border-radius:8px;font-size:13px;">
         <span>${nombre} — ${fecha} · ${t.hora}hs</span>

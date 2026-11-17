@@ -21,7 +21,13 @@
 .paciente-meta { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
 
 /* PROF CARD */
-.prof-card { background: white; border-radius: 12px; padding: 16px 20px; border: 0.5px solid var(--color-rosa-border); display: flex; align-items: center; gap: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color var(--transition-base); }
+/* Le faltaba flex-direction:column — con el default (row), el header, los
+   datos y el pie (que ya tiene un border-top pensado para quedar como
+   divisor horizontal DEBAJO de los datos) quedaban los 3 en una sola fila
+   ancha en vez de apilados. Con 2 profesionales no se notaba (la fila
+   ancha todavía entraba en el viewport); con un 3ro, se desbordaba
+   (reportado con captura, 2026-11-17). */
+.prof-card { background: white; border-radius: 12px; padding: 16px 20px; border: 0.5px solid var(--color-rosa-border); display: flex; flex-direction: column; min-width: 0; margin-bottom: 10px; cursor: pointer; transition: border-color var(--transition-base); }
 .prof-card:hover { border-color: var(--color-rosa-light); }
 .prof-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-borravino); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: white; flex-shrink: 0; }
 
@@ -521,7 +527,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .campana-badge.pausada { background: #faeeda; color: #412402; }
 .campana-badge.cerrada { background: #f7f0f3; color: #a9435d; }
 .turno-meta { font-size: 11px; color: #5a3040; }
-.tab-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; }
+.tab-badge { background: #ef647c; color: white; border-radius: 20px; padding: 1px 6px; font-size: 10px; font-weight: 500; margin-left: 4px; }
 .tab.active .tab-badge { background: rgba(255,255,255,0.3); }
 .doc-row { display: grid; gap: 0; padding: 16px 20px; border-bottom: 0.5px solid #f0e0e6; align-items: center; transition: background 0.1s; }
 .doc-row:last-child { border-bottom: none; }
@@ -754,12 +760,20 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .prof-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; background: #e1f5ee; color: #04342c; }
 .pac-avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: #fdf0f3; border: 0.5px solid #f28b98; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #5a1e37; flex-shrink: 0; }
 .pac-meta { font-size: 11px; color: #a9435d; }
-.prof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+/* repeat(3,1fr) forzaba 3 columnas iguales sin importar si entraba el
+   contenido real de cada tarjeta (nombre con los 2 apellidos + email +
+   teléfono) — con 3 profesionales la 3ra tarjeta quedaba empujada fuera
+   del viewport (reportado con captura, 2026-11-17). auto-fit/minmax deja
+   que el grid decida solo cuántas columnas entran de verdad, sin fijar un
+   número — por debajo de ~420px por tarjeta, pasa a menos columnas en vez
+   de desbordar. */
+.prof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; }
 .prof-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.prof-name { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; }
+.prof-name { font-size: 14px; font-weight: 500; color: #5a1e37; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prof-dato span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .prof-especialidad { font-size: 12px; color: #a9435d; }
 .prof-datos { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-.prof-dato { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5a3040; }
+.prof-dato { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5a3040; min-width: 0; }
 .prof-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 0.5px solid #f0e0e6; }
 .badge-inactivo { background: #f7f0f3; color: #a9435d; }
 .prof-actions { display: flex; gap: 6px; }

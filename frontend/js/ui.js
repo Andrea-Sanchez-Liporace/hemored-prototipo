@@ -90,7 +90,7 @@ HemoRed.ui = (function() {
           <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;">
             <div style="height:100%;width:0%;background:#ef647c;border-radius:2px;" id="plan-card-bar"></div>
           </div>
-          <div style="font-size:10px;color:#f28b98;margin-top:6px;" id="plan-card-limite"><a href="../publico/pago.html" style="color:#ef647c;text-decoration:none;">Actualizar plan</a></div>
+          <div style="font-size:10px;color:#f28b98;margin-top:6px;" id="plan-card-limite"></div>
         </div>
       </div>
     `;
@@ -118,8 +118,7 @@ HemoRed.ui = (function() {
     document.getElementById('plan-card-sub').textContent = `${campanasActivas} de ${max} campañas activas`;
     document.getElementById('plan-card-bar').style.width = pctPlan + '%';
     if (alLimite) {
-      document.getElementById('plan-card-limite').innerHTML =
-        'Límite alcanzado · <a href="../publico/pago.html" style="color:#ef647c;text-decoration:none;">Actualizar plan</a>';
+      document.getElementById('plan-card-limite').textContent = 'Límite alcanzado';
     }
   }
 

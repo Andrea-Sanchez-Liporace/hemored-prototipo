@@ -290,7 +290,7 @@
     const cont = document.getElementById('turnos-rows');
     cont.innerHTML = turnos.map(t => {
       const badge = BADGE_INFO[t.estado] || { clase: '', texto: t.estado };
-      const nombreCompleto = t.donante ? `${t.donante.nombre} ${t.donante.apellido}` : 'Donante';
+      const nombreCompleto = t.donante ? `${t.donante.nombre} ${t.donante.apellido_paterno || ''} ${t.donante.apellido_materno || ''}`.replace(/\s+/g, ' ').trim() : 'Donante';
       const dni = t.donante?.numero_documento ? `DNI ${t.donante.numero_documento}` : '';
       const esUrgente = !!t.campana?.urgente;
 
@@ -312,7 +312,7 @@
       return `
         <div class="turno-row" data-nombre="${nombreCompleto.toLowerCase()}" data-campana="${(t.campana?.titulo || '').toLowerCase()}">
           <div class="turno-donante">
-            <div class="turno-avatar">${iniciales(t.donante?.nombre, t.donante?.apellido)}</div>
+            <div class="turno-avatar">${iniciales(t.donante?.nombre, t.donante?.apellido_paterno)}</div>
             <div><div class="turno-nombre">${nombreCompleto}</div><div class="turno-sub">${dni}</div></div>
           </div>
           <div class="td"><span class="campana-chip">${esUrgente ? '<i class="ti ti-flame" style="font-size:10px;color:#c0392b;"></i>' : ''}${t.campana?.titulo || '—'}</span></div>
