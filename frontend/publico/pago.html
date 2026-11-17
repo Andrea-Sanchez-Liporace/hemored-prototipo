@@ -123,7 +123,7 @@
       <div class="form-section">Datos de facturación</div>
       <div class="form-group">
         <label class="form-label">Razón social</label>
-        <input class="form-input" type="text" placeholder="Hospital General San Martín SA" value="Hospital Ramos Mejía">
+        <input class="form-input" id="pago-razon-social" type="text" placeholder="Hospital General San Martín SA">
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -251,6 +251,9 @@
   }
 
   async function aplicarPlanElegido() {
+    const nombreInstitucion = sessionStorage.getItem('hemored_hospital_nombre');
+    if (nombreInstitucion) document.getElementById('pago-razon-social').value = nombreInstitucion;
+
     await HemoRed.db.init();
     const id = Number(sessionStorage.getItem('hemored_plan_elegido'));
     const planes = HemoRed.db.all('planes').filter(p => p.activo && p.precio_base > 0);

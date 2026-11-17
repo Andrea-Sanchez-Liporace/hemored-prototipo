@@ -300,6 +300,10 @@
     await HemoRed.db.init();
     const plan = HemoRed.db.find('planes', planElegido);
     sessionStorage.setItem('hemored_plan_elegido', String(planElegido));
+    // Se guarda el nombre de la institución ya cargado en este form antes de
+    // borrar el draft, para que pago.html no lo tenga que hardcodear.
+    const nombreInstitucion = document.getElementById('h-nombre').value.trim();
+    if (nombreInstitucion) sessionStorage.setItem('hemored_hospital_nombre', nombreInstitucion);
     sessionStorage.removeItem(DRAFT_KEY);
     // El plan Gratuito no tiene nada que cobrar — saltea pago.html directo
     // a la pantalla de "cuenta pendiente de aprobación".
