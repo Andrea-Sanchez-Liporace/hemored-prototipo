@@ -41,7 +41,8 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 { text-wrap: balance; margin: 0; }
+  h1, h2, h3 { margin: 0; }
+  .titulo-seccion { text-wrap: pretty; }
   p { margin: 0; }
   img, video { max-width: 100%; }
 
@@ -260,7 +261,7 @@
     <div class="seccion-inner gutter">
       <div class="eyebrow"><span class="num">01</span> El problema</div>
       <h1 class="titulo-seccion">Conseguir donantes de sangre a tiempo sigue siendo, en gran parte, manual.</h1>
-      <p class="bajada">En Argentina, la coordinación de campañas de donación depende todavía de canales informales — redes sociales, grupos de mensajería — sin un sistema que centralice quién puede donar, cuándo, y en qué hospital.</p>
+      <p class="bajada">En Argentina, la coordinación de campañas de donación depende todavía de canales informales, como redes sociales o grupos de mensajería, sin un sistema que centralice quién puede donar, cuándo y en qué hospital.</p>
 
       <div class="stats-row">
         <div class="stat-card">
@@ -281,7 +282,7 @@
       </div>
 
       <div class="problema-cierre">
-        El resultado: hospitales que no llegan a cubrir su necesidad puntual, y donantes dispuestos a ayudar que nunca se enteran de la campaña a tiempo. <strong>No falta voluntad — falta organización.</strong>
+        El resultado: hospitales que no llegan a cubrir su necesidad puntual, y donantes dispuestos a ayudar que nunca se enteran de la campaña a tiempo. <strong>No falta voluntad: falta organización.</strong>
       </div>
     </div>
   </section>
@@ -290,7 +291,7 @@
     <div class="seccion-inner gutter">
       <div class="eyebrow"><span class="num">02</span> La solución</div>
       <h1 class="titulo-seccion">HemoRed conecta donantes, hospitales y profesionales de salud en un solo sistema.</h1>
-      <p class="bajada">Una plataforma centralizada para gestionar campañas, turnos y toda la documentación asociada al proceso de donación — de punta a punta.</p>
+      <p class="bajada">Una plataforma centralizada para gestionar campañas, turnos y toda la documentación asociada al proceso de donación, de punta a punta.</p>
 
       <div class="pilares">
         <div class="pilar">
@@ -306,7 +307,7 @@
         <div class="pilar">
           <div class="pilar-icono">🩺</div>
           <h3>Circuito clínico digital</h3>
-          <p>Entrevista médica, extracción, resultado del análisis y certificado de donación, todo conectado — nada en papel.</p>
+          <p>Entrevista médica, extracción, resultado del análisis y certificado de donación, todo conectado y sin papel.</p>
         </div>
       </div>
     </div>
@@ -338,7 +339,7 @@
   <section class="seccion oscura gracias-seccion" id="gracias">
     <div class="seccion-inner gutter gracias">
       <div class="gracias-titulo">¡Gracias!</div>
-      <p class="equipo">Sofía Páez - Andrea Sanchez Liporace - Natalia Sanchez Liporace</p>
+      <p class="equipo">Sofía Páez, Andrea Sanchez Liporace y Natalia Sanchez Liporace</p>
       <p class="gracias-foot">Prácticas Profesionalizantes IV · Tecnicatura Superior en Análisis de Sistemas · IFTS N.° 11</p>
     </div>
   </section>
@@ -346,7 +347,7 @@
 </main>
 
 <script>
-  // Portada del video dibujada con canvas (no una imagen aparte) — así la
+  // Portada del video dibujada con canvas (no una imagen aparte), así la
   // tipografía Lobster del logo se ve igual que en el resto de la página,
   // sin depender de que un <img>/poster externo pueda cargar la misma
   // fuente que el documento.
@@ -394,7 +395,7 @@
     ctx.textAlign = 'center';
     ctx.font = "500 34px 'Inter', sans-serif";
     ctx.fillStyle = '#e8a9b8';
-    ctx.fillText('Demo completa — del registro al certificado', 960, 630);
+    ctx.fillText('Demo completa: del registro al certificado', 960, 630);
 
     video.setAttribute('poster', canvas.toDataURL('image/png'));
   })();
