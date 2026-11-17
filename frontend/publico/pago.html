@@ -154,9 +154,9 @@
 
       <button class="btn-pagar" id="btn-pagar" onclick="procesarPago()">
         <i class="ti ti-lock"></i>
-        Pagar $15.000 / mes
+        Confirmar método de pago
       </button>
-      <p class="terms-note">Al pagar aceptás los <a href="terminos.html">Términos de servicio</a> y la <a href="privacidad.html">Política de privacidad</a>. Podés cancelar en cualquier momento.</p>
+      <p class="terms-note">No se te cobra hasta que tu cuenta sea aprobada. Al confirmar aceptás los <a href="terminos.html">Términos de servicio</a> y la <a href="privacidad.html">Política de privacidad</a>. Podés cancelar en cualquier momento.</p>
     </div>
 
     <!-- RESUMEN -->
@@ -181,30 +181,6 @@
 
   </div>
 
-  <!-- SUCCESS -->
-  <div class="success-view" id="success-view">
-    <div class="success-icon">
-      <i class="ti ti-check"></i>
-    </div>
-    <div class="success-title">¡Pago confirmado!</div>
-    <div class="success-text">Tu suscripción al <span id="success-plan-nombre">Plan Provincial</span> está activa. Ya podés empezar a publicar campañas y gestionar donaciones en HemoRed.</div>
-    <div class="suscripcion-detalle">
-      <div class="suscripcion-detalle-title">Detalles de la suscripción</div>
-      <div class="suscripcion-detalle-row">
-        <span>Plan</span><span id="success-plan-nombre-2">Plan Provincial</span>
-      </div>
-      <div class="suscripcion-detalle-row">
-        <span>Próximo cobro</span><span>15 de junio 2026</span>
-      </div>
-      <div class="suscripcion-detalle-row">
-        <span>Monto</span><span id="success-plan-monto">$18.150 / mes</span>
-      </div>
-    </div>
-    <button class="btn-ir-dashboard" onclick="window.location='../hospital/dashboard.html'">
-      <i class="ti ti-layout-dashboard"></i>
-      Ir al dashboard
-    </button>
-  </div>
 </main>
 
 <footer>
@@ -241,10 +217,13 @@
     document.getElementById('card-exp').textContent = val || 'MM/AA';
   }
 
+  // El pago no se cobra en el momento: queda registrado como "a cobrar
+  // cuando se apruebe la cuenta" (2026-11-17, pedido explícito: el flujo de
+  // pago también queda sujeto a la aprobación del admin, igual que el plan
+  // Gratuito). Por eso no hay pantalla de "pago confirmado / ir al
+  // dashboard": se va directo a cuenta_pendiente.html.
   function procesarPago() {
-    document.getElementById('pay-layout').style.display = 'none';
-    document.getElementById('success-view').classList.add('active');
-    window.scrollTo(0, 0);
+    window.location = '../publico/cuenta_pendiente.html';
   }
 
   // Plan real leído de planes.json (2026-11-17, pedido explícito: "los
@@ -288,10 +267,6 @@
     document.getElementById('resumen-subtotal').textContent = formatearMonto(precio);
     document.getElementById('resumen-iva').textContent = formatearMonto(iva);
     document.getElementById('resumen-total').textContent = formatearMonto(total);
-    document.getElementById('btn-pagar').innerHTML = `<i class="ti ti-lock"></i>Pagar ${formatearMonto(precio)} / mes`;
-    document.getElementById('success-plan-nombre').textContent = nombrePlan;
-    document.getElementById('success-plan-nombre-2').textContent = nombrePlan;
-    document.getElementById('success-plan-monto').textContent = `${formatearMonto(total)} / mes`;
   }
 
   document.addEventListener('DOMContentLoaded', aplicarPlanElegido);
