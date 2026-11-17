@@ -237,6 +237,22 @@
   .video-leyenda span { white-space: nowrap; }
   .video-leyenda b { color: var(--accent); font-variant-numeric: tabular-nums; }
 
+  /* ===== SECCIÓN 0: PORTADA ===== */
+  .intro {
+    text-align: center;
+  }
+  .intro-logo {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 9vw, 96px);
+    color: var(--dark-text);
+    margin-bottom: 16px;
+  }
+  .intro-logo span { color: var(--accent); }
+  .intro-tagline {
+    font-size: clamp(15px, 1.8vw, 19px);
+    color: var(--dark-text-muted);
+  }
+
   /* ===== SECCIÓN 4: GRACIAS ===== */
   .gracias {
     text-align: center;
@@ -275,6 +291,7 @@
 <header class="topnav gutter">
   <div class="logo">Hemo<span>red</span></div>
   <nav class="dots" aria-label="Secciones">
+    <button class="dot" data-target="intro" aria-label="Ir a Portada"></button>
     <button class="dot" data-target="problema" aria-label="Ir a Problema"></button>
     <button class="dot" data-target="solucion" aria-label="Ir a Solución"></button>
     <button class="dot" data-target="video" aria-label="Ir a Demo"></button>
@@ -283,6 +300,13 @@
 </header>
 
 <main>
+
+  <section class="seccion oscura intro-seccion" id="intro">
+    <div class="seccion-inner gutter intro">
+      <div class="intro-logo">Hemo<span>red</span></div>
+      <p class="intro-tagline">Plataforma de gestión de campañas de donación de sangre</p>
+    </div>
+  </section>
 
   <section class="seccion clara" id="problema">
     <div class="seccion-inner gutter">
@@ -428,7 +452,7 @@
   })();
 
   (function () {
-    var secciones = ['problema', 'solucion', 'video', 'gracias'];
+    var secciones = ['intro', 'problema', 'solucion', 'video', 'gracias'];
     var dots = Array.prototype.slice.call(document.querySelectorAll('.dot'));
 
     dots.forEach(function (dot) {
