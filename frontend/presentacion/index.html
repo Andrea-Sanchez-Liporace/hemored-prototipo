@@ -194,22 +194,42 @@
   .pilar h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
   .pilar p { font-size: 13px; color: var(--dark-text-muted); }
 
-  /* ===== SECCIÓN 3: VIDEO ===== */
+  /* ===== SECCIÓN 3: VIDEO =====
+     El video ocupa el alto disponible (flex:1 dentro de una columna que sí
+     mide el 100% de la sección) y el marco se achica al ancho real del
+     video (width: fit-content) para no dejar franjas blancas a los costados. */
+  #video .seccion-inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  #video .eyebrow,
+  #video .titulo-seccion,
+  #video .bajada,
+  #video .video-leyenda {
+    flex: none;
+  }
   .video-marco {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    margin: 15px auto;
+    padding: 10px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 10px;
     box-shadow: 0 24px 60px -24px rgba(90,30,55,0.35);
-    text-align: center;
   }
   .video-marco video {
     display: block;
+    height: 100%;
     width: auto;
-    height: auto;
     max-width: 100%;
-    max-height: 42vh;
-    margin: 0 auto;
     border-radius: 10px;
     background: #000;
   }
@@ -217,7 +237,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px 16px;
-    margin-top: 14px;
     font-size: 12px;
     color: var(--text-secondary);
   }
